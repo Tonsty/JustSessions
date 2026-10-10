@@ -123,6 +123,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 10 | [Message search decoded every image](#10-message-search-decoded-every-image) | Done: issue #59 |
 | 11 | [Codex's compacted records are parsed in full](#11-codexs-compacted-records-are-parsed-in-full) | To investigate |
 | 13 | [Each OpenCode page read every message's data](#13-each-opencode-page-read-every-messages-data) | Done: issue #60 |
+| 15 | [Terminals in minimized windows drew as if in sight](#15-terminals-in-minimized-windows-drew-as-if-in-sight) | Done: issue #63 |
 
 ### 1. Timestamp parsing
 
@@ -273,6 +274,23 @@ The gain is smaller on real sessions. On one contributor's 46 Claude Code and 16
 
 Message search reads a session in pages of up to 5,000 entries, so it read the index only a few times before the change. Most of its time is reading every message's data and parts, which it still needs.
 
+### 15. Terminals in minimized windows drew as if in sight
+
+**Evidence:** a tab's terminal batches its output and stops drawing while the tab is hidden behind another, but nothing told it about its window. A selected tab in a minimized window, or one covered by another window, fed and drew every byte as one in sight does. `TerminalWindowVisibilityMeasurements` replays a full-screen TUI repainting 40 rows at 30 frames a second through one `SelectableTerminalView` for 3 seconds, release build, median of five, as a share of one core:
+
+| Window | Before | After |
+| --- | --- | --- |
+| In sight | 13–22% | 22% |
+| Covered by another window | 15–22% | 22% |
+| Minimized | 22% | 3.4% |
+| Bound: the tab hidden, window in sight | 3.8–4.0% | 3.8% |
+
+The in-sight figure varies between runs with what else the machine is doing; the bound and the minimized figure after the change are steady.
+
+**Change:** `TerminalInsetView` follows its window's `didMiniaturize` and `didDeminiaturize` notifications and treats a minimized window's terminal as a hidden tab: output is batched at 8 Hz and drawing waits, through the same `setWorkspaceActive` both engines implement. Restoring the window flushes and redraws, as selecting a hidden tab does. The CLI keeps running and its process is read as before, so notifications and attention are unaffected. A tab dragged into another window follows that window.
+
+A covered window is left alone. macOS reports `NSWindow.occlusionState` only to a running app, never to a test process, even one with the regular activation policy, so a check on it couldn't be tested here, and the window server's own occlusion culling already applies to its drawing. The measurement keeps the covered state as a reference.
+
 ## How to profile
 
 Attach to a running copy, so you keep your windows and sessions. Record in chunks, so you can analyze finished chunks while still using the app:
@@ -293,6 +311,7 @@ Or open the trace in Instruments. Keep these points in mind:
   - `MessageSearchReadingMeasurements`: reading generated sessions with images for message search, decoding the images and leaving them undecoded.
   - `SidebarInteractionMeasurements`: sidebar interactions.
   - `TerminalVisibilityMeasurements`: hidden terminals.
+  - `TerminalWindowVisibilityMeasurements`: a selected terminal while its window is in sight, covered, or minimized.
   - `TerminalEngineMeasurements`: Ghostty and SwiftTerm tabs under the same output, and their memory; see [Terminal engines](#terminal-engines-ghostty-and-swiftterm) and [Build and release](build-and-release.md#performance-measurements) for the commands.
   - `TranscriptInteractionMeasurements`: scrolling, hit testing, and opening Find in a 240- and 640-entry transcript, with SwiftUI's accessibility off and on. Run it with `JUSTSESSIONS_PERF=1 swift test -c release --filter TranscriptInteractionMeasurements`.
   - `OpenCodeTranscriptPagingMeasurements`: paging through OpenCode sessions of 1,000 and 10,000 messages, and reading them for message search.

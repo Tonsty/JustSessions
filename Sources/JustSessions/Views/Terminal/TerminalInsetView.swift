@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 
 /// Holds a tab's terminal in from the window's edges, in the terminal's own background color, so text never touches
 /// the window's edge or the sidebar. The leading inset lines the first column up with the tab bar's labels. SwiftTerm
@@ -8,6 +9,15 @@ final class TerminalInsetView: NSView {
     static let insets = NSEdgeInsets(top: 6, left: 16, bottom: 6, right: 0)
 
     let terminalView: any TabTerminalView
+    /// The terminal is on screen in its window: full width or as either half of a split. While it is, and the window
+    /// isn't minimized, the terminal draws its output as it comes; otherwise its output is batched, as a hidden tab's
+    /// is, and drawing waits. A minimized window's terminals cost as much as ones in sight without this; see
+    /// `docs/development/performance.md`.
+    var isShown = true {
+        didSet { applyWorkspaceActivity() }
+    }
+    /// Cancelled when the view goes away, so no `deinit` is needed.
+    private var windowObservations: Set<AnyCancellable> = []
 
     init(terminalView: any TabTerminalView) {
         self.terminalView = terminalView
@@ -16,6 +26,24 @@ final class TerminalInsetView: NSView {
         addSubview(terminalView)
         terminalView.frame = terminalFrame
         terminalView.onBackgroundColorChange = { [weak self] in self?.needsDisplay = true }
+    }
+
+    /// A tab moved to another window follows that window's minimizing instead.
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        windowObservations.removeAll()
+        if let window {
+            for name in [NSWindow.didMiniaturizeNotification, NSWindow.didDeminiaturizeNotification] {
+                NotificationCenter.default.publisher(for: name, object: window)
+                    .sink { [weak self] _ in MainActor.assumeIsolated { self?.applyWorkspaceActivity() } }
+                    .store(in: &windowObservations)
+            }
+        }
+        applyWorkspaceActivity()
+    }
+
+    private func applyWorkspaceActivity() {
+        terminalView.setWorkspaceActive(isShown && window?.isMiniaturized != true)
     }
 
     @available(*, unavailable)
