@@ -14,30 +14,46 @@ struct GhosttyTabTeardownTests {
     private static let highWaterByteCount = 64 << 10
     private static let lowWaterByteCount = 16 << 10
 
-    /// While the main thread is busy, the paused read waits for it, so closing the tab must not wait for that read.
+    /// The paused read waits until Ghostty has parsed what it read, so closing the tab, which waits for anything the
+    /// read is doing, must end that wait first or wait forever. The read waits here for a Ghostty that has not parsed
+    /// the output, as Ghostty can't before the view is in a window, so the main thread stays free until `terminate()`.
+    /// A test that held the main thread instead, until the reading paused, could hang a busy machine's whole run.
     @Test func terminatingAPausedTabReturnsAndEndsItsProcess() async throws {
-        let fixture = try GhosttyTabFixture(
+        let settings = try IsolatedUserDefaults()
+        let folder = try makeTemporaryDirectory()
+        defer {
+            settings.removeSuite()
+            try? FileManager.default.removeItem(at: folder)
+        }
+        let view = GhosttyTabTerminalView(
+            frame: NSRect(x: 0, y: 0, width: 640, height: 400),
+            appearanceStore: TerminalAppearanceStore(userDefaults: settings.userDefaults),
+            themeStore: AppThemeStore(userDefaults: settings.userDefaults),
             outputHighWaterByteCount: Self.highWaterByteCount,
             outputLowWaterByteCount: Self.lowWaterByteCount
         )
-        defer { fixture.tearDown() }
-        fixture.view.startProcess(
+        view.startProcess(
             executable: "/bin/sh",
             args: ["-c", Self.endlessProducer],
-            environment: Self.environment(in: fixture.folder),
+            environment: Self.environment(in: folder),
             execName: nil,
-            currentDirectory: fixture.folder.path
+            currentDirectory: folder.path
         )
-        try #require(Self.blockMainThreadUntilReadingPauses(fixture.view.outputBackpressure))
-        let processID = fixture.view.processID
+        let processID = view.processID
+        try #require(processID > 0)
+        try #require(await Self.waitUntilReadingPauses(view.outputBackpressure))
         // Without it a broken `terminate()` would wait forever, and the test with it. Long enough that a busy machine,
         // such as the release workflow's, never needs it when `terminate()` works.
-        let rescue = PausedReadRescue(fixture.view.outputBackpressure, after: .seconds(60))
+        let rescue = PausedReadRescue(view.outputBackpressure, after: .seconds(60))
 
-        let elapsed = ContinuousClock().measure { fixture.view.terminate() }
+        let elapsed = ContinuousClock().measure { view.terminate() }
 
         #expect(!rescue.finish(), "terminate() waited for the paused read until the test ended the wait, after \(elapsed)")
-        #expect(Self.blockMainThreadUntilExited(processID), "The process kept running")
+        var wasReaped = false
+        try await expectEventually {
+            wasReaped = wasReaped || waitpid(processID, nil, WNOHANG) == processID
+            return wasReaped
+        }
     }
 
     /// As when a tab whose process ended closes while a job the process left behind still writes: nothing calls
@@ -89,40 +105,21 @@ struct GhosttyTabTeardownTests {
         #expect(freeing.wasFreedOnMainThread == true)
     }
 
-    /// Writes 64 KiB at a time until a write fails or it is told to end. It then throws away the output the
-    /// terminal has not read before it ends: closing a terminal waits for that output to be read, which never happens
-    /// while another test's process holds the terminal open, as each process started on a pseudo-terminal holds
-    /// those of the terminals started before it.
+    /// Writes 64 KiB at a time until a write fails or it is told to end; a write a signal interrupts is tried again.
+    /// It then throws away the output the terminal has not read before it ends: closing a terminal waits for that
+    /// output to be read, which never happens while another test's process holds the terminal open, as each process
+    /// started on a pseudo-terminal holds those of the terminals started before it.
     private static let endlessProducer = #"""
         exec /usr/bin/perl -MPOSIX -e '
             sub finish { POSIX::tcflush(1, POSIX::TCOFLUSH); POSIX::_exit(0) }
             $SIG{TERM} = $SIG{HUP} = \&finish;
             my $chunk = (("x" x 1023) . "\r\n") x 64;
-            while (1) { defined(syswrite(STDOUT, $chunk)) or finish() }
+            while (1) { defined(syswrite(STDOUT, $chunk)) or $!{EINTR} or finish() }
         '
         """#
 
     private static func environment(in folder: URL) -> [String] {
         ["HOME=\(folder.path)", "PATH=/usr/bin:/bin", "TERM=xterm-256color", "LANG=en_US.UTF-8"]
-    }
-
-    /// Blocks the main thread, so no output reaches Ghostty, until the output read stops growing at the high-water
-    /// mark: the reading waits for room. Returns whether it did within 120 seconds.
-    private static func blockMainThreadUntilReadingPauses(_ backpressure: GhosttyOutputBackpressure) -> Bool {
-        let deadline = Date(timeIntervalSinceNow: 120)
-        var unparsed = backpressure.unparsedByteCount
-        var unchangedSince = Date()
-        while Date() < deadline {
-            Thread.sleep(forTimeInterval: 0.02)
-            let now = backpressure.unparsedByteCount
-            if now != unparsed {
-                unparsed = now
-                unchangedSince = Date()
-            } else if unparsed >= highWaterByteCount, Date().timeIntervalSince(unchangedSince) > 0.3 {
-                return true
-            }
-        }
-        return false
     }
 
     /// Waits, with the main thread free to pass output on, until the output read stops growing at the high-water
@@ -160,17 +157,6 @@ struct GhosttyTabTeardownTests {
             window.close()
         }
         try await expectEventually { session.pendingOutputByteCount == 0 }
-    }
-
-    /// Returns whether the process ended within 120 seconds, and reaps it.
-    private static func blockMainThreadUntilExited(_ processID: pid_t) -> Bool {
-        guard processID > 0 else { return false }
-        let deadline = Date(timeIntervalSinceNow: 120)
-        while Date() < deadline {
-            if waitpid(processID, nil, WNOHANG) == processID { return true }
-            Thread.sleep(forTimeInterval: 0.02)
-        }
-        return false
     }
 }
 
