@@ -46,6 +46,54 @@ struct SSHHostConfigurationTests {
         #expect(unshared.controlPath == nil)
     }
 
+    @Test func connectionSharingFallbackPreservesAliasesAndExplicitPolicies() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let configFile = root.appendingPathComponent("config")
+        try """
+            Host allowed
+              HostName 192.0.2.20
+              User deploy
+              Port 2202
+              ProxyJump gateway
+              StrictHostKeyChecking yes
+            Host disabled
+              ControlMaster no
+            Host own-path
+              ControlMaster auto
+              ControlPath ~/.ssh/own-%C
+            Host no-path
+              ControlPath none
+            Host no-persist
+              ControlPersist no
+
+            """.write(to: configFile, atomically: true, encoding: .utf8)
+        let fallbackPath = "/tmp/justsessions-test/master"
+        func resolve(_ host: String) -> SSHHostConfiguration? {
+            SSHHostConfiguration.resolveWithConnectionSharingFallback(
+                host: host,
+                controlPath: fallbackPath,
+                userConfigFile: configFile.path,
+                systemConfigFile: root.appendingPathComponent("missing-system-config").path
+            )
+        }
+
+        let allowed = try #require(resolve("allowed"))
+        #expect(allowed.controlMaster == "auto")
+        #expect(allowed.controlPath == fallbackPath)
+        #expect(allowed.controlPersist == "60")
+        #expect(allowed.hostName == "192.0.2.20")
+        #expect(allowed.user == "deploy")
+        #expect(allowed.port == "2202")
+        #expect(allowed.value(of: "proxyjump") == "gateway")
+        #expect(allowed.value(of: "stricthostkeychecking") == "true")
+
+        #expect(try #require(resolve("disabled")).controlMaster == "false")
+        #expect(try #require(resolve("own-path")).controlPath != fallbackPath)
+        #expect(try #require(resolve("no-path")).controlPath == nil)
+        #expect(try #require(resolve("no-persist")).controlPersist == "no")
+    }
+
     @Test func aDestinationSSHCanNotParseHasNoConfiguration() throws {
         #expect(try Self.resolve("-oProxyCommand=touch /tmp/x") == nil)
     }

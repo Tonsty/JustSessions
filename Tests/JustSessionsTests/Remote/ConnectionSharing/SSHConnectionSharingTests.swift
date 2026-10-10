@@ -4,52 +4,53 @@ import Testing
 @testable import JustSessions
 
 struct SSHConnectionSharingTests {
-    @Test func sharesThroughASocketPerHostInTheAppsFolder() {
-        #expect(SSHConnectionSharing.options(userControlPath: nil, socketDirectory: "/tmp/justsessions-ssh-501") == [
+    @Test func usesOnePrivateSocketForARefresh() {
+        #expect(SSHConnectionSharing.options(controlPath: "/tmp/justsessions-ssh-501/refresh-id/master") == [
             "-o", "ControlMaster=auto",
-            "-o", "ControlPath=/tmp/justsessions-ssh-501/%C",
+            "-o", "ControlPath=/tmp/justsessions-ssh-501/refresh-id/master",
             "-o", "ControlPersist=60",
         ])
     }
 
-    @Test func aHostWithItsOwnControlPathKeepsTheUsersSettings() {
-        #expect(SSHConnectionSharing.options(userControlPath: "/Users/me/.ssh/cm-abc", socketDirectory: "/tmp/justsessions-ssh-501").isEmpty)
-    }
-
-    @Test func withoutASafeFolderNothingIsShared() {
-        #expect(SSHConnectionSharing.options(userControlPath: nil, socketDirectory: nil).isEmpty)
-    }
-
-    /// `%C` becomes 40 hex digits, and `ssh` adds 17 characters while it sets the socket up; a Unix socket's path must
-    /// fit in 104 bytes, its ending NUL included.
+    /// `%C` is not used in the app-owned path, but `ssh` still adds 17 characters while it sets the socket up; a
+    /// Unix socket's path must fit in 104 bytes, its ending NUL included.
     @Test func theSocketPathFitsAUnixSocket() {
-        let longestPath = SSHConnectionSharing.socketDirectory + "/" + String(repeating: "f", count: 40) + "." + String(repeating: "x", count: 16)
+        let longestPath = SSHConnectionSharing.socketRoot + "/refresh-" + UUID().uuidString + "/master." + String(repeating: "x", count: 16)
 
         #expect(longestPath.utf8.count < 104)
-        #expect(SSHConnectionSharing.socketDirectory == "/tmp/justsessions-ssh-\(getuid())")
+        #expect(SSHConnectionSharing.socketRoot == "/tmp/justsessions-ssh-\(getuid())")
     }
 
-    @Test func createsAFolderOnlyItsUserCanEnter() throws {
-        let root = try makeTemporaryDirectory()
-        defer { try? FileManager.default.removeItem(at: root) }
-        let folder = root.appendingPathComponent("sockets").path
+    @Test func createsASeparatePrivateFolderForEveryRefresh() throws {
+        let root = try makeTemporaryDirectory().appendingPathComponent("sockets").path
+        defer { try? FileManager.default.removeItem(atPath: root) }
 
-        #expect(SSHSocketDirectory.prepared(at: folder) == folder)
-        let permissions = try FileManager.default.attributesOfItem(atPath: folder)[.posixPermissions] as? Int
-        #expect(permissions == 0o700)
-        #expect(SSHSocketDirectory.prepared(at: folder) == folder)
+        let first = try #require(SSHSocketDirectory.makeRefreshDirectory(
+            at: root,
+            identifier: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+        ))
+        let second = try #require(SSHSocketDirectory.makeRefreshDirectory(
+            at: root,
+            identifier: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
+        ))
+
+        #expect(first != second)
+        let rootPermissions = try FileManager.default.attributesOfItem(atPath: root)[.posixPermissions] as? Int
+        let refreshPermissions = try FileManager.default.attributesOfItem(atPath: first.path)[.posixPermissions] as? Int
+        #expect(rootPermissions == 0o700)
+        #expect(refreshPermissions == 0o700)
     }
 
-    @Test func refusesAFolderOthersCanEnter() throws {
+    @Test func refusesARootOthersCanEnter() throws {
         let root = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
         let folder = root.appendingPathComponent("sockets").path
         try FileManager.default.createDirectory(atPath: folder, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o755])
 
-        #expect(SSHSocketDirectory.prepared(at: folder) == nil)
+        #expect(SSHSocketDirectory.makeRefreshDirectory(at: folder) == nil)
     }
 
-    @Test func refusesALinkInPlaceOfTheFolder() throws {
+    @Test func refusesALinkInPlaceOfTheRoot() throws {
         let root = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
         let target = root.appendingPathComponent("elsewhere").path
@@ -57,6 +58,40 @@ struct SSHConnectionSharingTests {
         let link = root.appendingPathComponent("sockets").path
         try FileManager.default.createSymbolicLink(atPath: link, withDestinationPath: target)
 
-        #expect(SSHSocketDirectory.prepared(at: link) == nil)
+        #expect(SSHSocketDirectory.makeRefreshDirectory(at: link) == nil)
+    }
+
+    @Test func teardownEndsOnlyItsOwnMasterRemovesItsFolderAndIsIdempotent() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let directory = root.appendingPathComponent("refresh")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
+        let controlPath = directory.appendingPathComponent("master").path
+        try Data().write(to: URL(fileURLWithPath: controlPath))
+        let closes = CloseRecorder()
+        let sharing = SSHConnectionSharing(host: "alias", directory: directory, controlPath: controlPath) { host, path in
+            closes.append(host: host, path: path)
+        }
+
+        sharing.finish()
+        sharing.finish()
+
+        #expect(closes.values.count == 1)
+        #expect(closes.values.first?.0 == "alias")
+        #expect(closes.values.first?.1 == controlPath)
+        #expect(!FileManager.default.fileExists(atPath: directory.path))
+    }
+}
+
+private final class CloseRecorder: @unchecked Sendable {
+    private let lock = NSLock()
+    private var stored: [(String, String)] = []
+
+    var values: [(String, String)] {
+        lock.withLock { stored }
+    }
+
+    func append(host: String, path: String) {
+        lock.withLock { stored.append((host, path)) }
     }
 }

@@ -1,11 +1,21 @@
 import Darwin
 import Foundation
 
-/// The folder for shared connections' sockets. `/tmp` is open to every user, so the folder is used only when it is
-/// a real folder of this user's that no one else can enter; anyone who connects to a socket uses that connection.
+/// Private folders for app-owned SSH control sockets. `/tmp` is open to every user, so the root is used only when
+/// it is a real folder of this user that no one else can enter; anyone who connects to a socket uses that connection.
 enum SSHSocketDirectory {
-    /// The folder, created when missing, or nil when it isn't safe to use.
-    static func prepared(at path: String) -> String? {
+    /// Makes a new directory for one refresh. A unique path keeps a stale socket left by a crashed app, or another
+    /// refresh of the same host, from ever being mistaken for this refresh's master.
+    static func makeRefreshDirectory(at rootPath: String, identifier: UUID = UUID()) -> URL? {
+        guard preparedRoot(at: rootPath) != nil else { return nil }
+        let directory = URL(fileURLWithPath: rootPath, isDirectory: true)
+            .appendingPathComponent("refresh-\(identifier.uuidString)", isDirectory: true)
+        guard mkdir(directory.path, 0o700) == 0 else { return nil }
+        return directory
+    }
+
+    /// The root, created when missing, or nil when it isn't safe to use.
+    static func preparedRoot(at path: String) -> String? {
         if mkdir(path, 0o700) != 0, errno != EEXIST { return nil }
         var status = stat()
         guard lstat(path, &status) == 0,

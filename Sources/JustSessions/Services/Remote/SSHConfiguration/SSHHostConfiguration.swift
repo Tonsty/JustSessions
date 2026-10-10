@@ -8,13 +8,47 @@ struct SSHHostConfiguration: Equatable, Sendable {
 
     /// Nil when `ssh -G` failed, as for a destination it can't parse. `configFile` stands in for `~/.ssh/config`.
     static func resolve(host: String, configFile: String? = nil) -> SSHHostConfiguration? {
+        resolve(host: host, arguments: configFile.map { ["-F", $0] } ?? [])
+    }
+
+    /// Resolves the user's settings before fallback connection-sharing settings. OpenSSH keeps the first value it
+    /// reads, so an explicit `ControlMaster no`, `ControlPath none`, or a control path of the user's own wins; only
+    /// an otherwise-unset host receives both fallbacks. The resulting connection still uses the regular config.
+    static func resolveWithConnectionSharingFallback(
+        host: String,
+        controlPath: String,
+        userConfigFile: String = NSHomeDirectory() + "/.ssh/config",
+        systemConfigFile: String = "/etc/ssh/ssh_config"
+    ) -> SSHHostConfiguration? {
+        let probe = FileManager.default.temporaryDirectory
+            .appendingPathComponent("justsessions-ssh-config-\(UUID().uuidString)")
+        let contents = """
+            Include \(quotedConfigPath(userConfigFile))
+            Include \(quotedConfigPath(systemConfigFile))
+            Host *
+              ControlMaster auto
+              ControlPath \(quotedConfigPath(controlPath))
+              ControlPersist \(SSHConnectionSharing.crashFallbackSeconds)
+
+            """
+        do { try contents.write(to: probe, atomically: true, encoding: .utf8) }
+        catch { return nil }
+        defer { try? FileManager.default.removeItem(at: probe) }
+        return resolve(host: host, arguments: ["-F", probe.path])
+    }
+
+    private static func resolve(host: String, arguments: [String]) -> SSHHostConfiguration? {
         guard let result = BoundedProcessRunner.result(
             ofExecutable: "/usr/bin/ssh",
-            arguments: (configFile.map { ["-F", $0] } ?? []) + ["-G", "--", host],
+            arguments: arguments + ["-G", "--", host],
             environment: SSHProcessEnvironment.standard,
             timeout: 10
         ), result.exitStatus == 0 else { return nil }
         return SSHHostConfiguration(sshDashGOutput: result.output)
+    }
+
+    private static func quotedConfigPath(_ path: String) -> String {
+        "\"" + path.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"") + "\""
     }
 
     init(sshDashGOutput output: String) {
@@ -32,6 +66,8 @@ struct SSHHostConfiguration: Equatable, Sendable {
     var user: String? { value(of: "user") }
     var hostName: String? { value(of: "hostname") }
     var port: String? { value(of: "port") }
+    var controlMaster: String? { value(of: "controlmaster") }
+    var controlPersist: String? { value(of: "controlpersist") }
 
     /// Where the user's own shared connections are kept, or nil when the config sets none.
     var controlPath: String? {

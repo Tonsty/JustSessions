@@ -8,7 +8,7 @@ struct NonInteractiveSSHOptionsTests {
         "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "-o", "ServerAliveInterval=10", "-o", "ServerAliveCountMax=3",
         "-o", "RemoteCommand=none", "-o", "ClearAllForwardings=yes",
     ]
-    static let sharingOptions = SSHConnectionSharing.options(userControlPath: nil, socketDirectory: "/tmp/justsessions-ssh-501")
+    static let sharingOptions = SSHConnectionSharing.options(controlPath: "/tmp/justsessions-ssh-501/refresh-id/master")
 
     @Test func remoteCommandsUseTheSharedOptionsWithoutATerminal() {
         #expect(RemoteHostCommandRunner.nonInteractiveSSHOptions == Self.expectedOptions)
@@ -25,7 +25,7 @@ struct NonInteractiveSSHOptionsTests {
 
         #expect(arguments[remoteShellIndex] == "ssh -T -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=10"
             + " -o ServerAliveCountMax=3 -o RemoteCommand=none -o ClearAllForwardings=yes"
-            + " -o ControlMaster=auto -o ControlPath=/tmp/justsessions-ssh-501/%C -o ControlPersist=60")
+            + " -o ControlMaster=auto -o ControlPath=/tmp/justsessions-ssh-501/refresh-id/master -o ControlPersist=60")
     }
 
     /// It runs the host's shell in a terminal, as a tab does.

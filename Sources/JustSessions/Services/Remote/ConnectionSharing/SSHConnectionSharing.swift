@@ -1,47 +1,97 @@
 import Darwin
 import Foundation
 
-/// Lets a host's background commands and copies share one SSH connection. A refresh then logs in once instead of
-/// about nine times, so a key that asks for Touch ID or a tap asks once, and a slow login, as through a jump host, is
-/// paid once. The first command's `ssh` keeps the connection open in the background for `idleSeconds` after the
-/// last one ends. A host whose `~/.ssh/config` sets a `ControlPath` keeps the user's own settings. Tabs don't share:
-/// each keeps a connection of its own, so ending one connection never ends the others' CLIs.
-enum SSHConnectionSharing {
-    static let idleSeconds = 60
+/// One app-owned SSH connection for one remote-session refresh. Snapshot commands, rsync copies, and cleanup
+/// commands receive the same private control path, then the refresh explicitly ends that master and removes its
+/// socket directory. A concurrent refresh gets a different path, and a user's own multiplexing policy is left alone.
+struct SSHConnectionSharing: Sendable {
+    static let socketRoot = "/tmp/justsessions-ssh-\(getuid())"
+    static let crashFallbackSeconds = 60
 
-    /// `%C` is a hash of this Mac, the host, its port, and the user, so each host's connection has its own socket.
-    /// A Unix socket path has room for about 100 bytes, and `ssh` adds 17 while it sets the socket up, so the
-    /// folder is in `/tmp`; the per-user `TMPDIR` is too long.
-    static let socketDirectory = "/tmp/justsessions-ssh-\(getuid())"
+    let options: [String]
+    private let state: State
 
-    /// The options for the host's background commands. None when the user's config sets a `ControlPath`, or when
-    /// the socket folder can't be used safely.
-    static func options(for host: String) -> [String] {
-        options(
-            userControlPath: SSHHostConfiguration.resolve(host: host)?.controlPath,
-            socketDirectory: SSHSocketDirectory.prepared(at: socketDirectory)
-        )
+    /// Starts a scope only when the user's SSH configuration leaves connection sharing unset. The first command in
+    /// the refresh starts the master; `ControlPersist` keeps it available between sequential commands and limits
+    /// its life if the app exits before explicit teardown.
+    static func startRefresh(to host: String) -> SSHConnectionSharing? {
+        guard let directory = SSHSocketDirectory.makeRefreshDirectory(at: socketRoot) else { return nil }
+        let controlPath = directory.appendingPathComponent("master").path
+        guard let configuration = SSHHostConfiguration.resolveWithConnectionSharingFallback(
+            host: host,
+            controlPath: controlPath
+        ), configuration.controlMaster == "auto", configuration.controlPath == controlPath,
+           configuration.controlPersist == String(crashFallbackSeconds) else {
+            try? FileManager.default.removeItem(at: directory)
+            return nil
+        }
+        return SSHConnectionSharing(host: host, directory: directory, controlPath: controlPath)
     }
 
-    static func options(userControlPath: String?, socketDirectory: String?) -> [String] {
-        guard userControlPath == nil, let socketDirectory else { return [] }
-        return [
+    init(
+        host: String,
+        directory: URL,
+        controlPath: String,
+        close: (@Sendable (_ host: String, _ controlPath: String) -> Void)? = nil
+    ) {
+        options = Self.options(controlPath: controlPath)
+        state = State(host: host, directory: directory, controlPath: controlPath, close: close ?? Self.close)
+    }
+
+    static func options(controlPath: String) -> [String] {
+        [
             "-o", "ControlMaster=auto",
-            "-o", "ControlPath=\(socketDirectory)/%C",
-            "-o", "ControlPersist=\(idleSeconds)",
+            "-o", "ControlPath=\(controlPath)",
+            "-o", "ControlPersist=\(crashFallbackSeconds)",
         ]
     }
 
-    /// Ends the host's shared connection, as when the host is removed; nothing happens when there is none.
-    static func closeSharedConnection(to host: String) {
-        let sharingOptions = options(for: host)
-        guard !sharingOptions.isEmpty else { return }
+    /// Safe to call more than once. The explicit path can only name this refresh's master, never one the user owns.
+    func finish() {
+        state.finish()
+    }
+
+    private static func close(host: String, controlPath: String) {
         _ = BoundedProcessRunner.result(
             ofExecutable: "/usr/bin/ssh",
-            arguments: ["-O", "exit", "-o", "BatchMode=yes"] + sharingOptions + ["--", host],
+            arguments: ["-O", "exit", "-S", controlPath, "-o", "BatchMode=yes", "--", host],
             environment: SSHProcessEnvironment.standard,
             includesStandardError: true,
             timeout: 10
         )
+    }
+
+    private final class State: @unchecked Sendable {
+        private let lock = NSLock()
+        private var isFinished = false
+        private let host: String
+        private let directory: URL
+        private let controlPath: String
+        private let close: @Sendable (_ host: String, _ controlPath: String) -> Void
+
+        init(
+            host: String,
+            directory: URL,
+            controlPath: String,
+            close: @escaping @Sendable (_ host: String, _ controlPath: String) -> Void
+        ) {
+            self.host = host
+            self.directory = directory
+            self.controlPath = controlPath
+            self.close = close
+        }
+
+        func finish() {
+            lock.lock()
+            guard !isFinished else {
+                lock.unlock()
+                return
+            }
+            isFinished = true
+            lock.unlock()
+
+            close(host, controlPath)
+            try? FileManager.default.removeItem(at: directory)
+        }
     }
 }
