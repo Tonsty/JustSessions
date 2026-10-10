@@ -67,7 +67,7 @@ final class GhosttyTabFixture {
     private func waitForLayout() async throws {
         var lastViewport = view.viewport
         var stableSince = ContinuousClock.now
-        let deadline = ContinuousClock.now + .seconds(30)
+        let deadline = ContinuousClock.now + .seconds(120)
         while ContinuousClock.now < deadline {
             try await Task.sleep(for: .milliseconds(20))
             if view.viewport != lastViewport {

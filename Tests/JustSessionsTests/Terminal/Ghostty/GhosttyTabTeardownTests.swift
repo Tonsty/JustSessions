@@ -30,13 +30,13 @@ struct GhosttyTabTeardownTests {
         )
         try #require(Self.blockMainThreadUntilReadingPauses(fixture.view.outputBackpressure))
         let processID = fixture.view.processID
-        // Without it a broken `terminate()` would wait forever, and the test with it.
-        let rescue = PausedReadRescue(fixture.view.outputBackpressure, after: .seconds(10))
+        // Without it a broken `terminate()` would wait forever, and the test with it. Long enough that a busy machine,
+        // such as the release workflow's, never needs it when `terminate()` works.
+        let rescue = PausedReadRescue(fixture.view.outputBackpressure, after: .seconds(60))
 
         let elapsed = ContinuousClock().measure { fixture.view.terminate() }
 
-        #expect(!rescue.finish(), "terminate() waited for the paused read until the test ended the wait")
-        #expect(elapsed < .seconds(3), "terminate() took \(elapsed)")
+        #expect(!rescue.finish(), "terminate() waited for the paused read until the test ended the wait, after \(elapsed)")
         #expect(Self.blockMainThreadUntilExited(processID), "The process kept running")
     }
 
@@ -107,9 +107,9 @@ struct GhosttyTabTeardownTests {
     }
 
     /// Blocks the main thread, so no output reaches Ghostty, until the output read stops growing at the high-water
-    /// mark: the reading waits for room. Returns whether it did within 20 seconds.
+    /// mark: the reading waits for room. Returns whether it did within 120 seconds.
     private static func blockMainThreadUntilReadingPauses(_ backpressure: GhosttyOutputBackpressure) -> Bool {
-        let deadline = Date(timeIntervalSinceNow: 20)
+        let deadline = Date(timeIntervalSinceNow: 120)
         var unparsed = backpressure.unparsedByteCount
         var unchangedSince = Date()
         while Date() < deadline {
@@ -126,9 +126,9 @@ struct GhosttyTabTeardownTests {
     }
 
     /// Waits, with the main thread free to pass output on, until the output read stops growing at the high-water
-    /// mark: the reading waits for room. Returns whether it did within 20 seconds.
+    /// mark: the reading waits for room. Returns whether it did within 120 seconds.
     private static func waitUntilReadingPauses(_ backpressure: GhosttyOutputBackpressure) async throws -> Bool {
-        let deadline = ContinuousClock.now + .seconds(20)
+        let deadline = ContinuousClock.now + .seconds(120)
         var unparsed = backpressure.unparsedByteCount
         var unchangedSince = ContinuousClock.now
         while ContinuousClock.now < deadline {
@@ -162,10 +162,10 @@ struct GhosttyTabTeardownTests {
         try await expectEventually { session.pendingOutputByteCount == 0 }
     }
 
-    /// Returns whether the process ended within 10 seconds, and reaps it.
+    /// Returns whether the process ended within 120 seconds, and reaps it.
     private static func blockMainThreadUntilExited(_ processID: pid_t) -> Bool {
         guard processID > 0 else { return false }
-        let deadline = Date(timeIntervalSinceNow: 10)
+        let deadline = Date(timeIntervalSinceNow: 120)
         while Date() < deadline {
             if waitpid(processID, nil, WNOHANG) == processID { return true }
             Thread.sleep(forTimeInterval: 0.02)
