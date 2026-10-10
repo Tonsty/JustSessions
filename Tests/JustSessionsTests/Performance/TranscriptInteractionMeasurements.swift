@@ -22,12 +22,13 @@ struct TranscriptInteractionMeasurements {
         for isAccessibilityOn in [false, true] {
             try await harness.setAccessibility(isAccessibilityOn)
             let label = "transcript N=\(entryCount), accessibility \(isAccessibilityOn ? "on" : "off")"
+            try await harness.resetViewport(to: .top)
             perfReport(label, "AppKit views in the window", harness.viewCount)
             perfReport(label, "most common AppKit views", harness.mostCommonViewClasses)
             for (name, value) in try await harness.measureScrolling() { perfReport(label, name, value) }
-            for (name, value) in harness.measurePositionLookup() { perfReport(label, name, value) }
-            for (name, value) in harness.measureHitTesting() { perfReport(label, name, value) }
+            for (name, value) in try await harness.measureHitTesting() { perfReport(label, name, value) }
             for (name, value) in try await harness.measureOpeningFind() { perfReport(label, name, value) }
+            for (name, value) in try await harness.measurePositionLookup() { perfReport(label, name, value) }
         }
         #expect(entryCount > 0) // Record-only: the numbers above are the result.
     }
@@ -86,9 +87,32 @@ final class TranscriptPerfHarness {
         return counts.sorted { $0.value > $1.value }.prefix(8).map { "\($0.key) \($0.value)" }.joined(separator: ", ")
     }
 
+    enum ViewportPosition {
+        case top
+        case middle
+
+        var fraction: CGFloat {
+            switch self {
+            case .top: 0
+            case .middle: 0.5
+            }
+        }
+    }
+
+    func resetViewport(to position: ViewportPosition) async throws {
+        let scrollView = try #require(transcriptScrollView)
+        let clipView = scrollView.contentView
+        let scrollableHeight = max(0, clipView.documentRect.height - clipView.bounds.height)
+        NotificationCenter.default.post(name: NSScrollView.willStartLiveScrollNotification, object: scrollView)
+        clipView.scroll(to: NSPoint(x: 0, y: scrollableHeight * position.fraction))
+        scrollView.reflectScrolledClipView(clipView)
+        try await pumpTurns(3)
+    }
+
     /// The transcript from top to bottom in 60 steps. Each step is the scroll, the layout and drawing it forces, and
     /// then what the reader does in response on the next turn of the run loop, such as recording the reading position.
     func measureScrolling(steps: Int = 60) async throws -> [(String, String)] {
+        try await resetViewport(to: .top)
         let scrollView = try #require(transcriptScrollView)
         let clipView = scrollView.contentView
         let scrollableHeight = max(0, clipView.documentRect.height - clipView.bounds.height)
@@ -114,22 +138,21 @@ final class TranscriptPerfHarness {
         ]
     }
 
-    func measurePositionLookup(iterations: Int = 1_000) -> [(String, String)] {
+    func measurePositionLookup(iterations: Int = 1_000) async throws -> [(String, String)] {
+        try await resetViewport(to: .middle)
         guard let scrollView = transcriptScrollView,
-              let controller = Self.descendants(ofType: TranscriptEntryGeometryView.self, in: hostingView).first?.controller else { return [] }
-        let clipView = scrollView.contentView
-        clipView.scroll(to: NSPoint(x: 0, y: (clipView.documentRect.height - clipView.bounds.height) / 2))
-        scrollView.reflectScrolledClipView(clipView)
+              let lookup = PositionLookup(in: hostingView, scrollView: scrollView) else { return [] }
         var checksum = 0
         let total = ContinuousClock().measure {
-            for _ in 0..<iterations { checksum &+= controller.currentReadingPosition()?.entryIndex ?? 0 }
+            for _ in 0..<iterations { checksum &+= lookup.firstVisibleEntryIndex() ?? 0 }
         }
         return [("position lookup: \(iterations)", "\(perfMilliseconds(total)); checksum \(checksum)")]
     }
 
     /// What AppKit and SwiftUI do to find the view under the pointer, which they repeat for hover and cursor updates
     /// after every change to the window's content: 200 points spread over the transcript.
-    func measureHitTesting() -> [(String, String)] {
+    func measureHitTesting() async throws -> [(String, String)] {
+        try await resetViewport(to: .middle)
         let bounds = hostingView.bounds
         let points = (0..<200).map { index -> NSPoint in
             let column = CGFloat(index % 20 + 1) / 21
@@ -147,6 +170,7 @@ final class TranscriptPerfHarness {
 
     /// Opening and closing Find without a query updates every text block, as any change to the search context does.
     func measureOpeningFind() async throws -> [(String, String)] {
+        try await resetViewport(to: .middle)
         let opening = turn { searchState.show() }
         try await pumpTurns(2)
         let closing = turn { searchState.close() }
@@ -231,5 +255,87 @@ final class TranscriptPerfHarness {
 
     private static func descendants<ViewType: NSView>(ofType type: ViewType.Type, in view: NSView) -> [ViewType] {
         ((view as? ViewType).map { [$0] } ?? []) + view.subviews.flatMap { descendants(ofType: type, in: $0) }
+    }
+}
+
+@MainActor
+private enum PositionLookup {
+    struct Geometry {
+        let entryIndex: Int
+        let frame: CGRect
+    }
+
+    case markers([(entryIndex: Int, view: NSView)], clipView: NSClipView)
+    case orderedGeometry([Geometry], geometryView: NSView, clipView: NSClipView)
+
+    init?(in rootView: NSView, scrollView: NSScrollView) {
+        let views = Self.descendants(in: rootView)
+        let markers = views.filter { String(describing: type(of: $0)).hasSuffix("TranscriptEntryPositionMarkerView") }
+            .compactMap { view -> (Int, NSView)? in
+                guard let entryIndex = Self.child(named: "entryIndex", in: view) as? Int else { return nil }
+                return (entryIndex, view)
+            }
+        if !markers.isEmpty {
+            self = .markers(markers, clipView: scrollView.contentView)
+            return
+        }
+
+        guard let geometryView = views.first(where: {
+            String(describing: type(of: $0)).hasSuffix("TranscriptEntryGeometryView")
+        }), let controller = Self.child(named: "controller", in: geometryView),
+              let storedGeometries = Self.child(named: "entryGeometries", in: controller) else { return nil }
+        let geometries = Mirror(reflecting: storedGeometries).children.compactMap { child -> Geometry? in
+            guard let entryIndex = Self.child(named: "entryIndex", in: child.value) as? Int,
+                  let frame = Self.child(named: "frame", in: child.value) as? CGRect else { return nil }
+            return Geometry(entryIndex: entryIndex, frame: frame)
+        }
+        guard !geometries.isEmpty else { return nil }
+        self = .orderedGeometry(geometries, geometryView: geometryView, clipView: scrollView.contentView)
+    }
+
+    func firstVisibleEntryIndex() -> Int? {
+        switch self {
+        case .markers(let markers, let clipView):
+            let visibleBounds = clipView.bounds
+            return markers.compactMap { marker -> (Int, CGRect)? in
+                let frame = marker.view.convert(marker.view.bounds, to: clipView)
+                guard frame.maxY > visibleBounds.minY, frame.minY < visibleBounds.maxY else { return nil }
+                return (marker.entryIndex, frame)
+            }.min(by: { $0.1.minY < $1.1.minY })?.0
+        case .orderedGeometry(let geometries, let geometryView, let clipView):
+            let visibleBounds = geometryView.convert(clipView.bounds, from: clipView)
+            var lowerBound = 0
+            var upperBound = geometries.count
+            while lowerBound < upperBound {
+                let middle = lowerBound + (upperBound - lowerBound) / 2
+                if geometries[middle].frame.maxY <= visibleBounds.minY {
+                    lowerBound = middle + 1
+                } else {
+                    upperBound = middle
+                }
+            }
+            guard lowerBound < geometries.count, geometries[lowerBound].frame.minY < visibleBounds.maxY else { return nil }
+            return geometries[lowerBound].entryIndex
+        }
+    }
+
+    private static func child(named name: String, in value: Any) -> Any? {
+        let unwrapped = unwrap(value)
+        var mirror: Mirror? = Mirror(reflecting: unwrapped)
+        while let current = mirror {
+            if let child = current.children.first(where: { $0.label == name }) { return unwrap(child.value) }
+            mirror = current.superclassMirror
+        }
+        return nil
+    }
+
+    private static func unwrap(_ value: Any) -> Any {
+        let mirror = Mirror(reflecting: value)
+        if mirror.displayStyle == .optional, let wrapped = mirror.children.first?.value { return unwrap(wrapped) }
+        return value
+    }
+
+    private static func descendants(in view: NSView) -> [NSView] {
+        [view] + view.subviews.flatMap(descendants)
     }
 }

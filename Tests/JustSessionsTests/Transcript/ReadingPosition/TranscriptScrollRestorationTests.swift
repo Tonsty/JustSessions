@@ -10,6 +10,23 @@ struct TranscriptScrollRestorationTests {
         override var isFlipped: Bool { true }
     }
 
+    private final class InteractiveView: NSView {
+        override func hitTest(_ point: NSPoint) -> NSView? {
+            bounds.contains(point) ? self : nil
+        }
+    }
+
+    private final class HitTestContainer: NSView {
+        override var isFlipped: Bool { true }
+
+        override func hitTest(_ point: NSPoint) -> NSView? {
+            for subview in subviews.reversed() {
+                if let target = subview.hitTest(subview.convert(point, from: self)) { return target }
+            }
+            return self
+        }
+    }
+
     /// A scroll view with one tall entry, 300 points high, starting 1,000 points down.
     @MainActor
     private struct Fixture {
@@ -47,6 +64,29 @@ struct TranscriptScrollRestorationTests {
             controller.stop()
             window.close()
         }
+    }
+
+    @Test func geometryObserverLeavesTheInteractiveHitTargetUnchanged() {
+        _ = NSApplication.shared
+        let container = HitTestContainer(frame: NSRect(x: 0, y: 0, width: 200, height: 100))
+        let window = NSWindow(contentRect: container.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        window.contentView = container
+        window.orderFrontRegardless()
+        defer { window.close() }
+        let interactiveView = InteractiveView(frame: NSRect(x: 20, y: 20, width: 120, height: 40))
+        container.addSubview(interactiveView)
+        let point = NSPoint(x: 80, y: 40)
+        let targetBeforeObserver = container.hitTest(point)
+        let controller = TranscriptScrollPositionController(
+            conversationID: "hit-testing", positionStore: TranscriptReadingPositionStore(), initialPosition: .bottom
+        )
+        let observer = TranscriptEntryGeometryView(controller: controller)
+        observer.frame = container.bounds
+        container.addSubview(observer)
+
+        #expect(targetBeforeObserver === interactiveView)
+        #expect(container.hitTest(point) === targetBeforeObserver)
     }
 
     /// A page that loads above the entry moves it down; the restoration applies in the layout pass that moves it, so the

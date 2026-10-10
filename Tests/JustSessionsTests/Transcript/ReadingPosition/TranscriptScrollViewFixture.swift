@@ -129,6 +129,22 @@ final class TranscriptScrollViewFixture {
         descendant(ofType: TranscriptEntryGeometryView.self, in: hostingView)?.controller.visibleEntryFrames() ?? []
     }
 
+    func expectedPositionForSelectedSearchMatch(in scrollView: NSScrollView, entryIndex: Int) -> TranscriptReadingPosition? {
+        guard let textView = descendants(ofType: TranscriptSearchTextView.self, in: hostingView)
+            .first(where: { $0.selectedSearchRange != nil }),
+              let range = textView.selectedSearchRange, let textContainer = textView.textContainer,
+              let layoutManager = textView.layoutManager,
+              let entryFrame = descendant(ofType: TranscriptEntryGeometryView.self, in: hostingView)?
+                .controller.entryFrameInClipView(at: entryIndex) else { return nil }
+        layoutManager.ensureLayout(for: textContainer)
+        let glyphRange = layoutManager.glyphRange(forCharacterRange: range, actualCharacterRange: nil)
+        var matchRect = layoutManager.boundingRect(forGlyphRange: glyphRange, in: textContainer)
+        matchRect.origin.x += textView.textContainerOrigin.x
+        matchRect.origin.y += textView.textContainerOrigin.y
+        let matchFrame = textView.convert(matchRect, to: scrollView.contentView)
+        return .entry(index: entryIndex, offset: max(-6, matchFrame.minY - entryFrame.minY - 60))
+    }
+
     static func conversation(_ sessionID: String) -> Conversation {
         Conversation(provider: .codex, sessionID: sessionID, projectPath: "/tmp/reading-position", suggestedTitle: sessionID,
                      updatedAt: .now, sourceFile: URL(fileURLWithPath: "/tmp/\(sessionID).jsonl"))

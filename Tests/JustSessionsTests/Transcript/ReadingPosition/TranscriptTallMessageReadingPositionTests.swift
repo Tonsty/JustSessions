@@ -3,6 +3,22 @@ import Testing
 
 @MainActor
 struct TranscriptTallMessageReadingPositionTests {
+    @Test func restoresAnOffsetInsideAnImageEntry() async throws {
+        let fixture = try TranscriptScrollViewFixture()
+        defer { fixture.close() }
+        let conversation = TranscriptScrollViewFixture.conversation("image-position")
+        let transcript = TranscriptContent(entries: TranscriptScrollViewFixture.transcript().entries.map { entry in
+            guard entry.id == 40 else { return entry }
+            return TranscriptEntry(id: entry.id, content: .userImage(SampleTranscriptImage.image), timestamp: nil, startsTurn: true)
+        }, omittedEntryCount: 0)
+        let position = TranscriptReadingPosition.entry(index: 40, offset: 100)
+        fixture.positionStore.record(position, for: conversation.id)
+
+        let scrollView = try await fixture.show(conversation, transcript: transcript)
+
+        #expect(fixture.visiblePosition(in: scrollView) == position)
+    }
+
     @Test func switchingSessionsPreservesAnOffsetLargerThanTheViewport() async throws {
         let fixture = try TranscriptScrollViewFixture()
         defer { fixture.close() }
