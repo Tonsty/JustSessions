@@ -1,6 +1,6 @@
 [
   {
-    "version": "1.2.0",
+    "version": "1.2.1",
     "publishedOn": "2026-10-10",
     "title": {
       "en": "Ghostty terminal engine",
@@ -17,8 +17,25 @@
         ]
       },
       {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "Long OpenCode sessions open and page back faster: each page reads only its own messages.",
+            "zh-Hans": "较长的 OpenCode 会话打开和往前翻页更快：每页只读取自己的消息。"
+          },
+          {
+            "en": "Terminals in a minimized window gather their output and stop drawing, as a hidden tab's do.",
+            "zh-Hans": "最小化窗口中的终端会暂存输出并停止绘制，与隐藏的标签页一样。"
+          }
+        ]
+      },
+      {
         "kind": "fixed",
         "items": [
+          {
+            "en": "Fixed 1.2.0 crashing once Ghostty was chosen; if it crashes at launch, download 1.2.1 from the website.",
+            "zh-Hans": "修复了 1.2.0 选用 Ghostty 后崩溃的问题；若启动时就崩溃，请从网站下载 1.2.1。"
+          },
           {
             "en": "Small bug fixes.",
             "zh-Hans": "修复了一些小问题。"
