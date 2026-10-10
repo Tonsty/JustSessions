@@ -369,6 +369,23 @@ Keystrokes wait only when the other terminals print as fast as a pseudo-terminal
 
 **Conclusion:** SwiftTerm's per-process budget and the app's hidden-tab batching are enough at any rate a CLI reaches. A shared budget across terminals would only matter under a synthetic flood, and would have to keep SwiftTerm's own backpressure working. Not done. The suite stays to check this again after a SwiftTerm upgrade or with Ghostty, which parses off the main thread.
 
+## Codex append-only search text experiment (issue #56)
+
+**Result: measured, not ready to merge.** An experiment persisted the Codex file identity, a SHA-256 digest, the last page boundary, and stable searchable entries. On growth it validated the entire old prefix, then reparsed only the unfinished final page. Rewrites, truncation, replacement, malformed tails, and earlier-record amendments fell back to a clean read. Other providers kept the existing full-read path.
+
+`IncrementalMessageSearchMeasurements` generated sparse Codex JSONL logs and ran each operation three times in a release build. The table shows median wall time; brackets show median CPU time. The baseline was commit `895744b`, measured with the same generated records in a temporary source archive. Baseline byte counts are a lower bound from the index scan plus record reads; the experiment counts its reads directly.
+
+| Operation | 10 MiB, before → experiment | 100 MiB, before → experiment | 500 MiB, before → experiment |
+| --- | --- | --- | --- |
+| Cold extraction | 14 → 44 ms [14 → 44] | 131 → 431 ms [130 → 430] | 649 → 2,135 ms [647 → 2,133] |
+| Unchanged cache hit | 0.1 → 0.2 ms | 0.3 → 0.3 ms | 1.2 → 1.2 ms |
+| One-record append | 14 → 47 ms [14 → 47] | 131 → 219 ms [131 → 218] | 646 → 592 ms [645 → 591] |
+| Earlier amendment plus growth | 14 → 91 ms [14 → 91] | 131 → 648 ms [130 → 647] | 643 → 2,722 ms [643 → 2,719] |
+
+For a 500 MiB append, source bytes fell from at least 1,049 MB to 525 MB and decoded records from 1,052 to 111. Cache output was still rewritten in full: 59,493 → 59,782 bytes. Peak RSS stayed at 53–58 MiB after adding per-chunk autorelease pools; before that correction the experimental harness reached 4.7 GiB. Unchanged hits read no source bytes and wrote no cache bytes in either build.
+
+The full-prefix digest is required to detect an arbitrary amendment on the same inode; file growth alone is not proof of append-only history. Its hashing and the custom one-pass parser made cold reads substantially slower, and made small appends slower below 500 MiB in this sparse workload. The experiment therefore is not a performance improvement as measured. Raw logs are `/tmp/issue-56-incremental-search/baseline.txt` and `/tmp/issue-56-incremental-search/after-autorelease.txt` on the measurement machine: Apple M4 Pro (12 cores), 24 GB, macOS 26.6.1, Swift 6.4.
+
 ## How to profile
 
 Attach to a running copy, so you keep your windows and sessions. Record in chunks, so you can analyze finished chunks while still using the app:
@@ -387,6 +404,7 @@ Or open the trace in Instruments. Keep these points in mind:
 - **Test with an accessibility client running.** Many users run Raycast or a window manager, and SwiftUI's accessibility work only happens while one is connected.
 - **Measurement suites:** the suites in `Tests/JustSessionsTests/Performance/` record only with `JUSTSESSIONS_PERF=1`; see their doc comments.
   - `MessageSearchReadingMeasurements`: reading generated sessions with images for message search, decoding the images and leaving them undecoded.
+  - `IncrementalMessageSearchMeasurements`: cold reads, unchanged hits, small appends, and rebuilds for 10, 100, and 500 MiB Codex logs.
   - `SidebarInteractionMeasurements`: sidebar interactions.
   - `TerminalVisibilityMeasurements`: hidden terminals.
   - `TerminalWindowVisibilityMeasurements`: a selected terminal while its window is in sight, covered, or minimized.

@@ -49,14 +49,27 @@ actor SessionMessageIndex {
         cache.removeText(ofSessionsOtherThan: listedConversationIDs)
     }
 
-    /// The session's text from the cache, or else read from the session and saved. Nil when the session can't be
-    /// read, or the read is cancelled; a later update tries again.
+    /// The session's text from the cache, or else read from the session and saved. Codex append-only logs resume at
+    /// the last uncommitted page after their saved prefix is validated. Nil when the session can't be read, or the
+    /// read is cancelled; a later update tries again.
     nonisolated static func searchableText(
         of conversation: Conversation, fingerprint: SessionMessageTextFingerprint, cache: SessionMessageTextCache
     ) async -> SearchableSessionText? {
-        if let saved = cache.text(for: conversation.id, fingerprint: fingerprint) { return SearchableSessionText(saved) }
-        guard let text = try? await SessionMessageTextReader.read(conversation), !Task.isCancelled else { return nil }
-        cache.save(text, for: conversation.id, fingerprint: fingerprint)
-        return SearchableSessionText(text)
+        let previous: (text: SessionMessageText, state: SessionMessageTextReadState)?
+        switch cache.lookup(for: conversation, fingerprint: fingerprint) {
+        case .current(let text):
+            return SearchableSessionText(text)
+        case .reusable(let text, let state):
+            previous = (text, state)
+        case .missing:
+            previous = nil
+        }
+        guard let result = try? await SessionMessageTextReader.readResult(conversation, resuming: previous),
+              !Task.isCancelled else { return nil }
+        cache.save(
+            result.text, state: result.state, provider: conversation.provider,
+            for: conversation.id, fingerprint: fingerprint
+        )
+        return SearchableSessionText(result.text)
     }
 }
