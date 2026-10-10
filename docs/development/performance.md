@@ -116,7 +116,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 3 | [Fast `AttributedString` to `String` conversion](#3-fast-attributedstring-to-string-conversion) | Done: #46 |
 | 4 | [One position marker view per transcript entry](#4-one-position-marker-view-per-transcript-entry) | Planned |
 | 5 | [Text selection on very long blocks](#5-text-selection-on-very-long-blocks) | Planned |
-| 6 | [Terminal drawing](#6-terminal-drawing) | Done for Ghostty, the engine you can choose in Settings: libghostty PR. Planned for SwiftTerm, the default |
+| 6 | [Terminal drawing](#6-terminal-drawing) | Done for Ghostty, the engine you can choose in Settings: libghostty PR. SwiftTerm's Metal drawing measured and not turned on: issue #52 |
 | 7 | [The search context changes on every transcript update](#7-the-search-context-changes-on-every-transcript-update) | Done: scrolling PR |
 | 8 | [Scrolling re-rendered every transcript entry](#8-scrolling-re-rendered-every-transcript-entry) | Done: scrolling PR |
 | 9 | [SwiftUI's scroll position tracking](#9-swiftuis-scroll-position-tracking) | Done: issue #55 |
@@ -192,10 +192,25 @@ Every selectable block is a `SelectionTextField` in a host view. Of the window's
 
 **Change:** Ghostty, which you can choose under Settings › Appearance › Terminal › Engine, draws with Metal on its own renderer thread, and parses output off the main thread. In the repaint workload, the main thread spent 1.2% of a core on a Ghostty tab, against 14.8% on a SwiftTerm tab; see [Terminal engines](#terminal-engines-ghostty-and-swiftterm).
 
-**Plan for SwiftTerm, the default engine:** a tab that uses SwiftTerm still draws on the CPU, on the main thread.
+**SwiftTerm's Metal drawing, measured (issue #52):** the pinned SwiftTerm already has a Metal renderer, off by default, behind `setUseMetal(_:)`; no upgrade is needed to try it. It keeps each row in GPU buffers and redraws only the rows that changed, and falls back to Core Graphics if Metal can't start. The app doesn't turn it on; `TerminalEngineMeasurements` does, for its *SwiftTerm (Metal)* case, so Ghostty, SwiftTerm, and SwiftTerm with Metal run through the same output. Release build, three runs each, medians:
+
+| Workload | SwiftTerm | SwiftTerm, Metal | Ghostty |
+| --- | --- | --- | --- |
+| Repaint, 1 tab: CPU | 8.8% | 8.8% | 3.4% |
+| Repaint, 1 tab: main thread | 6.4% | 7.0% | 0.8% |
+| Repaint, 1 tab: longest main-thread gap | 28 ms (25–35) | 182 ms (157–218) | 24 ms |
+| Repaint, 1 tab: frames drawn of 150 | 150 | 136 (134–140) | 150 |
+| Bulk 20 MB: time | 0.78 s | 0.79 s | 0.20 s |
+| Repaint, 5 tabs, 1 shown: CPU | 10.8% | 14.3% | 4.8% |
+| Repaint, 10 tabs, 1 shown: CPU | 11.9% | 19.2% | 5.6% |
+| Repaint, 10 tabs, 1 shown: frames drawn | 149 | 481 | 150 |
+
+At this SwiftTerm revision, Metal saves no CPU on these workloads, drops about a tenth of the frames, and stalls the main thread for 150–200 ms at a time where Core Graphics stays under 35 ms. With hidden tabs it costs more, not less: a hidden tab's Metal view keeps drawing, since `setNeedsDisplay` on an `MTKView` isn't stopped by a hidden ancestor the way `draw(_:)` is, so the app's hidden-tab batching (`TerminalOutputCoalescer`) would be partly undone. **Not turned on**, and no switch for it is shipped. The measurement case stays so the comparison can be run again after a SwiftTerm upgrade. Not checked: how Metal looks, selection highlights, the cursor, IME, transparency, and Retina scaling, which need a person at a real terminal.
+
+**Plan for SwiftTerm, the default engine:**
 1. Upgrade to SwiftTerm 1.20.0 by rebasing the fork onto it. Version 1.16.0 notes improved baseline performance, and 1.20.0 is the last release before breaking changes.
-2. Then try `setUseMetal(true)`. The Metal renderer caches each row and rebuilds only changed rows.
-3. Check visually: selection, insets, transparency, the cursor, and the app's own drawing.
+2. Run `TerminalEngineMeasurements` again. Metal is worth turning on only if the gaps, the dropped frames, and the hidden-tab drawing are gone and the CPU saving is real.
+3. Then check visually: selection, insets, transparency, the cursor, and the app's own drawing.
 
 The draft line-layout cache ([SwiftTerm #449](https://github.com/migueldeicaza/SwiftTerm/pull/449)) is not merged.
 

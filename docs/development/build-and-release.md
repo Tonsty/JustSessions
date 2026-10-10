@@ -75,7 +75,7 @@ JUSTSESSIONS_PERF=1 swift test -c release --filter SidebarInteractionMeasurement
 JUSTSESSIONS_PERF=1 swift test -c release --filter TerminalVisibilityMeasurements
 JUSTSESSIONS_PERF=1 JUSTSESSIONS_PERF_SAMPLE_DIR=/tmp/engine-profiles swift test -c release --filter 'TerminalEngineMeasurements/(tuiRepaint|bulkStream|hiddenTabsRepaint)'
 for round in 1 2 3; do
-  for memory_case in ghostty swiftTerm swiftTerm10k; do
+  for memory_case in ghostty swiftTerm swiftTerm10k swiftTermMetal; do
     JUSTSESSIONS_PERF=1 JUSTSESSIONS_PERF_MEMORY_CASE=$memory_case swift test -c release --filter TerminalEngineMeasurements/memory
   done
 done
@@ -83,7 +83,7 @@ done
 
 The sidebar suite records interaction time and main-thread heartbeat gaps at 300 and 2,000 sessions. The terminal suite replays continuous ANSI output through five or ten SwiftTerm views, comparing the original opacity-only behavior with inactive-output coalescing. It reports process CPU as a percentage of one core, taking the median of three runs; it starts no CLI sessions. These are controlled workloads, not battery-life measurements.
 
-The engine suite runs the same output through a Ghostty tab and a SwiftTerm tab, from a script on each tab's own pseudo-terminal: a TUI-style repaint, a 20 MB log stream, and the repaint with hidden tabs. It reports process and main-thread CPU, the longest main-thread gap, and frames drawn, as the median of three runs that alternate the engines. With `JUSTSESSIONS_PERF_SAMPLE_DIR` set, it also saves a `sample` profile of each engine's repaint there. Its memory test measures one case per process, since a second run in the same process reads too low, so the loop above runs each case three times. See [Performance](performance.md#terminal-engines-ghostty-and-swiftterm) for the method and results.
+The engine suite runs the same output through a Ghostty tab, a SwiftTerm tab, and a SwiftTerm tab drawing with Metal (see [item 6](performance.md#6-terminal-drawing)), from a script on each tab's own pseudo-terminal: a TUI-style repaint, a 20 MB log stream, and the repaint with hidden tabs. It reports process and main-thread CPU, the longest main-thread gap, and frames drawn, as the median of three runs that alternate the engines. With `JUSTSESSIONS_PERF_SAMPLE_DIR` set, it also saves a `sample` profile of each engine's repaint there. Its memory test measures one case per process, since a second run in the same process reads too low, so the loop above runs each case three times. See [Performance](performance.md#terminal-engines-ghostty-and-swiftterm) for the method and results.
 
 Discovery metadata is cached under the app's macOS Caches directory in `SessionSummaries`. The snapshots are versioned and disposable; each entry is checked against the source file's size, modification date, and inode before use. A missing, incompatible, or corrupt cache falls back to reading source files.
 
