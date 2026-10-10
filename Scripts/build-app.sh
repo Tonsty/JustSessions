@@ -17,9 +17,15 @@ else
     checks_for_updates_automatically=false
 fi
 python3 Scripts/Localization/compile_catalog.py
+# Swift Build, the default from Swift 6.4, makes resource bundle accessors that look in the app's Contents/Resources.
+# The native build system, the default on the release runner's older Swift, makes ones that look only beside the .app
+# and in the build folder of the machine that built it, so Ghostty's package, which finds its resources through one,
+# stopped v1.2.0 on every other Mac as soon as Ghostty was chosen.
+release_build=(swift build -c release --build-system swiftbuild)
+build_directory="$("${release_build[@]}" --show-bin-path)"
 # Recreate this generated bundle: incremental SwiftPM builds can retain a removed language directory.
-rm -rf "$project_directory/.build/release/JustSessions_JustSessions.bundle"
-swift build -c release
+rm -rf "$build_directory/JustSessions_JustSessions.bundle"
+"${release_build[@]}"
 
 app_directory="${1:-$project_directory/dist/JustSessions.app}"
 if [[ "$app_directory" != *.app ]]; then
@@ -30,9 +36,9 @@ fi
 # but still allows removing the bundle. Each build assembles a fresh one.
 rm -rf "$app_directory"
 mkdir -p "$app_directory/Contents/MacOS" "$app_directory/Contents/Resources" "$app_directory/Contents/Frameworks"
-cp "$project_directory/.build/release/JustSessions" "$app_directory/Contents/MacOS/JustSessions"
+cp "$build_directory/JustSessions" "$app_directory/Contents/MacOS/JustSessions"
 install_name_tool -add_rpath @executable_path/../Frameworks "$app_directory/Contents/MacOS/JustSessions"
-localization_resources="$project_directory/.build/release/JustSessions_JustSessions.bundle"
+localization_resources="$build_directory/JustSessions_JustSessions.bundle"
 ditto "$localization_resources" "$app_directory/Contents/Resources/JustSessions_JustSessions.bundle"
 # SwiftUI's standard controls look in Bundle.main; AppKit strings use the SwiftPM resource bundle.
 # SwiftPM's native build system lays the bundle out flat; its default swiftbuild system uses Contents/Resources.
@@ -46,13 +52,13 @@ for localization_directory in "${localization_directories[@]}"; do
     ditto "$localization_directory" "$app_directory/Contents/Resources/${localization_directory:t}"
     localization_identifiers+=("${${localization_directory:t}%.lproj}")
 done
-swiftterm_resources="$project_directory/.build/release/SwiftTerm_SwiftTerm.bundle"
+swiftterm_resources="$build_directory/SwiftTerm_SwiftTerm.bundle"
 if [[ -d "$swiftterm_resources" ]]; then
     ditto "$swiftterm_resources" "$app_directory/Contents/Resources/SwiftTerm_SwiftTerm.bundle"
 fi
 cp -f "$project_directory/.build/checkouts/SwiftTerm/LICENSE" "$app_directory/Contents/Resources/SwiftTerm-LICENSE.txt"
 # Ghostty's terminal reads its shell integration and terminfo from this bundle, and stops the app if it is missing.
-ghostty_resources="$project_directory/.build/release/GhosttyKit_GhosttyTerminal.bundle"
+ghostty_resources="$build_directory/GhosttyKit_GhosttyTerminal.bundle"
 if [[ ! -d "$ghostty_resources" ]]; then
     print -u2 "Ghostty's resource bundle was not found at $ghostty_resources"
     exit 1

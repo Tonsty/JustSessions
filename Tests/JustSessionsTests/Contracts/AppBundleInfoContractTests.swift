@@ -13,7 +13,7 @@ struct AppBundleInfoContractTests {
         let executableName = try #require(try Self.infoPlistTemplate()["CFBundleExecutable"] as? String)
         let manifest = try RepositoryFiles.contents(of: "Package.swift")
         #expect(manifest.contains(".executable(name: \"\(executableName)\""))
-        #expect(try RepositoryFiles.contents(of: "Scripts/build-app.sh").contains(".build/release/\(executableName)\""))
+        #expect(try RepositoryFiles.contents(of: "Scripts/build-app.sh").contains("\"$build_directory/\(executableName)\""))
     }
 
     @Test func minimumSystemVersionMatchesThePackagesPlatform() throws {

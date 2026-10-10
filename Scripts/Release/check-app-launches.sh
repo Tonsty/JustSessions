@@ -26,8 +26,9 @@ if [[ "$ghostty_resources_found" != true ]]; then
     exit 1
 fi
 
-# .build/release is a symlink to the architecture's build directory; the app records the resolved path.
-release_build_directory="${${:-$project_directory/.build/release}:A}"
+# Where `build-app.sh` built the app, with symlinks resolved, as the app records the path.
+release_build_directory="$(cd "$project_directory" && swift build -c release --build-system swiftbuild --show-bin-path)"
+release_build_directory="${release_build_directory:A}"
 hidden_bundles_directory="$(mktemp -d)"
 launch_log="$hidden_bundles_directory/launch.log"
 app_process_id=""
@@ -48,7 +49,9 @@ done
 # On a developer's Mac, reopening the last quit's tabs could resume CLIs in tmux that outlive this check, and the
 # offer to report a crash would mark the developer's own crashes as offered.
 # The argument domain needs a plist boolean: a bare NO reads as a string, which the setting ignores.
+# The launch opens no tab, so the app is asked to look up Ghostty's resources as a Ghostty terminal does.
 "$app_path/Contents/MacOS/$executable_name" -reopensTabsAtLaunch '<false/>' -offersCrashReportsAtLaunch '<false/>' \
+    -checksGhosttyResourcesAtLaunch YES \
     >"$launch_log" 2>&1 &
 app_process_id=$!
 for _ in {1..$seconds_to_stay_running}; do

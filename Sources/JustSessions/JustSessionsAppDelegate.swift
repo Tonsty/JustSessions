@@ -12,6 +12,7 @@ final class JustSessionsAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        GhosttyResourcesLaunchCheck.runIfAsked()
         LaunchCrashReportOffer.offerIfTheLastRunCrashed()
         ZoomInEqualsKey.startForwarding()
     }
