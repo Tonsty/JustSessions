@@ -2,7 +2,8 @@ import SwiftUI
 
 struct EmbeddedTerminalView: NSViewRepresentable {
     let session: TerminalSession
-    /// The terminal is on screen, full width or as either half of a split, so it draws its output.
+    /// The terminal is on screen, full width or as either half of a split, so it draws its output, unless its window is
+    /// minimized; see `TerminalInsetView.isShown`.
     let isShown: Bool
     /// The tab is selected, so its terminal gets the keyboard.
     let isActive: Bool
@@ -16,17 +17,18 @@ struct EmbeddedTerminalView: NSViewRepresentable {
 
     func makeNSView(context: Context) -> TerminalInsetView {
         let terminalView = session.terminalView
-        terminalView.setWorkspaceActive(isShown)
         terminalView.onFocus = onFocus
         terminalView.makeContextMenu = makeContextMenu
         session.startIfNeeded()
         context.coordinator.wasActive = isActive
         if isActive { focus(terminalView, coordinator: context.coordinator) }
-        return TerminalInsetView(terminalView: terminalView)
+        let insetView = TerminalInsetView(terminalView: terminalView)
+        insetView.isShown = isShown
+        return insetView
     }
 
     func updateNSView(_ insetView: TerminalInsetView, context: Context) {
-        insetView.terminalView.setWorkspaceActive(isShown)
+        insetView.isShown = isShown
         insetView.terminalView.onFocus = onFocus
         insetView.terminalView.makeContextMenu = makeContextMenu
         if isActive && !context.coordinator.wasActive {
