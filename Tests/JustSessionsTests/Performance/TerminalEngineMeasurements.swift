@@ -2,12 +2,14 @@ import AppKit
 import Darwin
 import Foundation
 import GhosttyTerminal
+import MetalKit
 import ObjectiveC
 import SwiftTerm
 import Testing
 @testable import JustSessions
 
-/// The same controlled output through a Ghostty tab and a SwiftTerm tab, in a window ordered front. Each tab runs a
+/// The same controlled output through a Ghostty tab, a SwiftTerm tab, and a SwiftTerm tab drawing with Metal, in a
+/// window ordered front; see `EngineVariant`. Each tab runs a
 /// script through its own `startProcess`, so the output comes from a pseudo-terminal as a CLI's does; it starts no CLI
 /// sessions. Records process CPU as a percentage of one core, the main thread's CPU, its longest gap, frames drawn,
 /// and memory; see docs/development/performance.md. Each test runs every engine three times, alternating which goes
@@ -25,17 +27,17 @@ struct TerminalEngineMeasurements {
     /// Workload 1: one visible tab, a TUI-style repaint of 8 rows at 30 frames a second for 5 seconds.
     @Test func tuiRepaint() async throws {
         guard ProcessInfo.processInfo.environment["JUSTSESSIONS_PERF"] != nil else { return }
-        let runs = try await Self.alternatingRuns(of: TerminalEngine.allCases) { engine in
-            try await Self.measureRepaint(engine: engine, tabCount: 1)
+        let runs = try await Self.alternatingRuns(of: EngineVariant.allCases) { variant in
+            try await Self.measureRepaint(variant: variant, tabCount: 1)
         }
-        for engine in TerminalEngine.allCases {
-            Self.report("repaint, 1 tab", engine, runs[engine] ?? [])
+        for variant in EngineVariant.allCases {
+            Self.report("repaint, 1 tab", variant, runs[variant] ?? [])
         }
         guard let directory = ProcessInfo.processInfo.environment["JUSTSESSIONS_PERF_SAMPLE_DIR"] else { return }
-        for engine in TerminalEngine.allCases {
-            let file = URL(fileURLWithPath: directory).appendingPathComponent("sample-repaint-\(engine.rawValue).txt")
-            _ = try await Self.measureRepaint(engine: engine, tabCount: 1, seconds: 7, sampleFile: file)
-            perfReport("repaint, 1 tab", "\(engine.displayName) sample profile", file.path)
+        for variant in EngineVariant.allCases {
+            let file = URL(fileURLWithPath: directory).appendingPathComponent("sample-repaint-\(variant.rawValue).txt")
+            _ = try await Self.measureRepaint(variant: variant, tabCount: 1, seconds: 7, sampleFile: file)
+            perfReport("repaint, 1 tab", "\(variant.displayName) sample profile", file.path)
         }
     }
 
@@ -44,11 +46,11 @@ struct TerminalEngineMeasurements {
         guard ProcessInfo.processInfo.environment["JUSTSESSIONS_PERF"] != nil else { return }
         let stream = try BulkStream()
         defer { stream.remove() }
-        let runs = try await Self.alternatingRuns(of: TerminalEngine.allCases) { engine in
-            try await Self.measureBulk(engine: engine, stream: stream)
+        let runs = try await Self.alternatingRuns(of: EngineVariant.allCases) { variant in
+            try await Self.measureBulk(variant: variant, stream: stream)
         }
-        for engine in TerminalEngine.allCases {
-            Self.report("bulk \(stream.megabytes) MB, \(stream.lineCount) lines, 1 tab", engine, runs[engine] ?? [])
+        for variant in EngineVariant.allCases {
+            Self.report("bulk \(stream.megabytes) MB, \(stream.lineCount) lines, 1 tab", variant, runs[variant] ?? [])
         }
     }
 
@@ -56,11 +58,11 @@ struct TerminalEngineMeasurements {
     @Test(arguments: [5, 10])
     func hiddenTabsRepaint(tabCount: Int) async throws {
         guard ProcessInfo.processInfo.environment["JUSTSESSIONS_PERF"] != nil else { return }
-        let runs = try await Self.alternatingRuns(of: TerminalEngine.allCases) { engine in
-            try await Self.measureRepaint(engine: engine, tabCount: tabCount)
+        let runs = try await Self.alternatingRuns(of: EngineVariant.allCases) { variant in
+            try await Self.measureRepaint(variant: variant, tabCount: tabCount)
         }
-        for engine in TerminalEngine.allCases {
-            Self.report("repaint, \(tabCount) tabs, 1 shown", engine, runs[engine] ?? [])
+        for variant in EngineVariant.allCases {
+            Self.report("repaint, \(tabCount) tabs, 1 shown", variant, runs[variant] ?? [])
         }
     }
 
@@ -73,7 +75,7 @@ struct TerminalEngineMeasurements {
     ///
     ///     JUSTSESSIONS_PERF=1 JUSTSESSIONS_PERF_MEMORY_CASE=ghostty swift test -c release --filter TerminalEngineMeasurements/memory
     ///
-    /// The cases are `ghostty`, `swiftTerm`, and `swiftTerm10k`.
+    /// The cases are `ghostty`, `swiftTerm`, `swiftTerm10k`, and `swiftTermMetal`.
     @Test func memory() async throws {
         guard ProcessInfo.processInfo.environment["JUSTSESSIONS_PERF"] != nil else { return }
         let caseName = ProcessInfo.processInfo.environment["JUSTSESSIONS_PERF_MEMORY_CASE"]
@@ -114,12 +116,12 @@ struct TerminalEngineMeasurements {
     // MARK: - Runs
 
     private static func measureRepaint(
-        engine: TerminalEngine,
+        variant: EngineVariant,
         tabCount: Int,
         seconds: Int = 5,
         sampleFile: URL? = nil
     ) async throws -> EngineRun {
-        let bench = try EngineBench(engine: engine)
+        let bench = try EngineBench(variant: variant)
         defer { bench.tearDown() }
         let frameCount = seconds * 30
         try RepaintScript.write(to: bench.folder)
@@ -128,7 +130,7 @@ struct TerminalEngineMeasurements {
             bench.start(tab, command: "exec /usr/bin/perl repaint.pl go \(frameCount)")
         }
         try await bench.waitUntilLaidOut()
-        let meter = EngineMeter(engine: engine)
+        let meter = EngineMeter(variant: variant)
         meter.start(tabs: bench.tabs)
         bench.signalGo()
         let sampler = try sampleFile.map(Self.startSampling)
@@ -140,13 +142,13 @@ struct TerminalEngineMeasurements {
         return run
     }
 
-    private static func measureBulk(engine: TerminalEngine, stream: BulkStream) async throws -> EngineRun {
-        let bench = try EngineBench(engine: engine)
+    private static func measureBulk(variant: EngineVariant, stream: BulkStream) async throws -> EngineRun {
+        let bench = try EngineBench(variant: variant)
         defer { bench.tearDown() }
         bench.addTabs(1)
         bench.startStreaming(stream)
         try await bench.waitUntilLaidOut()
-        let meter = EngineMeter(engine: engine)
+        let meter = EngineMeter(variant: variant)
         meter.start(tabs: bench.tabs)
         bench.signalGo()
         try await waitUntil(timeout: .seconds(180)) { bench.hasShownEverything(of: stream) }
@@ -154,7 +156,7 @@ struct TerminalEngineMeasurements {
     }
 
     private static func measureMemory(_ scrollbackCase: ScrollbackCase, stream: BulkStream) async throws -> MemoryRun {
-        let bench = try EngineBench(engine: scrollbackCase.engine)
+        let bench = try EngineBench(variant: scrollbackCase.variant)
         defer { bench.tearDown() }
         let before = try await settledMemory()
         bench.addTabs(10)
@@ -197,8 +199,8 @@ struct TerminalEngineMeasurements {
 
     // MARK: - Reporting
 
-    private static func report(_ scenario: String, _ engine: TerminalEngine, _ runs: [EngineRun]) {
-        let name = engine.displayName
+    private static func report(_ scenario: String, _ variant: EngineVariant, _ runs: [EngineRun]) {
+        let name = variant.displayName
         perfReport(scenario, "\(name) seconds", summary(runs.map(\.seconds), digits: 2))
         perfReport(scenario, "\(name) CPU % of one core", summary(runs.map(\.cpuPercent), digits: 1))
         perfReport(scenario, "\(name) main thread CPU % of one core", summary(runs.map(\.mainThreadPercent), digits: 1))
@@ -219,23 +221,49 @@ struct TerminalEngineMeasurements {
 
 // MARK: - Cases and results
 
+/// An engine as a tab can be drawn: Ghostty, SwiftTerm with Core Graphics as it ships, or SwiftTerm with its Metal
+/// drawing on, which the bench turns on with `setUseMetal(true)` once the view is in the window. The app itself never
+/// turns Metal on; see item 6 in docs/development/performance.md for why.
+private enum EngineVariant: String, CaseIterable, Hashable {
+    case ghostty
+    case swiftTerm
+    case swiftTermMetal
+
+    var engine: TerminalEngine {
+        switch self {
+        case .ghostty: .ghostty
+        case .swiftTerm, .swiftTermMetal: .swiftTerm
+        }
+    }
+
+    var usesMetal: Bool { self == .swiftTermMetal }
+
+    var displayName: String {
+        switch self {
+        case .swiftTermMetal: "SwiftTerm (Metal)"
+        default: engine.displayName
+        }
+    }
+}
+
 private struct ScrollbackCase: CustomStringConvertible {
     /// What `JUSTSESSIONS_PERF_MEMORY_CASE` names it.
     let name: String
-    let engine: TerminalEngine
+    let variant: EngineVariant
     /// Nil keeps the engine's shipped scrollback: SwiftTerm's 500 lines, or Ghostty's default 10 MB limit.
     let swiftTermScrollback: Int?
 
     static let all = [
-        ScrollbackCase(name: "ghostty", engine: .ghostty, swiftTermScrollback: nil),
-        ScrollbackCase(name: "swiftTerm", engine: .swiftTerm, swiftTermScrollback: nil),
-        ScrollbackCase(name: "swiftTerm10k", engine: .swiftTerm, swiftTermScrollback: 10_000),
+        ScrollbackCase(name: "ghostty", variant: .ghostty, swiftTermScrollback: nil),
+        ScrollbackCase(name: "swiftTerm", variant: .swiftTerm, swiftTermScrollback: nil),
+        ScrollbackCase(name: "swiftTerm10k", variant: .swiftTerm, swiftTermScrollback: 10_000),
+        ScrollbackCase(name: "swiftTermMetal", variant: .swiftTermMetal, swiftTermScrollback: nil),
     ]
 
     var description: String {
         switch swiftTermScrollback {
-        case nil: "\(engine.displayName), shipped scrollback"
-        case let lines?: "\(engine.displayName), scrollback \(lines) lines"
+        case nil: "\(variant.displayName), shipped scrollback"
+        case let lines?: "\(variant.displayName), scrollback \(lines) lines"
         }
     }
 }
@@ -287,7 +315,8 @@ private struct MemoryFigures {
 private final class EngineBench {
     static let frame = NSRect(x: 0, y: 0, width: 1000, height: 650)
 
-    let engine: TerminalEngine
+    let variant: EngineVariant
+    var engine: TerminalEngine { variant.engine }
     let folder: URL
     private(set) var tabs: [any TabTerminalView] = []
     private let window: NSWindow
@@ -295,9 +324,10 @@ private final class EngineBench {
     private let appearanceStore: TerminalAppearanceStore
     private let themeStore: AppThemeStore
 
-    init(engine: TerminalEngine) throws {
+    init(variant: EngineVariant) throws {
         _ = NSApplication.shared
-        self.engine = engine
+        self.variant = variant
+        if variant.usesMetal { precondition(SwiftTermMetalShaders.install(), "SwiftTerm's shader library wasn't found") }
         settings = try IsolatedUserDefaults()
         appearanceStore = TerminalAppearanceStore(userDefaults: settings.userDefaults)
         themeStore = AppThemeStore(userDefaults: settings.userDefaults)
@@ -317,6 +347,10 @@ private final class EngineBench {
             view.alphaValue = isShown ? 1 : 0
             view.setWorkspaceActive(isShown)
             window.contentView?.addSubview(view)
+            if variant.usesMetal, let swiftTermView = view as? SelectableTerminalView {
+                // SwiftTerm binds its Metal layer to a window, so this comes after the view is in one.
+                do { try swiftTermView.setUseMetal(true) } catch { preconditionFailure("SwiftTerm did not turn Metal on: \(error)") }
+            }
             tabs.append(view)
         }
     }
@@ -533,21 +567,22 @@ private struct BulkStream {
 /// Process CPU, the main thread's CPU and longest gap, and frames drawn, from `start()` to `stop()`.
 @MainActor
 private final class EngineMeter {
-    private let engine: TerminalEngine
+    private let variant: EngineVariant
     private let heartbeat = MainThreadPerfHeartbeat()
     private let ghosttyFrames = GhosttyFrameCounter()
     private var startTime = ContinuousClock.now
     private var processCPUAtStart = 0.0
     private var mainThreadCPUAtStart = 0.0
 
-    init(engine: TerminalEngine) {
-        self.engine = engine
+    init(variant: EngineVariant) {
+        self.variant = variant
     }
 
     func start(tabs: [any TabTerminalView]) {
-        switch engine {
+        switch variant {
         case .ghostty: ghosttyFrames.start(observing: tabs.compactMap { $0 as? GhosttyTabTerminalView })
         case .swiftTerm: SwiftTermDrawCounter.install()
+        case .swiftTermMetal: SwiftTermMetalDrawCounter.install()
         }
         heartbeat.start()
         processCPUAtStart = processCPUSeconds()
@@ -561,9 +596,10 @@ private final class EngineMeter {
         let mainThreadCPU = mainThreadCPUSeconds() - mainThreadCPUAtStart
         heartbeat.stop()
         let frames: Int
-        switch engine {
+        switch variant {
         case .ghostty: frames = ghosttyFrames.stop()
         case .swiftTerm: frames = SwiftTermDrawCounter.uninstall()
+        case .swiftTermMetal: frames = SwiftTermMetalDrawCounter.uninstall()
         }
         let seconds = Double(elapsed.components.seconds) + Double(elapsed.components.attoseconds) / 1e18
         let gap = heartbeat.longestGap
@@ -628,6 +664,39 @@ private enum SwiftTermDrawCounter {
 
     static func uninstall() -> Int {
         if let originalDraw, let method = class_getInstanceMethod(SwiftTerm.TerminalView.self, #selector(NSView.draw(_:))) {
+            method_setImplementation(method, originalDraw)
+        }
+        originalDraw = nil
+        return count
+    }
+}
+
+/// Counts the frames SwiftTerm's Metal renderer draws, one for each `draw(in:)` its `MTKView` asks of it, while
+/// installed. The renderer is SwiftTerm's own class, found by name since it isn't public.
+@MainActor
+private enum SwiftTermMetalDrawCounter {
+    private typealias Draw = @convention(c) (NSObject, Selector, MTKView) -> Void
+    nonisolated(unsafe) private static var count = 0
+    private static var originalDraw: IMP?
+    private static let rendererClass: AnyClass? = NSClassFromString("SwiftTerm.MetalTerminalRenderer")
+
+    static func install() {
+        guard originalDraw == nil, let rendererClass,
+              let method = class_getInstanceMethod(rendererClass, #selector(MTKViewDelegate.draw(in:))) else { return }
+        let original = method_getImplementation(method)
+        let callOriginal = unsafeBitCast(original, to: Draw.self)
+        let countingDraw: @convention(block) (NSObject, MTKView) -> Void = { renderer, view in
+            count += 1
+            callOriginal(renderer, #selector(MTKViewDelegate.draw(in:)), view)
+        }
+        count = 0
+        method_setImplementation(method, imp_implementationWithBlock(countingDraw))
+        originalDraw = original
+    }
+
+    static func uninstall() -> Int {
+        if let originalDraw, let rendererClass,
+           let method = class_getInstanceMethod(rendererClass, #selector(MTKViewDelegate.draw(in:))) {
             method_setImplementation(method, originalDraw)
         }
         originalDraw = nil
