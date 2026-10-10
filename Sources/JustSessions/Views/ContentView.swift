@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var store = ConversationStore(windowRegistry: .shared)
+    @StateObject private var store: ConversationStore
     @State private var searchText = ""
     @State private var recencyFilter: SessionRecencyFilter = .all
     @State private var providerFilter: ConversationProviderFilter = .all
@@ -13,6 +13,10 @@ struct ContentView: View {
     @State private var deletionRequest: SessionDeletionRequest?
     @State private var editedTitle = ""
     @State private var hasStartedScan = false
+
+    init(readService: WorkspaceReadService) {
+        _store = StateObject(wrappedValue: ConversationStore(windowRegistry: .shared, readService: readService))
+    }
 
     var body: some View {
         ConversationBrowserView(

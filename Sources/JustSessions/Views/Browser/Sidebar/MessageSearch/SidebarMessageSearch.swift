@@ -24,7 +24,7 @@ final class SidebarMessageSearch {
             return
         }
         indexer.beginUse(by: indexerUserID)
-        indexer.update(with: conversations)
+        await indexer.update(with: conversations, for: indexerUserID)
         do {
             try await Task.sleep(for: Self.typingPause)
             let matches = try await indexer.index.matches(for: query)

@@ -63,12 +63,14 @@ extension ConversationStore {
     func addRemoteHost(_ proposedHost: String) -> Bool {
         guard remoteHostList.add(proposedHost), let host = RemoteHostList.normalizedHost(proposedHost) else { return false }
         remoteHostList.save(to: userDefaults)
+        messageIndexer.restoreHost(.ssh(host))
         refreshRemoteHost(host)
         return true
     }
 
     func removeRemoteHost(_ host: String, mirror: RemoteSessionMirror = RemoteSessionMirror()) {
         remoteHostList.remove(host)
+        messageIndexer.removeHost(.ssh(host))
         remoteHostList.save(to: userDefaults)
         remoteHostsUsingTmuxPrefix.setUsesTmuxPrefix(false, for: host)
         remoteHostsUsingTmuxPrefix.save(to: userDefaults)

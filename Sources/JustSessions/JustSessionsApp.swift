@@ -3,11 +3,12 @@ import SwiftUI
 @main
 struct JustSessionsApp: App {
     @StateObject private var languageStore = AppLanguageStore.shared
+    @StateObject private var workspaceReads = WorkspaceReadService()
     @NSApplicationDelegateAdaptor(JustSessionsAppDelegate.self) private var appDelegate
 
     var body: some Scene {
         WindowGroup(id: "workspace") {
-            ContentView()
+            ContentView(readService: workspaceReads)
                 .handsOverWindowOpening()
                 .appTheme(from: .shared)
                 .appLanguage(from: languageStore)
