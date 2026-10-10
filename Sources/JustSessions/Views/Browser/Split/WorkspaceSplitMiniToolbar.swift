@@ -31,17 +31,17 @@ struct WorkspaceSplitMiniToolbar: View {
             }
             Button(action: onClose) {
                 Image(systemName: "xmark")
-                    .font(.system(size: 10, weight: .bold))
+                    .font(ThemeFont.glyph(.control, weight: .bold))
                     .frame(width: buttonSize, height: buttonSize)
                     .contentShape(Circle())
             }
-            .buttonStyle(ThemePlainButtonStyle(cornerRadius: buttonSize / 2))
+            .buttonStyle(ThemePlainButtonStyle(cornerRadius: nil))
             .help("Close this view")
             .accessibilityLabel("Close this view")
         }
         // As tall as the ×, so the toolbar is `miniToolbarHeight` tall in either pane, which the terminal ends above.
         .frame(height: buttonSize)
-        .font(.system(size: 12, weight: .medium))
+        .font(ThemeFont.callout.weight(.medium))
         .foregroundStyle(ThemePalette.ink)
         // Chrome's margins: clear of the notch's curves at the top and leading side, which leaves the title more room,
         // and on the outline's edge at the bottom and trailing side.

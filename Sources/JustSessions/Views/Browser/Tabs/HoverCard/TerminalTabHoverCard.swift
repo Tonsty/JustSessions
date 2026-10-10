@@ -12,12 +12,12 @@ struct TerminalTabHoverCard: View {
         TabHoverCardSurface {
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: session.displayTitle)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(ThemeFont.heading)
                     .foregroundStyle(ThemePalette.ink)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: location)
-                    .font(.system(size: 11))
+                    .font(ThemeFont.detail)
                     .foregroundStyle(ThemePalette.secondaryText)
                     .lineLimit(1)
                     .truncationMode(.middle)
@@ -28,7 +28,7 @@ struct TerminalTabHoverCard: View {
                     Text(verbatim: session.runStatus.summary)
                         .lineLimit(1)
                 }
-                .font(.system(size: 11))
+                .font(ThemeFont.detail)
                 .foregroundStyle(ThemePalette.secondaryText)
             }
         }

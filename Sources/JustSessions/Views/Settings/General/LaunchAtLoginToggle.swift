@@ -16,17 +16,18 @@ struct LaunchAtLoginToggle: View {
 
             if settingsStore.status == .requiresApproval {
                 Text("Allow JustSessions in macOS Login Items to finish enabling automatic launch.")
-                    .font(.caption)
+                    .font(ThemeFont.caption)
                     .foregroundStyle(ThemePalette.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
                 Button("Open Login Items Settings") {
                     settingsStore.openSystemSettings()
                 }
+                .buttonStyle(QuietBorderedButtonStyle())
             }
 
             if let errorDescription = settingsStore.errorDescription {
                 Text("Could not change launch at login: \(errorDescription)")
-                    .font(.caption)
+                    .font(ThemeFont.caption)
                     .foregroundStyle(ThemePalette.errorText)
                     .fixedSize(horizontal: false, vertical: true)
             }

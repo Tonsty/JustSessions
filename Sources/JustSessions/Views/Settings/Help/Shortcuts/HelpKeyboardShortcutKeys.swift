@@ -15,9 +15,9 @@ struct HelpKeyboardShortcutKeys: View {
                 keys[index]
                     .padding(.horizontal, 5)
                     .padding(.vertical, 1)
-                    .background(ThemePalette.raisedSurface, in: RoundedRectangle(cornerRadius: 4))
+                    .background(ThemePalette.raisedSurface, in: RoundedRectangle(.small))
                     .overlay {
-                        RoundedRectangle(cornerRadius: 4).stroke(ThemePalette.hairline)
+                        RoundedRectangle(.small).stroke(ThemePalette.hairline)
                     }
             }
         }

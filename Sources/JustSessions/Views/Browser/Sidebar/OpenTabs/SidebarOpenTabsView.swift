@@ -80,7 +80,7 @@ struct SidebarOpenTabsView: View {
             if tabs.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "rectangle.on.rectangle")
-                        .font(.system(size: 24))
+                        .font(ThemeFont.glyph(.emptyState))
                         .foregroundStyle(ThemePalette.tertiaryText)
                     if store.terminalSessions.isEmpty {
                         Text("No open tabs")
@@ -90,7 +90,7 @@ struct SidebarOpenTabsView: View {
                         Text("No matching open tabs")
                     }
                 }
-                .font(.system(size: 12))
+                .font(ThemeFont.callout)
                 .foregroundStyle(ThemePalette.secondaryText)
                 .multilineTextAlignment(.center)
                 .padding(16)

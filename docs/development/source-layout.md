@@ -119,7 +119,7 @@ Application paths below are relative to `Sources/JustSessions/`. Tests live in `
 - `Localization/Localizable.xcstrings`: the authoritative String Catalog. `Sources/JustSessions/Resources/Localization/` contains generated SwiftPM resources.
 - `Views/Settings/Help/`: the Help page, one `HelpSection` each: the tour and user guide, how each part of the window works, SSH setup, what to check when a session is missing, and the keyboard shortcut list (`Shortcuts/`). `Models/App/AppLinks.swift` holds the destinations of Help and About.
 - `Views/HelpPopover/`: the ? beside a heading or control that opens its explanation in a popover, in Settings, the New session sheet, and the archived projects sheet.
-- `Views/Theme/`: the chosen theme's colors, and button styles. Views draw text in `ThemePalette`'s text colors, not the system's `.secondary` or `.tertiary`, which a contract test checks.
+- `Views/Theme/`: the values every view draws with, grouped by kind: `Colors/` (the chosen theme's `ThemePalette`), `Typography/` (`ThemeFont` and `ThemeGlyphSize`), `Shapes/` (`ThemeCornerRadius`), `Buttons/` and `Controls/` (button, checkbox, field, and divider styles), `Sheets/` (`ThemeSheetLayout`), `Elevation/` (`ThemeShadow`), and `Motion/` (`ThemeMotion`). The contract tests in `Tests/JustSessionsTests/Contracts/UIStyle/` hold views to them; see [UI style](ui-style.md).
 - `Views/Branding/`: the app mark drawn in the sidebar header.
 
 The product website is separate from the app: `website/` contains static pages and focused stylesheets, and `Scripts/Website/` assembles and validates its Pages artifact. Documentation is indexed in [docs/README.md](../README.md). See [website development](website.md) for page metadata, app colors, and publishing.

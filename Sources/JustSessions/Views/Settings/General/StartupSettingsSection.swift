@@ -9,7 +9,7 @@ struct StartupSettingsSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Startup")
-                .font(.subheadline.weight(.medium))
+                .font(ThemeFont.heading)
             LaunchAtLoginToggle(settingsStore: launchAtLoginSettingsStore)
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Toggle("Reopen the tabs that were open when JustSessions quit", isOn: Binding(

@@ -10,7 +10,7 @@ struct NotificationSettingsSection: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text("Notify me when a session")
-                    .font(.subheadline.weight(.medium))
+                    .font(ThemeFont.heading)
                 HelpPopoverButton(
                     title: "Notifications",
                     explanation: "Supports local Claude Code, Codex, Pi, and OpenCode, including sessions running in tmux without an open tab. Sessions you are viewing do not notify you. Click a notification to open its session."
@@ -27,7 +27,7 @@ struct NotificationSettingsSection: View {
             ))
             if isTurnedOffInSystemSettings {
                 Text("Notifications for JustSessions are turned off in System Settings > Notifications.")
-                    .font(.caption)
+                    .font(ThemeFont.caption)
                     .foregroundStyle(ThemePalette.warningText)
                     .fixedSize(horizontal: false, vertical: true)
             }

@@ -7,16 +7,16 @@ struct ProviderProminentButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 12, weight: .semibold))
+            .font(ThemeFont.callout.weight(.semibold))
             .foregroundStyle(.white)
             .padding(.horizontal, 14)
             .frame(height: 28)
             .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                RoundedRectangle(.card)
                     .fill(tint.gradient)
                     .shadow(color: tint.opacity(isEnabled ? 0.3 : 0), radius: 3, y: 1)
             )
-            .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .contentShape(RoundedRectangle(.card))
             .modifier(ThemeButtonPressFeedback(isPressed: configuration.isPressed))
     }
 }

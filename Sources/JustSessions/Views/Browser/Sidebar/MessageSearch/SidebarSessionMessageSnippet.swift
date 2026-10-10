@@ -8,7 +8,7 @@ struct SidebarSessionMessageSnippet: View {
 
     var body: some View {
         Text(attributedSnippet)
-            .font(.system(size: 11))
+            .font(ThemeFont.detail)
             .foregroundStyle(ThemePalette.secondaryText)
             .lineLimit(2)
             .truncationMode(.tail)
@@ -17,7 +17,7 @@ struct SidebarSessionMessageSnippet: View {
 
     private var attributedSnippet: AttributedString {
         var matchedText = AttributedString(snippet.matchedText)
-        matchedText.font = .system(size: 11, weight: .semibold)
+        matchedText.font = ThemeFont.detail.weight(.semibold)
         matchedText.foregroundColor = Color(ThemePalette.ink.resolve(in: environment))
         return AttributedString(snippet.leadingText) + matchedText + AttributedString(snippet.trailingText)
     }

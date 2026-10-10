@@ -19,7 +19,7 @@ enum WorkspaceTabMetrics {
     static let horizontalInset: CGFloat = 16
     /// Space between one tab group and the next.
     static let groupSpacing: CGFloat = 14
-    static let cornerRadius: CGFloat = 8
+    static let cornerRadius = ThemeCornerRadius.card.rawValue
     /// How far the selected tab's feet curve out past its sides at the bottom.
     static let footRadius: CGFloat = 6
     /// The thickness of a group's underline and of the selected tab's outline, which rises from it, as Chrome's

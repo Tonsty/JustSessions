@@ -13,7 +13,7 @@ struct SidebarFooter: View {
         }
         .buttonStyle(ThemePlainButtonStyle(horizontalPadding: 6))
         .foregroundStyle(ThemePalette.ink)
-        .font(.system(size: 12))
+        .font(ThemeFont.callout)
         .padding(.leading, 10)
         .padding(.trailing, 4)
         .padding(.vertical, 4)

@@ -11,7 +11,7 @@ struct AppPermissionStatusLabel: View {
         } icon: {
             Image(systemName: symbolName).foregroundStyle(symbolColor)
         }
-        .font(.callout)
+        .font(ThemeFont.callout)
         if let help {
             label.help(help)
         } else {

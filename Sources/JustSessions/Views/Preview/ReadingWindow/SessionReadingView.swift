@@ -15,7 +15,7 @@ struct SessionReadingView: View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
                 Text(store.title(for: conversation))
-                    .font(.system(size: 21, weight: .semibold))
+                    .font(ThemeFont.title)
                     .textSelection(.enabled)
                     .fixedSize(horizontal: false, vertical: true)
                 HStack(spacing: 6) {
@@ -25,7 +25,7 @@ struct SessionReadingView: View {
                     Text("·")
                     Text(store.projectDisplayName(forProjectPath: conversation.projectDirectoryKey))
                 }
-                .font(.caption)
+                .font(ThemeFont.caption)
                 .foregroundStyle(ThemePalette.secondaryText)
                 .lineLimit(1)
                 .help(conversation.projectLocation.copyablePath)

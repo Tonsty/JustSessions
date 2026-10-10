@@ -13,7 +13,7 @@ struct MissingProjectFolderNote: View {
         } icon: {
             Image(systemName: "folder.badge.questionmark")
         }
-        .font(.callout)
+        .font(ThemeFont.callout)
         .foregroundStyle(ThemePalette.warningText)
         .frame(maxWidth: .infinity, alignment: .leading)
     }

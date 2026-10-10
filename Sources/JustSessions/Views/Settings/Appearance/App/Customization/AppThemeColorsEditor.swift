@@ -40,6 +40,7 @@ struct AppThemeColorsEditor: View {
                         appThemeStore.removeCustomization()
                         refusedPick = nil
                     }
+                    .buttonStyle(QuietBorderedButtonStyle())
                     .controlSize(.small)
                     .disabled(appThemeStore.resolvedTheme.customization.isEmpty)
                     .help("Gives the theme back its own colors, light and dark.")

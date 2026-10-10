@@ -83,7 +83,7 @@ struct TerminalTab: View {
             }
         }
         // One weight for every tab, as in Chrome: the active tab stands out by its color and outline.
-        .font(.system(size: 12, weight: .medium))
+        .font(ThemeFont.callout.weight(.medium))
         .foregroundStyle(isActive ? ThemePalette.ink : ThemePalette.secondaryText)
         // An active tab sits on the terminal's background, which can be dark in a light window or the reverse.
         .environment(\.colorScheme, isActive ? terminalPalette.colorScheme : colorScheme)

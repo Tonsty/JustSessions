@@ -12,7 +12,7 @@ struct SettingsSectionHeading<Accessory: View>: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text(title).font(.headline)
+            Text(title).font(ThemeFont.heading)
             Spacer(minLength: 12)
             accessory()
         }

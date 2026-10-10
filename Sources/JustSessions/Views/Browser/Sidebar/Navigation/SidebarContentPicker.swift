@@ -13,7 +13,7 @@ struct SidebarContentPicker: View {
             segment(.openTabs, title: "Open tabs", count: openTabCount)
         }
         .padding(2)
-        .background(ThemePalette.trackFill, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .background(ThemePalette.trackFill, in: RoundedRectangle(.control))
     }
 
     private func segment(_ mode: SidebarContentMode, title: LocalizedStringKey, count: Int? = nil) -> some View {
@@ -24,11 +24,11 @@ struct SidebarContentPicker: View {
         } label: {
             HStack(spacing: 4) {
                 Text(title)
-                    .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
-                    .foregroundStyle(isSelected ? AnyShapeStyle(.primary) : AnyShapeStyle(ThemePalette.secondaryText))
+                    .font(ThemeFont.callout.weight(isSelected ? .semibold : .regular))
+                    .foregroundStyle(isSelected ? AnyShapeStyle(ThemePalette.ink) : AnyShapeStyle(ThemePalette.secondaryText))
                 if let count {
                     Text(count.formatted())
-                        .font(.system(size: 11).monospacedDigit())
+                        .font(ThemeFont.detail.monospacedDigit())
                         .foregroundStyle(ThemePalette.secondaryText)
                 }
             }
@@ -38,14 +38,14 @@ struct SidebarContentPicker: View {
             .contentShape(Rectangle())
             .background {
                 if isSelected {
-                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                    RoundedRectangle(.small)
                         .fill(ThemePalette.raisedSurface)
-                        .shadow(color: .black.opacity(0.12), radius: 0.5, y: 0.5)
+                        .themeShadow(.raisedSegment)
                         .matchedGeometryEffect(id: "selectedSegment", in: selectedSegmentNamespace)
                 }
             }
         }
-        .buttonStyle(ThemePlainButtonStyle(cornerRadius: 5))
+        .buttonStyle(ThemePlainButtonStyle(cornerRadius: .small))
         .accessibilityLabel(Text(title))
         .accessibilityValue(count.map { String($0) } ?? "")
         .accessibilityIdentifier("sidebar.mode.\(mode.rawValue)")

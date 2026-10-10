@@ -19,13 +19,13 @@ struct SidebarHostAddProjectButton: View {
             }
             .menuStyle(.button)
             .menuIndicator(.hidden)
-            .buttonStyle(ThemePlainButtonStyle(cornerRadius: 4))
+            .buttonStyle(ThemePlainButtonStyle(cornerRadius: .small))
             .fixedSize()
             .help(addOrRestoreProjectHelpText)
             .accessibilityLabel(addOrRestoreProjectAccessibilityLabel)
         } else {
             Button(action: onAddProject) { plusSymbol }
-                .buttonStyle(ThemePlainButtonStyle(cornerRadius: 4))
+                .buttonStyle(ThemePlainButtonStyle(cornerRadius: .small))
                 .help(addProjectHelpText)
                 .accessibilityLabel(addProjectAccessibilityLabel)
         }
@@ -33,7 +33,7 @@ struct SidebarHostAddProjectButton: View {
 
     private var plusSymbol: some View {
         Image(systemName: "plus")
-            .font(.system(size: 10, weight: .bold))
+            .font(ThemeFont.glyph(.control, weight: .bold))
             .foregroundStyle(ThemePalette.secondaryText)
             .frame(width: 16, height: 16)
             .contentShape(Rectangle())
