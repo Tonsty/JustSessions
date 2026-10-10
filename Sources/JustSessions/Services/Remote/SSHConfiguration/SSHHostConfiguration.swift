@@ -24,6 +24,7 @@ struct SSHHostConfiguration: Equatable, Sendable {
             .appendingPathComponent("justsessions-ssh-config-\(UUID().uuidString)")
         let contents = """
             Include \(quotedConfigPath(userConfigFile))
+            Host *
             Include \(quotedConfigPath(systemConfigFile))
             Host *
               ControlMaster auto

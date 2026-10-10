@@ -94,6 +94,36 @@ struct SSHHostConfigurationTests {
         #expect(try #require(resolve("no-persist")).controlPersist == "no")
     }
 
+    @Test func connectionSharingFallbackReadsSystemPolicyAfterANonmatchingUserBlock() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let userConfig = root.appendingPathComponent("user-config")
+        try """
+            Host another-host
+              HostName 192.0.2.30
+
+            """.write(to: userConfig, atomically: true, encoding: .utf8)
+        let systemConfig = root.appendingPathComponent("system-config")
+        try """
+            Host devbox
+              ControlMaster no
+              ControlPath none
+              ControlPersist no
+
+            """.write(to: systemConfig, atomically: true, encoding: .utf8)
+
+        let configuration = try #require(SSHHostConfiguration.resolveWithConnectionSharingFallback(
+            host: "devbox",
+            controlPath: "/tmp/justsessions-test/master",
+            userConfigFile: userConfig.path,
+            systemConfigFile: systemConfig.path
+        ))
+
+        #expect(configuration.controlMaster == "false")
+        #expect(configuration.controlPath == nil)
+        #expect(configuration.controlPersist == "no")
+    }
+
     @Test func aDestinationSSHCanNotParseHasNoConfiguration() throws {
         #expect(try Self.resolve("-oProxyCommand=touch /tmp/x") == nil)
     }
