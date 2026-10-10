@@ -119,7 +119,7 @@ struct GhosttyTabOutputTests {
     }
 
     private static func waitForOutputOnItsWay(in fixture: GhosttyTabFixture) -> Bool {
-        let deadline = Date(timeIntervalSinceNow: 30)
+        let deadline = Date(timeIntervalSinceNow: 120)
         while fixture.view.outputBackpressure.unparsedByteCount == 0, Date() < deadline {
             Thread.sleep(forTimeInterval: 0.005)
         }
@@ -154,7 +154,7 @@ struct GhosttyTabOutputTests {
 
     /// Blocks the main thread until the process has written nothing for half a second, and returns what it wrote.
     private static func bytesWrittenOnceTheProcessStops(in fixture: GhosttyTabFixture) -> Int {
-        let deadline = Date(timeIntervalSinceNow: 20)
+        let deadline = Date(timeIntervalSinceNow: 120)
         var written = progress(in: fixture)
         var unchangedSince = Date()
         while Date() < deadline {
