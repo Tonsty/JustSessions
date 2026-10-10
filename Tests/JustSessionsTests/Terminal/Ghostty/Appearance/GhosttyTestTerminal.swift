@@ -11,8 +11,7 @@ final class GhosttyTestTerminal {
     private let sentBytes = SentBytes()
     private var lastKeyEventTime: TimeInterval = 0
 
-    init(controller: TerminalController, appearance: NSAppearance.Name) {
-        let frame = NSRect(x: 0, y: 0, width: 240, height: 80)
+    init(controller: TerminalController, appearance: NSAppearance.Name, frame: NSRect = NSRect(x: 0, y: 0, width: 240, height: 80)) {
         window = NSWindow(contentRect: frame, styleMask: [.titled], backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
         // Otherwise the snapshot would take the color space of the screen the window is on; see `drawnColors()`.
