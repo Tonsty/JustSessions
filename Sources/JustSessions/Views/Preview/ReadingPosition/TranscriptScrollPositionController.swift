@@ -1,7 +1,7 @@
 import AppKit
 import Combine
 
-/// SwiftUI finds the saved entry in a lazy stack; AppKit restores the offset within that entry after layout.
+/// Records and restores a transcript position from the entry frames produced by the entries' layout.
 @MainActor
 final class TranscriptScrollPositionController {
     private struct RestorationGeometry: Equatable {
@@ -14,7 +14,9 @@ final class TranscriptScrollPositionController {
     private let positionStore: TranscriptReadingPositionStore
     private var pendingRestoration: TranscriptReadingPosition?
     weak var scrollView: NSScrollView?
-    let entryMarkers = NSMapTable<NSNumber, NSView>(keyOptions: .strongMemory, valueOptions: .weakMemory)
+    private weak var geometryView: TranscriptEntryGeometryView?
+    private var entryGeometries: [TranscriptEntryGeometry] = []
+    private var geometryIndexByEntry: [Int: Int] = [:]
     private var observations: Set<AnyCancellable> = []
     private var hasScheduledUpdate = false
     private var isStopped = false
@@ -38,12 +40,9 @@ final class TranscriptScrollPositionController {
         return TranscriptPagingViewport(document: clipView.documentRect, visible: clipView.bounds)
     }
 
-    /// Where the row of the entry at `index` starts in the document, measured as `pagingViewport` is. Nil while the
-    /// row is not laid out.
+    /// Where the row of the entry at `index` starts in the document, measured as `pagingViewport` is.
     func documentMinY(ofEntryAt index: Int) -> CGFloat? {
-        guard let scrollView, let marker = entryMarkers.object(forKey: NSNumber(value: index)),
-              marker.enclosingScrollView === scrollView else { return nil }
-        return marker.convert(marker.bounds, to: scrollView.contentView).minY
+        entryFrameInClipView(at: index)?.minY
     }
 
     init(conversationID: String, positionStore: TranscriptReadingPositionStore, initialPosition: TranscriptReadingPosition) {
@@ -52,13 +51,15 @@ final class TranscriptScrollPositionController {
         self.pendingRestoration = initialPosition
     }
 
-    func register(_ marker: TranscriptEntryPositionMarkerView, in scrollView: NSScrollView) {
+    func updateEntryGeometries(_ geometries: [TranscriptEntryGeometry]) {
+        entryGeometries = geometries
+        geometryIndexByEntry = Dictionary(uniqueKeysWithValues: geometries.indices.map { (geometries[$0].entryIndex, $0) })
+        geometryDidLayout()
+    }
+
+    func register(_ geometryView: TranscriptEntryGeometryView, in scrollView: NSScrollView) {
         guard !isStopped else { return }
-        entryMarkers.setObject(marker, forKey: NSNumber(value: marker.entryIndex))
-        if restoresDuringLayout, self.scrollView === scrollView, pendingRestoration?.entryIndex == marker.entryIndex {
-            restoresDuringLayout = false
-            restorePositionIfNeeded()
-        }
+        self.geometryView = geometryView
         if self.scrollView !== scrollView {
             self.scrollView = scrollView
             observations.removeAll()
@@ -78,13 +79,27 @@ final class TranscriptScrollPositionController {
                 .store(in: &observations)
             monitorScrollWheel()
         }
+        geometryDidLayout()
         scheduleUpdate()
+    }
+
+    func unregister(_ geometryView: TranscriptEntryGeometryView) {
+        if self.geometryView === geometryView { self.geometryView = nil }
+    }
+
+    func geometryDidLayout() {
+        guard restoresDuringLayout, let index = pendingRestoration?.entryIndex,
+              entryFrameInClipView(at: index) != nil else { return }
+        restoresDuringLayout = false
+        restorePositionIfNeeded()
     }
 
     func stop() {
         isStopped = true
         observations.removeAll()
-        entryMarkers.removeAllObjects()
+        geometryView = nil
+        entryGeometries.removeAll()
+        geometryIndexByEntry.removeAll()
         if let scrollWheelMonitor { NSEvent.removeMonitor(scrollWheelMonitor) }
         scrollWheelMonitor = nil
     }
@@ -111,28 +126,18 @@ final class TranscriptScrollPositionController {
         restorationGeometry = nil
     }
 
-    func unregister(_ marker: TranscriptEntryPositionMarkerView) {
-        let key = NSNumber(value: marker.entryIndex)
-        if entryMarkers.object(forKey: key) === marker { entryMarkers.removeObject(forKey: key) }
-    }
-
-    /// A reader action takes priority over a restoration still waiting for lazy layout.
-    /// With `duringNextLayout`, the entry's row is on screen already, as when a page loads above or below it. Its marker
-    /// lays out after the rows around it move, in the same pass, before the window draws, so the restoration applies
-    /// there and the reader never sees the content in between. Otherwise it waits for SwiftUI to lay out the row.
+    /// A reader action takes priority over a restoration still waiting for layout. With `duringNextLayout`, the entry is
+    /// on screen already, as when a page loads around it. The geometry layout restores in that pass before the window draws.
     func restore(_ position: TranscriptReadingPosition, duringNextLayout: Bool = false) {
         pendingRestoration = position
         restorationGeometry = nil
         hasAppliedRestoration = false
         restoresDuringLayout = duringNextLayout && position.entryIndex != nil
-        if restoresDuringLayout, let index = position.entryIndex {
-            entryMarkers.object(forKey: NSNumber(value: index))?.needsLayout = true
-        }
+        if restoresDuringLayout { geometryView?.needsLayout = true }
         scheduleUpdate()
     }
 
-    /// Rewrapping, such as after a text size or reading width change, resizes every entry; return to the entry being
-    /// read. The lazy stack may have dropped that entry's row, so SwiftUI first brings it back into view.
+    /// Rewrapping, such as after a text size or reading width change, resizes every entry; return to the entry being read.
     func restoreRecordedPosition() {
         guard pendingRestoration == nil, let position = positionStore.position(for: conversationID) else { return }
         restore(position)
@@ -142,14 +147,14 @@ final class TranscriptScrollPositionController {
     private func scheduleUpdate() {
         guard !hasScheduledUpdate, !isStopped else { return }
         hasScheduledUpdate = true
-        // Let SwiftUI commit lazy row measurements before applying a native offset.
+        // Let SwiftUI commit row measurements before applying a native offset.
         let delay = pendingRestoration == nil ? 0.0 : 0.016
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
             guard let self, !self.isStopped else { return }
             self.hasScheduledUpdate = false
             self.restorePositionIfNeeded()
             let hasReadingPosition = self.recordPosition()
-            // Recheck after restoration and lazy layout, even if the first visible message did not change.
+            // Recheck after restoration and layout, even if the first visible message did not change.
             if hasReadingPosition, let viewport = self.pagingViewport { self.viewportUpdates.send(viewport) }
         }
     }
@@ -164,15 +169,7 @@ final class TranscriptScrollPositionController {
         case .bottom:
             proposedBounds.origin.y = clipView.documentRect.maxY - proposedBounds.height
         case .entry(let index, let offset):
-            guard let marker = entryMarkers.object(forKey: NSNumber(value: index)),
-                  marker.enclosingScrollView === scrollView, marker.bounds.height > 0 else { return }
-            let entryFrame = marker.convert(marker.bounds, to: clipView)
-            // A hidden lazy row still has an estimated frame. Ask SwiftUI to reveal it before measuring.
-            guard !marker.isHiddenOrHasHiddenAncestor, abs(entryFrame.midX - clipView.documentRect.midX) < 1 else {
-                entrySeekingRequests.send(index)
-                scheduleUpdate()
-                return
-            }
+            guard let entryFrame = entryFrameInClipView(at: index), entryFrame.height > 0 else { return }
             restoredEntryFrame = entryFrame
             proposedBounds.origin.y = entryFrame.minY + min(offset, max(0, entryFrame.height - 1))
         }
@@ -198,22 +195,55 @@ final class TranscriptScrollPositionController {
 
     @discardableResult
     private func recordPosition() -> Bool {
-        guard pendingRestoration == nil, !isStopped, let scrollView else { return false }
+        guard let position = currentReadingPosition() else { return false }
+        positionStore.record(position, for: conversationID)
+        return true
+    }
+
+    func currentReadingPosition() -> TranscriptReadingPosition? {
+        guard pendingRestoration == nil, !isStopped, let scrollView, let geometryView,
+              geometryView.enclosingScrollView === scrollView else { return nil }
         let clipView = scrollView.contentView
         let visibleBounds = clipView.bounds
-        if tracksTranscriptBottom, clipView.documentRect.maxY - visibleBounds.maxY <= 2 {
-            positionStore.record(.bottom, for: conversationID)
-            return true
+        if tracksTranscriptBottom, clipView.documentRect.maxY - visibleBounds.maxY <= 2 { return .bottom }
+        let localVisibleBounds = geometryView.convert(visibleBounds, from: clipView)
+        guard let geometry = firstGeometry(overlapping: localVisibleBounds) else { return nil }
+        let entryFrame = geometryView.convert(geometry.frame, to: clipView)
+        return .entry(index: geometry.entryIndex, offset: visibleBounds.minY - entryFrame.minY)
+    }
+
+    func visibleEntryFrames() -> [CGRect] {
+        guard let scrollView, let geometryView, geometryView.enclosingScrollView === scrollView else { return [] }
+        let clipView = scrollView.contentView
+        let localVisibleBounds = geometryView.convert(clipView.bounds, from: clipView)
+        guard let first = firstGeometryIndex(overlapping: localVisibleBounds) else { return [] }
+        return entryGeometries[first...].prefix { $0.frame.minY < localVisibleBounds.maxY }
+            .map { geometryView.convert($0.frame, to: clipView) }
+    }
+
+    func entryFrameInClipView(at index: Int) -> CGRect? {
+        guard let geometryIndex = geometryIndexByEntry[index], entryGeometries.indices.contains(geometryIndex),
+              let scrollView, let geometryView, geometryView.enclosingScrollView === scrollView else { return nil }
+        return geometryView.convert(entryGeometries[geometryIndex].frame, to: scrollView.contentView)
+    }
+
+    private func firstGeometry(overlapping bounds: CGRect) -> TranscriptEntryGeometry? {
+        firstGeometryIndex(overlapping: bounds).map { entryGeometries[$0] }
+    }
+
+    /// Entry frames are ordered from top to bottom, so a scroll update finds the first visible entry in O(log n).
+    private func firstGeometryIndex(overlapping bounds: CGRect) -> Int? {
+        var lowerBound = 0
+        var upperBound = entryGeometries.count
+        while lowerBound < upperBound {
+            let middle = lowerBound + (upperBound - lowerBound) / 2
+            if entryGeometries[middle].frame.maxY <= bounds.minY {
+                lowerBound = middle + 1
+            } else {
+                upperBound = middle
+            }
         }
-        let visibleEntries = entryMarkers.dictionaryRepresentation().compactMap { _, view -> (Int, NSRect)? in
-            guard let marker = view as? TranscriptEntryPositionMarkerView,
-                  marker.enclosingScrollView === scrollView, marker.bounds.height > 0 else { return nil }
-            let entryFrame = marker.convert(marker.bounds, to: clipView)
-            guard entryFrame.maxY > visibleBounds.minY, entryFrame.minY < visibleBounds.maxY else { return nil }
-            return (marker.entryIndex, entryFrame)
-        }
-        guard let (index, entryFrame) = visibleEntries.min(by: { $0.1.minY < $1.1.minY }) else { return false }
-        positionStore.record(.entry(index: index, offset: visibleBounds.minY - entryFrame.minY), for: conversationID)
-        return true
+        guard lowerBound < entryGeometries.count, entryGeometries[lowerBound].frame.minY < bounds.maxY else { return nil }
+        return lowerBound
     }
 }

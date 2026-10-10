@@ -120,22 +120,13 @@ final class TranscriptScrollViewFixture {
     }
 
     func visiblePosition(in scrollView: NSScrollView) -> TranscriptReadingPosition? {
-        let clipView = scrollView.contentView
-        if abs(clipView.documentRect.maxY - clipView.bounds.maxY) < 2 { return .bottom }
-        let markers = descendants(ofType: TranscriptEntryPositionMarkerView.self, in: hostingView)
-        let visibleMarkers = markers.map { ($0.entryIndex, $0.convert($0.bounds, to: clipView)) }
-            .filter { $0.1.maxY > clipView.bounds.minY && $0.1.minY < clipView.bounds.maxY }
-        guard let (index, frame) = visibleMarkers.min(by: { $0.1.minY < $1.1.minY }) else { return nil }
-        return .entry(index: index, offset: clipView.bounds.minY - frame.minY)
+        descendant(ofType: TranscriptEntryGeometryView.self, in: hostingView)?.controller.currentReadingPosition()
     }
 
     /// The frames of the entries on screen, in the scroll view's visible area. Entries fill the transcript column's
     /// width; entries scrolled out of sight can keep an earlier layout, so they are left out.
     func visibleEntryFrames(in scrollView: NSScrollView) -> [CGRect] {
-        let clipView = scrollView.contentView
-        return descendants(ofType: TranscriptEntryPositionMarkerView.self, in: hostingView)
-            .map { $0.convert($0.bounds, to: clipView) }
-            .filter { $0.intersects(clipView.bounds) }
+        descendant(ofType: TranscriptEntryGeometryView.self, in: hostingView)?.controller.visibleEntryFrames() ?? []
     }
 
     static func conversation(_ sessionID: String) -> Conversation {

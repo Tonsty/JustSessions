@@ -16,7 +16,7 @@ struct TranscriptScrollRestorationTests {
         let controller: TranscriptScrollPositionController
         let clipView: NSClipView
         let window: NSWindow
-        let marker: TranscriptEntryPositionMarkerView
+        let geometryView: TranscriptEntryGeometryView
 
         init() {
             controller = TranscriptScrollPositionController(
@@ -30,9 +30,12 @@ struct TranscriptScrollRestorationTests {
             window.isReleasedWhenClosed = false
             window.contentView = scrollView
             clipView = scrollView.contentView
-            marker = TranscriptEntryPositionMarkerView(entryIndex: 5, controller: controller)
-            marker.frame = NSRect(x: 0, y: 1_000, width: 400, height: 300)
-            scrollView.documentView?.addSubview(marker)
+            geometryView = TranscriptEntryGeometryView(controller: controller)
+            geometryView.frame = scrollView.documentView?.bounds ?? .zero
+            scrollView.documentView?.addSubview(geometryView)
+            controller.updateEntryGeometries([
+                TranscriptEntryGeometry(entryIndex: 5, frame: NSRect(x: 0, y: 1_000, width: 400, height: 300))
+            ])
         }
 
         func scrollAway() {
@@ -53,7 +56,9 @@ struct TranscriptScrollRestorationTests {
         defer { fixture.close() }
 
         fixture.controller.restore(.entry(index: 5, offset: 100), duringNextLayout: true)
-        fixture.marker.frame.origin.y += 600
+        fixture.controller.updateEntryGeometries([
+            TranscriptEntryGeometry(entryIndex: 5, frame: NSRect(x: 0, y: 1_600, width: 400, height: 300))
+        ])
         fixture.window.contentView?.layoutSubtreeIfNeeded()
 
         #expect(fixture.clipView.bounds.minY == 1_700)

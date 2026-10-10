@@ -25,6 +25,7 @@ struct TranscriptInteractionMeasurements {
             perfReport(label, "AppKit views in the window", harness.viewCount)
             perfReport(label, "most common AppKit views", harness.mostCommonViewClasses)
             for (name, value) in try await harness.measureScrolling() { perfReport(label, name, value) }
+            for (name, value) in harness.measurePositionLookup() { perfReport(label, name, value) }
             for (name, value) in harness.measureHitTesting() { perfReport(label, name, value) }
             for (name, value) in try await harness.measureOpeningFind() { perfReport(label, name, value) }
         }
@@ -108,8 +109,22 @@ final class TranscriptPerfHarness {
             ("document height", String(format: "%.0f pt", clipView.documentRect.height)),
             ("scroll: total of \(steps) steps", perfMilliseconds(stepTimes.reduce(.zero, +))),
             ("scroll: median step", perfMilliseconds(sorted[sorted.count / 2])),
+            ("scroll: p95 step", perfMilliseconds(sorted[Int((Double(sorted.count) * 0.95).rounded(.up)) - 1])),
             ("scroll: worst step", perfMilliseconds(sorted.last ?? .zero)),
         ]
+    }
+
+    func measurePositionLookup(iterations: Int = 1_000) -> [(String, String)] {
+        guard let scrollView = transcriptScrollView,
+              let controller = Self.descendants(ofType: TranscriptEntryGeometryView.self, in: hostingView).first?.controller else { return [] }
+        let clipView = scrollView.contentView
+        clipView.scroll(to: NSPoint(x: 0, y: (clipView.documentRect.height - clipView.bounds.height) / 2))
+        scrollView.reflectScrolledClipView(clipView)
+        var checksum = 0
+        let total = ContinuousClock().measure {
+            for _ in 0..<iterations { checksum &+= controller.currentReadingPosition()?.entryIndex ?? 0 }
+        }
+        return [("position lookup: \(iterations)", "\(perfMilliseconds(total)); checksum \(checksum)")]
     }
 
     /// What AppKit and SwiftUI do to find the view under the pointer, which they repeat for hover and cursor updates
