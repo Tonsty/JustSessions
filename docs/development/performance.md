@@ -126,6 +126,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 13 | [Each OpenCode page read every message's data](#13-each-opencode-page-read-every-messages-data) | Done: issue #60 |
 | 14 | [A CLI activity change updates only the rows in view](#14-a-cli-activity-change-updates-only-the-rows-in-view) | Measured, no change: issue #61 |
 | 15 | [Terminals in minimized windows drew as if in sight](#15-terminals-in-minimized-windows-drew-as-if-in-sight) | Done: issue #63 |
+| 16 | [Typing beside flooding terminals](#16-typing-beside-flooding-terminals) | Measured, no change: issue #58 |
 
 ### 1. Timestamp parsing
 
@@ -348,6 +349,26 @@ The in-sight figure varies between runs with what else the machine is doing; the
 
 A covered window is left alone. macOS reports `NSWindow.occlusionState` only to a running app, never to a test process, even one with the regular activation policy, so a check on it couldn't be tested here, and the window server's own occlusion culling already applies to its drawing. The measurement keeps the covered state as a reference.
 
+### 16. Typing beside flooding terminals
+
+**Question (issue #58):** every terminal's output is parsed on the main thread. SwiftTerm's `LocalProcess` yields after about 4 ms of delivery per process, and the app batches a hidden tab's output (`TerminalOutputCoalescer`), but nothing shares a budget across terminals. Does a keystroke in one tab wait behind the others' output, and would a cross-terminal scheduler help?
+
+**Measured:** `TerminalFairnessMeasurements`, release build. A quiet SwiftTerm tab runs `cat`; 60 markers are typed into it, one every 50 ms, and each is timed until its echo is in the terminal's buffer, read from the main queue every 2 ms, so a stall there delays the reading as it delays the display. Other tabs flood from scripts on their own pseudo-terminals, visible beside it as split panes or hidden as the workspace hides them.
+
+| Other tabs | Keystroke to echo, p50 / p95 | Flood lines parsed in about 4 s |
+| --- | --- | --- |
+| None | 2.3 / 6.7 ms | — |
+| 1 visible, as fast as it can (about 50 MB/s) | 4.1 / 10.0 ms | 1.6 M |
+| 3 visible, as fast as they can | 17 / 24 ms | 1.4 M |
+| 5 hidden, as fast as they can | 34 / 44 ms | 3.1 M |
+| 1 visible and 5 hidden, as fast as they can | 31 / 49 ms | 2.3 M |
+| 1 visible and 5 hidden at 25,000 lines/s each, about a 2 MB/s build log | **1.9 / 4.3 ms** | 0.56 M |
+| 1 visible and 5 hidden at 5,000 lines/s each | 2.1 / 4.9 ms | 0.11 M |
+
+Keystrokes wait only when the other terminals print as fast as a pseudo-terminal carries, about 50 MB/s each and 60 MB/s parsed in all, which no CLI does. Six terminals each printing a fast build log, 12 MB/s in all, leave typing where it is alone. Making the hidden tabs' batches smaller (16 or 4 KiB instead of 64) changed nothing, since at flood rates every read from the pseudo-terminal already exceeds the batch size and is parsed on arrival; the wait is the parsing itself.
+
+**Conclusion:** SwiftTerm's per-process budget and the app's hidden-tab batching are enough at any rate a CLI reaches. A shared budget across terminals would only matter under a synthetic flood, and would have to keep SwiftTerm's own backpressure working. Not done. The suite stays to check this again after a SwiftTerm upgrade or with Ghostty, which parses off the main thread.
+
 ## How to profile
 
 Attach to a running copy, so you keep your windows and sessions. Record in chunks, so you can analyze finished chunks while still using the app:
@@ -369,6 +390,7 @@ Or open the trace in Instruments. Keep these points in mind:
   - `SidebarInteractionMeasurements`: sidebar interactions.
   - `TerminalVisibilityMeasurements`: hidden terminals.
   - `TerminalWindowVisibilityMeasurements`: a selected terminal while its window is in sight, covered, or minimized.
+  - `TerminalFairnessMeasurements`: keystroke-to-echo time in a quiet terminal while other terminals flood, visible and hidden, at full and at set rates.
   - `TerminalEngineMeasurements`: Ghostty and SwiftTerm tabs under the same output, and their memory; see [Terminal engines](#terminal-engines-ghostty-and-swiftterm) and [Build and release](build-and-release.md#performance-measurements) for the commands.
   - `TranscriptInteractionMeasurements`: scrolling, hit testing, and opening Find in a 240- and 640-entry transcript, with SwiftUI's accessibility off and on. Run it with `JUSTSESSIONS_PERF=1 swift test -c release --filter TranscriptInteractionMeasurements`.
   - `OpenCodeTranscriptPagingMeasurements`: paging through OpenCode sessions of 1,000 and 10,000 messages, and reading them for message search.
