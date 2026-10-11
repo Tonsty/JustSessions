@@ -19,6 +19,7 @@ struct AddRemoteHostSheet: View {
     @State private var failedConnection: FailedConnection?
     /// Where the typed host connects, read by `ssh -G` shortly after typing stops.
     @State private var sameMachineCheck: (host: String, result: SSHHostSameMachineCheck)?
+    @State private var showsSetupRequirements = false
 
     private struct FailedConnection {
         let host: String
@@ -76,8 +77,12 @@ struct AddRemoteHostSheet: View {
                 )
             }
 
-            DisclosureGroup("Setup requirements") {
+            DisclosureGroup(isExpanded: $showsSetupRequirements) {
                 setupRequirements
+            } label: {
+                ThemeDisclosureTitleButton(isExpanded: $showsSetupRequirements) {
+                    Text("Setup requirements")
+                }
             }
             .font(ThemeFont.callout)
             .foregroundStyle(ThemePalette.secondaryText)

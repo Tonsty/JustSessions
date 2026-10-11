@@ -48,7 +48,9 @@ struct AppThemeColorsEditor: View {
             .padding(.top, 8)
         } label: {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text("Customize colors")
+                ThemeDisclosureTitleButton(isExpanded: $isExpanded) {
+                    Text("Customize colors")
+                }
                 HelpPopoverButton(
                     title: "Customize colors",
                     explanation: "Changes the chosen theme's colors, in its light or dark version. Your changes stay with the theme when you choose another one. Text is made readable on your colors, so the text color can come out darker or lighter than you chose. Terminals that match the app theme take its background."
