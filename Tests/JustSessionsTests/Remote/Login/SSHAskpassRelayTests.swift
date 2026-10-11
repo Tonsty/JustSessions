@@ -79,8 +79,8 @@ struct SSHAskpassRelayTests {
         try await expectEventually { isAsking.value }
         server.stop()
 
-        #expect(await answer.value == nil)
         #expect(!FileManager.default.fileExists(atPath: server.socketPath))
+        #expect(await answer.value == nil)
     }
 
     /// Runs the helper's blocking exchange off Swift's shared threads, which the server needs to ask its question. On a
