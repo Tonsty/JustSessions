@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// One short line for the app mark and name, then the notification bell, search, and new session as icons, so the
+/// One short line for the app mark and name, then search, the notification bell, and new session as icons, so the
 /// session list gets the height. Search opens into a field across the whole line, and goes back to its icon when
 /// closed, or once it is empty and loses focus.
 struct SidebarHeader: View {
@@ -50,8 +50,8 @@ struct SidebarHeader: View {
             }
             Spacer(minLength: 4)
             HStack(spacing: 4) {
-                SidebarNotificationBellButton(store: store)
                 searchButton
+                SidebarNotificationBellButton(store: store)
                 SidebarNewSessionButton(action: onNewSession)
                     .onboardingTourStop(.newSession)
             }
