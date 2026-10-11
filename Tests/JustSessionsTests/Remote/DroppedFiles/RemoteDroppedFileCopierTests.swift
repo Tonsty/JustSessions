@@ -125,8 +125,22 @@ struct RemoteDroppedFileCopierTests {
         let cancellation = RemoteDroppedFileCopyCancellation()
         let started = ContinuousClock.now
 
-        let copy = Task.detached {
-            try copier.copy(file, to: "devbox", connectionOptions: [], cancellation: cancellation) { _ in }
+        // On a dispatch queue, as the app copies, so the blocked copy holds no task thread the wait below needs.
+        let copy = Task {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, any Error>) in
+                DispatchQueue.global().async {
+                    do {
+                        continuation.resume(returning: try copier.copy(
+                            file,
+                            to: "devbox",
+                            connectionOptions: [],
+                            cancellation: cancellation
+                        ) { _ in })
+                    } catch {
+                        continuation.resume(throwing: error)
+                    }
+                }
+            }
         }
         try await Task.sleep(for: .milliseconds(300))
         cancellation.cancel()
