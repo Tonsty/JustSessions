@@ -11,10 +11,13 @@ import SwiftUI
 struct WorkingSpinner: View {
     static let secondsPerTurn = 0.9
 
+    /// Held still regardless of Reduce Motion, for a test to compare the arc with one drawn another way.
+    var holdsStill = false
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        WorkingSpinnerArc(turns: !reduceMotion)
+        WorkingSpinnerArc(turns: !reduceMotion && !holdsStill)
             .frame(width: 8, height: 8)
     }
 }
@@ -36,20 +39,20 @@ private struct WorkingSpinnerArc: NSViewRepresentable {
     }
 }
 
-/// A layer-backed view whose shape layer draws the arc, in the live status color of the view's appearance, and
-/// turns it with a repeating rotation that runs only while the view is in a window and `turns` is set.
+/// A layer-backed view whose shape layer draws the arc, in the live status color of the view's appearance, and turns
+/// it with a repeating rotation. The rotation runs only while the arc can be seen: the view is in a window that is
+/// not minimized, neither it nor an ancestor is hidden, and the SwiftUI view hosting it is not at zero opacity, which
+/// is how the app keeps hidden content mounted. Otherwise the animation is removed, so no spinner out of sight keeps
+/// the render server busy.
 final class WorkingSpinnerArcView: NSView {
     private static let rotationKey = "turn"
-    private static let liveColor = NSColor.adaptive(
-        light: NSColor(hexValue: StatusHexColors.live.light),
-        dark: NSColor(hexValue: StatusHexColors.live.dark)
-    )
 
     var turns = true {
         didSet { if turns != oldValue { updateRotation() } }
     }
 
     private let arcLayer = CAShapeLayer()
+    private var hostAlphaObservation: NSKeyValueObservation?
 
     override init(frame: NSRect) {
         super.init(frame: frame)
@@ -68,6 +71,9 @@ final class WorkingSpinnerArcView: NSView {
         nil
     }
 
+    /// Flipped, as SwiftUI's coordinates are, so the arc starts at the top as the SwiftUI arc did: a `Circle` path
+    /// starts at the right and runs clockwise in a flipped space, and so does the layer's, leaving the gap in the same
+    /// place with Reduce Motion on.
     override var isFlipped: Bool { true }
 
     override func layout() {
@@ -88,8 +94,35 @@ final class WorkingSpinnerArcView: NSView {
         updateStrokeColor()
     }
 
+    override func viewDidMoveToSuperview() {
+        super.viewDidMoveToSuperview()
+        // SwiftUI hides content it keeps mounted with `opacity(0)`, which reaches AppKit as the hosting superview's
+        // alpha, not as `isHidden`.
+        hostAlphaObservation = superview?.observe(\.alphaValue, options: [.initial]) { [weak self] _, _ in
+            MainActor.assumeIsolated { self?.updateRotation() }
+        }
+    }
+
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
+        // Selector observers are dropped with the view; a minimized window keeps the view attached and tells no
+        // other method.
+        let center = NotificationCenter.default
+        center.removeObserver(self, name: NSWindow.didMiniaturizeNotification, object: nil)
+        center.removeObserver(self, name: NSWindow.didDeminiaturizeNotification, object: nil)
+        if let window {
+            center.addObserver(self, selector: #selector(windowMiniaturizationChanged), name: NSWindow.didMiniaturizeNotification, object: window)
+            center.addObserver(self, selector: #selector(windowMiniaturizationChanged), name: NSWindow.didDeminiaturizeNotification, object: window)
+        }
+        updateRotation()
+    }
+
+    @objc private func windowMiniaturizationChanged(_ notification: Notification) {
+        updateRotation()
+    }
+
+    override func viewDidHide() {
+        super.viewDidHide()
         updateRotation()
     }
 
@@ -100,15 +133,26 @@ final class WorkingSpinnerArcView: NSView {
 
     private func updateStrokeColor() {
         effectiveAppearance.performAsCurrentDrawingAppearance {
-            arcLayer.strokeColor = Self.liveColor.cgColor
+            arcLayer.strokeColor = ThemePalette.liveNSColor.cgColor
         }
     }
 
-    /// Turns while in a window and asked to; otherwise stops, so no hidden spinner keeps the render server busy.
+    /// Whether the arc can be seen, as far as AppKit tells: in a window that is up, not hidden, and not faded out by
+    /// the SwiftUI view hosting it.
+    var canBeSeen: Bool {
+        guard let window, !window.isMiniaturized, !isHiddenOrHasHiddenAncestor else { return false }
+        return (superview?.alphaValue ?? 1) > 0
+    }
+
+    /// Whether the rotation is running; see `updateRotation()`.
+    var isTurning: Bool {
+        arcLayer.animation(forKey: Self.rotationKey) != nil
+    }
+
+    /// Turns while it can be seen and asked to; otherwise stops.
     private func updateRotation() {
-        let shouldTurn = turns && window != nil && !isHiddenOrHasHiddenAncestor
-        if shouldTurn {
-            guard arcLayer.animation(forKey: Self.rotationKey) == nil else { return }
+        if turns && canBeSeen {
+            guard !isTurning else { return }
             let rotation = CABasicAnimation(keyPath: "transform.rotation.z")
             rotation.fromValue = 0
             rotation.toValue = 2 * Double.pi
