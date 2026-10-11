@@ -15,8 +15,9 @@ final class ChangingConversationAdapter: ConversationAdapter, @unchecked Sendabl
         lock.withLock { conversations.append(conversation) }
     }
 
-    func discover() throws -> [Conversation] {
-        lock.withLock { conversations }
+    func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
+        try cancellation.checkCancellation()
+        return lock.withLock { conversations }
     }
 
     func arguments(for conversation: Conversation, action: ConversationAction) -> [String] { [] }

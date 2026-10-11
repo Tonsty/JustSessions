@@ -28,7 +28,8 @@ struct CodexAdapter: ConversationAdapter {
     private static let rolloutHeads = SessionFileSummaryCache<CodexRolloutHead>(persistenceFile: SessionSummaryCacheLocation.file(named: "codex-heads-2"))
     private static let firstUserPrompts = SessionFileSummaryCache<String>(persistenceFile: SessionSummaryCacheLocation.file(named: "codex-prompts"))
 
-    func discover() throws -> [Conversation] {
+    func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
+        try cancellation.checkCancellation()
         let index = CodexSessionIndex(codexDirectory: codexDirectory)
         let sessionsDirectory = codexDirectory.appendingPathComponent("sessions")
         guard let enumerator = FileManager.default.enumerator(
@@ -40,6 +41,7 @@ struct CodexAdapter: ConversationAdapter {
         var rolloutFiles: [URL] = []
         var conversations: [Conversation] = []
         for case let file as URL in enumerator where file.pathExtension == "jsonl" && file.lastPathComponent.hasPrefix("rollout-") {
+            try cancellation.checkCancellation()
             rolloutFiles.append(file)
             guard let head = Self.rolloutHeads.summary(of: file, read: CodexRolloutHead.init(file:)) else { continue }
             let indexEntry = index.entry(forSessionID: head.sessionID)
@@ -60,6 +62,7 @@ struct CodexAdapter: ConversationAdapter {
                 parentSessionID: head.spawn?.parentThreadID
             ))
         }
+        try cancellation.checkCancellation()
         Self.rolloutHeads.forgetFiles(in: sessionsDirectory, except: rolloutFiles)
         Self.firstUserPrompts.forgetFiles(in: sessionsDirectory, except: rolloutFiles)
         return conversations

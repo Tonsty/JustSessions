@@ -25,8 +25,8 @@ final class ConversationStore: ObservableObject {
     var cachedSidebarProjection: SidebarProjection?
     /// What the browser last showed for its filters, kept the same way; see `ConversationStore+SidebarProjects`.
     var cachedFilteredSidebarProjection: FilteredSidebarProjection?
-    /// Every listed session's messages, read while a window's search has text; see `SessionMessageIndexer`.
-    let messageIndexer = SessionMessageIndexer()
+    /// Every listed session's messages, shared by the app's workspace windows while any of them searches.
+    var messageIndexer: SessionMessageIndexer { readService.messageIndexer }
     /// What the main window's alert shows, if anything.
     @Published private(set) var alert: StoreAlert?
     /// Alerts that came while `alert` was shown. Each is shown once the ones before it are dismissed, since
@@ -116,10 +116,12 @@ final class ConversationStore: ObservableObject {
     /// joined during the one before.
     private var finishedDeletionRounds: SessionDeletionReport?
     private var deletionTask: Task<Void, Never>?
+    private var thisMacRefreshTask: Task<Void, Never>?
     /// Deleted sessions leave the list, and the progress bar moves, at most this often while a deletion runs, and
     /// once more when it ends. Tests set it to zero to follow each session.
     var deletionListUpdateInterval: Duration = .milliseconds(500)
 
+    private let readService: WorkspaceReadService
     private let adapters: [any ConversationAdapter]
     let commandResolver: NativeCLICommandResolver
     /// Deletes sessions on SSH hosts.
@@ -147,10 +149,13 @@ final class ConversationStore: ObservableObject {
         // Unlike the settings above, the engine comes from the shared store, which reads the standard defaults; a test
         // that depends on the engine passes its own store.
         terminalEngineStore: TerminalEngineStore = .shared,
-        startsBackgroundPolling: Bool = true
+        startsBackgroundPolling: Bool = true,
+        readService: WorkspaceReadService? = nil
     ) {
-        self.adapters = adapters
-        self.commandResolver = commandResolver
+        let readService = readService ?? WorkspaceReadService(adapters: adapters, commandResolver: commandResolver)
+        self.readService = readService
+        self.adapters = readService.adapters
+        self.commandResolver = readService.commandResolver
         self.remoteDeletion = remoteDeletion
         self.remoteClaudeSessionIDFlagSupport = remoteClaudeSessionIDFlagSupport
         self.remoteShellStartupCheck = remoteShellStartupCheck
@@ -182,6 +187,16 @@ final class ConversationStore: ObservableObject {
         windowRegistry.add(self)
     }
 
+    deinit {
+        thisMacRefreshTask?.cancel()
+    }
+
+    func cancelThisMacRefresh() {
+        thisMacRefreshTask?.cancel()
+        thisMacRefreshTask = nil
+        isRefreshQueued = false
+    }
+
     /// Scans the session folders on this Mac. SSH hosts refresh on their own, so a slow host never holds this up.
     func refreshThisMac() {
         guard !deferRefreshWhileDeleting(on: .thisMac) else { return }
@@ -191,27 +206,24 @@ final class ConversationStore: ObservableObject {
         }
         hostRefreshStatuses[.thisMac] = .refreshing
         lastRefreshStartedAt = .now
-        let adapters = self.adapters
-        let commandResolver = self.commandResolver
-        Task.detached(priority: .userInitiated) {
-            var found: [Conversation] = []
-            var failures: [String] = []
-            for adapter in adapters {
-                do { found += try adapter.discover() }
-                catch { failures.append("\(adapter.provider.rawValue): \(error.localizedDescription)") }
-            }
-            let installedProviders = InstalledCLIs.onThisMac(commandResolver: commandResolver)
-            // The first refresh also checks the tmux version, so tabs can run in tmux from then on.
-            let tmuxPaneProcessIDs = commandResolver.refreshThisMacTmuxServer()?.appSessionPaneProcessIDs() ?? [:]
-            await MainActor.run {
-                self.tmuxSessionNamesByHost[.thisMac] = Set(tmuxPaneProcessIDs.keys)
-                self.thisMacTmuxPaneProcessIDs = tmuxPaneProcessIDs
-                self.setInstalledProviders(installedProviders, on: .thisMac)
-                self.replaceConversations(on: .thisMac, with: found, discardMissingReopeningTabs: failures.isEmpty)
+        thisMacRefreshTask = Task { [weak self, readService] in
+            do {
+                let result = try await readService.discoverThisMac()
+                try Task.checkCancellation()
+                guard let self else { return }
+                self.thisMacRefreshTask = nil
+                self.tmuxSessionNamesByHost[.thisMac] = Set(result.tmuxPaneProcessIDs.keys)
+                self.thisMacTmuxPaneProcessIDs = result.tmuxPaneProcessIDs
+                self.setInstalledProviders(result.installedProviders, on: .thisMac)
+                self.replaceConversations(
+                    on: .thisMac,
+                    with: result.conversations,
+                    discardMissingReopeningTabs: result.failures.isEmpty
+                )
                 self.linkWaitingTabsByAppearance(on: .thisMac)
-                self.hostRefreshStatuses[.thisMac] = failures.isEmpty
+                self.hostRefreshStatuses[.thisMac] = result.failures.isEmpty
                     ? .refreshed(.now)
-                    : .failed(failures.joined(separator: "\n"))
+                    : .failed(result.failures.joined(separator: "\n"))
                 if self.isRefreshQueued {
                     self.isRefreshQueued = false
                     self.refreshThisMac()
@@ -219,6 +231,12 @@ final class ConversationStore: ObservableObject {
                     Task { await self.discoverNewSessions(mayRefresh: false) }
                 }
                 self.startQueuedDeletion()
+            } catch is CancellationError {
+                self?.thisMacRefreshTask = nil
+            } catch {
+                guard let self else { return }
+                self.thisMacRefreshTask = nil
+                self.hostRefreshStatuses[.thisMac] = .failed(error.localizedDescription)
             }
         }
     }

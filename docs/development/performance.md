@@ -128,6 +128,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 15 | [Terminals in minimized windows drew as if in sight](#15-terminals-in-minimized-windows-drew-as-if-in-sight) | Done: issue #63 |
 | 16 | [Typing beside flooding terminals](#16-typing-beside-flooding-terminals) | Measured, no change: issue #58 |
 | 17 | [SSH connections during a remote refresh](#17-ssh-connections-during-a-remote-refresh) | Changed, not measured live: issue #64 |
+| 18 | [Workspace windows repeated discovery and message indexing](#18-workspace-windows-repeated-discovery-and-message-indexing) | Done: issue #57 |
 
 ### 1. Timestamp parsing
 
@@ -399,6 +400,21 @@ Keystrokes wait only when the other terminals print as fast as a pseudo-terminal
 **Change:** one remote-session refresh gives its folder lookup, snapshot commands, rsync copies, and cleanup commands the same app-owned OpenSSH control socket. Each refresh has a unique directory owned only by the current user, including concurrent refreshes, and explicitly asks its own master to exit before removing the directory on success, failure, or task cancellation; a 60-second persistence limit is the fallback if the app exits first. A stale socket from an earlier process has a different path. Host aliases and their users, ports, jump hosts, host-key policy, and other SSH settings still resolve normally. A host with `ControlMaster no`, `ControlPath none`, `ControlPersist no`, or a control path of its own receives no app-owned sharing.
 
 The unit coverage checks option construction, config precedence, private and distinct socket directories, idempotent teardown, cancellation, and the same options in remote commands and rsync. A disposable Linux target and a separate macOS account remain required to verify actual reuse and teardown over SSH.
+### 18. Workspace windows repeated discovery and message indexing
+
+**Evidence:** every workspace window owned a `ConversationStore`, and every store owned its own message index and ran its own full local refresh. `SharedWorkspaceReadMeasurements` compares those isolated objects with the app-scoped service, using eight generated Codex sessions (209,256 source bytes), simultaneous cold indexing, and three release-build runs per configuration. Counts were identical in all three runs; times below are medians.
+
+| Windows | Source reads, isolated → shared | Bytes read | Index entries / folded copies | CPU time | Wall time |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 8 → 8 | 209,256 → 209,256 | 8 / 8 → 8 / 8 | 18.4 → 18.3 ms | 13.1 → 13.0 ms |
+| 2 | 16 → 8 | 418,512 → 209,256 | 16 / 16 → 8 / 8 | 36.1 → 17.7 ms | 13.6 → 12.3 ms |
+| 4 | 32 → 8 | 837,024 → 209,256 | 32 / 32 → 8 / 8 | 82.1 → 16.4 ms | 15.0 → 11.8 ms |
+
+Repeating the identical generation caused zero additional reads in every case. A blocked-reader test starts two users while the one read is still in flight and observes one reader call, rather than merely serial calls. Another service-level case blocks full discovery until all windows have joined it. Its adapter scans were 1/2/4 with isolated stores and 1/1/1 when shared; a fake compatible tmux recorded 3/6/12 subprocess probes before and 3/3/3 after. Each configuration ran three times with the same counts.
+
+**Change:** `WorkspaceReadService` is owned by the app and passed to each workspace. It owns one `SessionMessageIndexer`, one set of adapters and command resolver, and one in-flight full-discovery task. The indexer keeps each active search user's session set and indexes their union, so one window changing hosts, filters, or closing cannot prune or cancel another's text. Generations reject a read that finishes after an append, rename, deletion, or host removal changed the desired set. Text leaves memory only after the final search user and the existing grace delay; restarting within it reuses the in-memory index. A closed window leaves the shared discovery running for other waiters, but the final waiter synchronously marks and evicts it so an immediately opened window starts fresh. Adapter scans check cancellation between reads, tmux probes are bounded, and only the current discovery generation commits the selected tmux server. Selection, sidebar filters, expanded projects, terminal tabs, alerts, and all other presentation state remain in each window's store.
+
+**Limits:** this is a service-level proxy, not four real SwiftUI windows. Its cold caches read zero cache bytes; it does not quantify warm cache decoding. Peak RSS was recorded for the process (about 54–56 MB) but was cumulative across cases, so it cannot isolate per-configuration memory; index-entry and folded-copy counts are the useful memory bound. The fake tmux proves subprocess coalescing but is not a live shell or SSH measurement. Periodic lightweight probes remain per window; this change shares only full refreshes and search indexing.
 
 ## How to profile
 
@@ -418,6 +434,7 @@ Or open the trace in Instruments. Keep these points in mind:
 - **Test with an accessibility client running.** Many users run Raycast or a window manager, and SwiftUI's accessibility work only happens while one is connected.
 - **Measurement suites:** the suites in `Tests/JustSessionsTests/Performance/` record only with `JUSTSESSIONS_PERF=1`; see their doc comments.
   - `MessageSearchReadingMeasurements`: reading generated sessions with images for message search, decoding the images and leaving them undecoded.
+  - `SharedWorkspaceReadMeasurements`: isolated and app-shared message indexing and full discovery with one, two, and four workspace consumers.
   - `SidebarInteractionMeasurements`: sidebar interactions.
   - `TerminalVisibilityMeasurements`: hidden terminals.
   - `TerminalWindowVisibilityMeasurements`: a selected terminal while its window is in sight, covered, or minimized.

@@ -113,7 +113,10 @@ private struct UnreadableConversationAdapter: ConversationAdapter {
 
     let provider: ConversationProvider = .codex
 
-    func discover() throws -> [Conversation] { throw UnreadableFolderError() }
+    func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
+        try cancellation.checkCancellation()
+        throw UnreadableFolderError()
+    }
     func arguments(for conversation: Conversation, action: ConversationAction) -> [String] { [] }
     func delete(_ conversation: Conversation) throws {}
 }

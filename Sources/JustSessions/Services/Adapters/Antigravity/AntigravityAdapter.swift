@@ -12,7 +12,8 @@ struct AntigravityAdapter: ConversationAdapter {
         self.configurationDirectory = configurationDirectory
     }
 
-    func discover() throws -> [Conversation] {
+    func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
+        try cancellation.checkCancellation()
         let conversationsDirectory = configurationDirectory.appendingPathComponent("conversations")
         guard let files = try? FileManager.default.contentsOfDirectory(
             at: conversationsDirectory,
@@ -23,8 +24,9 @@ struct AntigravityAdapter: ConversationAdapter {
         let summaries = AntigravitySQLiteReader.summaries(
             at: configurationDirectory.appendingPathComponent("conversation_summaries.db")
         )
-        return files.compactMap { file -> Conversation? in
-            guard file.pathExtension == "db",
+        let conversations = files.compactMap { file -> Conversation? in
+            guard !cancellation.isCancelled,
+                  file.pathExtension == "db",
                   ConversationMetadata.isValidSessionID(file.deletingPathExtension().lastPathComponent),
                   let localSession = AntigravitySQLiteReader.localSession(at: file),
                   localSession.sessionID == file.deletingPathExtension().lastPathComponent else { return nil }
@@ -51,6 +53,8 @@ struct AntigravityAdapter: ConversationAdapter {
                 parentSessionID: summary?.parentConversationID.flatMap { $0 == localSession.sessionID ? nil : $0 }
             )
         }
+        try cancellation.checkCancellation()
+        return conversations
     }
 
     /// The title of a conversation with no title and no prompt yet, such as one `/clear` just started.

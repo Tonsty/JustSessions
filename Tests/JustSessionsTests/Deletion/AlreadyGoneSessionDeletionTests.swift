@@ -37,7 +37,10 @@ struct AlreadyGoneSessionDeletionTests {
     /// Reports every session as no longer present, as the real adapters do for a file that is gone.
     private struct AlreadyGoneAdapter: ConversationAdapter {
         let provider = ConversationProvider.claude
-        func discover() throws -> [Conversation] { [] }
+        func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
+            try cancellation.checkCancellation()
+            return []
+        }
         func arguments(for conversation: Conversation, action: ConversationAction) -> [String] { [] }
         func delete(_ conversation: Conversation) throws { throw ConversationDeletionError.missingSource }
     }
