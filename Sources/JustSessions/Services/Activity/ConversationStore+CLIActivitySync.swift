@@ -88,6 +88,7 @@ extension ConversationStore {
         let events = sessionAttentionTracker.events(after: observations)
         notifyOfSessionsWantingAttention(events)
         noteUnseenFinishedTurns(after: observations, events: events)
+        noteWaitingForYouStartTimes(after: observations)
     }
 
     /// Listed sessions of this Mac that run in tmux, as of the last refresh, with no running tab in any window. The

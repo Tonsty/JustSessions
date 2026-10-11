@@ -63,13 +63,7 @@ final class SessionNotificationCenter: NSObject, SessionNotifying {
     /// Shows the session in the window whose tab runs it, or else reattaches to it in the first window, and brings
     /// that window forward.
     func showSession(notifiedAbout source: SessionAttentionSource) {
-        let stores = windowRegistry.stores
-        if let store = stores.first(where: { $0.showTab(notifiedAbout: source) }) {
-            windowRegistry.bringForward(store)
-        } else if let store = stores.first {
-            store.reattach(notifiedAbout: source)
-            windowRegistry.bringForward(store)
-        }
+        windowRegistry.showSession(wantingAttention: source)
     }
 }
 
