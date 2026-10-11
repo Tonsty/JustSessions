@@ -20,7 +20,8 @@ struct AntigravitySessionFixture {
             "INSERT INTO trajectory_meta VALUES ('\(sessionID)')",
             "CREATE TABLE trajectory_metadata_blob (data BLOB)",
             "INSERT INTO trajectory_metadata_blob VALUES (x'\(metadata.hex)')",
-            "CREATE TABLE steps (idx INTEGER PRIMARY KEY, step_type INTEGER, step_payload BLOB)",
+            "CREATE TABLE steps (idx INTEGER PRIMARY KEY, step_type INTEGER NOT NULL DEFAULT 0, status INTEGER NOT NULL DEFAULT 0, step_payload BLOB)",
+            "CREATE TABLE executor_metadata (idx INTEGER PRIMARY KEY, data BLOB)",
         ], at: databaseFile)
         try appendPrompt("Fix the build", index: 0)
     }
@@ -29,14 +30,43 @@ struct AntigravitySessionFixture {
         .fixture(provider: .antigravity, sessionID: sessionID, projectPath: projectPath, sourceFile: databaseFile)
     }
 
-    func appendPrompt(_ text: String, index: Int, source: Int = 4, status: Int = 3) throws {
-        let metadata = Self.field(1, Self.integer(1, 1_790_400_000) + Self.integer(2, 250_000_000)) + Self.integer(3, source)
-        let payload = Self.integer(4, status) + Self.field(5, metadata) + Self.field(19, Self.field(2, Data(text.utf8)))
-        try append(payload, type: 14, index: index)
+    func appendPrompt(
+        _ text: String,
+        index: Int,
+        source: Int = 4,
+        status: Int = 3,
+        createdAt: Date = Date(timeIntervalSince1970: 1_790_400_000.25)
+    ) throws {
+        try append(Self.stepPayload(status: status, createdAt: createdAt, source: source) + Self.field(19, Self.field(2, Data(text.utf8))),
+                   type: 14, index: index, status: status)
     }
 
-    func append(_ payload: Data, type: Int, index: Int) throws {
-        try Self.execute(["INSERT INTO steps VALUES (\(index), \(type), x'\(payload.hex)')"], at: databaseFile)
+    /// The step's status is Antigravity's own: 3 once done, 9 while it waits for you to allow it.
+    func append(_ payload: Data, type: Int, index: Int, status: Int = 3) throws {
+        try Self.execute([
+            "INSERT INTO steps (idx, step_type, status, step_payload) VALUES (\(index), \(type), \(status), x'\(payload.hex)')",
+        ], at: databaseFile)
+    }
+
+    /// A step other than a prompt, such as a model response (15) or a command (132), made at `createdAt`.
+    func appendStep(type: Int, index: Int, status: Int = 3, createdAt: Date = Date(timeIntervalSince1970: 1_790_400_001)) throws {
+        try append(Self.stepPayload(status: status, createdAt: createdAt), type: type, index: index, status: status)
+    }
+
+    /// The row Antigravity adds when a turn ends: how it ended (4 finished, 2 interrupted), how many model calls it
+    /// made, the index of its last step, which protobuf leaves out when it is 0, and the execution's id.
+    func appendExecution(index: Int, endingAtStep lastStepIndex: Int, termination: Int = 4) throws {
+        let metadata = Self.integer(1, termination) + Self.integer(2, 1)
+            + (lastStepIndex == 0 ? Data() : Self.integer(3, lastStepIndex))
+            + Self.field(9, Data(UUID().uuidString.lowercased().utf8))
+        try Self.execute(["INSERT INTO executor_metadata VALUES (\(index), x'\(metadata.hex)')"], at: databaseFile)
+    }
+
+    private static func stepPayload(status: Int, createdAt: Date, source: Int? = nil) -> Data {
+        let seconds = Int(createdAt.timeIntervalSince1970.rounded(.down))
+        let nanoseconds = Int(((createdAt.timeIntervalSince1970 - Double(seconds)) * 1_000_000_000).rounded())
+        let metadata = field(1, integer(1, seconds) + integer(2, nanoseconds)) + (source.map { integer(3, $0) } ?? Data())
+        return integer(4, status) + field(5, metadata)
     }
 
     func writeIndex() throws {

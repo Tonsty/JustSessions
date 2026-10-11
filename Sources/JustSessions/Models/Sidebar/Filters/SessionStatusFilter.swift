@@ -4,7 +4,7 @@ import Foundation
 ///
 /// A CLI runs in a tab of any window, or in tmux with no tab open, on this Mac or on an SSH host as of the host's
 /// last refresh. One that waits on you stopped for your answer, or is done with a turn you have not seen; only CLIs
-/// that tell what they are doing can wait on you: Claude Code, Codex, Pi, and OpenCode on this Mac.
+/// that tell what they are doing can wait on you: Claude Code, Codex, Antigravity, Pi, and OpenCode on this Mac.
 enum SessionStatusFilter: Hashable {
     case all
     case running
