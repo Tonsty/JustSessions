@@ -73,8 +73,7 @@ struct TerminalFontFamilyTests {
         #expect(font.fontDescriptor.object(forKey: .cascadeList) == nil)
     }
 
-    /// Hiragino Sans, as Osaka, BIZ UDGothic, and PCMyungjo, names no glyph W, which SwiftTerm sizes its cells by, so
-    /// its cells would be as wide as a Chinese character. Helvetica's letters have different widths, as Lantinghei TC's.
+    /// Hiragino Sans's and Helvetica's letters have different widths, as Osaka's and Lantinghei TC's.
     @Test func lettersFillTheCellsOnlyInFontsWhoseLettersAreAllAsWideAsW() throws {
         for family in ["Menlo", "Monaco", "Courier New", "PT Mono"] {
             let font = try #require(NSFontManager.shared.font(withFamily: family, traits: [], weight: 5, size: 13))
@@ -84,6 +83,16 @@ struct TerminalFontFamilyTests {
             let font = try #require(NSFontManager.shared.font(withFamily: family, traits: [], weight: 5, size: 13))
             #expect(!FontFillsTerminalCells.check(font as CTFont), "\(family)")
         }
+    }
+
+    /// BIZ UDGothic names no glyph W, but its W, which the cells are as wide as, is as wide as its other letters.
+    @Test(.enabled(if: BIZUDGothicFont.isInstalled, BIZUDGothicFont.needsTheFont))
+    func lettersFillTheCellsInAFontThatNamesNoGlyphW() throws {
+        let font = try #require(NSFontManager.shared.font(withFamily: BIZUDGothicFont.family, traits: [], weight: 5, size: 13))
+
+        #expect(CTFontGetGlyphWithName(font, "W" as CFString) == 0)
+        #expect(FontFillsTerminalCells.check(font as CTFont))
+        #expect(TerminalFontFamily.named(BIZUDGothicFont.family).font(size: 13).familyName == BIZUDGothicFont.family)
     }
 
     @Test func aFamilyWhoseLettersDontFillTheCellsGivesTheSystemFont() throws {

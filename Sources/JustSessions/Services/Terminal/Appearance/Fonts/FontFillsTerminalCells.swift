@@ -1,10 +1,10 @@
 import CoreText
 
-/// Whether a font's letters fill a terminal's cells. SwiftTerm makes each cell as wide as the glyph the font names W,
-/// and Ghostty's cells are adjusted to the same width; see `TerminalCellPixelSize`. Some fonts that call themselves
-/// monospaced, mostly Japanese, Chinese, and Korean ones such as Osaka, BIZ UDGothic, PCMyungjo, and Lantinghei TC, name
-/// no glyph W, which gives cells as wide as a Chinese character, or have letters of different widths. In both engines
-/// their text spreads across the terminal with gaps between letters, and lines break early or overlap.
+/// Whether a font's letters fill a terminal's cells. SwiftTerm makes each cell as wide as the font's W, and Ghostty's
+/// cells are adjusted to the same width; see `SwiftTermCellWidth` and `TerminalCellPixelSize`. Some fonts that call
+/// themselves monospaced, mostly Japanese, Chinese, and Korean ones such as Osaka and Lantinghei TC, have letters of
+/// different widths. In both engines their text spreads across the terminal with gaps between letters, and lines break
+/// early or overlap.
 ///
 /// Core Text is thread-safe, so this can run off the main thread.
 enum FontFillsTerminalCells {
@@ -12,10 +12,7 @@ enum FontFillsTerminalCells {
     private static let widthTolerance: CGFloat = 0.02
 
     static func check(_ font: CTFont) -> Bool {
-        var cellWidthGlyph = CTFontGetGlyphWithName(font, "W" as CFString)
-        var cellAdvance = CGSize.zero
-        CTFontGetAdvancesForGlyphs(font, .horizontal, &cellWidthGlyph, &cellAdvance, 1)
-        let cellWidth = cellAdvance.width
+        let cellWidth = SwiftTermCellWidth.advance(of: font)
         guard cellWidth > 0 else { return false }
 
         let characters = (32..<127).map { UniChar($0) }
