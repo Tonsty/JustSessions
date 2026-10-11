@@ -4,8 +4,10 @@ import Testing
 
 /// Mouse events on the tab bar itself: a drag moves a tab within its group, a split's two tabs together, or a whole
 /// group by its label, while a click still selects a tab, closes it from its ×, or collapses a group. The bar's space
-/// around and past them moves the window instead.
+/// around and past them moves the window instead. Serialized: each test's events go through the shared
+/// `WindowMoveZoneMonitor` and SwiftUI's gesture state, and from Swift 6.4 tests running alongside interleave theirs.
 @MainActor
+@Suite(.serialized)
 struct TabBarDragInteractionTests {
     @Test func theBarsEmptySpaceMovesTheWindowButItsTabsAndLabelsDont() async throws {
         let fixture = try TabBarWindowFixture()
