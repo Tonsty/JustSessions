@@ -14,7 +14,7 @@ Measurement suites live in `Tests/JustSessionsTests/Performance/` and record onl
 | PERF-02 | A session's id and project key are worked out once (the key resolves symlinks, never per redraw). Listed sessions are indexed by id and by project. | `2b6e892` | `SidebarInteractionMeasurements` |
 | PERF-03 | The sidebar's grouped and filtered projects, and the filter bar's counts, are cached behind input-equality checks. The current time joins at minute precision. A group stores its latest activity instead of computing it per sort comparison. Tooltip dates are formatted once per value. The selection walk is skipped while nothing is selected. | `2b6e892`, `4878267` | `SidebarInteractionMeasurements`, `FilteredSidebarProjectionTests` |
 | PERF-04 | Session rows sit in the sidebar's lazy list one by one, so an expanded project builds only rows in sight. One activity change re-runs about 24 project and 24 session rows, the same at 300 and 2,000 sessions. | `2b6e892`, `4deeb13` | `SidebarInteractionMeasurements` |
-| PERF-05 | The store doesn't publish when nothing changed, including unchanged CLI activity. | `b48e8af`, `4deeb13` | `SidebarStoreObservationTests` |
+| PERF-05 | The store doesn't publish when nothing changed, including unchanged CLI activity and the notification bell's wait times. | `b48e8af`, `4deeb13`, `3e0b7b1` | `SidebarStoreObservationTests`, `WaitingForYouStartTimesSyncTests` |
 | PERF-06 | Dragging the sidebar divider does no conversation work, and a width change under a point causes no relayout. | `9e6c11c`, `8c199d4` | `SidebarResizeHandleTests` |
 
 ## Discovery and refresh
