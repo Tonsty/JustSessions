@@ -176,14 +176,17 @@ struct ConversationBrowserView: View {
         ))
     }
 
-    /// A tab still waiting to be shown runs nothing, so it closes without asking what to do with its CLI. A tab whose
-    /// CLI can keep running in tmux, or a plain terminal, closes without asking too once you chose Don't ask again,
-    /// doing what you chose.
+    /// A tab still waiting to be shown runs nothing, so it closes without asking what to do with its CLI; so does a tab
+    /// whose CLI or shell already ended, which also ends the dead tmux session that kept a failed CLI's output. A tab
+    /// whose CLI can keep running in tmux, or a plain terminal, closes without asking too once you chose Don't ask
+    /// again, doing what you chose.
     private func requestClosingTerminal(_ id: UUID?) {
         guard let id else { return }
         let closingTab = store.terminalSessions.first { $0.id == id }
         if closingTab?.isWaitingToBeShown == true {
             store.closeTerminal(id)
+        } else if closingTab?.closingStopsNothing == true {
+            store.closeTerminal(id, endingTmuxSession: true)
         } else if closingTab?.canKeepCLIRunningAfterClose == true,
                   let endsTmuxSession = TabCloseChoiceSettingsStore.shared.choice.endsTmuxSessionWithoutAsking {
             store.closeTerminal(id, endingTmuxSession: endsTmuxSession)
