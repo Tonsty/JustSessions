@@ -8,12 +8,12 @@ struct TerminalCellPixelSize: Equatable {
     var width: Int
     var height: Int
 
-    /// SwiftTerm's `computeFontDimensions`: the advance of W, and the line height rounded up to whole points, each
-    /// rounded up to whole pixels.
+    /// SwiftTerm's `computeFontDimensions`: the advance of W, see `SwiftTermCellWidth`, and the line height rounded up to
+    /// whole points, each rounded up to whole pixels.
     static func swiftTerm(font: NSFont, backingScaleFactor: CGFloat) -> Self {
         let ctFont = font as CTFont
         let lineHeight = ceil(CTFontGetAscent(ctFont) + CTFontGetDescent(ctFont) + CTFontGetLeading(ctFont))
-        let advance = font.advancement(forGlyph: font.glyph(withName: "W")).width
+        let advance = SwiftTermCellWidth.advance(of: ctFont)
         return Self(width: Int(ceil(advance * backingScaleFactor)), height: Int(ceil(lineHeight * backingScaleFactor)))
     }
 

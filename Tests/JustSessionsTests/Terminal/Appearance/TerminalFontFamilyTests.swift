@@ -73,25 +73,69 @@ struct TerminalFontFamilyTests {
         #expect(font.fontDescriptor.object(forKey: .cascadeList) == nil)
     }
 
-    @Test func installedFamiliesAreTheMonospacedOnesWithLetters() {
+    /// Hiragino Sans's and Helvetica's letters have different widths, as Osaka's and Lantinghei TC's.
+    @Test func lettersFillTheCellsOnlyInFontsWhoseLettersAreAllAsWideAsW() throws {
+        for family in ["Menlo", "Monaco", "Courier New", "PT Mono"] {
+            let font = try #require(NSFontManager.shared.font(withFamily: family, traits: [], weight: 5, size: 13))
+            #expect(FontFillsTerminalCells.check(font as CTFont), "\(family)")
+        }
+        for family in ["Hiragino Sans", "Helvetica", "Apple Color Emoji"] {
+            let font = try #require(NSFontManager.shared.font(withFamily: family, traits: [], weight: 5, size: 13))
+            #expect(!FontFillsTerminalCells.check(font as CTFont), "\(family)")
+        }
+    }
+
+    /// BIZ UDGothic names no glyph W, but its W, which the cells are as wide as, is as wide as its other letters.
+    @Test(.enabled(if: BIZUDGothicFont.isInstalled, BIZUDGothicFont.needsTheFont))
+    func lettersFillTheCellsInAFontThatNamesNoGlyphW() throws {
+        let font = try #require(NSFontManager.shared.font(withFamily: BIZUDGothicFont.family, traits: [], weight: 5, size: 13))
+
+        #expect(CTFontGetGlyphWithName(font, "W" as CFString) == 0)
+        #expect(FontFillsTerminalCells.check(font as CTFont))
+        #expect(TerminalFontFamily.named(BIZUDGothicFont.family).font(size: 13).familyName == BIZUDGothicFont.family)
+    }
+
+    @Test func aFamilyWhoseLettersDontFillTheCellsGivesTheSystemFont() throws {
+        try #require(NSFontManager.shared.font(withFamily: "Hiragino Sans", traits: [], weight: 5, size: 13) != nil)
+
+        #expect(TerminalFontFamily.named("Hiragino Sans").font(size: 13) == NSFont.monospacedSystemFont(ofSize: 13, weight: .regular))
+    }
+
+    @Test func installedFamiliesAreTheMonospacedOnesWithLettersThatFillTheCells() {
         TerminalSymbolsFont.register()
         let families = InstalledMonospacedFontFamilies.load()
 
-        #expect(families.contains("Menlo"))
-        #expect(families.contains("Monaco"))
-        #expect(!families.contains("Helvetica"))
-        #expect(families.allSatisfy { !$0.hasPrefix(".") && !TerminalSymbolsFont.familyNames.contains($0) })
-        #expect(families == families.sorted { $0.localizedStandardCompare($1) == .orderedAscending })
+        #expect(families.fillingCells.contains("Menlo"))
+        #expect(families.fillingCells.contains("Monaco"))
+        #expect(!families.fillingCells.contains("Helvetica"))
+        #expect(!families.notFillingCells.contains("Helvetica"))
+        #expect(families.notFillingCells.isDisjoint(with: families.fillingCells))
+        for family in families.fillingCells {
+            #expect(FontFillsTerminalCells.check(Self.regularFace(of: family)), "\(family)")
+        }
+        for family in families.notFillingCells {
+            #expect(!FontFillsTerminalCells.check(Self.regularFace(of: family)), "\(family)")
+        }
+        let allFamilies = families.fillingCells + families.notFillingCells
+        #expect(allFamilies.allSatisfy { !$0.hasPrefix(".") && !TerminalSymbolsFont.familyNames.contains($0) })
+        #expect(families.fillingCells == families.fillingCells.sorted { $0.localizedStandardCompare($1) == .orderedAscending })
     }
 
-    @Test func thePickerAlwaysListsTheChosenFamilyAndMarksOneThatIsGone() {
-        typealias Choice = TerminalFontPicker.Choice
+    private static func regularFace(of family: String) -> CTFont {
+        CTFontCreateWithFontDescriptor(CTFontDescriptorCreateWithAttributes([kCTFontFamilyNameAttribute: family] as CFDictionary), 13, nil)
+    }
 
-        #expect(TerminalFontPicker.choices(installed: ["Menlo", "Monaco"], chosen: .named("Menlo"))
-            == [Choice(family: "Menlo", isMissing: false), Choice(family: "Monaco", isMissing: false)])
-        #expect(TerminalFontPicker.choices(installed: ["Menlo", "Monaco"], chosen: .named("Hack"))
-            == [Choice(family: "Hack", isMissing: true), Choice(family: "Menlo", isMissing: false), Choice(family: "Monaco", isMissing: false)])
-        #expect(TerminalFontPicker.choices(installed: nil, chosen: .named("Hack")) == [Choice(family: "Hack", isMissing: false)])
+    @Test func thePickerAlwaysListsTheChosenFamilyAndMarksOneItDoesntOffer() {
+        typealias Choice = TerminalFontPicker.Choice
+        let installed = InstalledMonospacedFontFamilies(fillingCells: ["Menlo", "Monaco"], notFillingCells: ["Osaka"])
+
+        #expect(TerminalFontPicker.choices(installed: installed, chosen: .named("Menlo"))
+            == [Choice(family: "Menlo", unavailability: nil), Choice(family: "Monaco", unavailability: nil)])
+        #expect(TerminalFontPicker.choices(installed: installed, chosen: .named("Hack"))
+            == [Choice(family: "Hack", unavailability: .notInstalled), Choice(family: "Menlo", unavailability: nil), Choice(family: "Monaco", unavailability: nil)])
+        #expect(TerminalFontPicker.choices(installed: installed, chosen: .named("Osaka"))
+            == [Choice(family: "Menlo", unavailability: nil), Choice(family: "Monaco", unavailability: nil), Choice(family: "Osaka", unavailability: .notFillingCells)])
+        #expect(TerminalFontPicker.choices(installed: nil, chosen: .named("Hack")) == [Choice(family: "Hack", unavailability: nil)])
         #expect(TerminalFontPicker.choices(installed: nil, chosen: .system).isEmpty)
     }
 }

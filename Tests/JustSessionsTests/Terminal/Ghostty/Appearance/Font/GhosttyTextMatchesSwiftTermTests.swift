@@ -15,6 +15,18 @@ struct GhosttyTextMatchesSwiftTermTests {
 
     @Test(arguments: [TerminalFontFamily.system, .named("Menlo"), .named("Courier New"), .named("PT Mono")], [10.0, 13, 17.5, 24])
     func cellsAreAsLargeAsSwiftTerms(_ family: TerminalFontFamily, _ size: Double) async throws {
+        try await Self.expectCellsAsLargeAsSwiftTerms(family, size)
+    }
+
+    /// BIZ UDGothic names no glyph W; both engines size its cells by its glyph for W.
+    @Test(.enabled(if: BIZUDGothicFont.isInstalled, BIZUDGothicFont.needsTheFont), arguments: [13.0, 17.5])
+    func cellsAreAsLargeAsSwiftTermsInAFontThatNamesNoGlyphW(_ size: Double) async throws {
+        try await Self.expectCellsAsLargeAsSwiftTerms(.named(BIZUDGothicFont.family), size)
+    }
+
+    private static func expectCellsAsLargeAsSwiftTerms(
+        _ family: TerminalFontFamily, _ size: Double, sourceLocation: SourceLocation = #_sourceLocation
+    ) async throws {
         let stores = try IsolatedAppearanceStores()
         defer { stores.remove() }
         stores.appearance.setFontFamily(family)
@@ -27,10 +39,10 @@ struct GhosttyTextMatchesSwiftTermTests {
         // A new size makes the terminal report its grid to the delegate it now has.
         ghostty.view.frame = Self.frame.insetBy(dx: 0, dy: 10)
 
-        try await expectEventually(timeout: .seconds(10)) { recorder.metrics != nil }
-        let metrics = try #require(recorder.metrics)
+        try await expectEventually(timeout: .seconds(10), { recorder.metrics != nil }, sourceLocation: sourceLocation)
+        let metrics = try #require(recorder.metrics, sourceLocation: sourceLocation)
         let ghosttyCell = TerminalCellPixelSize(width: Int(metrics.cellWidthPixels), height: Int(metrics.cellHeightPixels))
-        #expect(ghosttyCell == swiftTerm.cellPixelSize, "\(family) at \(size) points")
+        #expect(ghosttyCell == swiftTerm.cellPixelSize, "\(family) at \(size) points", sourceLocation: sourceLocation)
     }
 
     /// Ghostty's own fallback would draw Chinese larger than SwiftTerm does, and bold Chinese in the regular weight or

@@ -6,10 +6,13 @@ enum TerminalFontFamily: Hashable {
     case system
     case named(String)
 
-    /// A family that is no longer installed, as after its font is removed, gives the system's monospaced font.
+    /// A family that is no longer installed, as after its font is removed, gives the system's monospaced font, as does
+    /// one whose letters don't fill a terminal's cells, which the font picker no longer offers; see
+    /// `FontFillsTerminalCells`.
     func font(size: CGFloat) -> NSFont {
         guard case .named(let family) = self,
-              let font = NSFontManager.shared.font(withFamily: family, traits: [], weight: Self.regularWeight, size: size) else {
+              let font = NSFontManager.shared.font(withFamily: family, traits: [], weight: Self.regularWeight, size: size),
+              FontFillsTerminalCells.check(font as CTFont) else {
             return Self.systemFont(size: size)
         }
         return TerminalSymbolsFont.addingFallback(to: font)

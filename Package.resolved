@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/yangzichao/SwiftTerm.git",
       "state" : {
-        "revision" : "f5491a11368d5ea96b7ad36a04ad9b05cb6e7f38",
-        "version" : "1.15.0-justsessions.1"
+        "revision" : "e50b6916fbe512e881bfb633568f0ff5884304b2",
+        "version" : "1.15.0-justsessions.2"
       }
     }
   ],
