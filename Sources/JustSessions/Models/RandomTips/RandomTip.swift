@@ -1,27 +1,30 @@
-/// The tips the bottom of the sidebar picks from, one at a time, about things a user may not have found yet. The raw
-/// values are saved as the tips shown so far, so a case keeps its name; a saved name no case has any more is ignored.
+/// The tips the bottom of the sidebar picks from, one at a time, each about something the app can do. The raw values are
+/// saved as the tips shown so far, so a case keeps its name; a saved name no case has any more is ignored.
 enum RandomTip: String, CaseIterable {
-    case selectSeveralSessions
-    case backAndForward
-    case tabByPosition
-    case splitView
+    case resumeSession
+    case newSessionAnyCLI
+    case readWithoutRunning
     case keepRunning
-    case searchMessages
-    case findInConversation
-    case readingWindow
-    case hideSidebar
-    case branch
-    case pin
-    case collapseTabGroup
+    case reopenTabs
+    case unseenTurn
     case sshHosts
-    case textSize
-    case selectTerminalText
-    case dragTabToNewWindow
-    case dropFiles
+    case splitView
+    case selectSeveralSessions
+    case branch
     case waitingForYouFilter
-    case customizeColors
-    case exportConversation
+    case notifications
+    case readingWindow
+    case pin
     case openProjectInEditor
     case archiveProject
-    case notifications
+    case showSubagents
+    case dragTabToNewWindow
+    case collapseTabGroup
+    case backAndForward
+    case tabByPosition
+    case hideSidebar
+    case textSize
+    case dropFiles
+    case ghosttyEngine
+    case computerUse
 }

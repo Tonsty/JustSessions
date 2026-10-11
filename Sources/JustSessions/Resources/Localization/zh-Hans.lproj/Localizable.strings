@@ -54,20 +54,12 @@
 	<string>%lld 个子代理会话将保留在磁盘上。</string>
 	<key>%lld tool calls</key>
 	<string>%lld 次工具调用</string>
-	<key>**Add SSH host…** at the bottom of the sidebar lists the sessions on another machine, ready to read and resume.</key>
-	<string>侧栏底部的 **添加 SSH 主机…** 可以列出另一台机器上的会话，直接阅读和继续。</string>
-	<key>**Branch** starts a new session from a copy of a conversation and leaves the original as it was.</key>
-	<string>**分支** 会用对话的副本开始一个新会话，原来的会话保持不变。</string>
-	<key>**Open in new window** gives a conversation a window of its own, so you can read it beside a terminal.</key>
-	<string>**在新窗口中打开** 让对话有自己的窗口，可以一边看对话一边用终端。</string>
 	<key>**Open tabs** lists every tab with what its CLI is doing. ⌘1 to ⌘8 go to a tab by its position, and ⌘9 to the last.</key>
 	<string>**已打开** 列出每个标签页及其 CLI 正在做什么。⌘1 到 ⌘8 按位置切换标签页，⌘9 切换到最后一个。</string>
 	<key>**Resume** continues this conversation in its CLI, in its original folder. Double-clicking the session in the sidebar does the same.</key>
 	<string>**继续** 会在原来的文件夹中用它的 CLI 接着这段对话。在侧栏双击这个会话也可以。</string>
 	<key>**Resume**, or a double-click, continues the conversation in its CLI and original folder. **Branch**, where the CLI supports it, starts a new session from a copy and leaves the original as it was.</key>
 	<string>**继续**（或双击会话）会在原来的 CLI 和文件夹中接着这段对话。**分支** 会从对话的副本开始一个新会话，原会话保持不变，仅部分 CLI 支持。</string>
-	<key>**Waiting for you** in the sidebar's filter menu lists sessions that stopped for your answer or finished a turn you haven't seen.</key>
-	<string>侧栏筛选菜单中的 **等待我处理** 会列出停下来等你回答，或完成了一轮但你还没看的会话。</string>
 	<key>**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab to show two side by side.</key>
 	<string>**⌘N** 可用任一已安装的 CLI 开始会话，或打开普通终端。标签页按项目分组，侧边栏的 **已打开** 会列出全部标签页。右键单击标签页可将两个并排显示。</string>
 	<key>1 message</key>
@@ -80,6 +72,8 @@
 	<string>1 次工具调用</string>
 	<key>A CLI still running in tmux reattaches. Other sessions resume when you select their tab, including after a Mac restart. Plain terminals open a new shell in their folder.</key>
 	<string>仍在 tmux 中运行的 CLI 会重新连接。其他会话在选中标签时继续，包括 Mac 重启后的会话。普通终端会在原文件夹打开新 shell。</string>
+	<key>A blue dot means a CLI finished a turn you haven't seen yet.</key>
+	<string>蓝点表示 CLI 完成了一轮，你还没看。</string>
 	<key>A port goes in `~/.ssh/config`. Add these lines there, then enter %@.</key>
 	<string>端口要写在 `~/.ssh/config` 中。把下面几行加进去，再输入 %@。</string>
 	<key>A session whose subagents ran sessions of their own gets a chevron before its icon. Click it to list them under the session and read them. Kiro's aren't listed; on SSH hosts, only Codex's and Antigravity's are.</key>
@@ -166,8 +160,6 @@
 	<string>归档 %lld 个项目并删除 1 个会话</string>
 	<key>Archive %lld projects and delete all sessions (%lld)…</key>
 	<string>归档 %1$lld 个项目并删除所有会话（%2$lld）…</string>
-	<key>Archive a project you are done with. The host's **+** menu brings it back from **Archived projects**.</key>
-	<string>不再用的项目可以归档。主机标题的 **+** 菜单中，**已归档的项目** 可以把它找回来。</string>
 	<key>Archive and delete sessions…</key>
 	<string>归档并删除会话…</string>
 	<key>Archive project</key>
@@ -178,6 +170,8 @@
 	<string>归档项目并删除 1 个会话</string>
 	<key>Archive project and delete all sessions (%lld)…</key>
 	<string>归档项目并删除所有会话（%lld）…</string>
+	<key>Archive projects you're done with; restore them anytime from the host's **+** menu.</key>
+	<string>不用的项目可以归档，随时从主机的 **+** 菜单恢复。</string>
 	<key>Archive selected projects</key>
 	<string>归档所选项目</string>
 	<key>Archive selected projects and delete their sessions</key>
@@ -212,6 +206,8 @@
 	<string>为 %lld 个会话创建分支</string>
 	<key>Browse and resume sessions on another machine.</key>
 	<string>浏览并继续其他机器上的会话。</string>
+	<key>Browse and resume sessions on other machines with **Add SSH host…**.</key>
+	<string>**添加 SSH 主机…** 后，可以浏览和继续其他机器上的会话。</string>
 	<key>Browse…</key>
 	<string>浏览…</string>
 	<key>CLIs skip your interactive shell startup, which starts another program</key>
@@ -258,8 +254,10 @@
 	<string>清除筛选</string>
 	<key>Clear the selection, or close search</key>
 	<string>取消选择，或关闭搜索</string>
-	<key>Click a project's label in the tab bar to collapse its tabs. A collapsed group still shows when a CLI is waiting on you.</key>
-	<string>单击标签栏中的项目名称即可折叠它的标签页。折叠后，有 CLI 在等你时仍会显示出来。</string>
+	<key>Click a project's label in the tab bar to fold away its tabs.</key>
+	<string>单击标签栏里的项目名称，可以折叠它的标签页。</string>
+	<key>Click a session to read it without starting its CLI.</key>
+	<string>单击会话即可阅读，不会启动 CLI。</string>
 	<key>Click a session to read it; nothing runs. Double-click it to continue in its CLI, in the original folder.</key>
 	<string>单击会话即可阅读，不会运行任何东西。双击则在原文件夹中用它的 CLI 继续。</string>
 	<key>Click a session to read its conversation; no CLI starts. **Open in new window** gives it a window of its own.</key>
@@ -276,8 +274,6 @@
 	<string>关闭标签…</string>
 	<key>Close Window</key>
 	<string>关闭窗口</string>
-	<key>Close a tab with **Keep running** and its CLI carries on in tmux, even after you quit. Click its session to return.</key>
-	<string>关闭标签页时选择 **保持运行**，CLI 会在 tmux 中继续运行，退出 App 后也不会停。单击它的会话即可回来。</string>
 	<key>Close a tab with **Keep running**, or quit the app, and the CLI carries on in tmux. Click its session to return. A plain terminal ends with its tab.</key>
 	<string>关闭标签页时选择 **保持运行**，或直接退出应用，CLI 都会在 tmux 中继续运行。单击它的会话即可回去。普通终端会随标签页一起结束。</string>
 	<key>Close all tabs in %@?</key>
@@ -340,6 +336,8 @@
 	<string>连接…</string>
 	<key>Continue</key>
 	<string>继续</string>
+	<key>Continue any past session in its own CLI and folder: just double-click it.</key>
+	<string>双击任意会话，就能在原来的 CLI 和文件夹里接着聊。</string>
 	<key>Copied</key>
 	<string>已复制</string>
 	<key>Copies the colors once. JustSessions doesn't read iTerm2's settings again.</key>
@@ -426,10 +424,10 @@
 	<string>不再显示提示</string>
 	<key>Done</key>
 	<string>完成</string>
-	<key>Drag a tab out of the tab bar to give it a window of its own. Its CLI keeps running.</key>
-	<string>把标签页拖出标签栏，它就会有自己的窗口，CLI 不会中断。</string>
-	<key>Drop files from Finder on a tab on this Mac to type their paths into it.</key>
-	<string>把 Finder 中的文件拖到本机的标签页上，即可输入它们的路径。</string>
+	<key>Drag a tab out of the tab bar to give it its own window.</key>
+	<string>把标签页拖出标签栏，就能放进单独的窗口。</string>
+	<key>Drop files from Finder onto a terminal on this Mac to paste their paths.</key>
+	<string>把 Finder 里的文件拖到本机终端上，就能输入它们的路径。</string>
 	<key>Edit</key>
 	<string>编辑</string>
 	<key>End and close this terminal</key>
@@ -514,6 +512,10 @@
 	<string>完全磁盘访问权限</string>
 	<key>General</key>
 	<string>通用</string>
+	<key>Get notified when a CLI finishes a turn or needs you. Choose which in Settings → General.</key>
+	<string>CLI 完成一轮或需要你时会发通知，可在 设置 → 通用 中选择。</string>
+	<key>Give the terminal the whole window: ⌘B hides the sidebar.</key>
+	<string>⌘B 隐藏侧栏，让终端占满整个窗口。</string>
 	<key>Gives the theme back its own colors, light and dark.</key>
 	<string>恢复主题自带的浅色和深色颜色。</string>
 	<key>Go</key>
@@ -544,8 +546,6 @@
 	<string>隐藏侧栏，让终端占满整个窗口；再点一次即可恢复。⌘B 也可以。</string>
 	<key>Hide until JustSessions opens again</key>
 	<string>隐藏，下次打开 JustSessions 时再显示</string>
-	<key>Hold ⇧ while dragging in a terminal to select its text, then press ⌘C to copy it.</key>
-	<string>在终端中按住 ⇧ 拖动即可选择文字，再按 ⌘C 复制。</string>
 	<key>Host</key>
 	<string>主机</string>
 	<key>Hosts run Linux or macOS. For Windows, connect to WSL over SSH.</key>
@@ -574,6 +574,8 @@
 	<string>会先结束它仍在 %@ 上运行的 CLI。</string>
 	<key>Its tab closes and its CLI ends first.</key>
 	<string>会先关闭它的标签页并结束它的 CLI。</string>
+	<key>Jump back to the tab or session you just left with ⌘[, forward with ⌘].</key>
+	<string>⌘[ 回到刚才的标签页或会话，⌘] 前进。</string>
 	<key>JustSessions Help</key>
 	<string>JustSessions 帮助</string>
 	<key>JustSessions Website</key>
@@ -632,6 +634,8 @@
 	<string>登录 %@</string>
 	<key>Logged in with Connect…</key>
 	<string>已通过“连接…”登录</string>
+	<key>Make text bigger or smaller with ⌘+ and ⌘−, in terminals and conversations.</key>
+	<string>⌘+ / ⌘− 调整终端和对话的文字大小。</string>
 	<key>Match app</key>
 	<string>与应用一致</string>
 	<key>Match app theme</key>
@@ -750,6 +754,8 @@
 	<string>打开系统设置</string>
 	<key>Open a new issue on GitHub</key>
 	<string>在 GitHub 上报告问题</string>
+	<key>Open a project in your editor straight from its right-click menu.</key>
+	<string>右键单击项目，可以直接在编辑器中打开。</string>
 	<key>Open in</key>
 	<string>打开方式</string>
 	<key>Open in Finder</key>
@@ -794,10 +800,14 @@
 	<string>置顶项目</string>
 	<key>Pin session</key>
 	<string>置顶会话</string>
+	<key>Pin your most-used sessions and projects to the top from their right-click menu.</key>
+	<string>右键单击即可把常用的会话和项目置顶。</string>
 	<key>Pinned</key>
 	<string>已置顶</string>
 	<key>Plain text (.txt)…</key>
 	<string>纯文本（.txt）…</string>
+	<key>Prefer Ghostty's renderer? Pick it in Settings → Appearance → Terminal → Engine. New tabs use it.</key>
+	<string>想用 Ghostty 渲染终端？在 设置 → 外观 → 终端 → 引擎 里选择，之后新开的标签页生效。</string>
 	<key>Preview</key>
 	<string>预览</string>
 	<key>Previous Tab</key>
@@ -816,6 +826,14 @@
 	<string>%@ 上的项目文件夹</string>
 	<key>Projects</key>
 	<string>项目</string>
+	<key>Put two tabs side by side: right-click a tab for split view.</key>
+	<string>两个标签页可以并排：右键单击标签页选择拆分视图。</string>
+	<key>Quit or restart your Mac: your tabs reopen, and CLIs still in tmux reattach.</key>
+	<string>退出 App 或重启 Mac 后，标签页会重新打开，tmux 里的 CLI 直接接上。</string>
+	<key>Quit the app and your CLIs keep running: close tabs with **Keep running**.</key>
+	<string>关标签页时选 **保持运行**，退出 App 后 CLI 也照样跑。</string>
+	<key>Read a conversation in its own window with **Open in new window**.</key>
+	<string>**在新窗口中打开** 可以单独开一个窗口阅读对话。</string>
 	<key>Read a session</key>
 	<string>阅读会话</string>
 	<key>Read first, then resume</key>
@@ -894,20 +912,12 @@
 	<string>反转视图</string>
 	<key>Right view</key>
 	<string>右侧视图</string>
-	<key>Right-click a project to open it in Finder or in an editor you have installed.</key>
-	<string>右键单击项目，可以在 Finder 或已安装的编辑器中打开它。</string>
 	<key>Right-click a selected row in the sidebar to resume, branch, or delete them.</key>
 	<string>右键点击侧栏中已选择的条目，以继续、创建分支或删除会话。</string>
-	<key>Right-click a session or project to pin it. Pins keep the order you give them; drag one to move it.</key>
-	<string>右键单击会话或项目即可置顶。置顶项保持你排好的顺序，拖动即可调整。</string>
-	<key>Right-click a session to copy its conversation, or export it as Markdown or plain text.</key>
-	<string>右键单击会话，可以复制对话，或导出为 Markdown 或纯文本。</string>
 	<key>Right-click a session to rename, pin, export, or delete it, and a project to rename, pin, or archive it. ⌘-click or ⇧-click selects several.</key>
 	<string>右键单击会话可以重命名、置顶、导出或删除；右键单击项目可以重命名、置顶或归档。按住 ⌘ 或 ⇧ 单击可选择多个。</string>
 	<key>Right-click a session to rename, pin, export, or delete it. ⌘-click or Shift-click to select several at once.</key>
 	<string>右键单击会话可以重命名、置顶、导出或删除。按住 ⌘ 或 Shift 单击可一次选择多个。</string>
-	<key>Right-click another tab and choose **New split view with current tab** to see two tabs side by side.</key>
-	<string>右键单击另一个标签页，选择 **使用当前标签页创建新的拆分视图**，即可并排查看两个标签页。</string>
 	<key>Right-click another tab and choose **New split view with current tab**. Drag between the two views to resize them.</key>
 	<string>右键单击另一个标签页，选择 **使用当前标签页创建新的拆分视图**。在两个视图之间拖动可调整大小。</string>
 	<key>Running</key>
@@ -956,6 +966,10 @@
 	<string>正在搜索消息… %1$lld / %2$lld</string>
 	<key>Searching…</key>
 	<string>正在搜索…</string>
+	<key>See the sessions a session's subagents ran: turn them on in Settings → General.</key>
+	<string>想看子代理跑出的会话？在 设置 → 通用 中打开。</string>
+	<key>See which sessions are waiting on you: filter by **Waiting for you**.</key>
+	<string>筛选 **等待我处理**，一眼看到哪些会话在等你。</string>
 	<key>Select All</key>
 	<string>全选</string>
 	<key>Select a range</key>
@@ -978,14 +992,10 @@
 	<string>%@ 上的会话会打开 shell 而不是它们的 CLI，因为它的 shell 启动配置会先启动另一个程序。单击查看修复方法。</string>
 	<key>Sessions on other machines</key>
 	<string>其他机器上的会话</string>
-	<key>Sessions on this Mac can notify you when a turn ends or a CLI needs your input. Choose which in Settings → General.</key>
-	<string>本机的会话可以在一轮结束或 CLI 需要你输入时通知你。在 设置 → 通用 中选择要哪些通知。</string>
 	<key>Settings</key>
 	<string>设置</string>
 	<key>Settings (⌘,)</key>
 	<string>设置（⌘,）</string>
-	<key>Settings → Appearance can customize your theme's colors, and the terminal's colors and font.</key>
-	<string>在 设置 → 外观 中可以自定义主题颜色，以及终端的颜色和字体。</string>
 	<key>Settings…</key>
 	<string>设置…</string>
 	<key>Setup requirements</key>
@@ -1020,8 +1030,6 @@
 	<string>在启动子代理的会话下显示子代理</string>
 	<key>Sidebar</key>
 	<string>侧栏</string>
-	<key>Sidebar search also finds words inside messages. Click a matching line to open the conversation at that message.</key>
-	<string>侧栏搜索也会查找消息里的文字。单击匹配的那一行，即可在该消息处打开对话。</string>
 	<key>Sidebar width</key>
 	<string>侧栏宽度</string>
 	<key>Size</key>
@@ -1044,6 +1052,8 @@
 	<string>在 %@ 中新建会话</string>
 	<key>Start a new session in %@ on %@</key>
 	<string>在 %2$@ 的 %1$@ 中新建会话</string>
+	<key>Start a session in any installed CLI, or a plain terminal, with ⌘N.</key>
+	<string>⌘N 可以用任一已安装的 CLI 新建会话，或打开普通终端。</string>
 	<key>Start a session in any installed CLI, or open a plain terminal, in a project folder. ⌘N does the same.</key>
 	<string>在项目文件夹中用任一已安装的 CLI 开始会话，或打开普通终端。⌘N 也可以。</string>
 	<key>Start command</key>
@@ -1072,6 +1082,8 @@
 	<string>与左侧视图交换</string>
 	<key>Swap with right view</key>
 	<string>与右侧视图交换</string>
+	<key>Switch tabs with ⌘1 to ⌘9, even while typing in a CLI.</key>
+	<string>⌘1–⌘9 直接切换标签页，在 CLI 里输入时也能用。</string>
 	<key>Switches between a readable width and the full window width</key>
 	<string>在适合阅读的宽度和窗口全宽之间切换</string>
 	<key>System</key>
@@ -1190,6 +1202,8 @@
 	<string>重试</string>
 	<key>Try again</key>
 	<string>重试</string>
+	<key>Try another direction without touching the original: **Branch** a session.</key>
+	<string>**分支** 从副本开新会话，原会话保持不变。</string>
 	<key>Two tabs side by side</key>
 	<string>两个标签页并排显示</string>
 	<key>Unknown error</key>
@@ -1214,6 +1228,8 @@
 	<string>版本</string>
 	<key>Waiting for you</key>
 	<string>等待我处理</string>
+	<key>Want computer use? Add a computer-use MCP server to your CLI, then allow Accessibility in Settings → Permissions.</key>
+	<string>想用 computer use？给 CLI 加一个 computer-use MCP，再在 设置 → 权限 里允许辅助功能。</string>
 	<key>Website ↗</key>
 	<string>网站 ↗</string>
 	<key>When you close a CLI tab</key>
@@ -1264,19 +1280,9 @@
 	<string>macOS 不允许应用检查这项权限。请在系统设置中找到 JustSessions。</string>
 	<key>⇧-click</key>
 	<string>⇧ 点击</string>
-	<key>⌘+ and ⌘− change the text size of the terminals or the conversation you are reading, and ⌘0 goes back to the default.</key>
-	<string>⌘+ 和 ⌘− 调整终端或正在阅读的对话的文字大小，⌘0 恢复默认大小。</string>
 	<key>⌘-click</key>
 	<string>⌘ 点击</string>
-	<key>⌘-click or ⇧-click in the sidebar to select several sessions, then right-click one to resume or delete them together.</key>
-	<string>在侧栏中按住 ⌘ 或 ⇧ 单击可选择多个会话，再右键单击其中一个，即可一起继续或删除。</string>
-	<key>⌘1 to ⌘8 go to a tab by its position, and ⌘9 to the last one. They work while a CLI has focus too.</key>
-	<string>⌘1 到 ⌘8 按位置切换标签页，⌘9 切换到最后一个。焦点在 CLI 中时也能用。</string>
-	<key>⌘B hides the sidebar to give the terminal the whole window. Press it again to bring the sidebar back.</key>
-	<string>⌘B 隐藏侧栏，让终端占满整个窗口；再按一次即可恢复。</string>
-	<key>⌘F finds text in the conversation you are reading, and ⌘G goes to the next match.</key>
-	<string>⌘F 在正在阅读的对话中查找文字，⌘G 跳到下一个匹配项。</string>
-	<key>⌘[ and ⌘] go back and forward through the tabs and sessions this window showed. Right-click the arrows for the whole list.</key>
-	<string>⌘[ 和 ⌘] 在这个窗口显示过的标签页和会话之间后退、前进。右键单击箭头可查看完整列表。</string>
+	<key>⌘-click to select several sessions, then resume or delete them together.</key>
+	<string>⌘ 单击可多选会话，一次全部继续或删除。</string>
 </dict>
 </plist>

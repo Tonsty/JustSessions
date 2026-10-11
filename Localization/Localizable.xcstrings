@@ -354,36 +354,6 @@
         }
       }
     },
-    "**Add SSH host…** at the bottom of the sidebar lists the sessions on another machine, ready to read and resume.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "侧栏底部的 **添加 SSH 主机…** 可以列出另一台机器上的会话，直接阅读和继续。"
-          }
-        }
-      }
-    },
-    "**Branch** starts a new session from a copy of a conversation and leaves the original as it was.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "**分支** 会用对话的副本开始一个新会话，原来的会话保持不变。"
-          }
-        }
-      }
-    },
-    "**Open in new window** gives a conversation a window of its own, so you can read it beside a terminal.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "**在新窗口中打开** 让对话有自己的窗口，可以一边看对话一边用终端。"
-          }
-        }
-      }
-    },
     "**Open tabs** lists every tab with what its CLI is doing. ⌘1 to ⌘8 go to a tab by its position, and ⌘9 to the last.": {
       "localizations": {
         "zh-Hans": {
@@ -410,16 +380,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "**继续**（或双击会话）会在原来的 CLI 和文件夹中接着这段对话。**分支** 会从对话的副本开始一个新会话，原会话保持不变，仅部分 CLI 支持。"
-          }
-        }
-      }
-    },
-    "**Waiting for you** in the sidebar's filter menu lists sessions that stopped for your answer or finished a turn you haven't seen.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "侧栏筛选菜单中的 **等待我处理** 会列出停下来等你回答，或完成了一轮但你还没看的会话。"
           }
         }
       }
@@ -480,6 +440,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "仍在 tmux 中运行的 CLI 会重新连接。其他会话在选中标签时继续，包括 Mac 重启后的会话。普通终端会在原文件夹打开新 shell。"
+          }
+        }
+      }
+    },
+    "A blue dot means a CLI finished a turn you haven't seen yet.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "蓝点表示 CLI 完成了一轮，你还没看。"
           }
         }
       }
@@ -935,16 +905,6 @@
         }
       }
     },
-    "Archive a project you are done with. The host's **+** menu brings it back from **Archived projects**.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "不再用的项目可以归档。主机标题的 **+** 菜单中，**已归档的项目** 可以把它找回来。"
-          }
-        }
-      }
-    },
     "Archive and delete sessions…": {
       "localizations": {
         "zh-Hans": {
@@ -991,6 +951,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "归档项目并删除所有会话（%lld）…"
+          }
+        }
+      }
+    },
+    "Archive projects you're done with; restore them anytime from the host's **+** menu.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不用的项目可以归档，随时从主机的 **+** 菜单恢复。"
           }
         }
       }
@@ -1182,6 +1152,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "浏览并继续其他机器上的会话。"
+          }
+        }
+      }
+    },
+    "Browse and resume sessions on other machines with **Add SSH host…**.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "**添加 SSH 主机…** 后，可以浏览和继续其他机器上的会话。"
           }
         }
       }
@@ -1416,12 +1396,22 @@
         }
       }
     },
-    "Click a project's label in the tab bar to collapse its tabs. A collapsed group still shows when a CLI is waiting on you.": {
+    "Click a project's label in the tab bar to fold away its tabs.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "单击标签栏中的项目名称即可折叠它的标签页。折叠后，有 CLI 在等你时仍会显示出来。"
+            "value": "单击标签栏里的项目名称，可以折叠它的标签页。"
+          }
+        }
+      }
+    },
+    "Click a session to read it without starting its CLI.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单击会话即可阅读，不会启动 CLI。"
           }
         }
       }
@@ -1502,16 +1492,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "关闭窗口"
-          }
-        }
-      }
-    },
-    "Close a tab with **Keep running** and its CLI carries on in tmux, even after you quit. Click its session to return.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "关闭标签页时选择 **保持运行**，CLI 会在 tmux 中继续运行，退出 App 后也不会停。单击它的会话即可回来。"
           }
         }
       }
@@ -1822,6 +1802,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "继续"
+          }
+        }
+      }
+    },
+    "Continue any past session in its own CLI and folder: just double-click it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "双击任意会话，就能在原来的 CLI 和文件夹里接着聊。"
           }
         }
       }
@@ -2316,22 +2306,22 @@
         }
       }
     },
-    "Drag a tab out of the tab bar to give it a window of its own. Its CLI keeps running.": {
+    "Drag a tab out of the tab bar to give it its own window.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "把标签页拖出标签栏，它就会有自己的窗口，CLI 不会中断。"
+            "value": "把标签页拖出标签栏，就能放进单独的窗口。"
           }
         }
       }
     },
-    "Drop files from Finder on a tab on this Mac to type their paths into it.": {
+    "Drop files from Finder onto a terminal on this Mac to paste their paths.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "把 Finder 中的文件拖到本机的标签页上，即可输入它们的路径。"
+            "value": "把 Finder 里的文件拖到本机终端上，就能输入它们的路径。"
           }
         }
       }
@@ -2774,8 +2764,28 @@
         }
       }
     },
+    "Get notified when a CLI finishes a turn or needs you. Choose which in Settings → General.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CLI 完成一轮或需要你时会发通知，可在 设置 → 通用 中选择。"
+          }
+        }
+      }
+    },
     "GitHub ↗": {
       "shouldTranslate": false
+    },
+    "Give the terminal the whole window: ⌘B hides the sidebar.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘B 隐藏侧栏，让终端占满整个窗口。"
+          }
+        }
+      }
     },
     "Gives the theme back its own colors, light and dark.": {
       "localizations": {
@@ -2945,16 +2955,6 @@
         }
       }
     },
-    "Hold ⇧ while dragging in a terminal to select its text, then press ⌘C to copy it.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在终端中按住 ⇧ 拖动即可选择文字，再按 ⌘C 复制。"
-          }
-        }
-      }
-    },
     "Host": {
       "localizations": {
         "zh-Hans": {
@@ -3091,6 +3091,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "会先关闭它的标签页并结束它的 CLI。"
+          }
+        }
+      }
+    },
+    "Jump back to the tab or session you just left with ⌘[, forward with ⌘].": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘[ 回到刚才的标签页或会话，⌘] 前进。"
           }
         }
       }
@@ -3384,6 +3394,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "已通过“连接…”登录"
+          }
+        }
+      }
+    },
+    "Make text bigger or smaller with ⌘+ and ⌘−, in terminals and conversations.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘+ / ⌘− 调整终端和对话的文字大小。"
           }
         }
       }
@@ -3987,6 +4007,16 @@
         }
       }
     },
+    "Open a project in your editor straight from its right-click menu.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右键单击项目，可以直接在编辑器中打开。"
+          }
+        }
+      }
+    },
     "Open in": {
       "localizations": {
         "zh-Hans": {
@@ -4207,6 +4237,16 @@
         }
       }
     },
+    "Pin your most-used sessions and projects to the top from their right-click menu.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右键单击即可把常用的会话和项目置顶。"
+          }
+        }
+      }
+    },
     "Pinned": {
       "localizations": {
         "zh-Hans": {
@@ -4223,6 +4263,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "纯文本（.txt）…"
+          }
+        }
+      }
+    },
+    "Prefer Ghostty's renderer? Pick it in Settings → Appearance → Terminal → Engine. New tabs use it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "想用 Ghostty 渲染终端？在 设置 → 外观 → 终端 → 引擎 里选择，之后新开的标签页生效。"
           }
         }
       }
@@ -4313,6 +4363,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "项目"
+          }
+        }
+      }
+    },
+    "Put two tabs side by side: right-click a tab for split view.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "两个标签页可以并排：右键单击标签页选择拆分视图。"
+          }
+        }
+      }
+    },
+    "Quit or restart your Mac: your tabs reopen, and CLIs still in tmux reattach.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出 App 或重启 Mac 后，标签页会重新打开，tmux 里的 CLI 直接接上。"
+          }
+        }
+      }
+    },
+    "Quit the app and your CLIs keep running: close tabs with **Keep running**.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关标签页时选 **保持运行**，退出 App 后 CLI 也照样跑。"
+          }
+        }
+      }
+    },
+    "Read a conversation in its own window with **Open in new window**.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "**在新窗口中打开** 可以单独开一个窗口阅读对话。"
           }
         }
       }
@@ -4725,42 +4815,12 @@
         }
       }
     },
-    "Right-click a project to open it in Finder or in an editor you have installed.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "右键单击项目，可以在 Finder 或已安装的编辑器中打开它。"
-          }
-        }
-      }
-    },
     "Right-click a selected row in the sidebar to resume, branch, or delete them.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "右键点击侧栏中已选择的条目，以继续、创建分支或删除会话。"
-          }
-        }
-      }
-    },
-    "Right-click a session or project to pin it. Pins keep the order you give them; drag one to move it.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "右键单击会话或项目即可置顶。置顶项保持你排好的顺序，拖动即可调整。"
-          }
-        }
-      }
-    },
-    "Right-click a session to copy its conversation, or export it as Markdown or plain text.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "右键单击会话，可以复制对话，或导出为 Markdown 或纯文本。"
           }
         }
       }
@@ -4781,16 +4841,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "右键单击会话可以重命名、置顶、导出或删除。按住 ⌘ 或 Shift 单击可一次选择多个。"
-          }
-        }
-      }
-    },
-    "Right-click another tab and choose **New split view with current tab** to see two tabs side by side.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "右键单击另一个标签页，选择 **使用当前标签页创建新的拆分视图**，即可并排查看两个标签页。"
           }
         }
       }
@@ -5041,6 +5091,26 @@
         }
       }
     },
+    "See the sessions a session's subagents ran: turn them on in Settings → General.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "想看子代理跑出的会话？在 设置 → 通用 中打开。"
+          }
+        }
+      }
+    },
+    "See which sessions are waiting on you: filter by **Waiting for you**.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "筛选 **等待我处理**，一眼看到哪些会话在等你。"
+          }
+        }
+      }
+    },
     "Select All": {
       "localizations": {
         "zh-Hans": {
@@ -5157,16 +5227,6 @@
         }
       }
     },
-    "Sessions on this Mac can notify you when a turn ends or a CLI needs your input. Choose which in Settings → General.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本机的会话可以在一轮结束或 CLI 需要你输入时通知你。在 设置 → 通用 中选择要哪些通知。"
-          }
-        }
-      }
-    },
     "Settings": {
       "localizations": {
         "zh-Hans": {
@@ -5183,16 +5243,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "设置（⌘,）"
-          }
-        }
-      }
-    },
-    "Settings → Appearance can customize your theme's colors, and the terminal's colors and font.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在 设置 → 外观 中可以自定义主题颜色，以及终端的颜色和字体。"
           }
         }
       }
@@ -5385,16 +5435,6 @@
         }
       }
     },
-    "Sidebar search also finds words inside messages. Click a matching line to open the conversation at that message.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "侧栏搜索也会查找消息里的文字。单击匹配的那一行，即可在该消息处打开对话。"
-          }
-        }
-      }
-    },
     "Sidebar width": {
       "localizations": {
         "zh-Hans": {
@@ -5507,6 +5547,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "在 %2$@ 的 %1$@ 中新建会话"
+          }
+        }
+      }
+    },
+    "Start a session in any installed CLI, or a plain terminal, with ⌘N.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘N 可以用任一已安装的 CLI 新建会话，或打开普通终端。"
           }
         }
       }
@@ -5647,6 +5697,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "与右侧视图交换"
+          }
+        }
+      }
+    },
+    "Switch tabs with ⌘1 to ⌘9, even while typing in a CLI.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘1–⌘9 直接切换标签页，在 CLI 里输入时也能用。"
           }
         }
       }
@@ -6247,6 +6307,16 @@
         }
       }
     },
+    "Try another direction without touching the original: **Branch** a session.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "**分支** 从副本开新会话，原会话保持不变。"
+          }
+        }
+      }
+    },
     "Two tabs side by side": {
       "localizations": {
         "zh-Hans": {
@@ -6363,6 +6433,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "等待我处理"
+          }
+        }
+      }
+    },
+    "Want computer use? Add a computer-use MCP server to your CLI, then allow Accessibility in Settings → Permissions.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "想用 computer use？给 CLI 加一个 computer-use MCP，再在 设置 → 权限 里允许辅助功能。"
           }
         }
       }
@@ -6620,16 +6700,6 @@
         }
       }
     },
-    "⌘+ and ⌘− change the text size of the terminals or the conversation you are reading, and ⌘0 goes back to the default.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "⌘+ 和 ⌘− 调整终端或正在阅读的对话的文字大小，⌘0 恢复默认大小。"
-          }
-        }
-      }
-    },
     "⌘-click": {
       "localizations": {
         "zh-Hans": {
@@ -6640,52 +6710,12 @@
         }
       }
     },
-    "⌘-click or ⇧-click in the sidebar to select several sessions, then right-click one to resume or delete them together.": {
+    "⌘-click to select several sessions, then resume or delete them together.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在侧栏中按住 ⌘ 或 ⇧ 单击可选择多个会话，再右键单击其中一个，即可一起继续或删除。"
-          }
-        }
-      }
-    },
-    "⌘1 to ⌘8 go to a tab by its position, and ⌘9 to the last one. They work while a CLI has focus too.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "⌘1 到 ⌘8 按位置切换标签页，⌘9 切换到最后一个。焦点在 CLI 中时也能用。"
-          }
-        }
-      }
-    },
-    "⌘B hides the sidebar to give the terminal the whole window. Press it again to bring the sidebar back.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "⌘B 隐藏侧栏，让终端占满整个窗口；再按一次即可恢复。"
-          }
-        }
-      }
-    },
-    "⌘F finds text in the conversation you are reading, and ⌘G goes to the next match.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "⌘F 在正在阅读的对话中查找文字，⌘G 跳到下一个匹配项。"
-          }
-        }
-      }
-    },
-    "⌘[ and ⌘] go back and forward through the tabs and sessions this window showed. Right-click the arrows for the whole list.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "⌘[ 和 ⌘] 在这个窗口显示过的标签页和会话之间后退、前进。右键单击箭头可查看完整列表。"
+            "value": "⌘ 单击可多选会话，一次全部继续或删除。"
           }
         }
       }
