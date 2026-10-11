@@ -19,8 +19,10 @@ struct TranscriptToolCallsView: View {
             }
             .padding(.top, 8)
         } label: {
-            Label(summaries.count == 1 ? "1 tool call" : "\(summaries.count) tool calls", systemImage: "wrench.and.screwdriver")
-                .font(ThemeFont.callout)
+            ThemeDisclosureTitleButton(isExpanded: $isExpanded) {
+                Label(summaries.count == 1 ? "1 tool call" : "\(summaries.count) tool calls", systemImage: "wrench.and.screwdriver")
+                    .font(ThemeFont.callout)
+            }
         }
         .foregroundStyle(ThemePalette.secondaryText)
         .padding(.vertical, 4)

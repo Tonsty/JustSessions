@@ -1,15 +1,16 @@
 import Foundation
 
-/// A tab's right-click menu starts a new session or a plain terminal in the tab's group, so the new tab joins it.
+/// A tab's right-click menu starts a new session or a plain terminal in the tab's project, so the new tab joins its
+/// group. A tab of a split across projects keeps its own project there, so a tab started from it opens with its
+/// project's tabs.
 extension ConversationStore {
-    /// The project folder of the tab's group, on the group's host. A split's tab from another project shows in the
-    /// split's group, so a tab started from it opens there too.
+    /// The tab's project folder, on the tab's host.
     func groupLocation(of tab: TerminalSession) -> ProjectLocation {
-        ProjectLocation(key: tabGroupKey(of: tab))
+        ProjectLocation(key: tab.projectDirectoryKey)
     }
 
     func launchNewSession(provider: ConversationProvider, inGroupOf tab: TerminalSession) {
-        launchNewSessionFromProject(provider: provider, projectPath: tabGroupKey(of: tab))
+        launchNewSessionFromProject(provider: provider, projectPath: tab.projectDirectoryKey)
     }
 
     func openPlainTerminal(inGroupOf tab: TerminalSession) {

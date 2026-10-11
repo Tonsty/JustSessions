@@ -2,8 +2,9 @@ import Foundation
 
 /// The tab bar's order and its splits, changed as Chrome's tab strip changes them, worked out on tab ids and project
 /// keys alone so the store only applies the result. Every change keeps the order's rules: the tabs of one group sit
-/// together, a split's two tabs sit side by side, and a split's group is the project of a tab in that group, its own
-/// or another, so no group is named for a project none of its tabs belong to. A tab's group is its split's while it is
+/// together, a split's two tabs sit side by side, a split of two tabs of one project shows in that project's group,
+/// and a split across two projects shows in neither project's group but as a unit of its own among the groups, under
+/// a group key of its own, so neither tab leaves its project for the other's. A tab's group is its split's while it is
 /// in one, or else its own project's.
 struct TerminalTabStrip: Equatable {
     struct Tab: Equatable {
@@ -43,7 +44,7 @@ struct TerminalTabStrip: Equatable {
     // MARK: - Opening tabs
 
     /// Where a new tab of the project opens: right after the last tab in the project's group, which may be a split's,
-    /// or at the end with none open.
+    /// or at the end with none open. A split across projects is in no project's group, so its tabs count for none.
     func insertionIndex(forNewTabOfProject projectKey: String) -> Int {
         TerminalTabOrder.insertionIndex(forProjectKey: projectKey, amongTabProjectKeys: groupKeys)
     }
@@ -63,8 +64,10 @@ struct TerminalTabStrip: Equatable {
 
     /// Links the tab `joiningID` with `pivotID`, as Chrome's AddToNewSplit does. The joining tab moves next to the
     /// pivot on the side it came from: right before it, as the left pane, when it came from before it in the tab bar,
-    /// or else right after it, as the right pane. The split takes the pivot's group, so a tab from another project
-    /// joins the pivot's group. Changes nothing and returns nil unless both tabs are open, different, and in no split.
+    /// or else right after it, as the right pane. Two tabs of one project split in their project's group. A split
+    /// across two projects takes a group key of its own and moves whole to right after the pivot's project's group,
+    /// or, when the pivot was its project's only tab, stays where the pivot was, at a place that parts no group.
+    /// Changes nothing and returns nil unless both tabs are open, different, and in no split.
     @discardableResult
     mutating func addSplit(joining joiningID: UUID, beside pivotID: UUID, splitID: UUID = UUID()) -> TerminalSplit? {
         guard joiningID != pivotID,
@@ -72,13 +75,16 @@ struct TerminalTabStrip: Equatable {
               let pivotIndex = index(of: pivotID),
               split(containing: joiningID) == nil,
               split(containing: pivotID) == nil else { return nil }
-        let split = TerminalSplit(id: splitID, tabIDs: (pivotID, joiningID), groupKey: groupKey(of: tabs[pivotIndex]))
+        let pivotProjectKey = tabs[pivotIndex].projectKey
+        let groupKey = tabs[joiningIndex].projectKey == pivotProjectKey
+            ? pivotProjectKey
+            : TerminalSplit.groupKey(ofSplitAcrossProjects: splitID)
+        let split = TerminalSplit(id: splitID, tabIDs: (pivotID, joiningID), groupKey: groupKey)
         let joiningTab = tabs.remove(at: joiningIndex)
         let pivotIndexAfterRemoval = joiningIndex < pivotIndex ? pivotIndex - 1 : pivotIndex
         tabs.insert(joiningTab, at: joiningIndex < pivotIndex ? pivotIndexAfterRemoval : pivotIndexAfterRemoval + 1)
         splits.append(split)
-        // The joining tab may have been the last of its group's project, the one another split's group is named for.
-        regroupSplitsOutsideTheirProjects()
+        if split.spansProjects { move(split, afterGroupOf: pivotProjectKey) }
         return split
     }
 
@@ -91,17 +97,15 @@ struct TerminalTabStrip: Equatable {
         tabs.swapAt(leftIndex, rightIndex)
     }
 
-    /// Unlinks the split, as Chrome's RemoveSplit. Each tab is in its own project's group again: one from another
-    /// project than the split's group goes back to its project's tabs, as a new tab of its project would open.
+    /// Unlinks the split, as Chrome's RemoveSplit. Each tab is in its own project's group again: the two tabs of a
+    /// split across projects each go back to their project's tabs, as a new tab of the project would open, or stay
+    /// between the groups when their project has no other tab in one.
     mutating func separateSplit(_ splitID: UUID) {
         guard let split = splits.first(where: { $0.id == splitID }) else { return }
         splits.removeAll { $0.id == splitID }
         guard let sides = sides(of: split) else { return }
-        // The right tab still counts in the split's group while the left one finds its place, so two tabs going back to
-        // the same project keep their order there.
-        returnToProjectGroup(sides.left, from: split.groupKey, countingInGroup: [sides.right: split.groupKey])
+        returnToProjectGroup(sides.left, from: split.groupKey)
         returnToProjectGroup(sides.right, from: split.groupKey)
-        regroupSplitsOutsideTheirProjects()
     }
 
     /// Separates every split, from the first in the tab bar to the last.
@@ -113,22 +117,26 @@ struct TerminalTabStrip: Equatable {
 
     /// Swaps the tab `incomingID`, in no split, into the split in the place of its tab `outgoingID`, as Chrome's
     /// UpdateTabInSplit with kSwap: the two trade places in the tab bar, the incoming tab joining the split, which
-    /// keeps its id and group, and the outgoing one leaving it. The outgoing tab then sits in the incoming tab's
-    /// project group; when its own project is another, it goes back to its project's tabs. Returns whether the swap
-    /// was made.
+    /// keeps its id, and the outgoing one leaving it. The outgoing tab then sits in the incoming tab's project group;
+    /// when its own project is another, it goes back to its project's tabs. The split keeps its group while the
+    /// incoming tab is of the same project as the one it replaces. Otherwise it is now of one project, and moves to
+    /// that project's group, or now across two, and moves to right after the group of the tab that stayed; see
+    /// `move(_:afterGroupOf:)`. Returns whether the swap was made.
     @discardableResult
     mutating func swap(_ incomingID: UUID, intoSplit splitID: UUID, replacing outgoingID: UUID) -> Bool {
         guard incomingID != outgoingID,
               let splitIndex = splits.firstIndex(where: { $0.id == splitID }),
-              splits[splitIndex].contains(outgoingID),
+              let stayingID = splits[splitIndex].partner(of: outgoingID),
               split(containing: incomingID) == nil,
               let incomingIndex = index(of: incomingID),
-              let outgoingIndex = index(of: outgoingID) else { return false }
+              let outgoingIndex = index(of: outgoingID),
+              let stayingIndex = index(of: stayingID) else { return false }
         let incomingProjectKey = tabs[incomingIndex].projectKey
+        let stayingProjectKey = tabs[stayingIndex].projectKey
         tabs.swapAt(incomingIndex, outgoingIndex)
         splits[splitIndex] = splits[splitIndex].replacing(outgoingID, with: incomingID)
         returnToProjectGroup(outgoingID, from: incomingProjectKey)
-        regroupSplitsOutsideTheirProjects()
+        regroup(splitID, besideGroupOf: stayingProjectKey)
         return true
     }
 
@@ -141,7 +149,6 @@ struct TerminalTabStrip: Equatable {
             splits.removeAll { $0.id == split.id }
             if let partner = split.partner(of: tabID) { returnToProjectGroup(partner, from: split.groupKey) }
         }
-        regroupSplitsOutsideTheirProjects()
     }
 
     // MARK: - Helpers
@@ -150,34 +157,47 @@ struct TerminalTabStrip: Equatable {
         tabs.firstIndex { $0.id == tabID }
     }
 
-    /// Whether a tab of the split's group project shows in that group: one of the split's own, or another.
-    private func hasTabOfItsGroupsProject(_ split: TerminalSplit) -> Bool {
-        tabs.contains { $0.projectKey == split.groupKey && groupKey(of: $0) == split.groupKey }
+    /// Where a tab of the project goes as it leaves a group not its own: right after the last tab in its project's
+    /// group, or, with no tab of its project in a group, the nearest place at or after `index` that parts no group.
+    private func place(forTabOfProject projectKey: String, nearest index: Int) -> Int {
+        let groupKeys = groupKeys
+        if let lastTabOfProject = groupKeys.lastIndex(of: projectKey) { return lastTabOfProject + 1 }
+        var place = min(max(index, 0), tabs.count)
+        while place > 0, place < tabs.count, groupKeys[place - 1] == groupKeys[place] { place += 1 }
+        return place
     }
 
-    /// A split whose group no longer holds a tab of the group's project, as when that project's last tab there closed
-    /// or left, would leave a group named for a project none of its tabs belong to. It takes its left tab's project
-    /// instead, and its two tabs, in their order, move to where a new tab of that project would open. That project
-    /// is one of its own tabs', so no split needs this twice, and its tabs leaving the group take no other split's
-    /// project tab with them.
-    private mutating func regroupSplitsOutsideTheirProjects() {
-        while let splitIndex = splits.firstIndex(where: { sides(of: $0) != nil && !hasTabOfItsGroupsProject($0) }),
-              let sides = sides(of: splits[splitIndex]),
-              let leftIndex = index(of: sides.left) {
-            let projectKey = tabs[leftIndex].projectKey
-            splits[splitIndex] = splits[splitIndex].regrouped(into: projectKey)
-            let splitTabs = tabs.filter { $0.id == sides.left || $0.id == sides.right }
-            tabs.removeAll { $0.id == sides.left || $0.id == sides.right }
-            tabs.insert(contentsOf: splitTabs, at: TerminalTabOrder.insertionIndex(forProjectKey: projectKey, amongTabProjectKeys: groupKeys))
-        }
-    }
-
-    /// Moves a tab in no split that sits in the group `groupKey` to where a new tab of its project would open, unless
-    /// that group is its project's. `countingInGroup` gives tabs that still count in a group other than their own.
-    private mutating func returnToProjectGroup(_ tabID: UUID, from groupKey: String, countingInGroup: [UUID: String] = [:]) {
+    /// Moves a tab in no split that sits in the group `groupKey` to its project's place, unless that group is its
+    /// project's; see `place(forTabOfProject:nearest:)`.
+    private mutating func returnToProjectGroup(_ tabID: UUID, from groupKey: String) {
         guard let index = index(of: tabID), tabs[index].projectKey != groupKey else { return }
         let tab = tabs.remove(at: index)
-        let otherGroupKeys = tabs.map { countingInGroup[$0.id] ?? self.groupKey(of: $0) }
-        tabs.insert(tab, at: TerminalTabOrder.insertionIndex(forProjectKey: tab.projectKey, amongTabProjectKeys: otherGroupKeys))
+        tabs.insert(tab, at: place(forTabOfProject: tab.projectKey, nearest: index))
+    }
+
+    /// Moves the split's two tabs, in their order, to right after the last tab in the group of `projectKey`, or, with
+    /// no tab of that project in a group, to the nearest place at or after where they sit that parts no group.
+    private mutating func move(_ split: TerminalSplit, afterGroupOf projectKey: String) {
+        guard let sides = sides(of: split), let leftIndex = index(of: sides.left) else { return }
+        let splitTabs = tabs.filter { split.contains($0.id) }
+        tabs.removeAll { split.contains($0.id) }
+        tabs.insert(contentsOf: splitTabs, at: place(forTabOfProject: projectKey, nearest: leftIndex))
+    }
+
+    /// Gives the split the group its two tabs call for once one of them changed: their project's, when both are of
+    /// one, or else a group of its own. A split whose group changes moves beside the group of `projectKey`, the
+    /// project of the tab that stayed; see `move(_:afterGroupOf:)`.
+    private mutating func regroup(_ splitID: UUID, besideGroupOf projectKey: String) {
+        guard let splitIndex = splits.firstIndex(where: { $0.id == splitID }),
+              let sides = sides(of: splits[splitIndex]),
+              let left = tabs.first(where: { $0.id == sides.left }),
+              let right = tabs.first(where: { $0.id == sides.right }) else { return }
+        let split = splits[splitIndex]
+        let groupKey = left.projectKey == right.projectKey
+            ? left.projectKey
+            : TerminalSplit.groupKey(ofSplitAcrossProjects: split.id)
+        guard groupKey != split.groupKey else { return }
+        splits[splitIndex] = split.regrouped(into: groupKey)
+        move(split, afterGroupOf: projectKey)
     }
 }

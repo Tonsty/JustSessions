@@ -24,6 +24,18 @@ struct UIControlStyleContractTests {
         #expect(offendingLines.isEmpty, "Use ThemeSegmentedPicker:\n\(offendingLines.joined(separator: "\n"))")
     }
 
+    /// On macOS only a disclosure group's chevron opens it; `ThemeDisclosureTitleButton` makes its title open it too.
+    @Test func disclosureGroupTitlesOpenTheGroup() throws {
+        let disclosureGroup = try Regex(#"\bDisclosureGroup\("#)
+        let offendingFiles = try ViewSourceLines().files
+            .filter { file in
+                file.lines.contains { $0.contains(disclosureGroup) }
+                    && !file.lines.contains { $0.contains("ThemeDisclosureTitleButton") }
+            }
+            .map(\.path)
+        #expect(offendingFiles.isEmpty, "Use ThemeDisclosureTitleButton as the title:\n\(offendingFiles.joined(separator: "\n"))")
+    }
+
     /// A menu's `Divider()` is a menu separator, which macOS draws. Between views, `ThemeDivider` draws the theme's line.
     @Test func dividersBetweenViewsAreTheThemes() throws {
         let source = try ViewSourceLines()

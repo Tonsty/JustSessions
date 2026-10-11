@@ -74,7 +74,7 @@ Draw rounded shapes with `RoundedRectangle(_ radius: ThemeCornerRadius)`. It alw
 | `small` | 4 | Keycaps, inline code chips, small heading buttons, a segment inside a track |
 | `control` | 6 | Text and search fields, sidebar rows, segmented tracks, tab group labels, compact buttons |
 | `card` | 8 | Buttons, tables, framed lists, the terminal preview |
-| `panel` | 10 | Code blocks, images, your messages in a transcript, Settings cards |
+| `panel` | 10 | Code blocks, images, your messages in a transcript, Settings cards, the track holding a split across projects' two tabs |
 
 A shape nested inside another uses the next smaller radius, so the corners stay concentric. A handle or bar with fully rounded ends is a `Capsule()`, and a round icon button is a `Circle()`.
 
@@ -95,7 +95,9 @@ Each button takes one of the theme's styles:
 
 Use `ThemedCheckboxToggleStyle` for checkboxes, `ThemedTextFieldStyle` for text fields, `ThemeSegmentedPicker` in place of a segmented `Picker`, and `ThemeDivider()` for lines between views. A custom search field may use `.textFieldStyle(.plain)` inside the themed surface it draws. `Divider()` is allowed only inside menus, pickers, and commands, where macOS draws the separator.
 
-Enforced by `UIControlStyleContractTests`. The test rejects the system button, toggle, and text field styles, `.pickerStyle(.segmented)`, and `Divider()` outside menu code.
+A `DisclosureGroup` takes its title as `ThemeDisclosureTitleButton`, so a click on the title opens it as a click on the chevron does.
+
+Enforced by `UIControlStyleContractTests`. The test rejects the system button, toggle, and text field styles, `.pickerStyle(.segmented)`, `Divider()` outside menu code, and a `DisclosureGroup` without `ThemeDisclosureTitleButton`.
 
 ## Sheets
 

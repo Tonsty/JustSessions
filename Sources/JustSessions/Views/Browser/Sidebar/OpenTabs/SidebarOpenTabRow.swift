@@ -1,10 +1,13 @@
 import SwiftUI
 
-/// An open tab on one line: its tool's icon, the tab's title, and its CLI's status, highlighted while the tab is
-/// selected. Its project shows in the heading of the group above it, so the row leaves it to the tooltip.
+/// An open tab on one line: its tool's icon, the tab's title, which side of a split it is, if any, and its CLI's
+/// status, highlighted while the tab is selected. Its project shows in the heading of the group above it, so the row
+/// leaves it to the tooltip.
 struct SidebarOpenTabRow: View {
     @ObservedObject var tab: TerminalSession
     let projectDisplayName: String
+    /// The tab's side of its split, or nil for a tab in no split.
+    var splitSide: TerminalSplit.Side? = nil
     let isSelected: Bool
     let onSelect: () -> Void
     let onClose: () -> Void
@@ -21,6 +24,12 @@ struct SidebarOpenTabRow: View {
                     .font(ThemeFont.callout.weight(isSelected ? .medium : .regular))
                     .lineLimit(1)
                     .truncationMode(.tail)
+                if let splitSide {
+                    Image(systemName: splitSide == .left ? "rectangle.lefthalf.inset.filled" : "rectangle.righthalf.inset.filled")
+                        .font(ThemeFont.glyph(.control))
+                        .foregroundStyle(ThemePalette.secondaryText)
+                        .accessibilityHidden(true)
+                }
                 Spacer(minLength: 6)
                 TerminalStatusIndicator(session: tab)
             }
@@ -32,6 +41,7 @@ struct SidebarOpenTabRow: View {
         .buttonStyle(ThemePlainButtonStyle(showsHover: false))
         .help(Text("Show \(tab.displayTitle)") + Text(verbatim: "\n" + projectContext + "\n" + tab.projectPath))
         .accessibilityLabel(Text(verbatim: "\(tab.displayTitle), \(projectContext)"))
+        .accessibilityValue(splitAccessibilityValue)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
         .contextMenu {
             if tab.isPlainTerminal {
@@ -39,6 +49,15 @@ struct SidebarOpenTabRow: View {
             } else {
                 Button("Close Tab…", systemImage: "xmark", role: .destructive, action: onClose)
             }
+        }
+    }
+
+    /// Which view of its split the tab is, as the tab bar's tabs say; nothing for a tab in no split.
+    private var splitAccessibilityValue: Text {
+        switch splitSide {
+        case .left: Text("Left view")
+        case .right: Text("Right view")
+        case nil: Text(verbatim: "")
         }
     }
 

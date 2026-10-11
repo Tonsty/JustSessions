@@ -7,7 +7,7 @@ struct DetachedTabStripUnit: Equatable {
     let tabs: [TerminalTabStrip.Tab]
     /// The split linking the two tabs, when they are a split's.
     let split: TerminalSplit?
-    /// The group the tabs show in once in another window's tab bar: their split's, while one of them is of the split's
-    /// project, or else their first tab's project.
+    /// The group the tabs show in once in another window's tab bar: their split's, which is a group of its own for a
+    /// split across projects, or else the tab's project.
     let groupKey: String
 }
