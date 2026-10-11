@@ -190,6 +190,12 @@
 	<string>Ask each time</string>
 	<key>A−</key>
 	<string>A−</string>
+	<key>Back</key>
+	<string>Back</string>
+	<key>Back (⌘[). Right-click to see history.</key>
+	<string>Back (⌘[). Right-click to see history.</string>
+	<key>Back to the tab or session shown before</key>
+	<string>Back to the tab or session shown before</string>
 	<key>Background</key>
 	<string>Background</string>
 	<key>Branch</key>
@@ -444,6 +450,12 @@
 	<string>For sessions to survive disconnects or closed tabs, install `tmux` on the host. Reopen a session to reattach.</string>
 	<key>Fork in the native CLI</key>
 	<string>Fork in the native CLI</string>
+	<key>Forward</key>
+	<string>Forward</string>
+	<key>Forward (⌘]). Right-click to see history.</key>
+	<string>Forward (⌘]). Right-click to see history.</string>
+	<key>Forward again</key>
+	<string>Forward again</string>
 	<key>Full</key>
 	<string>Full</string>
 	<key>Full Disk Access</key>
@@ -454,6 +466,8 @@
 	<string>GitHub ↗</string>
 	<key>Gives the theme back its own colors, light and dark.</key>
 	<string>Gives the theme back its own colors, light and dark.</string>
+	<key>Go</key>
+	<string>Go</string>
 	<key>Go to a tab by its position</key>
 	<string>Go to a tab by its position</string>
 	<key>Go to the first available message</key>

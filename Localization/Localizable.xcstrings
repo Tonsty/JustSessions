@@ -1028,6 +1028,36 @@
     "A−": {
       "shouldTranslate": false
     },
+    "Back": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后退"
+          }
+        }
+      }
+    },
+    "Back (⌘[). Right-click to see history.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后退（⌘[）。右键单击可查看历史记录。"
+          }
+        }
+      }
+    },
+    "Back to the tab or session shown before": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回到之前显示的标签页或会话"
+          }
+        }
+      }
+    },
     "Background": {
       "localizations": {
         "zh-Hans": {
@@ -2438,6 +2468,36 @@
         }
       }
     },
+    "Forward": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前进"
+          }
+        }
+      }
+    },
+    "Forward (⌘]). Right-click to see history.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前进（⌘]）。右键单击可查看历史记录。"
+          }
+        }
+      }
+    },
+    "Forward again": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再次前进"
+          }
+        }
+      }
+    },
     "Full": {
       "localizations": {
         "zh-Hans": {
@@ -2477,6 +2537,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "恢复主题自带的浅色和深色颜色。"
+          }
+        }
+      }
+    },
+    "Go": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前往"
           }
         }
       }

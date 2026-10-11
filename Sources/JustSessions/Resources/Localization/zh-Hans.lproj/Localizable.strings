@@ -184,6 +184,12 @@
 	<string>立即请求</string>
 	<key>Ask each time</key>
 	<string>每次询问</string>
+	<key>Back</key>
+	<string>后退</string>
+	<key>Back (⌘[). Right-click to see history.</key>
+	<string>后退（⌘[）。右键单击可查看历史记录。</string>
+	<key>Back to the tab or session shown before</key>
+	<string>回到之前显示的标签页或会话</string>
 	<key>Background</key>
 	<string>背景</string>
 	<key>Branch</key>
@@ -448,6 +454,12 @@
 	<string>在主机上安装 `tmux`，可让会话在断线或关闭标签后继续运行。再次打开会话即可重新连接。</string>
 	<key>Fork in the native CLI</key>
 	<string>在原生 CLI 中创建分支</string>
+	<key>Forward</key>
+	<string>前进</string>
+	<key>Forward (⌘]). Right-click to see history.</key>
+	<string>前进（⌘]）。右键单击可查看历史记录。</string>
+	<key>Forward again</key>
+	<string>再次前进</string>
 	<key>Full</key>
 	<string>全宽</string>
 	<key>Full Disk Access</key>
@@ -456,6 +468,8 @@
 	<string>通用</string>
 	<key>Gives the theme back its own colors, light and dark.</key>
 	<string>恢复主题自带的浅色和深色颜色。</string>
+	<key>Go</key>
+	<string>前往</string>
 	<key>Go to a tab by its position</key>
 	<string>按位置切换到标签页</string>
 	<key>Go to the first available message</key>
