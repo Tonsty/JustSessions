@@ -126,6 +126,25 @@ A key with a passphrase that the agent does not hold: create a key with a passph
 
 Remove these users, their `sshd_config.d` files, the `pam_google_authenticator` line, the alias, and any known-host entry the test trusted when you no longer need them.
 
+## Windows hosts
+
+The app tells a Windows host apart when it is added or refreshed, and says it isn't supported. To exercise that without a Windows machine, give a VM user PowerShell as its shell, with Windows' `OS` variable set. This stands in for a Windows host whose OpenSSH default shell is PowerShell; it does not cover `cmd.exe`, Windows' default, or a real Windows host.
+
+```sh
+ssh justsessions-test 'set -e
+sudo mkdir -p /opt/pwsh-test
+curl -fsSL https://github.com/PowerShell/PowerShell/releases/download/v7.4.6/powershell-7.4.6-linux-arm64.tar.gz | sudo tar xz -C /opt/pwsh-test
+sudo chmod -R a+rX /opt/pwsh-test && sudo chmod 755 /opt/pwsh-test/pwsh
+printf "#!/bin/sh\nOS=Windows_NT exec /opt/pwsh-test/pwsh -NoProfile -NoLogo \"\$@\"\n" | sudo tee /usr/local/bin/winsim-pwsh >/dev/null
+sudo chmod 755 /usr/local/bin/winsim-pwsh
+echo /usr/local/bin/winsim-pwsh | sudo tee -a /etc/shells >/dev/null
+sudo useradd -m -s /usr/local/bin/winsim-pwsh winsim
+sudo install -d -m 700 -o winsim -g winsim /home/winsim/.ssh
+sudo install -m 600 -o winsim -g winsim /home/ubuntu/.ssh/authorized_keys /home/winsim/.ssh/authorized_keys'
+```
+
+Use the `x64` archive on an Intel Mac's VM. Give the user an alias like `justsessions-test` with `User winsim`, then check that `ssh justsessions-test-windows 'echo %OS% $env:OS'` prints `%OS%` and `Windows_NT`. Adding the alias says it runs Windows; **Add anyway** lists it with the same note on its heading.
+
 ## Manual checks for an SSH change
 
 Run the checks relevant to the change and record the result of each:
@@ -136,6 +155,7 @@ Run the checks relevant to the change and record the result of each:
 | `~/.ssh/config` written for logging in by hand | Give the VM an alias with `RemoteCommand`, `RequestTTY force`, and a `LocalForward`. Refresh lists its sessions, and a tab opens the CLI, not the `RemoteCommand`. |
 | Logging in with **Connect…** | Add a host that asks: the sheet says so and offers **Connect…**. Answer each question; a wrong answer says it wasn't accepted and asks again, and Cancel stops. The host is added and refreshes without asking again. **Connect…** on the heading does the same for a listed host. |
 | Tabs and probes on a logged-in host | New sessions, resumed sessions, a plain terminal, and **Add project** connect without a prompt, in both terminal engines. **Disconnect** in ⋯ ends those tabs and the heading offers **Connect…** at once; **Reconnect** in a tab goes through the login open then, or asks in the terminal. Quitting the app and removing the host each end the login, `ssh: …/master [mux]` in `ps`. |
+| Windows host | Adding the PowerShell user says it runs Windows and points to WSL; **Add anyway** shows the same on its heading, and no shell startup check runs for it. |
 | Discovery and refresh | The installed provider is offered; the new session appears under the remote project and its preview matches the remote history. |
 | Launch and resume | New sessions and resumed sessions run in the VM's project, including its space-containing path. Branch only where the provider supports it. |
 | Keep running and reconnect | Close a running CLI tab with **Keep running**, then reattach to the same process and session. Also test interruption of just the SSH connection when changing reconnect behavior. Keep the VM running throughout. |

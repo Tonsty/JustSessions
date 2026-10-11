@@ -502,6 +502,8 @@
 	<string>Hide the sidebar to give the terminal the whole window, and click again to bring it back. ⌘B does the same.</string>
 	<key>Host</key>
 	<string>Host</string>
+	<key>Hosts run Linux or macOS. For Windows, connect to WSL over SSH.</key>
+	<string>Hosts run Linux or macOS. For Windows, connect to WSL over SSH.</string>
 	<key>How it works</key>
 	<string>How it works</string>
 	<key>If a session is missing</key>

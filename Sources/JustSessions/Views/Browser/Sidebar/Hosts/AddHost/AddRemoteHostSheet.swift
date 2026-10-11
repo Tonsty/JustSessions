@@ -6,6 +6,7 @@ import SwiftUI
 /// one does is refused. Adding first logs in to the host as the app's background commands do, so a host they can't
 /// reach says why here; Add anyway keeps it, as for a host that is only offline now. A host that asks for a password,
 /// a code, or a new host key's approval offers Connect…, which logs in, asking in a sheet over this one, then adds it.
+/// A Windows host is told apart by the same login, and said to be unsupported.
 struct AddRemoteHostSheet: View {
     @ObservedObject var store: ConversationStore
     @Environment(\.dismiss) private var dismiss
@@ -120,6 +121,7 @@ struct AddRemoteHostSheet: View {
     private var setupRequirements: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("SSH aliases come from `~/.ssh/config`.")
+            Text("Hosts run Linux or macOS. For Windows, connect to WSL over SSH.")
             Text("Install `rsync` and the CLIs you use on the host.")
             Text("For sessions to survive disconnects or closed tabs, install `tmux` on the host. Reopen a session to reattach.")
             Text("Antigravity and OpenCode need `python3`; deleting Antigravity sessions also needs `lsof`.")

@@ -506,6 +506,8 @@
 	<string>隐藏侧栏，让终端占满整个窗口；再点一次即可恢复。⌘B 也可以。</string>
 	<key>Host</key>
 	<string>主机</string>
+	<key>Hosts run Linux or macOS. For Windows, connect to WSL over SSH.</key>
+	<string>主机需运行 Linux 或 macOS。Windows 请通过 SSH 连接到 WSL。</string>
 	<key>How it works</key>
 	<string>使用方式</string>
 	<key>If a session is missing</key>

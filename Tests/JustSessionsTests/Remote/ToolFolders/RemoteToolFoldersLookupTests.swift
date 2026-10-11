@@ -80,6 +80,38 @@ struct RemoteToolFoldersLookupTests {
         }
     }
 
+    /// Windows' `cmd.exe` runs none of the lookup, and prints `Windows_NT` for the probe.
+    @Test func aWindowsHostIsToldApart() {
+        let recorder = RemoteCommandRecorder()
+        let runner = Self.runner(recorder: recorder, lookupOutput: (1, """
+            'exec' is not recognized as an internal or external command,\r
+            operable program or batch file.\r
+
+            """), probeOutput: (0, "Windows_NT $env:OS\r\n"))
+
+        #expect(throws: RemoteSessionMirrorError.sshFailed(host: "devbox", problem: .windowsHost)) {
+            try RemoteToolFoldersLookup.folders(on: "devbox", runner: runner)
+        }
+        #expect(recorder.commands.map(\.command) == [RemoteToolFoldersLookup.command(on: "devbox"), WindowsHostProbe.command])
+    }
+
+    /// A POSIX host whose shell startup fails before the lookup runs is not Windows.
+    @Test func aShellThatRanNothingOnAnotherHostKeepsTheStandardFolders() throws {
+        let runner = Self.runner(recorder: RemoteCommandRecorder(), lookupOutput: (1, "bash: /etc/profile: Permission denied\n"),
+                                 probeOutput: (0, "%OS% :OS\n"))
+
+        #expect(try RemoteToolFoldersLookup.folders(on: "devbox", runner: runner) == .standard)
+    }
+
+    /// A lookup that ran, even with an empty home, is from a POSIX shell, so it isn't asked again.
+    @Test(arguments: ["__JUSTSESSIONS_FOLDER__HOME=/home/me\n", "__JUSTSESSIONS_FOLDER__HOME=\n"])
+    func aLookupThatRanAsksNothingMore(output: String) throws {
+        let recorder = RemoteCommandRecorder()
+        _ = try RemoteToolFoldersLookup.folders(on: "devbox", runner: recorder.runner(answering: (0, output)))
+
+        #expect(recorder.commands.count == 1)
+    }
+
     @Test func aShellThatDoesNotAnswerKeepsTheStandardFolders() throws {
         let runner = RemoteHostCommandRunner { _, _, _ in nil }
 
@@ -89,6 +121,15 @@ struct RemoteToolFoldersLookupTests {
     @Test func runsThroughTheHostsLoginShell() {
         #expect(RemoteToolFoldersLookup.command(on: "devbox")
             == RemoteCLICommandBuilder.loginShellCommand("sh -c \(ShellQuoting.quoted(RemoteToolFoldersLookup.script))", on: "devbox"))
+    }
+
+    /// Answers the lookup and the Windows probe.
+    private static func runner(
+        recorder: RemoteCommandRecorder,
+        lookupOutput: (exitStatus: Int32, output: String),
+        probeOutput: (exitStatus: Int32, output: String)
+    ) -> RemoteHostCommandRunner {
+        recorder.runner(answeringEach: { command in command == WindowsHostProbe.command ? probeOutput : lookupOutput })
     }
 
     private static func folders(shell: HostShell, home: String, variables: [String: String]) throws -> RemoteToolFolders {

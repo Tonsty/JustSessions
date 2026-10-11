@@ -2749,6 +2749,16 @@
         }
       }
     },
+    "Hosts run Linux or macOS. For Windows, connect to WSL over SSH.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主机需运行 Linux 或 macOS。Windows 请通过 SSH 连接到 WSL。"
+          }
+        }
+      }
+    },
     "How it works": {
       "localizations": {
         "zh-Hans": {

@@ -1,7 +1,7 @@
 import Foundation
 
-/// Why `ssh` could not connect to a host or lost the connection, read from what it printed, so a message can say
-/// what happened and what to do about it in plain English.
+/// Why `ssh` could not connect to a host or lost the connection, read from what it printed, or why a host it reached
+/// can't be used, so a message can say what happened and what to do about it in plain English.
 enum SSHConnectionProblem: Hashable, Sendable {
     /// The host name did not resolve.
     case hostNotFound
@@ -15,6 +15,8 @@ enum SSHConnectionProblem: Hashable, Sendable {
     case loginRefused
     /// The host's key changed, or it is not known and `BatchMode` cannot ask about it.
     case hostKeyNotTrusted
+    /// The host runs Windows, whose shells can't run the app's commands; see `WindowsHostProbe`.
+    case windowsHost
     /// Anything else, with the line `ssh` printed.
     case other(sshMessage: String)
 
@@ -82,6 +84,8 @@ enum SSHConnectionProblem: Hashable, Sendable {
             "\(host) asks for a password, a passphrase, or a code. Click Connect… on its heading to log in."
         case .hostKeyNotTrusted:
             "\(host)'s host key isn't trusted yet, or has changed. Click Connect… on its heading to check it."
+        case .windowsHost:
+            "\(host) runs Windows, which JustSessions doesn't support. Run your CLIs in WSL on it, and connect to WSL over SSH instead."
         case .other(let sshMessage):
             "Couldn't connect to \(host): \(sshMessage)"
         }
@@ -94,7 +98,7 @@ enum SSHConnectionProblem: Hashable, Sendable {
             "\(host) asks for a password, a passphrase, or a code. Click Connect… to log in."
         case .hostKeyNotTrusted:
             "\(host)'s host key isn't trusted yet, or has changed. Click Connect… to check it."
-        case .hostNotFound, .noAnswer, .refused, .connectionLost, .other:
+        case .hostNotFound, .noAnswer, .refused, .connectionLost, .windowsHost, .other:
             explanation(host: host)
         }
     }
@@ -110,7 +114,7 @@ enum SSHConnectionProblem: Hashable, Sendable {
             "\(host)'s host key has changed. Check it with “ssh \(host)” in Terminal."
         case .connectionLost:
             "The connection to \(host) closed during the login, for example because the host stopped waiting for an answer. Try again."
-        case .hostNotFound, .noAnswer, .refused, .other:
+        case .hostNotFound, .noAnswer, .refused, .windowsHost, .other:
             explanation(host: host)
         }
     }
@@ -120,16 +124,16 @@ enum SSHConnectionProblem: Hashable, Sendable {
     var isFixedByLoggingIn: Bool {
         switch self {
         case .loginRefused, .hostKeyNotTrusted: true
-        case .hostNotFound, .noAnswer, .refused, .connectionLost, .other: false
+        case .hostNotFound, .noAnswer, .refused, .connectionLost, .windowsHost, .other: false
         }
     }
 
     /// Whether trying again later may work without changing anything: the network or the host may be back. A
-    /// refused login or an untrusted host key needs a fix first.
+    /// refused login, an untrusted host key, or a Windows host needs a change first.
     var isLikelyTemporary: Bool {
         switch self {
         case .hostNotFound, .noAnswer, .refused, .connectionLost, .other: true
-        case .loginRefused, .hostKeyNotTrusted: false
+        case .loginRefused, .hostKeyNotTrusted, .windowsHost: false
         }
     }
 }

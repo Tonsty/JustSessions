@@ -39,6 +39,8 @@ extension ConversationStore {
                 await self.setRemoteHostRefreshStatus(.failed(error.localizedDescription), host: host)
                 if case .sshFailed(_, let problem)? = error as? RemoteSessionMirrorError {
                     await self.noteLoginState(on: host, refreshProblem: problem)
+                    // Windows' shell runs none of the check's commands, which would blame the host's startup files.
+                    if problem == .windowsHost { return }
                 }
                 await self.checkRemoteShellStartupIfNeeded(on: host, statusListedCLIs: false)
             }

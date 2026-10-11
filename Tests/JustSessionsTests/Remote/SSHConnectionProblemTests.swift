@@ -93,6 +93,8 @@ struct SSHConnectionProblemTests {
             == "devbox asks for a password, a passphrase, or a code. Click Connect… on its heading to log in.")
         #expect(SSHConnectionProblem.hostKeyNotTrusted.explanation(host: "devbox")
             == "devbox's host key isn't trusted yet, or has changed. Click Connect… on its heading to check it.")
+        #expect(SSHConnectionProblem.windowsHost.explanation(host: "devbox")
+            == "devbox runs Windows, which JustSessions doesn't support. Run your CLIs in WSL on it, and connect to WSL over SSH instead.")
         #expect(SSHConnectionProblem.other(sshMessage: "Bad owner").explanation(host: "devbox") == "Couldn't connect to devbox: Bad owner")
     }
 
@@ -123,14 +125,16 @@ struct SSHConnectionProblemTests {
         #expect(SSHConnectionProblem.hostKeyNotTrusted.isFixedByLoggingIn)
         #expect(!SSHConnectionProblem.noAnswer.isFixedByLoggingIn)
         #expect(!SSHConnectionProblem.connectionLost.isFixedByLoggingIn)
+        #expect(!SSHConnectionProblem.windowsHost.isFixedByLoggingIn)
         #expect(!SSHConnectionProblem.other(sshMessage: "Bad owner").isFixedByLoggingIn)
     }
 
-    @Test func onlyALoginOrHostKeyProblemNeedsAFixBeforeTryingAgain() {
+    @Test func aLoginHostKeyOrWindowsProblemNeedsAFixBeforeTryingAgain() {
         #expect(SSHConnectionProblem.connectionLost.isLikelyTemporary)
         #expect(SSHConnectionProblem.hostNotFound.isLikelyTemporary)
         #expect(!SSHConnectionProblem.loginRefused.isLikelyTemporary)
         #expect(!SSHConnectionProblem.hostKeyNotTrusted.isLikelyTemporary)
+        #expect(!SSHConnectionProblem.windowsHost.isLikelyTemporary)
         #expect(UnresponsiveSSHHost.didNotRespondInTime(host: "devbox").isLikelyTemporary)
     }
 }

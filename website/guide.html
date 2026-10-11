@@ -106,7 +106,7 @@
 
       <section id="ssh-hosts" aria-labelledby="ssh-title">
         <h2 id="ssh-title">Continue on another machine over SSH</h2>
-        <p>Install <strong>tmux on the remote host</strong> so sessions survive a disconnect or closing a tab. The host also needs <code>rsync</code> and Claude Code, Codex, Antigravity, Kiro CLI, OpenCode, or Pi installed.</p>
+        <p>Install <strong>tmux on the remote host</strong> so sessions survive a disconnect or closing a tab. The host runs Linux or macOS and needs <code>rsync</code> and Claude Code, Codex, Antigravity, Kiro CLI, OpenCode, or Pi installed. Windows hosts aren't supported; on a Windows PC, run your CLIs in WSL and connect to WSL over SSH.</p>
         <p class="fine-print">Antigravity and OpenCode hosts also need <code>python3</code>; deleting Antigravity sessions needs <code>lsof</code>.</p>
         <ol><li>Choose <strong>Add SSH host…</strong> in the sidebar.</li><li>Enter a <code>~/.ssh/config</code> alias or <code>user@hostname</code>.</li><li>Browse the host's projects and resume a session there.</li></ol>
         <p>The code and CLI run remotely; supported history is cached on your Mac. JustSessions provides terminal access, not graphical screen sharing.</p>
