@@ -115,7 +115,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 2 | [Transcript text searches only during Find](#2-transcript-text-searches-only-during-find) | Done: #46 |
 | 3 | [Fast `AttributedString` to `String` conversion](#3-fast-attributedstring-to-string-conversion) | Done: #46 |
 | 4 | [One position marker view per transcript entry](#4-one-position-marker-view-per-transcript-entry) | Done: issue #53 |
-| 5 | [Text selection on very long blocks](#5-text-selection-on-very-long-blocks) | Planned |
+| 5 | [Text selection on very long blocks](#5-text-selection-on-very-long-blocks) | Measured, no change: issue #54 |
 | 6 | [Terminal drawing](#6-terminal-drawing) | Done for Ghostty, the engine you can choose in Settings: libghostty PR. SwiftTerm's Metal drawing measured and not turned on: issue #52 |
 | 7 | [The search context changes on every transcript update](#7-the-search-context-changes-on-every-transcript-update) | Done: scrolling PR |
 | 8 | [Scrolling re-rendered every transcript entry](#8-scrolling-re-rendered-every-transcript-entry) | Done: scrolling PR |
@@ -206,7 +206,9 @@ Raw output is in `/tmp/issue-53-fair/baseline.txt` and `/tmp/issue-53-fair/after
 
 Every selectable block is a `SelectionTextField` in a host view. Of the window's 2,082 AppKit views with 240 entries, 840 are these, against 480 for the position markers. In `TranscriptInteractionMeasurements`, after item 8, turning selection off takes the median scroll step from 9.7 to 6.0 ms with 240 entries, and from 34 to 25 ms with 640. It also takes opening Find from 27 to 21 ms.
 
-**Plan:** keep live selection under a size limit, and offer **Copy Text** for longer blocks. Measure first whether one selectable view per entry, instead of one per block, keeps selection usable with fewer views.
+**Measured (issue #54):** moving `.textSelection(.enabled)` from each Markdown block, code block, and table cell to the message root was tested with `JUSTSESSIONS_PERF=1 swift test -c release --filter TranscriptInteractionMeasurements`. The unchanged baseline was run three times; the prototype once before it was rejected. SwiftUI propagated selection to every `Text` leaf, including labels and list markers, instead of making one surface. The paired `SelectionTextField` and host count rose from 420 to 660 with 240 entries, and from 1,120 to 1,760 with 640. At 640 entries with accessibility off, the median scroll step regressed from 16.5–16.9 ms to 34.4 ms in the single prototype run.
+
+**Conclusion:** keep the current per-block selection. It preserves native selection, links, code-copy controls, table scrolling, and accessibility without the measured regression. One native selection surface for the mixed message hierarchy would require a custom `NSTextView`/TextKit renderer; that wider product and design decision was not taken here.
 
 ### 6. Terminal drawing
 
