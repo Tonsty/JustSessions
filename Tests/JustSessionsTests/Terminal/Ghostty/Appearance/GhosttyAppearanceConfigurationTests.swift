@@ -57,8 +57,8 @@ struct GhosttyAppearanceConfigurationTests {
         let matches = CTFontCollectionCreateMatchingFontDescriptors(collection) as? [CTFontDescriptor] ?? []
 
         #expect(!matches.isEmpty, "\(family)")
-        #expect(GhosttyAppearanceConfiguration.fontDiscoveryFinds(family: String(family)))
-        #expect(!GhosttyAppearanceConfiguration.fontDiscoveryFinds(family: "No Such Font Family JustSessions"))
+        #expect(GhosttyFontConfiguration.fontDiscoveryFinds(family: String(family)))
+        #expect(!GhosttyFontConfiguration.fontDiscoveryFinds(family: "No Such Font Family JustSessions"))
     }
 
     @Test func aFamilyGhosttyCannotFindGivesMenloRatherThanGhosttysBuiltInFont() {
@@ -167,7 +167,7 @@ struct GhosttyAppearanceConfigurationTests {
     }
 
     /// Everything apart from the font and the colors, each set to behave as a SwiftTerm terminal does. Neither
-    /// libghostty-spm's default configuration, which thickens the font, nor its default theme applies.
+    /// libghostty-spm's default configuration nor its default theme applies.
     @Test func theOtherKeysMatchSwiftTermsBehavior() throws {
         let stores = try IsolatedAppearanceStores()
         defer { stores.remove() }
@@ -177,7 +177,7 @@ struct GhosttyAppearanceConfigurationTests {
         #expect(controller.lastConfigurationIssue == nil)
         let lines = Self.lines(of: controller)
         let otherLines = lines.filter { line in
-            !["#", "font-family ", "font-size ", "minimum-contrast ", "background ", "foreground ", "selection-",
+            !["#", "font-", "adjust-cell-", "minimum-contrast ", "background ", "foreground ", "selection-",
               "cursor-color ", "cursor-text ", "palette "].contains { line.hasPrefix($0) }
         }
         #expect(otherLines == [
@@ -199,7 +199,6 @@ struct GhosttyAppearanceConfigurationTests {
             "keybind = super+arrow_up=ignore",
             "keybind = super+arrow_down=ignore",
         ])
-        #expect(!lines.contains { $0.hasPrefix("font-thicken") })
         // Alabaster, libghostty-spm's default light theme.
         #expect(!lines.contains("background = F7F7F7"))
     }
