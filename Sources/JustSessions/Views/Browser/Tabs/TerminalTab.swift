@@ -3,7 +3,9 @@ import SwiftUI
 /// One open terminal in the tab bar, drawn as in Chrome: every tab is one width, which narrows as more tabs open, with
 /// its × inside. The selected tab takes its terminal's background and runs down into it; the others sit on the bar,
 /// parted by short lines. A split's two tabs are half as wide and join into one shape, as in Chrome: while the split
-/// shows, both take the selected tab's look, and while it does not, pointing at either lights both.
+/// shows, both take the selected tab's look, and while it does not, pointing at either lights both. The two tabs of a
+/// split across projects each keep a shape of their own, in their project's color, inside the split's container; see
+/// `TerminalSplitAcrossProjectsSection`.
 struct TerminalTab: View {
     @ObservedObject var session: TerminalSession
     let projectDisplayName: String
@@ -17,6 +19,8 @@ struct TerminalTab: View {
     let isActive: Bool
     /// The tab's side of its split, or nil for a tab in no split.
     let splitSide: TerminalSplit.Side?
+    /// A tab of a split across projects draws a shape of its own rather than joining its split's other tab.
+    var drawsOwnShape = false
     /// The pointer is over the other tab of this tab's split, which lights this one too.
     let isSplitPartnerHovered: Bool
     /// The line that parts this tab from the one before. It hides beside a tab drawing a shape of its own, and between
@@ -96,7 +100,7 @@ struct TerminalTab: View {
                 isHovered: isHovered || isSplitPartnerHovered,
                 showsLeadingSeparator: showsLeadingSeparator,
                 groupColor: groupColor,
-                splitSide: splitSide
+                splitSide: drawsOwnShape ? nil : splitSide
             )
         }
         .onHover { isHovering in
