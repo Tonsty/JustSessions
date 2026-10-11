@@ -21,7 +21,7 @@ struct SSHAskpassRelayTests {
         defer { server.stop() }
 
         let request = SSHAskpassRequest(prompt: "(me@devbox) Password:", hint: nil)
-        let answer = await Task.detached { SSHAskpassRelay.answer(to: request, socketPath: server.socketPath) }.value
+        let answer = await Self.answer(request, socketPath: server.socketPath)
 
         #expect(answer == "hunter2")
         #expect(asked.value == [request])
@@ -35,7 +35,7 @@ struct SSHAskpassRelayTests {
         defer { server.stop() }
 
         let request = SSHAskpassRequest(prompt: "Verification code:", hint: nil)
-        let answer = await Task.detached { SSHAskpassRelay.answer(to: request, socketPath: server.socketPath) }.value
+        let answer = await Self.answer(request, socketPath: server.socketPath)
 
         #expect(answer == nil)
     }
@@ -47,7 +47,7 @@ struct SSHAskpassRelayTests {
         defer { try? FileManager.default.removeItem(atPath: folder) }
         let wasWithdrawn = LockedValue(false)
         let server = try #require(SSHAskpassServer(socketPath: folder + "/askpass") { _ in
-            try? await Task.sleep(for: .seconds(60))
+            try? await Task.sleep(for: .seconds(600)) // Ended only by a cancel, however busy the test run.
             wasWithdrawn.update { $0 = Task.isCancelled }
             return SSHAskpassReply(answer: nil)
         })
@@ -70,16 +70,26 @@ struct SSHAskpassRelayTests {
         let isAsking = LockedValue(false)
         let server = try #require(SSHAskpassServer(socketPath: folder + "/askpass") { _ in
             isAsking.update { $0 = true }
-            try? await Task.sleep(for: .seconds(60))
+            try? await Task.sleep(for: .seconds(600)) // Ended only by a cancel, however busy the test run.
             return SSHAskpassReply(answer: Task.isCancelled ? nil : "late")
         })
 
         let request = SSHAskpassRequest(prompt: "(me@devbox) Password:", hint: nil)
-        let answer = Task.detached { SSHAskpassRelay.answer(to: request, socketPath: server.socketPath) }
+        let answer = Task { await Self.answer(request, socketPath: server.socketPath) }
         try await expectEventually { isAsking.value }
         server.stop()
 
         #expect(await answer.value == nil)
         #expect(!FileManager.default.fileExists(atPath: server.socketPath))
+    }
+
+    /// Runs the helper's blocking exchange off Swift's shared threads, which the server needs to ask its question. On a
+    /// runner with few cores, blocking those threads leaves the question waiting forever.
+    private static func answer(_ request: SSHAskpassRequest, socketPath: String) async -> String? {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global().async {
+                continuation.resume(returning: SSHAskpassRelay.answer(to: request, socketPath: socketPath))
+            }
+        }
     }
 }
