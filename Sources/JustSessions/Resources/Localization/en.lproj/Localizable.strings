@@ -590,8 +590,8 @@
 	<string>Move tab into split view</string>
 	<key>Name</key>
 	<string>Name</string>
-	<key>Needs my input, such as a permission prompt (not Codex)</key>
-	<string>Needs my input, such as a permission prompt (not Codex)</string>
+	<key>Needs my input, such as a permission prompt</key>
+	<string>Needs my input, such as a permission prompt</string>
 	<key>Nerd Font icons</key>
 	<string>Nerd Font icons</string>
 	<key>New</key>

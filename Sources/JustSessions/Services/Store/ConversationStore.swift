@@ -90,6 +90,8 @@ final class ConversationStore: ObservableObject {
     /// Renames and kills of tmux sessions, in order per host; see `ConversationStore+Tmux`.
     let tmuxCommandQueues = TmuxCommandQueues()
     let codexTurnTracker = CodexRolloutTurnTracker()
+    /// Each window's own, which closes its connection while the window runs no Codex CLI. Tests set theirs.
+    var codexWaitReader = CodexAppServerWaitReader.forThisApp()
     /// What each CLI on this Mac did at the last activity sync; see `ConversationStore+CLIActivitySync`.
     var sessionAttentionTracker = SessionAttentionTracker()
     /// CLIs on this Mac that finished a turn while off screen; see `ConversationStore+UnseenFinishedTurns`.

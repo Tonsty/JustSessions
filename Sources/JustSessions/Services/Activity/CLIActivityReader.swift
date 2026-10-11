@@ -1,35 +1,44 @@
 import Foundation
 
 /// Tells what CLIs running on this Mac are doing. Claude Code says so in its live process registry; a Codex session
-/// file shows whether a turn is under way, and an Antigravity conversation database also whether it waits for your
-/// approval; Pi and OpenCode say so through the extension the app starts them with. Kiro CLI, and CLIs whose process
-/// or file is not known yet, give nil.
+/// file shows whether a turn is under way, and Codex's background server whether it waits for you; an Antigravity
+/// conversation database shows both. Pi and OpenCode say so through the extension the app starts them with. Kiro
+/// CLI, and CLIs whose process or file is not known yet, give nil.
 struct CLIActivityReader: Sendable {
     let claudeRegistry: ClaudeLiveSessionRegistry
     let codexTurnTracker: CodexRolloutTurnTracker
     /// Nil when the app starts Pi and OpenCode without its extension, as in tests and `swift run`.
     let liveSessionReporting: LiveSessionReporting?
+    /// Nil where the app leaves Codex's background server alone, as in tests and `swift run`.
+    var codexWaitReader: CodexAppServerWaitReader? = nil
 
     /// One activity per probe, in order. Stops following the Codex files of CLIs that are no longer probed.
     func activities(for probes: [CLIActivityProbe]) -> [CLIActivity?] {
         // Read at most once, and only when a Claude Code install turns out to be a wrapper script.
         var processTree: ProcessTree?
-        let activities = probes.map { activity(for: $0, processTree: &processTree) }
+        let codexThreadsWaitingOnYou = codexWaitReader?.threadsWaitingOnYou(among: Set(probes.compactMap { probe in
+            probe.provider == .codex ? probe.sessionID : nil
+        })) ?? []
+        let activities = probes.map { probe in
+            activity(for: probe, codexThreadsWaitingOnYou: codexThreadsWaitingOnYou, processTree: &processTree)
+        }
         codexTurnTracker.stopFollowingFiles(otherThan: Set(probes.compactMap { probe in
             probe.provider == .codex ? probe.sessionFile?.path : nil
         }))
         return activities
     }
 
-    /// A turn that started before the CLI did was left open by an earlier CLI that ended in the middle of it.
-    static func codexActivity(turnState: CodexTurnState?, cliStartedAt: Date?) -> CLIActivity? {
+    /// A turn that started before the CLI did was left open by an earlier CLI that ended in the middle of it. Only a
+    /// turn of this CLI's waits on you, as Codex's background server may still hold a thread whose CLI ended.
+    static func codexActivity(turnState: CodexTurnState?, cliStartedAt: Date?, isWaitingOnYou: Bool = false) -> CLIActivity? {
         switch turnState {
         case nil:
             return nil
         case .betweenTurns:
             return .idle
         case .inTurn(let turnStartedAt):
-            return isLeftOpenByAnEarlierCLI(turnStartedAt: turnStartedAt, cliStartedAt: cliStartedAt) ? .idle : .working
+            if isLeftOpenByAnEarlierCLI(turnStartedAt: turnStartedAt, cliStartedAt: cliStartedAt) { return .idle }
+            return isWaitingOnYou ? .needsInput(reason: nil) : .working
         }
     }
 
@@ -52,7 +61,11 @@ struct CLIActivityReader: Sendable {
         return turnStartedAt < cliStartedAt
     }
 
-    private func activity(for probe: CLIActivityProbe, processTree: inout ProcessTree?) -> CLIActivity? {
+    private func activity(
+        for probe: CLIActivityProbe,
+        codexThreadsWaitingOnYou: Set<String>,
+        processTree: inout ProcessTree?
+    ) -> CLIActivity? {
         switch probe.provider {
         case .claude:
             guard probe.processID > 0 else { return nil }
@@ -65,7 +78,8 @@ struct CLIActivityReader: Sendable {
             guard let sessionFile = probe.sessionFile else { return nil }
             return Self.codexActivity(
                 turnState: codexTurnTracker.turnState(ofRolloutFile: sessionFile),
-                cliStartedAt: RunningProcessInfo.startDate(of: probe.processID)
+                cliStartedAt: RunningProcessInfo.startDate(of: probe.processID),
+                isWaitingOnYou: probe.sessionID.map(codexThreadsWaitingOnYou.contains) ?? false
             )
         case .antigravity:
             guard let sessionFile = probe.sessionFile else { return nil }

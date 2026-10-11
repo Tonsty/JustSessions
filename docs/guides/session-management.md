@@ -69,14 +69,14 @@ As in Chrome, **View → Zoom In** (⌘+ or ⌘=), **Zoom Out** (⌘−), and **
 
 ## Notifications
 
-JustSessions posts a macOS notification when a Claude Code, Codex, Antigravity, Pi, or OpenCode session on this Mac finishes its turn. Claude Code, Antigravity, Pi, and OpenCode also notify when they stop in the middle of a turn to wait on you, such as at a permission prompt. Click the notification to open the session: its tab, or a new tab that reattaches to its CLI in tmux.
+JustSessions posts a macOS notification when a Claude Code, Codex, Antigravity, Pi, or OpenCode session on this Mac finishes its turn. They also notify when they stop in the middle of a turn to wait on you, such as at a permission prompt. Click the notification to open the session: its tab, or a new tab that reattaches to its CLI in tmux.
 
 - Sessions running in tmux with no tab open notify too.
 - A session whose tab is selected while JustSessions is in front sends none; you already see it.
 - One that finished its turn out of sight keeps a blue dot on its row and tab after the notification is gone; see the status list above.
 - macOS asks for permission the first time there is something to notify about.
 - Turn either kind off in **Settings > General**. Banners, sounds, and Do Not Disturb follow **System Settings > Notifications**. **Settings > Permissions** shows whether macOS allows them.
-- Codex records only when a turn starts and ends, not when it waits for your approval, so it never sends the first kind. While it waits, its tab shows it still working.
+- Codex tells when it waits for your approval or answer only while it runs on Codex's shared background server. A Codex started with `--no-daemon`, or with command-line overrides such as `-c`, runs without it: it never sends the first kind, and while it waits, its tab shows it still working. This was checked with Codex CLI 0.162.0-alpha and a background server of 0.159.2.
 - Pi and OpenCode tell what they are doing through a small extension JustSessions starts them with. Pi needs version 0.80.4 or later, and 0.84.4 or later to tell when an extension's prompt, such as a permission gate, waits on you; Pi itself asks no permission. OpenCode tells nothing when you set `OPENCODE_TUI_CONFIG` yourself.
 - Antigravity CLI tells what it is doing in the conversation database it writes as it goes. A command waiting for your approval shows as waiting on you, without the CLI's own words for it. This was checked with Antigravity CLI 1.3.3; the database's format is not documented, so a later version may change what the app reads.
 - SSH hosts and Kiro CLI don't report what their CLI is doing, so they send no notifications.
