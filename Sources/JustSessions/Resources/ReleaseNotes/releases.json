@@ -1,5 +1,42 @@
 [
   {
+    "version": "1.2.5",
+    "publishedOn": "2026-10-11",
+    "title": {
+      "en": "Tips in the sidebar",
+      "zh-Hans": "侧栏小提示"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "The sidebar shows a short tip about what the app can do; turn tips off in Settings → Help.",
+            "zh-Hans": "侧栏会显示一条介绍功能的小提示，可在 设置 → 帮助 中关闭。"
+          }
+        ]
+      },
+      {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "Tabs, group labels, and the tab bar's empty space each have their own right-click menu.",
+            "zh-Hans": "标签页、标签组名称和标签栏空白处各有自己的右键菜单。"
+          }
+        ]
+      },
+      {
+        "kind": "fixed",
+        "items": [
+          {
+            "en": "Small bug fixes.",
+            "zh-Hans": "修复了一些小问题。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.4",
     "publishedOn": "2026-10-11",
     "title": {
