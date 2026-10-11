@@ -28,12 +28,14 @@ struct TerminalSplit: Identifiable, Equatable {
         case left, right
     }
 
+    private static let groupKeyPrefixOfSplitsAcrossProjects = "split-view:"
+
     let id: UUID
     /// The two tabs, in no particular order.
     private(set) var tabIDs: Set<UUID>
-    /// The tab group both tabs show in, by project key: the group of the tab the split was made from, so a tab from
-    /// another project joins that tab's group while they are split, as Chrome moves it into the group. Once no tab of
-    /// that project is left in the group, the split takes its left tab's project; see `TerminalTabStrip`.
+    /// The tab group both tabs show in: their project's, by its key, while both are of one project. A split across
+    /// two projects shows in neither project's group but as a unit of its own among the groups, under a key of its
+    /// own; see `groupKey(ofSplitAcrossProjects:)` and `TerminalTabStrip`.
     let groupKey: String
 
     init(id: UUID = UUID(), tabIDs: (UUID, UUID), groupKey: String) {
@@ -41,6 +43,22 @@ struct TerminalSplit: Identifiable, Equatable {
         self.id = id
         self.tabIDs = [tabIDs.0, tabIDs.1]
         self.groupKey = groupKey
+    }
+
+    /// The group key of the split across two projects with this id, which no project key equals: project keys are
+    /// folder paths or `ssh://` keys, see `ProjectLocation`.
+    static func groupKey(ofSplitAcrossProjects id: UUID) -> String {
+        groupKeyPrefixOfSplitsAcrossProjects + id.uuidString
+    }
+
+    /// Whether the group key is a split's own rather than a project's.
+    static func isGroupKeyOfSplitAcrossProjects(_ groupKey: String) -> Bool {
+        groupKey.hasPrefix(groupKeyPrefixOfSplitsAcrossProjects)
+    }
+
+    /// Whether the split's two tabs are of different projects, so it shows as a unit of its own among the groups.
+    var spansProjects: Bool {
+        groupKey == Self.groupKey(ofSplitAcrossProjects: id)
     }
 
     func contains(_ tabID: UUID) -> Bool {

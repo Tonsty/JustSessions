@@ -564,6 +564,8 @@
 	<string>最新更新说明 ↗</string>
 	<key>Launch JustSessions at login</key>
 	<string>开机启动 JustSessions</string>
+	<key>Left view</key>
+	<string>左侧视图</string>
 	<key>Lets JustSessions tell you when a session needs your input or finishes its turn. Choose which in General.</key>
 	<string>让 JustSessions 在会话需要你的输入或完成本轮回复时通知你。在「通用」中选择通知哪些情况。</string>
 	<key>Light</key>
@@ -830,6 +832,8 @@
 	<string>反转视图</string>
 	<key>Reverse views</key>
 	<string>反转视图</string>
+	<key>Right view</key>
+	<string>右侧视图</string>
 	<key>Right-click a selected row in the sidebar to resume, branch, or delete them.</key>
 	<string>右键点击侧栏中已选择的条目，以继续、创建分支或删除会话。</string>
 	<key>Right-click a session to rename, pin, export, or delete it, and a project to rename, pin, or archive it. ⌘-click or ⇧-click selects several.</key>
@@ -956,6 +960,8 @@
 	<string>缺少部分颜色，例如文字或背景颜色。</string>
 	<key>Split View Resize Handle (draggable)</key>
 	<string>拆分视图下大小调整手柄（可拖动）</string>
+	<key>Split view across projects</key>
+	<string>跨项目的拆分视图</string>
 	<key>Start a native CLI or a plain terminal in a project folder.</key>
 	<string>在项目文件夹中启动原生 CLI 或普通终端。</string>
 	<key>Start a new session in %@</key>

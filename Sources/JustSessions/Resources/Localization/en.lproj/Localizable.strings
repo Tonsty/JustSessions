@@ -562,6 +562,8 @@
 	<string>Latest release notes ↗</string>
 	<key>Launch JustSessions at login</key>
 	<string>Launch JustSessions at login</string>
+	<key>Left view</key>
+	<string>Left view</string>
 	<key>Lets JustSessions tell you when a session needs your input or finishes its turn. Choose which in General.</key>
 	<string>Lets JustSessions tell you when a session needs your input or finishes its turn. Choose which in General.</string>
 	<key>Light</key>
@@ -826,6 +828,8 @@
 	<string>Reverse Views</string>
 	<key>Reverse views</key>
 	<string>Reverse views</string>
+	<key>Right view</key>
+	<string>Right view</string>
 	<key>Right-click a selected row in the sidebar to resume, branch, or delete them.</key>
 	<string>Right-click a selected row in the sidebar to resume, branch, or delete them.</string>
 	<key>Right-click a session to rename, pin, export, or delete it, and a project to rename, pin, or archive it. ⌘-click or ⇧-click selects several.</key>
@@ -946,6 +950,8 @@
 	<string>Some colors are missing, such as the text or background color.</string>
 	<key>Split View Resize Handle (draggable)</key>
 	<string>Split View Resize Handle (draggable)</string>
+	<key>Split view across projects</key>
+	<string>Split view across projects</string>
 	<key>Start a native CLI or a plain terminal in a project folder.</key>
 	<string>Start a native CLI or a plain terminal in a project folder.</string>
 	<key>Start a new session in %@</key>

@@ -12,9 +12,7 @@ extension TerminalTabStrip {
               Set(unitTabIDs) == Set(tabIDs) else { return nil }
         let unitTabs = tabs.filter { tabIDs.contains($0.id) }
         let split = split(containing: firstTab.id)
-        let groupKey = split.flatMap { split in
-            unitTabs.contains { $0.projectKey == split.groupKey } ? split.groupKey : nil
-        } ?? firstTab.projectKey
+        let groupKey = split?.groupKey ?? firstTab.projectKey
         // Unlinked first, so taking out one of its tabs does not send the other back to its project's tabs.
         self = TerminalTabStrip(tabs: tabs, splits: splits.filter { $0.id != split?.id })
         for tab in unitTabs { removeTab(tab.id) }
@@ -30,8 +28,7 @@ extension TerminalTabStrip {
             contentsOf: unit.tabs,
             at: TerminalTabOrder.insertionIndex(forProjectKey: unit.groupKey, amongTabProjectKeys: groupKeys)
         )
-        let broughtInSplits = unit.split.map { [$0.regrouped(into: unit.groupKey)] } ?? []
-        self = TerminalTabStrip(tabs: reorderedTabs, splits: splits + broughtInSplits)
+        self = TerminalTabStrip(tabs: reorderedTabs, splits: splits + (unit.split.map { [$0] } ?? []))
         guard let firstTab = unit.tabs.first else { return }
         switch placement {
         case .amongGroupTabs(let place):

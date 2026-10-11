@@ -3042,6 +3042,16 @@
         }
       }
     },
+    "Left view": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "左侧视图"
+          }
+        }
+      }
+    },
     "Lets JustSessions tell you when a session needs your input or finishes its turn. Choose which in General.": {
       "localizations": {
         "zh-Hans": {
@@ -4399,6 +4409,16 @@
         }
       }
     },
+    "Right view": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右侧视图"
+          }
+        }
+      }
+    },
     "Right-click a selected row in the sidebar to resume, branch, or delete them.": {
       "localizations": {
         "zh-Hans": {
@@ -5055,6 +5075,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "拆分视图下大小调整手柄（可拖动）"
+          }
+        }
+      }
+    },
+    "Split view across projects": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跨项目的拆分视图"
           }
         }
       }
