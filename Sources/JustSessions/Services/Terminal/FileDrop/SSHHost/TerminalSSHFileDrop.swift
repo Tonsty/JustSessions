@@ -88,6 +88,8 @@ final class TerminalSSHFileDrop: ObservableObject {
         typePaths(copy.hostPaths)
     }
 
+    /// The copy blocks until `ssh` exits, so it waits on a dispatch queue instead of holding one of Swift's few task
+    /// threads for as long as a large file takes.
     private func copyToHost(
         _ file: TerminalSSHFileDropCopy.File,
         of copy: TerminalSSHFileDropCopy,
@@ -97,15 +99,27 @@ final class TerminalSSHFileDrop: ObservableObject {
         let copier = self.copier
         let cancellation = copy.cancellation
         let copyID = copy.id
-        return try await Task.detached(priority: .userInitiated) { [weak self] in
-            try copier.copy(file.url, to: host, connectionOptions: connectionOptions, cancellation: cancellation) { copiedByteCount in
-                DispatchQueue.main.async {
-                    MainActor.assumeIsolated {
-                        self?.showProgress(of: copyID, fileID: file.id, copiedByteCount: copiedByteCount)
+        return try await withCheckedThrowingContinuation { continuation in
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                do {
+                    let hostPath = try copier.copy(
+                        file.url,
+                        to: host,
+                        connectionOptions: connectionOptions,
+                        cancellation: cancellation
+                    ) { copiedByteCount in
+                        DispatchQueue.main.async {
+                            MainActor.assumeIsolated {
+                                self?.showProgress(of: copyID, fileID: file.id, copiedByteCount: copiedByteCount)
+                            }
+                        }
                     }
+                    continuation.resume(returning: hostPath)
+                } catch {
+                    continuation.resume(throwing: error)
                 }
             }
-        }.value
+        }
     }
 
     private func showProgress(of copyID: UUID, fileID: UUID, copiedByteCount: Int64) {
