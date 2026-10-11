@@ -17,9 +17,9 @@ struct WorkingSpinnerLifecycleTests {
         @ObservedObject var visibility: Visibility
 
         var body: some View {
-            // `holdsStill` stands in for Reduce Motion, which the environment does not let a test set; both reach the
-            // arc as `turns`.
-            WorkingSpinner(holdsStill: visibility.holdsStill)
+            // The arc itself, told whether to turn: `WorkingSpinner` holds it still with Reduce Motion on, as GitHub's
+            // macOS runners have it, and a test can't turn Reduce Motion off. `holdsStill` stands in for it.
+            WorkingSpinnerArc(turns: !visibility.holdsStill)
                 .frame(width: 10, height: 10)
                 .opacity(visibility.isShown ? 1 : 0)
                 .padding(7)
@@ -103,7 +103,7 @@ struct WorkingSpinnerLifecycleTests {
         _ = NSApplication.shared
         // A window that can miniaturize is one with a title bar, shown first, as a user's window has been: AppKit
         // posts `didDeminiaturize` for a window restored to the screen, not for one that was never on it.
-        let hostingView = NSHostingView(rootView: WorkingSpinner().frame(width: 10, height: 10).padding(7))
+        let hostingView = NSHostingView(rootView: WorkingSpinnerArc(turns: true).frame(width: 10, height: 10).padding(7))
         let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 200, height: 100), styleMask: [.titled, .miniaturizable], backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
         defer { window.close() }

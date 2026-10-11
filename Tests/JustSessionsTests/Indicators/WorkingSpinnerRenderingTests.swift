@@ -37,16 +37,24 @@ struct WorkingSpinnerRenderingTests {
         // The swatch's center: past the padding, the indicator, and the spacing, then half the swatch.
         let swatchCenter = try #require(bitmap.colorAt(x: Int(29 * scale), y: Int(12 * scale))).sRGBHexValue
         let liveHexValue = try #require(swatchCenter)
-        let livePixels = (0..<bitmap.pixelsHigh).reduce(0) { count, row in
-            count + (0..<bitmap.pixelsWide).filter { column in
-                bitmap.colorAt(x: column, y: row).flatMap(\.sRGBHexValue).map { matches($0, liveHexValue) } ?? false
-            }.count
+        let corner = try #require(bitmap.colorAt(x: 0, y: 0)).sRGBHexValue
+        let backgroundHexValue = try #require(corner)
+        var livePixels = 0
+        var liveCoverage = 0.0
+        for row in 0..<bitmap.pixelsHigh {
+            for column in 0..<bitmap.pixelsWide {
+                guard let hexValue = bitmap.colorAt(x: column, y: row)?.sRGBHexValue else { continue }
+                if matches(hexValue, liveHexValue) { livePixels += 1 }
+                liveCoverage += share(of: liveHexValue, over: backgroundHexValue, in: hexValue)
+            }
         }
-        let swatchPixels = Int(Self.swatchSide * Self.swatchSide * scale * scale)
-        let arcPixels = livePixels - swatchPixels
-        // An 8-point ring 1.6 points thick is about 40 square points; the arc is 72 % of it, its edges antialiased.
-        #expect(arcPixels > Int(12 * scale * scale), "\(schemeName): the arc is drawn in the live color (\(arcPixels) pixels)")
-        #expect(arcPixels < Int(40 * scale * scale), "\(schemeName): only the arc is drawn (\(arcPixels) pixels)")
+        let swatchPixels = Self.swatchSide * Self.swatchSide * scale * scale
+        #expect(Double(livePixels) > swatchPixels, "\(schemeName): the arc is drawn in the live color")
+        // A 1.6-point stroke covers few pixels whole on a 1x screen, as GitHub's runners have, so the arc is measured
+        // by how much of each pixel the live color covers. An 8-point ring 1.6 points thick is about 40 square points;
+        // the arc is 72 % of it.
+        let arcArea = (liveCoverage - swatchPixels) / (scale * scale)
+        #expect(arcArea > 20 && arcArea < 38, "\(schemeName): only the arc is drawn (\(arcArea) square points)")
     }
 
     /// Held still, as with Reduce Motion, the layer's arc covers the pixels the SwiftUI arc it replaced covered: the
@@ -104,5 +112,14 @@ struct WorkingSpinnerRenderingTests {
     /// Within rounding of a channel, as antialiasing and color management round the solid stroke.
     private func matches(_ color: UInt32, _ reference: UInt32) -> Bool {
         [16, 8, 0].allSatisfy { shift in abs(Int((color >> shift) & 0xFF) - Int((reference >> shift) & 0xFF)) <= 6 }
+    }
+
+    /// How much of `color` is `reference` laid over `background`, from 0 to 1, as antialiasing blends an edge pixel.
+    private func share(of reference: UInt32, over background: UInt32, in color: UInt32) -> Double {
+        func channels(_ value: UInt32) -> [Double] { [16, 8, 0].map { shift in Double((value >> shift) & 0xFF) } }
+        let towardReference = zip(channels(reference), channels(background)).map { $0 - $1 }
+        let offset = zip(channels(color), channels(background)).map { $0 - $1 }
+        let projection = zip(offset, towardReference).map { $0 * $1 }.reduce(0, +)
+        return min(max(projection / towardReference.map { $0 * $0 }.reduce(0, +), 0), 1)
     }
 }
