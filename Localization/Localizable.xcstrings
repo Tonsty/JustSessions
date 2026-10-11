@@ -1774,6 +1774,26 @@
         }
       }
     },
+    "Copy Link": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制链接"
+          }
+        }
+      }
+    },
+    "Copy Path": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制路径"
+          }
+        }
+      }
+    },
     "Copy code": {
       "localizations": {
         "zh-Hans": {
@@ -1880,6 +1900,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法导出对话"
+          }
+        }
+      }
+    },
+    "Could not open %@ in %@: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Could not open %1$@ in %2$@: %3$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法在 %2$@ 中打开 %1$@：%3$@"
           }
         }
       }
@@ -3681,6 +3717,26 @@
         }
       }
     },
+    "Open": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开"
+          }
+        }
+      }
+    },
+    "Open Link": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开链接"
+          }
+        }
+      }
+    },
     "Open Login Items Settings": {
       "localizations": {
         "zh-Hans": {
@@ -3707,6 +3763,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "在 GitHub 上报告问题"
+          }
+        }
+      }
+    },
+    "Open in": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开方式"
+          }
+        }
+      }
+    },
+    "Open in Finder": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Finder 中打开"
           }
         }
       }
@@ -4375,6 +4451,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "继续或分支"
+          }
+        }
+      }
+    },
+    "Reveal in Finder": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Finder 中显示"
           }
         }
       }

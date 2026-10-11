@@ -16,9 +16,13 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     var onUnheardLightDarkChange: (() -> Void)?
     var onFocus: (() -> Void)?
     /// Builds the menu a right-click shows in place of Ghostty's own; see `GhosttyTabTerminalView+ContextMenu`.
-    var makeContextMenu: (() -> NSMenu)?
+    var makeContextMenu: ((_ linkUnderPointer: String?) -> NSMenu)?
     /// Shows that menu: AppKit's pop-up, which a test replaces, since a menu shown in a test run ends the run.
     var popUpContextMenu: (NSMenu, NSEvent, NSView) -> Void = NSMenu.popUpContextMenu(_:with:for:)
+    /// See `TabTerminalView.onOpenLink` and `GhosttyTabTerminalView+Links`.
+    var onOpenLink: ((String) -> Void)?
+    /// The link Ghostty last reported under the pointer, which it does only while ⌘ is held; see `link(under:)`.
+    var hoveredLink: String?
     /// Files dropped on the terminal type their paths into it; see `SelectableTerminalView.acceptsDroppedFiles`.
     var acceptsDroppedFiles = false {
         didSet {
@@ -144,8 +148,14 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     override func mouseDown(with event: NSEvent) {
         onFocus?()
         window?.makeFirstResponder(self)
-        super.mouseDown(with: event)
+        super.mouseDown(with: eventFindingLinks(event))
     }
+
+    /// The pointer's moves and the left button go to Ghostty so that a ⌘-click finds links as in a SwiftTerm tab; see
+    /// `eventFindingLinks(_:)`.
+    override func mouseUp(with event: NSEvent) { super.mouseUp(with: eventFindingLinks(event)) }
+    override func mouseMoved(with event: NSEvent) { super.mouseMoved(with: eventFindingLinks(event)) }
+    override func mouseDragged(with event: NSEvent) { super.mouseDragged(with: eventFindingLinks(event)) }
 
     /// While an input method composes text, Return belongs to it. tmux never turns on the kitty keyboard protocol for
     /// the tab, which is when the SwiftTerm tab leaves Shift-Return alone, so this one doesn't ask.

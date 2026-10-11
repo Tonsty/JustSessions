@@ -52,7 +52,8 @@ struct ThisMacTmuxServer: Sendable {
     /// The tab's command: a tmux client attached to `sessionName`, which first starts `command` in that session
     /// unless it already runs. The session starts in the client's folder, the command's own.
     func command(attachingTo sessionName: String, running command: NativeCLICommand) -> NativeCLICommand {
-        let serverArguments = ["-L", Self.socketName, "-f", "/dev/null", "-u", "-T", "RGB"]
+        // The tab's terminal draws RGB colors and OSC 8 hyperlinks; without `hyperlinks` tmux drops a CLI's links.
+        let serverArguments = ["-L", Self.socketName, "-f", "/dev/null", "-u", "-T", "RGB,hyperlinks"]
         let optionArguments = Self.globalOptions.flatMap { ["set-option", "-gq", $0.name, $0.value, ";"] }
             + Self.globalHooks.flatMap { ["set-hook", "-g", $0.name, $0.command, ";"] }
         let clientEnvironment = runtimeEnvironment(from: command.environmentVariables)

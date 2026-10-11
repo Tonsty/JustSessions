@@ -16,7 +16,7 @@ struct GhosttyTabRightClickTests {
         fixture.view.selectAll(nil)
         try #require(fixture.view.selectionActive)
         let appMenu = NSMenu(title: "App")
-        fixture.view.makeContextMenu = { appMenu }
+        fixture.view.makeContextMenu = { _ in appMenu }
 
         #expect(fixture.view.menu(for: rightMouseEvent(.rightMouseDown, in: fixture)) === appMenu)
     }
@@ -28,7 +28,7 @@ struct GhosttyTabRightClickTests {
         try await fixture.start(printing: "printf '\\033[?1000hREADY'")
         try await expectEventually { fixture.screen.contains("READY") }
         let appMenu = NSMenu(title: "App")
-        fixture.view.makeContextMenu = { appMenu }
+        fixture.view.makeContextMenu = { _ in appMenu }
         var shownMenus: [NSMenu] = []
         fixture.view.popUpContextMenu = { menu, event, view in
             #expect(event.type == .rightMouseDown && view === fixture.view)

@@ -9,7 +9,7 @@ extension GhosttyTabTerminalView {
         guard let makeContextMenu else { return super.menu(for: event) }
         onFocus?()
         window?.makeFirstResponder(self)
-        return makeContextMenu()
+        return makeContextMenu(link(under: event))
     }
 
     /// Ghostty's own right-click never asks for the menu: it hands the click to Ghostty, which passes it on to a

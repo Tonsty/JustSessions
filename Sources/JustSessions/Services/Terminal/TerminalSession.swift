@@ -39,6 +39,8 @@ final class TerminalSession: ObservableObject, Identifiable {
     /// The title the tab's CLI last gave its terminal. A Codex CLI's title names its thread; see `CodexThreadTitle`.
     private(set) var terminalTitle: String?
     var onProcessFinished: (() -> Void)?
+    /// Opens what ⌘-clicking a link in the tab's terminal points to.
+    var linkOpener: TerminalLinkOpener
 
     /// A tab reopened at launch for a session whose CLI no longer runs starts it only once shown, the way a browser
     /// loads a restored tab once you select it. Until then it runs nothing.
@@ -116,8 +118,10 @@ final class TerminalSession: ObservableObject, Identifiable {
         self.isWaitingToBeShown = startsOnceShown
         self.terminalView = engine.makeTabTerminalView(frame: NSRect(x: 0, y: 0, width: 900, height: 600))
         self.processObserver = TerminalProcessObserver()
+        self.linkOpener = TerminalLinkOpener(host: host, workingDirectory: projectPath)
         terminalView.sendsShiftReturnAsCSIu = host == .thisMac && tmuxSessionName != nil
         terminalView.acceptsDroppedFiles = host == .thisMac
+        terminalView.onOpenLink = { [weak self] link in self?.linkOpener.open(link) }
         terminalView.connectProcessObserver(processObserver)
         processObserver.session = self
     }

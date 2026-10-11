@@ -17,8 +17,14 @@ protocol TabTerminalView: NSView {
     /// no program subscribes to theme changes.
     func reportThemeAfterNextBackgroundQuery()
     func cancelThemeReportAfterNextBackgroundQuery()
-    /// Builds the menu a right-click on the terminal or its margin shows; see `TerminalContextMenu`.
-    var makeContextMenu: (() -> NSMenu)? { get set }
+    /// Builds the menu a right-click on the terminal or its margin shows, with the link under the pointer, if any; see
+    /// `TerminalContextMenu`.
+    var makeContextMenu: ((_ linkUnderPointer: String?) -> NSMenu)? { get set }
+    /// Called with the link ⌘-clicked in the terminal: an OSC 8 hyperlink's target, or the URL or path the engine found
+    /// under the pointer. Nothing opens without it; see `TerminalLinkOpener`.
+    var onOpenLink: ((String) -> Void)? { get set }
+    /// The link a ⌘-click where `event` happened would hand to `onOpenLink`; nil outside the terminal's text.
+    func link(under event: NSEvent) -> String?
     /// Whether text is selected, which the menu's Copy needs.
     var selectionActive: Bool { get }
     /// The menu's Copy and Paste. Select All is `NSResponder`'s `selectAll(_:)`, which both engines implement.

@@ -16,8 +16,10 @@ final class SelectableTerminalView: LocalProcessTerminalView {
     /// Called when a click lands on the terminal or its margin, or files are dropped on it, before the terminal takes
     /// the keyboard, so a split pane whose tab is not selected can select it.
     var onFocus: (() -> Void)?
-    /// Builds the menu a right-click on the terminal or its margin shows; see `TerminalContextMenu`.
-    var makeContextMenu: (() -> NSMenu)?
+    /// See `TabTerminalView.makeContextMenu`.
+    var makeContextMenu: ((_ linkUnderPointer: String?) -> NSMenu)?
+    /// See `TabTerminalView.onOpenLink`.
+    var onOpenLink: ((String) -> Void)?
     /// Files dropped on the terminal type their paths into it; see `SelectableTerminalView+FileDrop`. Only a tab whose
     /// CLI runs on this Mac turns it on, since a CLI on an SSH host can't open this Mac's files.
     var acceptsDroppedFiles = false {
@@ -116,7 +118,13 @@ final class SelectableTerminalView: LocalProcessTerminalView {
         guard let makeContextMenu else { return super.menu(for: event) }
         onFocus?()
         window?.makeFirstResponder(self)
-        return makeContextMenu()
+        return makeContextMenu(link(under: event))
+    }
+
+    /// SwiftTerm calls this for a ⌘-click on a link, with an OSC 8 hyperlink's target or the URL or path it found. Its
+    /// own version would hand any of them to `NSWorkspace` as a URL, which opens no path and any scheme.
+    override func requestOpenLink(source: TerminalView, link: String, params: [String: String]) {
+        onOpenLink?(link)
     }
 
     /// SwiftTerm's `keyDown` hands Return here; while an input method composes text, Return belongs to it.
