@@ -65,8 +65,8 @@ struct HostModelTests {
     }
 
     @Test func hostNamesReadWithinASentence() {
-        #expect("End on \(SessionHost.thisMac.nameInSentence)" == "End on this Mac")
-        #expect("End on \(SessionHost.ssh("me@devbox").nameInSentence)" == "End on me@devbox")
+        #expect("The CLI stops on \(SessionHost.thisMac.nameInSentence)." == "The CLI stops on this Mac.")
+        #expect("The CLI stops on \(SessionHost.ssh("me@devbox").nameInSentence)." == "The CLI stops on me@devbox.")
     }
 
     @Test func sidebarListsEveryHostInOrderIncludingOnesWithoutProjects() {

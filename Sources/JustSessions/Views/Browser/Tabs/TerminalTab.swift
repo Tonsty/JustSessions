@@ -74,7 +74,7 @@ struct TerminalTab: View {
                         Divider()
                     }
                     splitMenuItems
-                    Button("End session…", systemImage: "xmark", role: .destructive, action: onClose)
+                    Button("Close Tab…", systemImage: "xmark", role: .destructive, action: onClose)
                 }
             }
 

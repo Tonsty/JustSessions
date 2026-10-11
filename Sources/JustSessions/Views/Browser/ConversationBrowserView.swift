@@ -19,6 +19,8 @@ struct ConversationBrowserView: View {
     /// Settings or Help while either shows as a sheet on this window.
     @State private var appWideSheet: AppWideSheet?
     @State private var closingTerminalID: UUID?
+    /// The session whose End session waits for confirmation.
+    @State private var endingConversation: Conversation?
     @SceneStorage("isSidebarHidden") private var isSidebarHidden = false
     @StateObject private var updateManager = SparkleUpdateManager()
     @StateObject private var onboardingTour = OnboardingTour()
@@ -81,7 +83,8 @@ struct ConversationBrowserView: View {
                 onRenameConversation: onRename,
                 onRenameProject: onRenameProject,
                 onRequestDeletion: onRequestDeletion,
-                onCloseTerminal: { requestClosingTerminal($0) }
+                onCloseTerminal: { requestClosingTerminal($0) },
+                onEndSession: { endingConversation = $0 }
             )
         } detail: {
             WorkspaceDetailView(
@@ -157,6 +160,7 @@ struct ConversationBrowserView: View {
             tabCloseChoiceSettingsStore: .shared,
             plainTerminalCloseChoiceSettingsStore: .shared
         ))
+        .modifier(SessionEndConfirmation(store: store, endingConversation: $endingConversation))
         .modifier(OnboardingTipsPresenter(
             store: store,
             tour: onboardingTour,
@@ -189,7 +193,7 @@ struct ConversationBrowserView: View {
     }
 
     private var workspaceTabCommandsEnabled: Bool {
-        newSessionSheetHost == nil && appWideSheet == nil && closingTerminalID == nil
+        newSessionSheetHost == nil && appWideSheet == nil && closingTerminalID == nil && endingConversation == nil
     }
 
     /// The selected tab's tool, or a terminal when that tab is one; else the tool the sidebar shows, Codex when it shows

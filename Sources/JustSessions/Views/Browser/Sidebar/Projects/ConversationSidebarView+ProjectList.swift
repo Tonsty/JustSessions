@@ -62,7 +62,7 @@ extension ConversationSidebarView {
                                 onRemoveSelectedProjects: removeSelectedProjects,
                                 onRemoveSelectedProjectsAndDeleteSessions: requestRemovalOfSelectedProjectsAndTheirSessions,
                                 onRequestDeletion: onRequestDeletion,
-                                onCloseTab: onCloseTerminal
+                                onEndSession: onEndSession
                             )
                         }
                         .padding(.horizontal, 8)

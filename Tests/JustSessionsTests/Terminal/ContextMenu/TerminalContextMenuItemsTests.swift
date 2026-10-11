@@ -18,7 +18,7 @@ struct TerminalContextMenuItemsTests {
             "Rename", "—",
             "Copy conversation", "Export conversation", "—",
             "Add tab to new split view", "—",
-            "End session…",
+            "Close Tab…",
         ])
     }
 
@@ -49,7 +49,7 @@ struct TerminalContextMenuItemsTests {
             "Copy", "Paste", "Select All", "—",
             "Rename",
             "Add tab to new split view", "—",
-            "End session…",
+            "Close Tab…",
         ])
         #expect(try !TerminalContextMenuFixture.item("Rename", in: menu).isEnabled)
     }
@@ -126,7 +126,7 @@ struct TerminalContextMenuItemsTests {
             "重命名", "—",
             "复制对话", "导出对话", "—",
             "向新拆分视图添加标签页", "—",
-            "结束会话…",
+            "关闭标签…",
         ])
     }
 }

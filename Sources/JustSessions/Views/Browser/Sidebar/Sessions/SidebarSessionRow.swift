@@ -16,7 +16,7 @@ struct SidebarSessionRow: View {
     let onToggleSubagents: () -> Void
     let onRename: (Conversation) -> Void
     let onRequestDeletion: (SessionDeletionRequest) -> Void
-    let onCloseTab: (UUID) -> Void
+    let onEndSession: (Conversation) -> Void
 
     @State private var isHovered = false
 
@@ -101,7 +101,7 @@ struct SidebarSessionRow: View {
                 conversation: conversation,
                 onRename: { onRename(conversation) },
                 onDelete: { onRequestDeletion(.conversation(conversation)) },
-                onCloseTab: onCloseTab
+                onEndSession: { onEndSession(conversation) }
             )
         }
     }
