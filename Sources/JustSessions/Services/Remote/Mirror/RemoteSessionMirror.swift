@@ -7,22 +7,33 @@ struct RemoteSessionMirror: Sendable {
     /// Replaces `<host>:` as the source, so tests can copy from a local folder that stands in for the remote home.
     let sourceHomeOverride: String?
     /// Finds where the host keeps each tool's files; see `RemoteToolFoldersLookup`.
-    let toolFoldersLookup: @Sendable (_ host: String) throws -> RemoteToolFolders
+    let toolFoldersLookup: @Sendable (_ host: String, _ connectionSharingOptions: [String]) throws -> RemoteToolFolders
+    /// Makes the private connection scope shared by one refresh's commands and copies.
+    let connectionSharing: @Sendable (_ host: String) -> SSHConnectionSharing?
 
     /// Without a `toolFoldersLookup`, a host stood in for by `sourceHomeOverride` keeps the standard folders.
     init(
         cacheRoot: URL = RemoteSessionMirror.defaultCacheRoot,
         sourceHomeOverride: String? = nil,
-        toolFoldersLookup: (@Sendable (_ host: String) throws -> RemoteToolFolders)? = nil
+        toolFoldersLookup: (@Sendable (_ host: String) throws -> RemoteToolFolders)? = nil,
+        connectionSharing: (@Sendable (_ host: String) -> SSHConnectionSharing?)? = nil
     ) {
         self.cacheRoot = cacheRoot
         self.sourceHomeOverride = sourceHomeOverride
         if let toolFoldersLookup {
-            self.toolFoldersLookup = toolFoldersLookup
+            self.toolFoldersLookup = { host, _ in try toolFoldersLookup(host) }
         } else if sourceHomeOverride == nil {
-            self.toolFoldersLookup = { host in try RemoteToolFoldersLookup.folders(on: host, runner: RemoteHostCommandRunner()) }
+            self.toolFoldersLookup = { host, options in
+                try RemoteToolFoldersLookup.folders(
+                    on: host,
+                    runner: RemoteHostCommandRunner(connectionSharingOptions: options)
+                )
+            }
         } else {
-            self.toolFoldersLookup = { _ in .standard }
+            self.toolFoldersLookup = { _, _ in .standard }
+        }
+        self.connectionSharing = connectionSharing ?? { host in
+            sourceHomeOverride == nil ? SSHConnectionSharing.startRefresh(to: host) : nil
         }
     }
 
@@ -37,11 +48,14 @@ struct RemoteSessionMirror: Sendable {
             .appendingPathComponent(Self.mirroredFolderName(for: provider))
     }
 
-    /// Copies the host's session files for each tool.
+    /// Copies the host's session files for each tool through one app-owned connection scope.
     func synchronize(host: String) throws {
-        let folders = try lookUpToolFolders(host: host)
+        let sharing = connectionSharing(host)
+        defer { sharing?.finish() }
+        let options = sharing?.options ?? []
+        let folders = try lookUpToolFolders(host: host, connectionSharingOptions: options)
         for provider in ConversationProvider.allCases {
-            try synchronize(host: host, provider: provider, folders: folders)
+            try synchronize(host: host, provider: provider, folders: folders, connectionSharingOptions: options)
         }
     }
 
@@ -51,20 +65,46 @@ struct RemoteSessionMirror: Sendable {
 
     /// `folders` comes from `lookUpToolFolders(host:)`, once for all of the host's tools.
     func synchronize(host: String, provider: ConversationProvider, folders: RemoteToolFolders) throws {
+        try synchronize(host: host, provider: provider, folders: folders, connectionSharingOptions: [])
+    }
+
+    func synchronize(
+        host: String,
+        provider: ConversationProvider,
+        folders: RemoteToolFolders,
+        connectionSharingOptions: [String]
+    ) throws {
         let destination = mirrorDirectory(host: host, provider: provider)
         try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
         if provider == .antigravity {
-            try AntigravityRemoteSessionMirror().synchronize(host: host, sourceHomeOverride: sourceHomeOverride, destination: destination)
+            try AntigravityRemoteSessionMirror(runner: RemoteHostCommandRunner(connectionSharingOptions: connectionSharingOptions))
+                .synchronize(
+                    host: host,
+                    sourceHomeOverride: sourceHomeOverride,
+                    destination: destination,
+                    connectionSharingOptions: connectionSharingOptions
+                )
             return
         }
         if provider == .opencode {
-            try OpenCodeRemoteSessionMirror().synchronize(host: host, sourceHomeOverride: sourceHomeOverride, destination: destination)
+            try OpenCodeRemoteSessionMirror(runner: RemoteHostCommandRunner(connectionSharingOptions: connectionSharingOptions))
+                .synchronize(
+                    host: host,
+                    sourceHomeOverride: sourceHomeOverride,
+                    destination: destination,
+                    connectionSharingOptions: connectionSharingOptions
+                )
             return
         }
         let source = sourceHomeOverride.map { folders.localPath(for: provider, sourceHome: $0) + "/" }
             ?? folders.rsyncSource(host: host, provider: provider)
 
-        guard let result = Self.runRsync(for: provider, source: source, destination: destination.path + "/", host: sourceHomeOverride == nil ? host : nil)
+        guard let result = Self.runRsync(
+            for: provider,
+            source: source,
+            destination: destination.path + "/",
+            connectionSharingOptions: sourceHomeOverride == nil ? connectionSharingOptions : []
+        )
         else { throw RemoteSessionMirrorError.couldNotRun(host: host) }
 
         switch result.exitStatus {
@@ -85,14 +125,13 @@ struct RemoteSessionMirror: Sendable {
     }
 
     /// Copies one tool's files, with `ssh` running in the login shell's environment like the app's other connections.
-    /// `host` is the SSH host the source is on, whose connection the copy shares, or nil for a local folder.
     static func runRsync(
         for provider: ConversationProvider,
         source: String,
         destination: String,
-        host: String?
+        connectionSharingOptions: [String]
     ) -> (exitStatus: Int32, output: String)? {
-        let remoteShell = rsyncRemoteShell(connectionSharingOptions: host.map(SSHConnectionSharing.options(for:)) ?? [])
+        let remoteShell = rsyncRemoteShell(connectionSharingOptions: connectionSharingOptions)
         return BoundedProcessRunner.result(
             ofExecutable: "/usr/bin/rsync",
             arguments: rsyncArguments(for: provider, source: source, destination: destination, remoteShell: remoteShell),

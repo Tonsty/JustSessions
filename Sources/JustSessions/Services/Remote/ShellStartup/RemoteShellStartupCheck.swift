@@ -34,7 +34,7 @@ struct RemoteShellStartupCheck: Sendable {
 
     /// The background commands' options, with a terminal in place of their `-T`.
     static func sshArguments(host: String, command: String) -> [String] {
-        sshArguments(host: host, command: command, connectionSharingOptions: SSHConnectionSharing.options(for: host))
+        sshArguments(host: host, command: command, connectionSharingOptions: [])
     }
 
     static func sshArguments(host: String, command: String, connectionSharingOptions: [String]) -> [String] {

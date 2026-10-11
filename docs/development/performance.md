@@ -127,6 +127,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 14 | [A CLI activity change updates only the rows in view](#14-a-cli-activity-change-updates-only-the-rows-in-view) | Measured, no change: issue #61 |
 | 15 | [Terminals in minimized windows drew as if in sight](#15-terminals-in-minimized-windows-drew-as-if-in-sight) | Done: issue #63 |
 | 16 | [Typing beside flooding terminals](#16-typing-beside-flooding-terminals) | Measured, no change: issue #58 |
+| 17 | [SSH connections during a remote refresh](#17-ssh-connections-during-a-remote-refresh) | Changed, not measured live: issue #64 |
 
 ### 1. Timestamp parsing
 
@@ -388,6 +389,14 @@ A covered window is left alone. macOS reports `NSWindow.occlusionState` only to 
 Keystrokes wait only when the other terminals print as fast as a pseudo-terminal carries, about 50 MB/s each and 60 MB/s parsed in all, which no CLI does. Six terminals each printing a fast build log, 12 MB/s in all, leave typing where it is alone. Making the hidden tabs' batches smaller (16 or 4 KiB instead of 64) changed nothing, since at flood rates every read from the pseudo-terminal already exceeds the batch size and is parsed on arrival; the wait is the parsing itself.
 
 **Conclusion:** SwiftTerm's per-process budget and the app's hidden-tab batching are enough at any rate a CLI reaches. A shared budget across terminals would only matter under a synthetic flood, and would have to keep SwiftTerm's own backpressure working. Not done. The suite stays to check this again after a SwiftTerm upgrade or with Ghostty, which parses off the main thread.
+
+### 17. SSH connections during a remote refresh
+
+**Evidence:** a refresh runs its folder lookup and six provider copies sequentially; OpenCode and Antigravity also run snapshot and cleanup commands. Without multiplexing, each is a separate SSH login. Cached mirrors and rsync deltas already reduce the bytes copied. This change could not be timed against a live host: Multipass was unavailable and macOS Remote Login was off (`ssh localhost` was refused), so there is no handshake, snapshot, transfer, or cleanup timing and no latency claim.
+
+**Change:** one remote-session refresh gives its folder lookup, snapshot commands, rsync copies, and cleanup commands the same app-owned OpenSSH control socket. Each refresh has a unique directory owned only by the current user, including concurrent refreshes, and explicitly asks its own master to exit before removing the directory on success, failure, or task cancellation; a 60-second persistence limit is the fallback if the app exits first. A stale socket from an earlier process has a different path. Host aliases and their users, ports, jump hosts, host-key policy, and other SSH settings still resolve normally. A host with `ControlMaster no`, `ControlPath none`, `ControlPersist no`, or a control path of its own receives no app-owned sharing.
+
+The unit coverage checks option construction, config precedence, private and distinct socket directories, idempotent teardown, cancellation, and the same options in remote commands and rsync. A disposable Linux target and a separate macOS account remain required to verify actual reuse and teardown over SSH.
 
 ## How to profile
 

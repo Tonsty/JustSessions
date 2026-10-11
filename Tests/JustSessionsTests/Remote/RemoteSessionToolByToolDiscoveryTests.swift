@@ -46,6 +46,53 @@ struct RemoteSessionToolByToolDiscoveryTests {
         ])
         #expect(Set(try RemoteSessionDiscovery(mirror: mirror).readMirror(host: "devbox").map(\.sessionID)) == [claudeID, codexID])
     }
+
+    @Test func cancellationTearsDownTheRefreshConnectionBeforeTheNextTool() async throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let remoteHome = root.appendingPathComponent("remote-home")
+        try FileManager.default.createDirectory(at: remoteHome, withIntermediateDirectories: true)
+        let socketDirectory = root.appendingPathComponent("refresh")
+        try FileManager.default.createDirectory(at: socketDirectory, withIntermediateDirectories: false)
+        let controlPath = socketDirectory.appendingPathComponent("master").path
+        let closeCount = LockedCounter()
+        let sharing = SSHConnectionSharing(host: "devbox", directory: socketDirectory, controlPath: controlPath) { _, _ in
+            closeCount.increment()
+        }
+        let mirror = RemoteSessionMirror(
+            cacheRoot: root.appendingPathComponent("cache"),
+            sourceHomeOverride: remoteHome.path,
+            connectionSharing: { _ in sharing }
+        )
+        let copiedCount = LockedCounter()
+
+        let task = Task {
+            try await RemoteSessionDiscovery(mirror: mirror).discoverToolByTool(
+                host: "devbox",
+                copying: { _ in },
+                copied: { _, _ in
+                    copiedCount.increment()
+                    withUnsafeCurrentTask { $0?.cancel() }
+                }
+            )
+        }
+        await #expect(throws: CancellationError.self) { try await task.value }
+
+        #expect(copiedCount.value == 1)
+        #expect(closeCount.value == 1)
+        #expect(!FileManager.default.fileExists(atPath: socketDirectory.path))
+    }
+}
+
+private final class LockedCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+
+    var value: Int { lock.withLock { count } }
+
+    func increment() {
+        lock.withLock { count += 1 }
+    }
 }
 
 private actor CopyLog {
