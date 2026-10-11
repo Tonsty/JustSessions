@@ -30,18 +30,25 @@ extension ConversationStore {
                     await self.checkClaudeSessionIDFlagIfUnanswered(on: host)
                 }
                 await self.setRemoteHostRefreshStatus(.refreshed(.now), host: host)
+                await self.noteLoginState(on: host, refreshProblem: nil)
                 // After the refresh, so a check that changes how the host's shell starts can refresh it again.
                 if let status {
                     await self.checkRemoteShellStartupIfNeeded(on: host, statusListedCLIs: status.installedProviders != nil)
                 }
             } catch {
                 await self.setRemoteHostRefreshStatus(.failed(error.localizedDescription), host: host)
+                if case .sshFailed(_, let problem)? = error as? RemoteSessionMirrorError {
+                    await self.noteLoginState(on: host, refreshProblem: problem)
+                    // Windows' shell runs none of the check's commands, which would blame the host's startup files.
+                    if problem == .windowsHost { return }
+                }
                 await self.checkRemoteShellStartupIfNeeded(on: host, statusListedCLIs: false)
             }
         }
     }
 
-    /// Why the app can't log in to `host` without a prompt, or nil when it can; checked before the host is added.
+    /// Why the app can't log in to `host` without a prompt, or through a login made with Connect…, or nil when it
+    /// can; checked before the host is added.
     func connectionProblem(
         on host: String,
         check: RemoteHostConnectionCheck = RemoteHostConnectionCheck()
@@ -70,6 +77,8 @@ extension ConversationStore {
 
     func removeRemoteHost(_ host: String, mirror: RemoteSessionMirror = RemoteSessionMirror()) {
         remoteHostList.remove(host)
+        disconnect(host)
+        forgetLoginState(on: host)
         messageIndexer.removeHost(.ssh(host))
         remoteHostList.save(to: userDefaults)
         remoteHostsUsingTmuxPrefix.setUsesTmuxPrefix(false, for: host)

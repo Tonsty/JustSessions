@@ -12,13 +12,22 @@ enum RemoteToolFoldersLookup {
     static let piSettingsStart = "__JUSTSESSIONS_PI_SETTINGS_START__"
     static let piSettingsEnd = "__JUSTSESSIONS_PI_SETTINGS_END__"
 
-    /// The standard folders when the host's shell printed nothing that can be read, as when it timed out.
+    /// The standard folders when the host's shell printed nothing that can be read, as when it timed out. A shell
+    /// that ran none of it may be Windows', which is asked; the app's other commands would fail there too.
     static func folders(on host: String, runner: RemoteHostCommandRunner) throws -> RemoteToolFolders {
         guard let result = runner.run(host, command(on: host), 30) else { return .standard }
         if result.exitStatus == RemoteHostCommandRunner.connectionFailureExitStatus {
             throw RemoteSessionMirrorError.sshFailed(host: host, problem: SSHConnectionProblem(sshOutput: result.output))
         }
+        if !printedHome(result.output), WindowsHostProbe.isWindows(host, runner: runner, timeout: 30) {
+            throw RemoteSessionMirrorError.sshFailed(host: host, problem: .windowsHost)
+        }
         return folders(inOutput: result.output)
+    }
+
+    /// Whether the lookup ran: it prints the home folder first, even an empty one.
+    static func printedHome(_ output: String) -> Bool {
+        output.split(whereSeparator: \.isNewline).contains { $0.hasPrefix(linePrefix + "HOME=") }
     }
 
     static func command(on host: String) -> String {

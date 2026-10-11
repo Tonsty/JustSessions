@@ -63,7 +63,7 @@ Claude Code reports whether it is working or waiting on you in `~/.claude/sessio
 
 ## SSH session cache
 
-SSH hosts must accept `ssh <host>` without a password prompt and need `rsync`. Their session files are mirrored into a local cache and read by the same code as this Mac's.
+SSH hosts need `rsync`; a host that asks for a password or a code is logged in to once with **Connect…**. Their session files are mirrored into a local cache and read by the same code as this Mac's.
 
 The mirror reads each CLI's folder on the host as the table above describes, with `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `KIRO_HOME`, `PI_CODING_AGENT_DIR`, `PI_CODING_AGENT_SESSION_DIR`, and Pi `sessionDir` read from the host's login shell. A setting is followed when it is an absolute path or starts with `~/`; otherwise the standard folder is read. Antigravity is always read from `~/.gemini/antigravity-cli`. Kiro mirroring copies only session metadata and transcript files, excluding lock files, prompt history, and nested subagent folders.
 

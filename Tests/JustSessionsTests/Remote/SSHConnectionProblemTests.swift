@@ -90,17 +90,51 @@ struct SSHConnectionProblemTests {
         #expect(SSHConnectionProblem.connectionLost.explanation(host: "devbox")
             == "The connection to devbox was lost, for example because the Mac slept or the network changed.")
         #expect(SSHConnectionProblem.loginRefused.explanation(host: "devbox")
-            == "devbox didn't accept the SSH login without a password. Check that “ssh devbox” works in Terminal without asking for a password.")
+            == "devbox asks for a password, a passphrase, or a code. Click Connect… on its heading to log in.")
         #expect(SSHConnectionProblem.hostKeyNotTrusted.explanation(host: "devbox")
-            == "devbox's host key has changed or isn't trusted. Connect once with “ssh devbox” in Terminal to check it.")
+            == "devbox's host key isn't trusted yet, or has changed. Click Connect… on its heading to check it.")
+        #expect(SSHConnectionProblem.windowsHost.explanation(host: "devbox")
+            == "devbox runs Windows, which JustSessions doesn't support. Run your CLIs in WSL on it, and connect to WSL over SSH instead.")
         #expect(SSHConnectionProblem.other(sshMessage: "Bad owner").explanation(host: "devbox") == "Couldn't connect to devbox: Bad owner")
     }
 
-    @Test func onlyALoginOrHostKeyProblemNeedsAFixBeforeTryingAgain() {
+    /// The Add SSH host sheet shows Connect… beside the note.
+    @Test func explainsAProblemConnectFixesBesideItsButton() {
+        #expect(SSHConnectionProblem.loginRefused.explanationBesideConnect(host: "devbox")
+            == "devbox asks for a password, a passphrase, or a code. Click Connect… to log in.")
+        #expect(SSHConnectionProblem.hostKeyNotTrusted.explanationBesideConnect(host: "devbox")
+            == "devbox's host key isn't trusted yet, or has changed. Click Connect… to check it.")
+        #expect(SSHConnectionProblem.noAnswer.explanationBesideConnect(host: "devbox")
+            == SSHConnectionProblem.noAnswer.explanation(host: "devbox"))
+    }
+
+    /// Connect… asked its questions, so what was typed was wrong, or the host key really changed.
+    @Test func explainsAFailedLogin() {
+        #expect(SSHConnectionProblem.loginRefused.loginFailureExplanation(host: "devbox")
+            == "devbox refused the login. Check the password, passphrase, or code, then try again.")
+        #expect(SSHConnectionProblem.hostKeyNotTrusted.loginFailureExplanation(host: "devbox")
+            == "devbox's host key has changed. Check it with “ssh devbox” in Terminal.")
+        #expect(SSHConnectionProblem.connectionLost.loginFailureExplanation(host: "devbox")
+            == "The connection to devbox closed during the login, for example because the host stopped waiting for an answer. Try again.")
+        #expect(SSHConnectionProblem.noAnswer.loginFailureExplanation(host: "devbox")
+            == SSHConnectionProblem.noAnswer.explanation(host: "devbox"))
+    }
+
+    @Test func onlyALoginOrHostKeyProblemIsFixedByLoggingIn() {
+        #expect(SSHConnectionProblem.loginRefused.isFixedByLoggingIn)
+        #expect(SSHConnectionProblem.hostKeyNotTrusted.isFixedByLoggingIn)
+        #expect(!SSHConnectionProblem.noAnswer.isFixedByLoggingIn)
+        #expect(!SSHConnectionProblem.connectionLost.isFixedByLoggingIn)
+        #expect(!SSHConnectionProblem.windowsHost.isFixedByLoggingIn)
+        #expect(!SSHConnectionProblem.other(sshMessage: "Bad owner").isFixedByLoggingIn)
+    }
+
+    @Test func aLoginHostKeyOrWindowsProblemNeedsAFixBeforeTryingAgain() {
         #expect(SSHConnectionProblem.connectionLost.isLikelyTemporary)
         #expect(SSHConnectionProblem.hostNotFound.isLikelyTemporary)
         #expect(!SSHConnectionProblem.loginRefused.isLikelyTemporary)
         #expect(!SSHConnectionProblem.hostKeyNotTrusted.isLikelyTemporary)
+        #expect(!SSHConnectionProblem.windowsHost.isLikelyTemporary)
         #expect(UnresponsiveSSHHost.didNotRespondInTime(host: "devbox").isLikelyTemporary)
     }
 }

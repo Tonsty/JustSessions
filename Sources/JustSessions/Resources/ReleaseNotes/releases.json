@@ -1,5 +1,50 @@
 [
   {
+    "version": "1.2.3",
+    "publishedOn": "2026-10-11",
+    "title": {
+      "en": "SSH logins and Back/Forward",
+      "zh-Hans": "SSH 登录与后退、前进"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "Connect… on an SSH host's heading logs in to hosts that ask for a password, passphrase, or code.",
+            "zh-Hans": "SSH 主机标题上的“连接…”可登录需要密码、密钥口令或验证码的主机。"
+          },
+          {
+            "en": "Go Back and Forward through tabs and sessions a window showed: title bar arrows, ⌘[ and ⌘].",
+            "zh-Hans": "用标题栏的箭头或 ⌘[、⌘] 在窗口显示过的标签页和会话间后退、前进。"
+          }
+        ]
+      },
+      {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "On this Mac, Antigravity CLI shows its activity; Codex on its background server shows approval waits.",
+            "zh-Hans": "在这台 Mac 上，Antigravity CLI 会显示活动状态；在后台服务器上运行的 Codex 会显示等待批准。"
+          },
+          {
+            "en": "Ending a session from its row, or closing a tab whose CLI already ended, no longer asks first.",
+            "zh-Hans": "从会话行结束会话，或关闭 CLI 已结束的标签页时，不再先询问。"
+          }
+        ]
+      },
+      {
+        "kind": "fixed",
+        "items": [
+          {
+            "en": "Small bug fixes.",
+            "zh-Hans": "修复了一些小问题。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.2",
     "publishedOn": "2026-10-10",
     "title": {

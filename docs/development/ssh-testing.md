@@ -26,7 +26,7 @@ Use `multipass list` first if the VM may already exist; start an existing one wi
 
 If `multipass exec`, `transfer`, or `shell` fails with `No route to host` while `multipass list` shows the VM running, run the Multipass commands from Terminal.app. On macOS 26.5, they failed inside a tmux session and worked from Terminal.app; `ping` and `ssh` to the VM worked from both.
 
-## Configure passwordless SSH
+## Configure key-based SSH
 
 Each contributor uses their own key. In a Mac terminal, create a dedicated test key if it does not already exist; choose a passphrase when prompted and load it into the macOS keychain and SSH agent:
 
@@ -55,7 +55,7 @@ Host justsessions-test
     HostKeyAlias justsessions-test
 ```
 
-Check the VM's host-key fingerprint through Multipass, then make the first SSH connection interactively. Accept the host key only when its fingerprint matches. The final command must succeed without asking for a password or passphrase; that is the mode the app needs.
+Check the VM's host-key fingerprint through Multipass, then make the first SSH connection interactively. Accept the host key only when its fingerprint matches. The final command must succeed without asking for a password or passphrase; the checks below use this alias. [Hosts that ask to log in](#hosts-that-ask-to-log-in) covers **Connect…**.
 
 ```sh
 multipass exec justsessions-ssh-test -- ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
@@ -85,6 +85,66 @@ Without a terminal, bash first prints `cannot set terminal process group` and `n
 
 The VM has a local network address, so on macOS 15 and later JustSessions needs Local Network access to reach it, as for any SSH host on your network; see **Settings → Permissions**. In JustSessions, choose **Add SSH host…**, enter `justsessions-test`, then add `/home/ubuntu/justsessions-test/project with spaces` under that host. Start a small disposable conversation so the host has real session history to discover and preview.
 
+## Hosts that ask to log in
+
+**Connect…** logs in to a host that asks for a password, a passphrase, or a code. Test it with separate users on the same VM, so the `justsessions-test` alias keeps working without a prompt. Use throwaway values; the ones below are examples.
+
+A password user:
+
+```sh
+ssh justsessions-test 'set -e
+id pwtest >/dev/null 2>&1 || sudo useradd -m -s /bin/bash pwtest
+echo "pwtest:js-test-pass" | sudo chpasswd
+printf "Match User pwtest\n    PasswordAuthentication yes\n    KbdInteractiveAuthentication yes\n" | sudo tee /etc/ssh/sshd_config.d/70-justsessions-password-test.conf >/dev/null
+sudo sshd -t && sudo systemctl reload ssh'
+```
+
+Add it as `pwtest@VM_IP_ADDRESS`. Ubuntu asks for its password by keyboard-interactive, as `(pwtest@VM_IP_ADDRESS) Password:`. Its host key is not yet known under that name, so the first **Connect…** also asks to trust it; compare the fingerprint with the one from `multipass exec`.
+
+A user that asks for a password and then a verification code:
+
+```sh
+ssh justsessions-test 'set -e
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q libpam-google-authenticator
+id totptest >/dev/null 2>&1 || sudo useradd -m -s /bin/bash totptest
+echo "totptest:js-test-pass" | sudo chpasswd
+sudo -u totptest -H google-authenticator -t -d -f -C -u -w 3 -e 0 -Q NONE -q
+grep -q pam_google_authenticator /etc/pam.d/sshd || sudo sed -i "/^@include common-auth/a auth required pam_google_authenticator.so nullok" /etc/pam.d/sshd
+printf "Match User totptest\n    KbdInteractiveAuthentication yes\n    PasswordAuthentication no\n    AuthenticationMethods keyboard-interactive\n" | sudo tee /etc/ssh/sshd_config.d/71-justsessions-totp-test.conf >/dev/null
+sudo sshd -t && sudo systemctl reload ssh'
+```
+
+The first line of `/home/totptest/.google_authenticator` is the base32 secret. Read it with `sudo head -1`, and add it to an authenticator app, or print the current code from a file holding it:
+
+```sh
+python3 -c 'import base64,hmac,struct,sys,time; s=open(sys.argv[1]).read().strip().upper(); k=base64.b32decode(s+"="*(-len(s)%8)); d=hmac.new(k,struct.pack(">Q",int(time.time())//30),"sha1").digest(); o=d[-1]&15; print("%06d"%((struct.unpack(">I",d[o:o+4])[0]&0x7FFFFFFF)%1000000))' SECRET_FILE
+```
+
+`-d` refuses a code that was used already, so wait for the next one between logins. `nullok` lets users without a secret, such as `ubuntu` and `pwtest`, log in as before.
+
+A key with a passphrase that the agent does not hold: create a key with a passphrase, authorize it for `pwtest`, and give it an alias with `IdentityFile` set to it, `IdentitiesOnly yes`, `IdentityAgent none`, `PreferredAuthentications publickey`, and `HostKeyAlias justsessions-test`. An empty answer makes `ssh` skip the key, so the login is refused.
+
+Remove these users, their `sshd_config.d` files, the `pam_google_authenticator` line, the alias, and any known-host entry the test trusted when you no longer need them.
+
+## Windows hosts
+
+The app tells a Windows host apart when it is added or refreshed, and says it isn't supported. To exercise that without a Windows machine, give a VM user PowerShell as its shell, with Windows' `OS` variable set. This stands in for a Windows host whose OpenSSH default shell is PowerShell; it does not cover `cmd.exe`, Windows' default, or a real Windows host.
+
+```sh
+ssh justsessions-test 'set -e
+sudo mkdir -p /opt/pwsh-test
+curl -fsSL https://github.com/PowerShell/PowerShell/releases/download/v7.4.6/powershell-7.4.6-linux-arm64.tar.gz | sudo tar xz -C /opt/pwsh-test
+sudo chmod -R a+rX /opt/pwsh-test && sudo chmod 755 /opt/pwsh-test/pwsh
+printf "#!/bin/sh\nOS=Windows_NT exec /opt/pwsh-test/pwsh -NoProfile -NoLogo \"\$@\"\n" | sudo tee /usr/local/bin/winsim-pwsh >/dev/null
+sudo chmod 755 /usr/local/bin/winsim-pwsh
+echo /usr/local/bin/winsim-pwsh | sudo tee -a /etc/shells >/dev/null
+sudo useradd -m -s /usr/local/bin/winsim-pwsh winsim
+sudo install -d -m 700 -o winsim -g winsim /home/winsim/.ssh
+sudo install -m 600 -o winsim -g winsim /home/ubuntu/.ssh/authorized_keys /home/winsim/.ssh/authorized_keys'
+```
+
+Use the `x64` archive on an Intel Mac's VM. Give the user an alias like `justsessions-test` with `User winsim`, then check that `ssh justsessions-test-windows 'echo %OS% $env:OS'` prints `%OS%` and `Windows_NT`. Adding the alias says it runs Windows; **Add anyway** lists it with the same note on its heading.
+
 ## Manual checks for an SSH change
 
 Run the checks relevant to the change and record the result of each:
@@ -93,6 +153,9 @@ Run the checks relevant to the change and record the result of each:
 | --- | --- |
 | Adding a host | Add the VM: the sheet shows **Connecting to…**, then adds it. Add a host that fails, such as a typo or the stopped VM: the sheet says why and offers **Try again** and **Add anyway**. |
 | `~/.ssh/config` written for logging in by hand | Give the VM an alias with `RemoteCommand`, `RequestTTY force`, and a `LocalForward`. Refresh lists its sessions, and a tab opens the CLI, not the `RemoteCommand`. |
+| Logging in with **Connect…** | Add a host that asks: the sheet says so and offers **Connect…**. Answer each question; a wrong answer says it wasn't accepted and asks again, and Cancel stops. The host is added and refreshes without asking again. **Connect…** on the heading does the same for a listed host. |
+| Tabs and probes on a logged-in host | New sessions, resumed sessions, a plain terminal, and **Add project** connect without a prompt, in both terminal engines. **Disconnect** in ⋯ ends those tabs and the heading offers **Connect…** at once; **Reconnect** in a tab goes through the login open then, or asks in the terminal. Quitting the app and removing the host each end the login, `ssh: …/master [mux]` in `ps`. |
+| Windows host | Adding the PowerShell user says it runs Windows and points to WSL; **Add anyway** shows the same on its heading, and no shell startup check runs for it. |
 | Discovery and refresh | The installed provider is offered; the new session appears under the remote project and its preview matches the remote history. |
 | Launch and resume | New sessions and resumed sessions run in the VM's project, including its space-containing path. Branch only where the provider supports it. |
 | Keep running and reconnect | Close a running CLI tab with **Keep running**, then reattach to the same process and session. Also test interruption of just the SSH connection when changing reconnect behavior. Keep the VM running throughout. |

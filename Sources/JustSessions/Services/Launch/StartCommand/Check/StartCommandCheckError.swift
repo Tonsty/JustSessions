@@ -25,7 +25,7 @@ enum StartCommandCheckError: LocalizedError, Equatable {
         case .checkTimedOut(.ssh(let destination)):
             "Checking the start command on \(destination) did not finish within \(Int(StartCommandCheck.remoteTimeout)) seconds."
         case .sshFailed(let host):
-            "Could not connect to \(host). Check that `ssh \(host)` works in Terminal without a password prompt."
+            "Could not connect to \(host). Check that `ssh \(host)` works in Terminal. If it asks for a password or a code, click Connect… on the host's heading first."
         }
     }
 }

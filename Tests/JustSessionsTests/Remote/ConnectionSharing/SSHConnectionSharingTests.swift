@@ -21,6 +21,24 @@ struct SSHConnectionSharingTests {
         #expect(SSHConnectionSharing.socketRoot == "/tmp/justsessions-ssh-\(getuid())")
     }
 
+    /// A host logged in to with Connect… refreshes through that login, and the refresh leaves it open.
+    @Test func aRefreshGoesThroughTheHostsLogin() throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let closed = LockedValue(0)
+        let connections = SSHLoginConnections(close: { _, _ in closed.update { $0 += 1 } })
+        let controlPath = SSHLoginConnections.controlPath(in: directory)
+        FileManager.default.createFile(atPath: controlPath, contents: nil)
+        connections.add(directory, for: "devbox")
+
+        let sharing = try #require(SSHConnectionSharing.startRefresh(to: "devbox", loginConnections: connections))
+        sharing.finish()
+
+        #expect(sharing.options == ["-o", "ControlMaster=no", "-o", "ControlPath=\(controlPath)"])
+        #expect(closed.value == 0)
+        #expect(connections.isLoggedIn("devbox"))
+    }
+
     @Test func createsASeparatePrivateFolderForEveryRefresh() throws {
         let root = try makeTemporaryDirectory().appendingPathComponent("sockets").path
         defer { try? FileManager.default.removeItem(atPath: root) }

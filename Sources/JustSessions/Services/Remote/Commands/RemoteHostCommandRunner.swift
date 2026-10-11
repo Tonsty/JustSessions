@@ -1,6 +1,7 @@
 import Foundation
 
-/// Runs one command on a remote host without a terminal, failing instead of asking for a password.
+/// Runs one command on a remote host without a terminal, failing instead of asking for a password. A host logged in to
+/// with Connect… is reached through that login; see `SSHLoginConnections`.
 struct RemoteHostCommandRunner: Sendable {
     /// Replaces `ssh`, so tests can run the command in a local shell.
     let run: @Sendable (_ host: String, _ command: String, _ timeout: TimeInterval) -> (exitStatus: Int32, output: String)?
@@ -15,7 +16,9 @@ struct RemoteHostCommandRunner: Sendable {
                 arguments: Self.sshArguments(
                     host: host,
                     command: command,
-                    connectionSharingOptions: connectionSharingOptions
+                    connectionSharingOptions: connectionSharingOptions.isEmpty
+                        ? SSHLoginConnections.shared.connectionOptions(for: host)
+                        : connectionSharingOptions
                 ),
                 environment: SSHProcessEnvironment.standard,
                 includesStandardError: true,
@@ -30,8 +33,10 @@ struct RemoteHostCommandRunner: Sendable {
     /// Settings in `~/.ssh/config` meant for logging in by hand are turned off: with a `RemoteCommand`, `ssh` refuses
     /// to run the app's command, and port forwards clash with an open tab's, or fail the connection when
     /// `ExitOnForwardFailure` is set.
-    static let nonInteractiveSSHOptions = [
-        "-o", "BatchMode=yes",
+    static let nonInteractiveSSHOptions = ["-o", "BatchMode=yes"] + connectionSettingOptions
+
+    /// The options above but `BatchMode`, which Connect…'s login leaves off so `ssh` can ask its questions.
+    static let connectionSettingOptions = [
         "-o", "ConnectTimeout=10",
         "-o", "ServerAliveInterval=10",
         "-o", "ServerAliveCountMax=3",

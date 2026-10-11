@@ -1,7 +1,7 @@
 import Foundation
 
-/// Why `ssh` could not connect to a host or lost the connection, read from what it printed, so a message can say
-/// what happened and what to do about it in plain English.
+/// Why `ssh` could not connect to a host or lost the connection, read from what it printed, or why a host it reached
+/// can't be used, so a message can say what happened and what to do about it in plain English.
 enum SSHConnectionProblem: Hashable, Sendable {
     /// The host name did not resolve.
     case hostNotFound
@@ -11,10 +11,12 @@ enum SSHConnectionProblem: Hashable, Sendable {
     case refused
     /// The connection was made and then lost, as when the Mac sleeps or the network changes.
     case connectionLost
-    /// The host did not accept a login without a password.
+    /// The host did not accept a login without a password, or refused the password or code given to Connect….
     case loginRefused
     /// The host's key changed, or it is not known and `BatchMode` cannot ask about it.
     case hostKeyNotTrusted
+    /// The host runs Windows, whose shells can't run the app's commands; see `WindowsHostProbe`.
+    case windowsHost
     /// Anything else, with the line `ssh` printed.
     case other(sshMessage: String)
 
@@ -79,20 +81,59 @@ enum SSHConnectionProblem: Hashable, Sendable {
         case .connectionLost:
             "The connection to \(host) was lost, for example because the Mac slept or the network changed."
         case .loginRefused:
-            "\(host) didn't accept the SSH login without a password. Check that “ssh \(host)” works in Terminal without asking for a password."
+            "\(host) asks for a password, a passphrase, or a code. Click Connect… on its heading to log in."
         case .hostKeyNotTrusted:
-            "\(host)'s host key has changed or isn't trusted. Connect once with “ssh \(host)” in Terminal to check it."
+            "\(host)'s host key isn't trusted yet, or has changed. Click Connect… on its heading to check it."
+        case .windowsHost:
+            "\(host) runs Windows, which JustSessions doesn't support. Run your CLIs in WSL on it, and connect to WSL over SSH instead."
         case .other(let sshMessage):
             "Couldn't connect to \(host): \(sshMessage)"
         }
     }
 
+    /// The explanation where Connect… is offered right beside it, as in the Add SSH host sheet.
+    func explanationBesideConnect(host: String) -> String {
+        switch self {
+        case .loginRefused:
+            "\(host) asks for a password, a passphrase, or a code. Click Connect… to log in."
+        case .hostKeyNotTrusted:
+            "\(host)'s host key isn't trusted yet, or has changed. Click Connect… to check it."
+        case .hostNotFound, .noAnswer, .refused, .connectionLost, .windowsHost, .other:
+            explanation(host: host)
+        }
+    }
+
+    /// Why logging in with Connect… failed, in a sentence or two. Its questions were asked, so a refused login means
+    /// what was typed was wrong, a host key still not trusted has changed, and a connection that closed most likely
+    /// waited too long for an answer: OpenSSH's server gives up after two minutes.
+    func loginFailureExplanation(host: String) -> String {
+        switch self {
+        case .loginRefused:
+            "\(host) refused the login. Check the password, passphrase, or code, then try again."
+        case .hostKeyNotTrusted:
+            "\(host)'s host key has changed. Check it with “ssh \(host)” in Terminal."
+        case .connectionLost:
+            "The connection to \(host) closed during the login, for example because the host stopped waiting for an answer. Try again."
+        case .hostNotFound, .noAnswer, .refused, .windowsHost, .other:
+            explanation(host: host)
+        }
+    }
+
+    /// Whether logging in with Connect… can get past it: it asks for the password or code, and whether to trust a
+    /// new host key.
+    var isFixedByLoggingIn: Bool {
+        switch self {
+        case .loginRefused, .hostKeyNotTrusted: true
+        case .hostNotFound, .noAnswer, .refused, .connectionLost, .windowsHost, .other: false
+        }
+    }
+
     /// Whether trying again later may work without changing anything: the network or the host may be back. A
-    /// refused login or an untrusted host key needs a fix first.
+    /// refused login, an untrusted host key, or a Windows host needs a change first.
     var isLikelyTemporary: Bool {
         switch self {
         case .hostNotFound, .noAnswer, .refused, .connectionLost, .other: true
-        case .loginRefused, .hostKeyNotTrusted: false
+        case .loginRefused, .hostKeyNotTrusted, .windowsHost: false
         }
     }
 }

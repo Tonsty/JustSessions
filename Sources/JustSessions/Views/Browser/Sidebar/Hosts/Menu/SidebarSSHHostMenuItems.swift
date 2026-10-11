@@ -1,12 +1,22 @@
 import SwiftUI
 
-/// An SSH host's own settings: whether its tmux sessions use the host's tmux prefix, its shell startup check with what
-/// it last found, and removing the host. Its heading's ⋯ shows only these, since the heading's + and refresh buttons
-/// already offer the rest of its right-click menu, which ends with them.
+/// An SSH host's own settings: logging in with Connect… or ending that login, whether its tmux sessions use the host's
+/// tmux prefix, its shell startup check with what it last found, and removing the host. Its heading's ⋯ shows only
+/// these, since the heading's + and refresh buttons already offer the rest of its right-click menu, which ends with them.
 struct SidebarSSHHostMenuItems: View {
     let actions: SidebarSSHHostActions
 
     var body: some View {
+        switch actions.login {
+        case .notLoggedIn:
+            Button("Connect…", systemImage: "key", action: actions.onConnect)
+        case .loggingIn:
+            Text("Connecting…")
+        case .loggedIn:
+            Text("Logged in with Connect…")
+            Button("Disconnect", systemImage: "xmark.circle", action: actions.onDisconnect)
+        }
+        Divider()
         Toggle(isOn: actions.usesTmuxPrefix) {
             Label("Use this host's tmux prefix", systemImage: "keyboard")
         }

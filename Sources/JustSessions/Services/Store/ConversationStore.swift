@@ -74,6 +74,13 @@ final class ConversationStore: ObservableObject {
     var hostsRecheckedShellStartup: Set<String> = []
     /// Each host's last refresh, this Mac's included.
     @Published var hostRefreshStatuses: [SessionHost: HostRefreshStatus] = [:]
+    /// SSH hosts whose last refresh asked for a password, a code, or a new host key's approval, so their headings
+    /// offer Connect…; see `ConversationStore+SSHLogin`.
+    @Published var sshHostsNeedingLogIn: Set<String> = []
+    /// SSH hosts this window is logging in to with Connect… now.
+    @Published var sshHostsLoggingIn: Set<String> = []
+    /// SSH hosts with a login made with Connect… open, in any window; see `SSHLoginConnections`.
+    @Published var sshHostsLoggedIn: Set<String> = []
     /// The tool each SSH host's running refresh is copying; see `RemoteSessionCopyStep`.
     @Published var remoteSessionCopySteps: [SessionHost: RemoteSessionCopyStep] = [:]
     /// tmux sessions JustSessions started that still run, per host, as of the host's last refresh. On this Mac, one
@@ -174,6 +181,7 @@ final class ConversationStore: ObservableObject {
         self.cliStartCommands = CLIStartCommands.load(from: userDefaults)
         self.remoteShellStartupChecks = RemoteShellStartupChecks.load(from: userDefaults)
         applyRemoteShellStartups()
+        sshHostsLoggedIn = SSHLoginConnections.shared.loggedInHosts
         LoginShellEnvironment.warmUpInBackground()
         ClaudeSessionIDFlagSupport.shared.warmUpInBackground()
         if startsBackgroundPolling {

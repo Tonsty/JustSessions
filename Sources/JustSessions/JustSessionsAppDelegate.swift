@@ -17,6 +17,11 @@ final class JustSessionsAppDelegate: NSObject, NSApplicationDelegate {
         ZoomInEqualsKey.startForwarding()
     }
 
+    /// Logins made with Connect… end with the app; nothing it typed for them is kept.
+    func applicationWillTerminate(_ notification: Notification) {
+        SSHLoginConnections.shared.disconnectAll()
+    }
+
     func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
         WorkspaceDockMenu.shared.makeMenu()
     }

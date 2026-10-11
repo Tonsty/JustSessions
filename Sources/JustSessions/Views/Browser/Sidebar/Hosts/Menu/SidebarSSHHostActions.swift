@@ -8,5 +8,9 @@ struct SidebarSSHHostActions {
     let shellStartupCheck: RemoteShellStartupCheckResult?
     let isCheckingShellStartup: Bool
     let onCheckShellStartup: () -> Void
+    /// Connect…, for a host that asks for a password or a code; see `ConversationStore+SSHLogin`.
+    let login: SidebarSSHHostLogin
+    let onConnect: () -> Void
+    let onDisconnect: () -> Void
     let onRemove: () -> Void
 }

@@ -107,6 +107,27 @@ struct RemoteShellStartupStoreTests {
         #expect(store.shellStartupCheck(on: host) == nil)
     }
 
+    /// Windows' shell runs none of the check's commands, so a check would only blame the host's startup.
+    @Test func aWindowsHostSaysSoAndIsNotChecked() async throws {
+        let runs = CheckRuns([(1, "'exec' is not recognized as an internal or external command,\r\n")])
+        let (store, settings, host) = try makeStore(check: runs.check)
+        defer { cleanUp(settings, host) }
+        let cacheRoot = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: cacheRoot) }
+        let windows = RemoteSessionDiscovery(mirror: RemoteSessionMirror(
+            cacheRoot: cacheRoot,
+            sourceHomeOverride: cacheRoot.path,
+            toolFoldersLookup: { host in throw RemoteSessionMirrorError.sshFailed(host: host, problem: .windowsHost) }
+        ))
+
+        store.refreshRemoteHost(host, discovery: windows)
+        try await expectEventually { store.hostRefreshStatuses[.ssh(host)] != .refreshing }
+        try await Task.sleep(for: .milliseconds(100))
+
+        #expect(store.hostRefreshStatuses[.ssh(host)] == .failed(SSHConnectionProblem.windowsHost.explanation(host: host)))
+        #expect(runs.count == 0)
+    }
+
     /// Its copy's folder is a file, so the refresh fails before it would run `ssh`.
     private static func discoveryThatFailsWithoutSSH() throws -> RemoteSessionDiscovery {
         let notAFolder = FileManager.default.temporaryDirectory.appendingPathComponent("not-a-folder-\(UUID().uuidString.prefix(8))")

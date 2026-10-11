@@ -9,7 +9,7 @@ struct RemoteHostConnectionCheckTests {
 
         #expect(check.problem(connectingTo: "devbox") == nil)
         #expect(recorder.commands.map(\.host) == ["devbox"])
-        #expect(recorder.commands.map(\.command) == ["true"])
+        #expect(recorder.commands.map(\.command) == [WindowsHostProbe.command])
     }
 
     /// Only `ssh`'s own exit status is a failure to connect.
@@ -17,6 +17,14 @@ struct RemoteHostConnectionCheckTests {
         let check = RemoteHostConnectionCheck(runner: RemoteCommandRecorder().runner(answering: (1, "bash: nvm: command not found\n")))
 
         #expect(check.problem(connectingTo: "devbox") == nil)
+    }
+
+    /// Windows' OpenSSH server runs the command in `cmd.exe`, or in PowerShell when that is its default shell.
+    @Test(arguments: ["Windows_NT $env:OS\r\n", "%OS%\r\nWindows_NT\r\n"])
+    func aWindowsHostIsToldApart(output: String) {
+        let check = RemoteHostConnectionCheck(runner: RemoteCommandRecorder().runner(answering: (0, output)))
+
+        #expect(check.problem(connectingTo: "devbox") == .windowsHost)
     }
 
     @Test func aFailedLoginSaysWhy() {
