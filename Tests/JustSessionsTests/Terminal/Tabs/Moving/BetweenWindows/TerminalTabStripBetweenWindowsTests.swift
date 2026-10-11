@@ -26,7 +26,7 @@ struct TerminalTabStripBetweenWindowsTests {
         var strip = makeStrip("a1", "a2", "b1", "b2")
         let added = strip.addSplit(joining: id("b1"), beside: id("a1"))
         let split = try #require(added)
-        #expect(names(strip) == ["a1", "b1", "a2", "b2"])
+        #expect(names(strip) == ["a2", "a1", "b1", "b2"])
 
         let takenOut = strip.takeOutForAnotherWindow([id("a1"), id("b1")])
 
@@ -36,8 +36,23 @@ struct TerminalTabStripBetweenWindowsTests {
         #expect(strip.splits.isEmpty)
         #expect(unit.tabs.map(\.id) == [id("a1"), id("b1")])
         #expect(unit.split == split)
-        #expect(unit.groupKey == "/a")
+        // A split across projects goes as the group of its own it shows as.
+        #expect(unit.groupKey == split.groupKey)
         expectSplitRules(strip)
+    }
+
+    @Test func aSplitOfOneProjectLeavesWithItsProjectsGroup() throws {
+        var strip = makeStrip("a1", "a2", "b1")
+        let splitResult = strip.addSplit(joining: id("a2"), beside: id("a1"))
+        let split = try #require(splitResult)
+
+        let unitResult = strip.takeOutForAnotherWindow([id("a1"), id("a2")])
+
+        let unit = try #require(unitResult)
+
+        #expect(names(strip) == ["b1"])
+        #expect(unit.split == split)
+        #expect(unit.groupKey == "/a")
     }
 
     @Test func oneTabOfASplitCannotLeaveWithoutTheOther() throws {
@@ -51,32 +66,17 @@ struct TerminalTabStripBetweenWindowsTests {
         #expect(strip == before)
     }
 
-    /// The split's group may be named for another tab's project, which stays behind; the split then shows in its left
-    /// tab's project, as when that other tab closes.
-    @Test func aSplitShowingInAnotherTabsGroupTakesItsLeftTabsProject() throws {
-        let split = TerminalSplit(tabIDs: (id("b1"), id("c1")), groupKey: "/a")
-        var strip = TerminalTabStrip(tabs: [tab("a1"), tab("b1"), tab("c1")], splits: [split])
-        expectSplitRules(strip)
-
-        let takenOut = strip.takeOutForAnotherWindow([id("b1"), id("c1")])
-
-        let unit = try #require(takenOut)
-
-        #expect(names(strip) == ["a1"])
-        #expect(unit.groupKey == "/b")
-    }
-
-    /// Another split's group may be named for the leaving tab's project.
-    @Test func aSplitLeftInAGroupOfNoneOfItsProjectsMovesToItsLeftTabsProject() throws {
-        let split = TerminalSplit(tabIDs: (id("b1"), id("c1")), groupKey: "/a")
+    @Test func aSplitAcrossProjectsStaysPutWhenAnotherTabLeaves() throws {
+        let split = splitAcrossProjects((id("b1"), id("c1")))
         var strip = TerminalTabStrip(tabs: [tab("a1"), tab("b1"), tab("c1"), tab("b2")], splits: [split])
+        expectSplitRules(strip)
 
         let takenOut = strip.takeOutForAnotherWindow([id("a1")])
 
         _ = try #require(takenOut)
 
-        #expect(names(strip) == ["b2", "b1", "c1"])
-        #expect(strip.splits.map(\.groupKey) == ["/b"])
+        #expect(names(strip) == ["b1", "c1", "b2"])
+        #expect(strip.splits == [split])
         expectSplitRules(strip)
     }
 
@@ -118,32 +118,35 @@ struct TerminalTabStripBetweenWindowsTests {
     }
 
     @Test func aSplitArrivesWholeInItsGroupKeepingItsSides() throws {
-        var source = makeStrip("a1", "b1")
-        let added = source.addSplit(joining: id("b1"), beside: id("a1"))
+        var source = makeStrip("a1", "a3", "b1")
+        let added = source.addSplit(joining: id("a3"), beside: id("a1"))
         let split = try #require(added)
         var target = makeStrip("a2", "c1")
-        let takenOut = source.takeOutForAnotherWindow([id("a1"), id("b1")])
+        let takenOut = source.takeOutForAnotherWindow([id("a1"), id("a3")])
         let unit = try #require(takenOut)
 
         target.bringIn(unit, at: .amongGroupTabs(0))
 
-        #expect(names(target) == ["a1", "b1", "a2", "c1"])
+        #expect(names(target) == ["a1", "a3", "a2", "c1"])
         #expect(target.splits == [split])
-        #expect(target.sides(of: split) == TerminalSplit.Sides(left: id("a1"), right: id("b1")))
+        #expect(target.sides(of: split) == TerminalSplit.Sides(left: id("a1"), right: id("a3")))
         expectSplitRules(target)
     }
 
-    @Test func aSplitThatLeftAnotherTabsGroupArrivesInItsLeftTabsProject() throws {
-        let split = TerminalSplit(tabIDs: (id("b1"), id("c1")), groupKey: "/a")
-        var source = TerminalTabStrip(tabs: [tab("a1"), tab("b1"), tab("c1")], splits: [split])
-        var target = makeStrip("a2", "b2")
-        let takenOut = source.takeOutForAnotherWindow([id("b1"), id("c1")])
-        let unit = try #require(takenOut)
+    @Test func aSplitAcrossProjectsArrivesAsAGroupOfItsOwnAtThePlaceItIsDroppedAt() throws {
+        var source = makeStrip("a1", "b1")
+        let splitResult = source.addSplit(joining: id("b1"), beside: id("a1"))
+        let split = try #require(splitResult)
+        var target = makeStrip("a2", "c1")
+        let unitResult = source.takeOutForAnotherWindow([id("a1"), id("b1")])
+        let unit = try #require(unitResult)
 
-        target.bringIn(unit, at: .amongGroupTabs(1))
+        target.bringIn(unit, at: .asNewGroup(1))
 
-        #expect(names(target) == ["a2", "b2", "b1", "c1"])
-        #expect(target.splits.map(\.groupKey) == ["/b"])
+        #expect(names(target) == ["a2", "a1", "b1", "c1"])
+        #expect(target.splits == [split])
+        #expect(target.groupKeysInOrder == ["/a", split.groupKey, "/c"])
+        #expect(target.sides(of: split) == TerminalSplit.Sides(left: id("a1"), right: id("b1")))
         expectSplitRules(target)
     }
 

@@ -98,8 +98,8 @@ struct TabGroupNewSessionTests {
         #expect(fixture.store.selectedTerminalID == newSession.id)
     }
 
-    /// A tab from another project shows in the split's group, and so does what is started from its menu.
-    @Test func aSplitsTabFromAnotherProjectStartsItsNewTabInTheSplitsGroup() throws {
+    /// A tab in a split across projects keeps its own project, and so does what is started from its menu.
+    @Test func aSplitsTabFromAnotherProjectStartsItsNewTabInItsOwnProject() throws {
         let fixture = try Fixture()
         defer { fixture.tearDown() }
         let store = fixture.store
@@ -107,18 +107,18 @@ struct TabGroupNewSessionTests {
         let api = fixture.openTab(in: fixture.otherProject)
         store.selectTerminal(paper.id)
         store.splitSelectedTerminal(with: api.id)
-        let groupKey = store.tabGroupKey(of: paper)
-        try #require(store.tabGroupKey(of: api) == groupKey)
-        try #require(api.projectDirectoryKey != groupKey)
+        let splitGroupKey = store.tabGroupKey(of: api)
+        try #require(splitGroupKey == store.tabGroupKey(of: paper))
+        try #require(api.projectDirectoryKey != splitGroupKey)
 
         store.launchNewSession(provider: .codex, inGroupOf: api)
         let newSession = try fixture.newestTab(besides: [paper, api])
         store.openPlainTerminal(inGroupOf: api)
         let newTerminal = try fixture.newestTab(besides: [paper, api, newSession])
 
-        #expect(store.groupLocation(of: api) == ProjectLocation(key: groupKey))
-        #expect(store.tabGroupKey(of: newSession) == groupKey)
-        #expect(store.tabGroupKey(of: newTerminal) == groupKey)
+        #expect(store.groupLocation(of: api) == ProjectLocation(key: api.projectDirectoryKey))
+        #expect(store.tabGroupKey(of: newSession) == api.projectDirectoryKey)
+        #expect(store.tabGroupKey(of: newTerminal) == api.projectDirectoryKey)
         #expect(store.selectedTerminalID == newTerminal.id)
     }
 

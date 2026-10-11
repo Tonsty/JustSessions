@@ -675,8 +675,9 @@ final class ConversationStore: ObservableObject {
         tabStrip.sides(of: split)
     }
 
-    /// The tab group the tab shows in, by project key: its split's group while it is in one, or else its project's.
-    /// Tabs of one group always sit together in `terminalSessions`.
+    /// The tab group the tab shows in: its project's, by its key, or its split's while it is in one, which for a split
+    /// across projects is a group of the split's own, see `TerminalSplit.groupKey`. Tabs of one group always sit
+    /// together in `terminalSessions`.
     func tabGroupKey(of tab: TerminalSession) -> String {
         split(containing: tab.id)?.groupKey ?? tab.projectDirectoryKey
     }
@@ -684,6 +685,16 @@ final class ConversationStore: ObservableObject {
     /// Every tab's group key, in tab bar order.
     var tabGroupKeys: [String] {
         terminalSessions.map(tabGroupKey(of:))
+    }
+
+    /// Every open tab's project, each once, in tab bar order: the projects the groups are named for, and those of the
+    /// tabs of splits across projects, whose colors are their projects' too.
+    var tabProjectKeysInOrder: [String] {
+        var projectKeys: [String] = []
+        for tab in terminalSessions where !projectKeys.contains(tab.projectDirectoryKey) {
+            projectKeys.append(tab.projectDirectoryKey)
+        }
+        return projectKeys
     }
 
     /// The split while the selected tab is in it, when both its panes show side by side.

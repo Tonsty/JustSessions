@@ -62,16 +62,16 @@ struct TerminalTabStripMovingTests {
         expectSplitRules(strip)
     }
 
-    @Test func aSplitTabFromAnotherProjectMovesWithinTheSplitsGroup() throws {
+    @Test func aSplitAcrossProjectsIsItsGroupsOnlyUnitSoItsTabsMoveNowhereWithinIt() throws {
         var strip = makeStrip("a1", "a2", "b1", "b2")
-        let added = strip.addSplit(joining: id("b2"), beside: id("a1"))
-        #expect(added != nil)
-        #expect(names(strip) == ["a1", "b2", "a2", "b1"])
+        let splitResult = strip.addSplit(joining: id("b2"), beside: id("a1"))
+        let split = try #require(splitResult)
+        #expect(names(strip) == ["a2", "a1", "b2", "b1"])
+        #expect(strip.movingUnits(inGroup: split.groupKey) == [[id("a1"), id("b2")]])
 
         strip.moveTab(id("b2"), toPlaceInGroup: 1)
 
         #expect(names(strip) == ["a2", "a1", "b2", "b1"])
-        #expect(strip.groupKeys == ["/a", "/a", "/a", "/b"])
         expectSplitRules(strip)
     }
 
@@ -89,15 +89,29 @@ struct TerminalTabStripMovingTests {
         expectSplitRules(strip)
     }
 
-    @Test func aGroupCarriesASplitTabFromAnotherProject() throws {
+    @Test func aSplitAcrossProjectsMovesWholeAmongTheGroupsAsAGroupOfItsOwn() throws {
         var strip = makeStrip("a1", "a2", "b1", "b2")
-        let added = strip.addSplit(joining: id("b2"), beside: id("a1"))
-        let split = try #require(added)
+        let splitResult = strip.addSplit(joining: id("b2"), beside: id("a1"))
+        let split = try #require(splitResult)
+        #expect(strip.groupKeysInOrder == ["/a", split.groupKey, "/b"])
 
-        strip.moveGroup("/a", toPlace: 1)
+        strip.moveGroup(split.groupKey, toPlace: 0)
 
-        #expect(names(strip) == ["b1", "a1", "b2", "a2"])
+        #expect(names(strip) == ["a1", "b2", "a2", "b1"])
+        #expect(strip.groupKeysInOrder == [split.groupKey, "/a", "/b"])
         #expect(strip.sides(of: split) == TerminalSplit.Sides(left: id("a1"), right: id("b2")))
+        expectSplitRules(strip)
+    }
+
+    @Test func aGroupMovesPastASplitAcrossProjectsWithoutTakingIt() throws {
+        var strip = makeStrip("a1", "a2", "b1", "b2")
+        let splitResult = strip.addSplit(joining: id("b2"), beside: id("a1"))
+        let split = try #require(splitResult)
+
+        strip.moveGroup("/a", toPlace: 2)
+
+        #expect(names(strip) == ["a1", "b2", "b1", "a2"])
+        #expect(strip.groupKeysInOrder == [split.groupKey, "/b", "/a"])
         expectSplitRules(strip)
     }
 
