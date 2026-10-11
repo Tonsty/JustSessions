@@ -21,7 +21,6 @@ struct ConversationSidebarView: View {
     let onRenameProject: (ProjectConversationGroup) -> Void
     let onRequestDeletion: (SessionDeletionRequest) -> Void
     let onCloseTerminal: (UUID) -> Void
-    let onEndSession: (Conversation) -> Void
 
     @SceneStorage("sidebarContentMode") private var contentMode: SidebarContentMode = .projects
     @SceneStorage("sidebarOpenTabSearch") private var openTabSearchText = ""

@@ -16,7 +16,6 @@ struct SidebarSessionRow: View {
     let onToggleSubagents: () -> Void
     let onRename: (Conversation) -> Void
     let onRequestDeletion: (SessionDeletionRequest) -> Void
-    let onEndSession: (Conversation) -> Void
 
     @State private var isHovered = false
 
@@ -100,8 +99,7 @@ struct SidebarSessionRow: View {
                 store: store,
                 conversation: conversation,
                 onRename: { onRename(conversation) },
-                onDelete: { onRequestDeletion(.conversation(conversation)) },
-                onEndSession: { onEndSession(conversation) }
+                onDelete: { onRequestDeletion(.conversation(conversation)) }
             )
         }
     }

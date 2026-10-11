@@ -21,8 +21,6 @@ struct ConversationBrowserView: View {
     /// Settings or Help while either shows as a sheet on this window.
     @State private var appWideSheet: AppWideSheet?
     @State private var closingTerminalID: UUID?
-    /// The session whose End session waits for confirmation.
-    @State private var endingConversation: Conversation?
     @SceneStorage("isSidebarHidden") private var isSidebarHidden = false
     @StateObject private var updateManager = SparkleUpdateManager()
     @StateObject private var onboardingTour = OnboardingTour()
@@ -86,8 +84,7 @@ struct ConversationBrowserView: View {
                 onRenameConversation: onRename,
                 onRenameProject: onRenameProject,
                 onRequestDeletion: onRequestDeletion,
-                onCloseTerminal: { requestClosingTerminal($0) },
-                onEndSession: { endingConversation = $0 }
+                onCloseTerminal: { requestClosingTerminal($0) }
             )
         } detail: {
             WorkspaceDetailView(
@@ -167,7 +164,6 @@ struct ConversationBrowserView: View {
             tabCloseChoiceSettingsStore: .shared,
             plainTerminalCloseChoiceSettingsStore: .shared
         ))
-        .modifier(SessionEndConfirmation(store: store, endingConversation: $endingConversation))
         .modifier(OnboardingTipsPresenter(
             store: store,
             tour: onboardingTour,
@@ -180,14 +176,17 @@ struct ConversationBrowserView: View {
         ))
     }
 
-    /// A tab still waiting to be shown runs nothing, so it closes without asking what to do with its CLI. A tab whose
-    /// CLI can keep running in tmux, or a plain terminal, closes without asking too once you chose Don't ask again,
-    /// doing what you chose.
+    /// A tab still waiting to be shown runs nothing, so it closes without asking what to do with its CLI; so does a tab
+    /// whose CLI or shell already ended, which also ends the dead tmux session that kept a failed CLI's output. A tab
+    /// whose CLI can keep running in tmux, or a plain terminal, closes without asking too once you chose Don't ask
+    /// again, doing what you chose.
     private func requestClosingTerminal(_ id: UUID?) {
         guard let id else { return }
         let closingTab = store.terminalSessions.first { $0.id == id }
         if closingTab?.isWaitingToBeShown == true {
             store.closeTerminal(id)
+        } else if closingTab?.closingStopsNothing == true {
+            store.closeTerminal(id, endingTmuxSession: true)
         } else if closingTab?.canKeepCLIRunningAfterClose == true,
                   let endsTmuxSession = TabCloseChoiceSettingsStore.shared.choice.endsTmuxSessionWithoutAsking {
             store.closeTerminal(id, endingTmuxSession: endsTmuxSession)
@@ -200,7 +199,7 @@ struct ConversationBrowserView: View {
     }
 
     var workspaceTabCommandsEnabled: Bool {
-        newSessionSheetHost == nil && appWideSheet == nil && closingTerminalID == nil && endingConversation == nil
+        newSessionSheetHost == nil && appWideSheet == nil && closingTerminalID == nil
     }
 
     /// The selected tab's tool, or a terminal when that tab is one; else the tool the sidebar shows, Codex when it shows

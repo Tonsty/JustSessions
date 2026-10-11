@@ -2130,16 +2130,6 @@
         }
       }
     },
-    "End session…": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "结束会话…"
-          }
-        }
-      }
-    },
     "End this CLI session?": {
       "localizations": {
         "zh-Hans": {
@@ -5361,26 +5351,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Antigravity 会话数据库、关联文件夹和注释将移到 macOS 废纸篓，并从 Antigravity 本地索引中移除。"
-          }
-        }
-      }
-    },
-    "The CLI stops on %@ and its tab closes. You can resume the session later.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CLI 会在 %@ 上停止，它的标签也会关闭。之后可以恢复这个会话。"
-          }
-        }
-      }
-    },
-    "The CLI stops on %@. You can resume the session later.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CLI 会在 %@ 上停止。之后可以恢复这个会话。"
           }
         }
       }
