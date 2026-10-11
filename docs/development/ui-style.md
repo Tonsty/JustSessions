@@ -93,9 +93,9 @@ Each button takes one of the theme's styles:
 | A text link | `ThemePlainButtonStyle(verticalPadding: 2)` |
 | A label that already draws its own hover and selection | `ThemePressButtonStyle` |
 
-Use `ThemedCheckboxToggleStyle` for checkboxes, `ThemedTextFieldStyle` for text fields, and `ThemeDivider()` for lines between views. A custom search field may use `.textFieldStyle(.plain)` inside the themed surface it draws. `Divider()` is allowed only inside menus, pickers, and commands, where macOS draws the separator.
+Use `ThemedCheckboxToggleStyle` for checkboxes, `ThemedTextFieldStyle` for text fields, `ThemeSegmentedPicker` in place of a segmented `Picker`, and `ThemeDivider()` for lines between views. A custom search field may use `.textFieldStyle(.plain)` inside the themed surface it draws. `Divider()` is allowed only inside menus, pickers, and commands, where macOS draws the separator.
 
-Enforced by `UIControlStyleContractTests`. The test rejects the system button, toggle, and text field styles, and rejects `Divider()` outside menu code.
+Enforced by `UIControlStyleContractTests`. The test rejects the system button, toggle, and text field styles, `.pickerStyle(.segmented)`, and `Divider()` outside menu code.
 
 ## Sheets
 

@@ -120,22 +120,29 @@ final class TranscriptScrollViewFixture {
     }
 
     func visiblePosition(in scrollView: NSScrollView) -> TranscriptReadingPosition? {
-        let clipView = scrollView.contentView
-        if abs(clipView.documentRect.maxY - clipView.bounds.maxY) < 2 { return .bottom }
-        let markers = descendants(ofType: TranscriptEntryPositionMarkerView.self, in: hostingView)
-        let visibleMarkers = markers.map { ($0.entryIndex, $0.convert($0.bounds, to: clipView)) }
-            .filter { $0.1.maxY > clipView.bounds.minY && $0.1.minY < clipView.bounds.maxY }
-        guard let (index, frame) = visibleMarkers.min(by: { $0.1.minY < $1.1.minY }) else { return nil }
-        return .entry(index: index, offset: clipView.bounds.minY - frame.minY)
+        descendant(ofType: TranscriptEntryGeometryView.self, in: hostingView)?.controller.currentReadingPosition()
     }
 
     /// The frames of the entries on screen, in the scroll view's visible area. Entries fill the transcript column's
     /// width; entries scrolled out of sight can keep an earlier layout, so they are left out.
     func visibleEntryFrames(in scrollView: NSScrollView) -> [CGRect] {
-        let clipView = scrollView.contentView
-        return descendants(ofType: TranscriptEntryPositionMarkerView.self, in: hostingView)
-            .map { $0.convert($0.bounds, to: clipView) }
-            .filter { $0.intersects(clipView.bounds) }
+        descendant(ofType: TranscriptEntryGeometryView.self, in: hostingView)?.controller.visibleEntryFrames() ?? []
+    }
+
+    func expectedPositionForSelectedSearchMatch(in scrollView: NSScrollView, entryIndex: Int) -> TranscriptReadingPosition? {
+        guard let textView = descendants(ofType: TranscriptSearchTextView.self, in: hostingView)
+            .first(where: { $0.selectedSearchRange != nil }),
+              let range = textView.selectedSearchRange, let textContainer = textView.textContainer,
+              let layoutManager = textView.layoutManager,
+              let entryFrame = descendant(ofType: TranscriptEntryGeometryView.self, in: hostingView)?
+                .controller.entryFrameInClipView(at: entryIndex) else { return nil }
+        layoutManager.ensureLayout(for: textContainer)
+        let glyphRange = layoutManager.glyphRange(forCharacterRange: range, actualCharacterRange: nil)
+        var matchRect = layoutManager.boundingRect(forGlyphRange: glyphRange, in: textContainer)
+        matchRect.origin.x += textView.textContainerOrigin.x
+        matchRect.origin.y += textView.textContainerOrigin.y
+        let matchFrame = textView.convert(matchRect, to: scrollView.contentView)
+        return .entry(index: entryIndex, offset: max(-6, matchFrame.minY - entryFrame.minY - 60))
     }
 
     static func conversation(_ sessionID: String) -> Conversation {

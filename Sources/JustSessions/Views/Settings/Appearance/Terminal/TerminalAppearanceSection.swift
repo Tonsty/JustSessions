@@ -21,16 +21,12 @@ struct TerminalAppearanceSection: View {
         GridRow {
             Text("Engine")
             HStack(spacing: 4) {
-                Picker("Engine", selection: Binding(
+                ThemeSegmentedPicker("Engine", selection: Binding(
                     get: { engineStore.engine },
                     set: { engineStore.setEngine($0) }
-                )) {
-                    ForEach(TerminalEngine.allCases) { engine in
-                        Text(verbatim: engine.displayName).tag(engine)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
+                ), segments: TerminalEngine.allCases.map { engine in
+                    ThemeSegment(value: engine, title: Text(verbatim: engine.displayName))
+                })
                 .fixedSize()
                 HelpPopoverButton(
                     title: "Terminal engine",
@@ -45,16 +41,12 @@ struct TerminalAppearanceSection: View {
         }
         GridRow {
             Text("Light or dark")
-            Picker("Light or dark", selection: Binding(
+            ThemeSegmentedPicker("Light or dark", selection: Binding(
                 get: { appearanceStore.preferences.mode },
                 set: { appearanceStore.setMode($0) }
-            )) {
-                ForEach(TerminalAppearanceMode.allCases) { mode in
-                    Text(mode.localizedDisplayName).tag(mode)
-                }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
+            ), segments: TerminalAppearanceMode.allCases.map { mode in
+                ThemeSegment(value: mode, title: Text(mode.localizedDisplayName))
+            })
             // The theme only matters here for whether the scheme has both versions, and every app theme does.
             .disabled(!appearanceStore.preferences.colorVariants(appTheme: themeStore.resolvedTheme).hasLightAndDarkVersions)
             .help("Picks the light or dark version of color schemes that have both.")

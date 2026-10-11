@@ -97,37 +97,39 @@ struct TranscriptScrollView: View {
     }
 
     private var transcriptScrollView: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                if let paging, paging.hasEarlier {
-                    TranscriptPageBoundary(isEarlier: true, isLoading: paging.isLoading, action: loadEarlierPage)
-                        .disabled(!isActive)
-                } else if transcript.omittedEntryCount > 0 {
-                    Text("\(transcript.omittedEntryCount) earlier entries are not shown. Resume the session to see all of it.")
-                        .font(ThemeFont.caption)
-                        .foregroundStyle(ThemePalette.tertiaryText)
-                        .frame(maxWidth: .infinity)
-                        .padding(.bottom, 8)
+        GeometryReader { viewport in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    if let paging, paging.hasEarlier {
+                        TranscriptPageBoundary(isEarlier: true, isLoading: paging.isLoading, action: loadEarlierPage)
+                            .disabled(!isActive)
+                    } else if transcript.omittedEntryCount > 0 {
+                        Text("\(transcript.omittedEntryCount) earlier entries are not shown. Resume the session to see all of it.")
+                            .font(ThemeFont.caption)
+                            .foregroundStyle(ThemePalette.tertiaryText)
+                            .frame(maxWidth: .infinity)
+                            .padding(.bottom, 8)
+                    }
+                    TranscriptEntriesStack(transcript: transcript, provider: conversation.provider, positionController: positionController)
+                        .equatable()
+                    if let paging, paging.hasLater {
+                        TranscriptPageBoundary(isEarlier: false, isLoading: paging.isLoading, action: loadLaterPage)
+                            .disabled(!isActive)
+                    }
+                    if let message = paging?.errorMessage {
+                        Text(verbatim: message).font(ThemeFont.caption).foregroundStyle(ThemePalette.secondaryText).padding(12)
+                    }
                 }
-                TranscriptEntriesStack(transcript: transcript, provider: conversation.provider, positionController: positionController)
-                    .equatable()
-                if let paging, paging.hasLater {
-                    TranscriptPageBoundary(isEarlier: false, isLoading: paging.isLoading, action: loadLaterPage)
-                        .disabled(!isActive)
-                }
-                if let message = paging?.errorMessage {
-                    Text(verbatim: message).font(ThemeFont.caption).foregroundStyle(ThemePalette.secondaryText).padding(12)
-                }
+                .frame(width: min(readingWidth.maximumColumnWidth, max(0, viewport.size.width - 48)), alignment: .leading)
+                .padding(.horizontal, 24)
+                .padding(.top, 6)
+                .padding(.bottom, 36)
+                .frame(width: viewport.size.width)
             }
-            .frame(maxWidth: readingWidth.maximumColumnWidth, alignment: .leading)
-            .padding(.horizontal, 24)
-            .padding(.top, 6)
-            .padding(.bottom, 36)
-            .frame(maxWidth: .infinity)
+            // Short conversations start at the top; the explicit restoration still opens long ones on their latest entry.
+            .defaultScrollAnchor(.top)
+            .onDisappear { positionController.stop() }
         }
-        // Short conversations start at the top; the explicit restoration still opens long ones on their latest entry.
-        .defaultScrollAnchor(.top)
-        .onDisappear { positionController.stop() }
     }
 
     var displayedEntryIndices: [Int] { transcript.positionIDs }

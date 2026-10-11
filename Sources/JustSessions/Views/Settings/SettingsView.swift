@@ -18,16 +18,12 @@ struct SettingsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Picker("Settings", selection: Binding(
+            ThemeSegmentedPicker("Settings", selection: Binding(
                 get: { selectedTab.switcherTab },
                 set: { selectedTab = $0 }
-            )) {
-                ForEach(SettingsTab.switcherTabs) { tab in
-                    Text(tab.title).tag(tab)
-                }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
+            ), segments: SettingsTab.switcherTabs.map { tab in
+                ThemeSegment(value: tab, title: Text(tab.title))
+            })
             .fixedSize()
             .padding(.vertical, 12)
 

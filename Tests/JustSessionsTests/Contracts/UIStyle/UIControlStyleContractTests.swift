@@ -16,6 +16,14 @@ struct UIControlStyleContractTests {
         #expect(offendingLines.isEmpty, "Use the theme's styles in Views/Theme:\n\(offendingLines.joined(separator: "\n"))")
     }
 
+    /// The system segmented picker marks its selected segment with a gray that barely differs from its track on dark
+    /// theme surfaces. Views use `ThemeSegmentedPicker`, which keeps the system one only as what VoiceOver reads.
+    @Test func viewsUseTheThemesSegmentedPicker() throws {
+        let systemSegmentedPicker = try Regex(#"\.pickerStyle\(\.segmented\)"#)
+        let offendingLines = try ViewSourceLines().lines(matching: systemSegmentedPicker)
+        #expect(offendingLines.isEmpty, "Use ThemeSegmentedPicker:\n\(offendingLines.joined(separator: "\n"))")
+    }
+
     /// A menu's `Divider()` is a menu separator, which macOS draws. Between views, `ThemeDivider` draws the theme's line.
     @Test func dividersBetweenViewsAreTheThemes() throws {
         let source = try ViewSourceLines()
