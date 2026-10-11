@@ -4,9 +4,11 @@ import AppKit
 final class JustSessionsAppDelegate: NSObject, NSApplicationDelegate {
     /// `NSApp` does not exist yet while `JustSessionsApp` is created. Here it does, and no window is open, so the
     /// first window already opens in the saved appearance. Clicks on notifications need their handler this early too.
-    /// Onboarding reads whether this is a fresh install before anything this launch saves a setting.
+    /// Onboarding reads whether this is a fresh install before anything this launch saves a setting, and the random tip
+    /// whether onboarding's tour is due before it starts.
     func applicationWillFinishLaunching(_ notification: Notification) {
         _ = OnboardingTipsStore.shared
+        _ = RandomTipsStore.shared
         AppAppearanceStore.shared.applyToApplication()
         SessionNotificationCenter.shared.startHandlingClicks()
     }
