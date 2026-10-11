@@ -8,12 +8,12 @@ struct SidebarNewSessionButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: "plus")
-                .font(.system(size: 12, weight: .semibold))
+                .font(ThemeFont.callout.weight(.semibold))
                 .foregroundStyle(ThemePalette.ink)
                 .frame(width: 26, height: 26)
-                .background(ThemePalette.trackFill, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                .background(ThemePalette.trackFill, in: RoundedRectangle(.control))
         }
-        .buttonStyle(ThemePlainButtonStyle(cornerRadius: 7))
+        .buttonStyle(ThemePlainButtonStyle(cornerRadius: .control))
         .help("New session (⌘N)")
         .accessibilityLabel("New session")
     }

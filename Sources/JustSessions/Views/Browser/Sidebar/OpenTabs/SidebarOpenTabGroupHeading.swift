@@ -27,10 +27,10 @@ struct SidebarOpenTabGroupHeading: View {
             Button(action: onToggleCollapsed) {
                 HStack(spacing: 8) {
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 9, weight: .bold))
+                        .font(ThemeFont.glyph(.small, weight: .bold))
                         .foregroundStyle(color)
                         .rotationEffect(.degrees(isCollapsed ? 0 : 90))
-                        .animation(.easeOut(duration: 0.12), value: isCollapsed)
+                        .animation(ThemeMotion.disclosure, value: isCollapsed)
                         .frame(width: 14)
                     HStack(spacing: 5) {
                         Text(verbatim: projectName)
@@ -38,7 +38,7 @@ struct SidebarOpenTabGroupHeading: View {
                             .layoutPriority(1)
                         if let destination = location.host.sshDestination {
                             Image(systemName: location.host.symbolName)
-                                .font(.system(size: 9, weight: .semibold))
+                                .font(ThemeFont.glyph(.small, weight: .semibold))
                             Text(verbatim: destination)
                         }
                     }
@@ -64,7 +64,7 @@ struct SidebarOpenTabGroupHeading: View {
             tabCountOrHoverActions
                 .padding(.trailing, 10)
         }
-        .font(.system(size: 11, weight: .semibold))
+        .font(ThemeFont.detail.weight(.semibold))
         .background(SidebarRowBackground(isSelected: false, isHovered: isHovered))
         .onHover { isHovered = $0 }
         .contextMenu { menuItems }
@@ -86,7 +86,7 @@ struct SidebarOpenTabGroupHeading: View {
             ProjectHoverActions(store: store, location: location, projectDisplayName: projectName, onNewSession: onNewSession) {
                 menuItems
             }
-            .font(.system(size: 13))
+            .font(ThemeFont.body)
             .opacity(isHovered ? 1 : 0)
             .allowsHitTesting(isHovered)
         }

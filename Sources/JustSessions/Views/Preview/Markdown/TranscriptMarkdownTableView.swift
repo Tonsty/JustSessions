@@ -27,7 +27,7 @@ struct TranscriptMarkdownTableView: View {
                 }
             }
         }
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(ThemePalette.hairline, lineWidth: 1))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(.card).stroke(ThemePalette.hairline, lineWidth: 1))
+        .clipShape(RoundedRectangle(.card))
     }
 }

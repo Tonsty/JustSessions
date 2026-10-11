@@ -14,7 +14,7 @@ struct TranscriptPageBoundary: View {
             .buttonStyle(ThemePlainButtonStyle(horizontalPadding: 6, verticalPadding: 4))
             .disabled(isLoading)
         }
-        .font(.caption)
+        .font(ThemeFont.caption)
         .foregroundStyle(ThemePalette.secondaryText)
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)

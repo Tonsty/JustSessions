@@ -8,11 +8,11 @@ struct TerminalTabCloseButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: "xmark")
-                .font(.system(size: 9, weight: .bold))
+                .font(ThemeFont.glyph(.small, weight: .bold))
                 .frame(width: 16, height: 16)
                 .contentShape(Circle())
         }
-        .buttonStyle(ThemePlainButtonStyle(cornerRadius: 8))
+        .buttonStyle(ThemePlainButtonStyle(cornerRadius: nil))
         .help("End and close this terminal")
         .accessibilityLabel("Close \(title)")
     }

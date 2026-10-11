@@ -12,10 +12,10 @@ struct PermissionRow: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(permission.title)
-                    .font(.subheadline.weight(.medium))
+                    .font(ThemeFont.heading)
                 if permission.isOptional {
                     Text("Optional")
-                        .font(.caption)
+                        .font(ThemeFont.caption)
                         .foregroundStyle(ThemePalette.secondaryText)
                 }
                 HelpPopoverButton(title: permission.title, explanation: permission.explanation)

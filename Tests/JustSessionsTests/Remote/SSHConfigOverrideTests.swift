@@ -53,7 +53,7 @@ struct SSHConfigOverrideTests {
     }
 
     @Test func backgroundCommandsShareTheHostsConnection() throws {
-        let sharingOptions = SSHConnectionSharing.options(userControlPath: nil, socketDirectory: "/tmp/justsessions-ssh-501")
+        let sharingOptions = SSHConnectionSharing.options(controlPath: "/tmp/justsessions-ssh-501/refresh-id/master")
         let result = try Self.resolvedSettings(sshArguments: RemoteHostCommandRunner.sshArguments(
             host: "devbox", command: "true", connectionSharingOptions: sharingOptions
         ))
@@ -61,9 +61,7 @@ struct SSHConfigOverrideTests {
         #expect(result.exitStatus == 0)
         #expect(Self.setting("controlmaster", in: result.output) == ["auto"])
         #expect(Self.setting("controlpersist", in: result.output) == ["60"])
-        let controlPath = try #require(Self.setting("controlpath", in: result.output).first)
-        #expect(controlPath.hasPrefix("/tmp/justsessions-ssh-501/"))
-        #expect(controlPath.count == "/tmp/justsessions-ssh-501/".count + 40)
+        #expect(Self.setting("controlpath", in: result.output) == ["/tmp/justsessions-ssh-501/refresh-id/master"])
     }
 
     /// A tab keeps the forwards, which the user may want while a session runs.

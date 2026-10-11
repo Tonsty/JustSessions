@@ -65,7 +65,7 @@ struct WorkspaceTabShape: Shape {
 struct WorkspaceTabHoverShape: Shape {
     var splitSide: TerminalSplit.Side?
 
-    private static let cornerRadius: CGFloat = 6
+    private static let cornerRadius = ThemeCornerRadius.control.rawValue
 
     func path(in rect: CGRect) -> Path {
         let leadingInset: CGFloat = splitSide == .right ? 0 : 2

@@ -7,13 +7,13 @@ struct ThemedCheckboxToggleStyle: ToggleStyle {
             configuration.isOn.toggle()
         } label: {
             HStack(spacing: 6) {
-                RoundedRectangle(cornerRadius: 3)
+                RoundedRectangle(.checkbox)
                     .fill(configuration.isOn ? ThemePalette.ink : ThemePalette.raisedSurface)
-                    .overlay(RoundedRectangle(cornerRadius: 3).strokeBorder(ThemePalette.hairline))
+                    .overlay(RoundedRectangle(.checkbox).strokeBorder(ThemePalette.hairline))
                     .overlay {
                         if configuration.isOn {
                             Image(systemName: "checkmark")
-                                .font(.system(size: 10, weight: .bold))
+                                .font(ThemeFont.glyph(.control, weight: .bold))
                                 .foregroundStyle(ThemePalette.inkForeground)
                         }
                     }

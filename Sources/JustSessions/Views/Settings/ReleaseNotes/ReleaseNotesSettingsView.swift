@@ -13,7 +13,7 @@ struct ReleaseNotesSettingsView: View {
                 }
                 .buttonStyle(ThemePlainButtonStyle(verticalPadding: 2))
                 .accessibilityIdentifier("releaseNotes.backToGeneral")
-                Text("Release notes").font(.title2.weight(.semibold))
+                Text("Release notes").font(ThemeFont.title)
                 Link("Latest release notes ↗", destination: AppLinks.releaseNotesURL)
                     .buttonStyle(ThemePlainButtonStyle(verticalPadding: 2))
                     .accessibilityIdentifier("releaseNotes.website")

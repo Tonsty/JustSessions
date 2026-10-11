@@ -16,12 +16,12 @@ struct SidebarHostRefreshButton: View {
             } else {
                 Button(action: action) {
                     Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(ThemeFont.glyph(.control, weight: .medium))
                         .foregroundStyle(ThemePalette.secondaryText)
                         .frame(width: 16, height: 20)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(ThemePlainButtonStyle(cornerRadius: 4))
+                .buttonStyle(ThemePlainButtonStyle(cornerRadius: .small))
                 .disabled(isDisabled)
                 .help(refreshAccessibilityLabel)
                 .accessibilityLabel(refreshAccessibilityLabel)

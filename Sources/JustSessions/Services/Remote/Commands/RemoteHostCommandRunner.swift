@@ -5,11 +5,18 @@ struct RemoteHostCommandRunner: Sendable {
     /// Replaces `ssh`, so tests can run the command in a local shell.
     let run: @Sendable (_ host: String, _ command: String, _ timeout: TimeInterval) -> (exitStatus: Int32, output: String)?
 
-    init(run: (@Sendable (_ host: String, _ command: String, _ timeout: TimeInterval) -> (exitStatus: Int32, output: String)?)? = nil) {
+    init(
+        connectionSharingOptions: [String] = [],
+        run: (@Sendable (_ host: String, _ command: String, _ timeout: TimeInterval) -> (exitStatus: Int32, output: String)?)? = nil
+    ) {
         self.run = run ?? { host, command, timeout in
             BoundedProcessRunner.result(
                 ofExecutable: "/usr/bin/ssh",
-                arguments: Self.sshArguments(host: host, command: command),
+                arguments: Self.sshArguments(
+                    host: host,
+                    command: command,
+                    connectionSharingOptions: connectionSharingOptions
+                ),
                 environment: SSHProcessEnvironment.standard,
                 includesStandardError: true,
                 timeout: timeout
@@ -36,9 +43,8 @@ struct RemoteHostCommandRunner: Sendable {
     /// what passes through it, such as `rsync`'s transfer.
     static let noTerminalOption = "-T"
 
-    /// With the options that share the host's connection among background commands; see `SSHConnectionSharing`.
     static func sshArguments(host: String, command: String) -> [String] {
-        sshArguments(host: host, command: command, connectionSharingOptions: SSHConnectionSharing.options(for: host))
+        sshArguments(host: host, command: command, connectionSharingOptions: [])
     }
 
     static func sshArguments(host: String, command: String, connectionSharingOptions: [String]) -> [String] {

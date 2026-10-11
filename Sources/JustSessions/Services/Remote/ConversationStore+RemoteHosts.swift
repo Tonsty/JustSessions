@@ -82,7 +82,6 @@ extension ConversationStore {
         replaceConversations(on: .ssh(host), with: [])
         Task.detached(priority: .utility) {
             mirror.removeMirror(host: host)
-            SSHConnectionSharing.closeSharedConnection(to: host)
         }
         // A Try Again that waited for this host's refresh can start for the other hosts' sessions; the refresh
         // ends without reporting, now that the host is gone.

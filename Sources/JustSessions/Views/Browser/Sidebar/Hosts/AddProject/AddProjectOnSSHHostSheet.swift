@@ -30,51 +30,45 @@ struct AddProjectOnSSHHostSheet: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Add project").font(.title3.weight(.semibold))
-            Text("The folder is listed under \(host.displayName) in the sidebar, ready for new sessions.")
-                .font(.callout)
-                .foregroundStyle(ThemePalette.secondaryText)
-                .fixedSize(horizontal: false, vertical: true)
-
+        ThemeSheetLayout(
+            title: Text("Add project"),
+            intro: Text("The folder is listed under \(host.displayName) in the sidebar, ready for new sessions."),
+            width: ThemeSheetMetrics.compactWidth
+        ) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Project folder on \(host.displayName)")
-                    .font(.subheadline.weight(.medium))
+                    .font(ThemeFont.fieldLabel)
                 TextField("Path on the host, such as ~/code/app", text: $folder)
                     .textFieldStyle(ThemedTextFieldStyle())
                     .accessibilityLabel("Project folder")
                     .onSubmit(addFolder)
                 if offersToCreateMissingFolder {
                     Text("There is no folder \(trimmedFolder) on \(host.displayName). Create it to add the project.")
-                        .font(.callout)
+                        .font(ThemeFont.callout)
                         .foregroundStyle(ThemePalette.warningText)
                         .fixedSize(horizontal: false, vertical: true)
                 } else if let errorMessage {
                     Text(verbatim: errorMessage)
-                        .font(.callout)
+                        .font(ThemeFont.callout)
                         .foregroundStyle(ThemePalette.warningText)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-
-            HStack(spacing: 8) {
-                if let runningFolderRequest {
-                    ProgressView().controlSize(.small)
-                    Text(progressText(for: runningFolderRequest))
-                        .font(.callout)
-                        .foregroundStyle(ThemePalette.secondaryText)
-                }
-                Spacer()
-                Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction)
-                Button(addButtonTitle, action: addFolder)
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(trimmedFolder.isEmpty || runningFolderRequest != nil)
+        } footer: {
+            if let runningFolderRequest {
+                ProgressView().controlSize(.small)
+                Text(progressText(for: runningFolderRequest))
+                    .font(ThemeFont.callout)
+                    .foregroundStyle(ThemePalette.secondaryText)
             }
+            Spacer()
+            Button("Cancel") { dismiss() }
+                .keyboardShortcut(.cancelAction)
+            Button(addButtonTitle, action: addFolder)
+                .buttonStyle(ThemeProminentButtonStyle())
+                .keyboardShortcut(.defaultAction)
+                .disabled(trimmedFolder.isEmpty || runningFolderRequest != nil)
         }
-        .padding(20)
-        .frame(width: 480)
-        .background(ThemePalette.contentSurface)
     }
 
     private var addButtonTitle: LocalizedStringKey {

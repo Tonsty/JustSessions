@@ -28,23 +28,23 @@ struct SessionStatusIndicator: View {
             WorkingSpinner()
         case .running(.needsInput):
             Image(systemName: "exclamationmark.circle.fill")
-                .font(.system(size: 10, weight: .semibold))
+                .font(ThemeFont.glyph(.control, weight: .semibold))
                 .foregroundStyle(ThemePalette.warning)
         case .finishedUnseen:
             Image(systemName: "circle.fill")
-                .font(.system(size: 8, weight: .semibold))
+                .font(ThemeFont.glyph(.statusMark, weight: .semibold))
                 .foregroundStyle(ThemePalette.unseenTurn)
         case .running(.idle), .running(nil):
             Image(systemName: "circle.fill")
-                .font(.system(size: 7, weight: .semibold))
+                .font(ThemeFont.glyph(.statusDot, weight: .semibold))
                 .foregroundStyle(ThemePalette.live)
         case .ended:
             Image(systemName: "circle")
-                .font(.system(size: 7, weight: .semibold))
+                .font(ThemeFont.glyph(.statusDot, weight: .semibold))
                 .foregroundStyle(ThemePalette.secondaryText)
         case .waitingToBeShown:
             Image(systemName: "circle.dotted")
-                .font(.system(size: 8, weight: .semibold))
+                .font(ThemeFont.glyph(.statusMark, weight: .semibold))
                 .foregroundStyle(ThemePalette.secondaryText)
         }
     }

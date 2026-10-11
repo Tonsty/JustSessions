@@ -10,7 +10,7 @@ struct SidebarRowBackground: View {
     var selectionProvider: ConversationProvider? = nil
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 7, style: .continuous)
+        RoundedRectangle(.control)
             .fill(fillStyle)
             .overlay(alignment: .leading) {
                 if isSelected {

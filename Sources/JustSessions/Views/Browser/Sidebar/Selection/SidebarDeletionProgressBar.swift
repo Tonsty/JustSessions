@@ -22,13 +22,13 @@ struct SidebarDeletionProgressBar: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 Text(statusText)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(ThemeFont.callout.weight(.medium))
                     .lineLimit(1)
                     .accessibilityHidden(true)
                 Spacer(minLength: 4)
                 // No Escape shortcut: Escape belongs to the terminal and to clearing the sidebar selection.
                 Button("Cancel", action: onCancel)
-                    .buttonStyle(.bordered)
+                    .buttonStyle(QuietBorderedButtonStyle())
                     .controlSize(.small)
                     .disabled(progress.isStopping)
                     .help("Stop deleting after the current session; the rest stay listed")

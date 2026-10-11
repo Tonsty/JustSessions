@@ -21,7 +21,7 @@ struct SessionInAnotherWindowNote: View {
                         .buttonStyle(QuietBorderedButtonStyle())
                 }
             }
-            .font(.callout)
+            .font(ThemeFont.callout)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }

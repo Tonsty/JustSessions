@@ -7,10 +7,10 @@ struct HelpSection<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title).font(.headline)
+            Text(title).font(ThemeFont.heading)
             content()
         }
-        .font(.callout)
+        .font(ThemeFont.callout)
         .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity, alignment: .leading)
     }

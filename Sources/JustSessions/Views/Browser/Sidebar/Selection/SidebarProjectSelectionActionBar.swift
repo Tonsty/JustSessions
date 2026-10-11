@@ -9,7 +9,7 @@ struct SidebarProjectSelectionActionBar: View {
         VStack(spacing: 8) {
             HStack(spacing: 8) {
                 Text("\(selectedCount) projects selected")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(ThemeFont.callout.weight(.medium))
                     .lineLimit(1)
                 Spacer(minLength: 4)
             }
@@ -17,7 +17,7 @@ struct SidebarProjectSelectionActionBar: View {
                 Label("Archive", systemImage: "archivebox")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(QuietBorderedButtonStyle())
             .controlSize(.small)
             .help("Archive the selected projects; keep sessions and open terminals")
             .accessibilityLabel("Archive selected projects")
@@ -25,7 +25,7 @@ struct SidebarProjectSelectionActionBar: View {
                 Label("Archive and delete sessions…", systemImage: "trash")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(QuietBorderedButtonStyle())
             .controlSize(.small)
             .help("Archive the selected projects and delete their sessions, except those with open terminals")
             .accessibilityLabel("Archive selected projects and delete their sessions")

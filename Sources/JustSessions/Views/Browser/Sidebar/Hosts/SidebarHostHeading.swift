@@ -29,7 +29,7 @@ struct SidebarHostHeading: View {
         HStack(spacing: 6) {
             // One width for every host's symbol keeps the host names lined up.
             Image(systemName: host.symbolName)
-                .font(.system(size: 10, weight: .medium))
+                .font(ThemeFont.glyph(.control, weight: .medium))
                 .foregroundStyle(ThemePalette.tertiaryText)
                 .frame(width: 14)
             Group {
@@ -57,7 +57,7 @@ struct SidebarHostHeading: View {
             )
             projectCountOrAddProjectButton
         }
-        .font(.system(size: 10, weight: .semibold))
+        .font(ThemeFont.caption.weight(.semibold))
         .padding(.leading, 18)
         .padding(.trailing, 16)
         .frame(height: 20)
@@ -97,7 +97,7 @@ struct SidebarHostHeading: View {
         case .refreshing?:
             if let copyStep {
                 Text(verbatim: "\(copyStep.number)/\(copyStep.count)")
-                    .font(.system(size: 10))
+                    .font(ThemeFont.caption)
                     .monospacedDigit()
                     .foregroundStyle(ThemePalette.tertiaryText)
                     .fixedSize()
@@ -112,7 +112,7 @@ struct SidebarHostHeading: View {
             if host != .thisMac {
                 TimelineView(.everyMinute) { context in
                     Text(HostSyncAgeFormatter.string(forSyncedAt: syncDate, relativeTo: context.date))
-                        .font(.system(size: 10))
+                        .font(ThemeFont.caption)
                         .foregroundStyle(ThemePalette.tertiaryText)
                         .fixedSize()
                 }

@@ -23,7 +23,7 @@ struct NewSessionStartCommandSection: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text("Start command")
-                    .font(.subheadline.weight(.medium))
+                    .font(ThemeFont.fieldLabel)
                 HelpPopoverButton(title: "Start command", explanation: startCommandExplanation)
                     .accessibilityIdentifier("newSession.help.startCommand")
             }
@@ -58,11 +58,11 @@ struct NewSessionStartCommandSection: View {
                         Text("Checking the start command on \(host.displayName)…")
                     }
                 }
-                .font(.callout)
+                .font(ThemeFont.callout)
                 .foregroundStyle(ThemePalette.secondaryText)
             } else if let checkFailure {
                 Text(verbatim: checkFailure)
-                    .font(.callout)
+                    .font(ThemeFont.callout)
                     .foregroundStyle(ThemePalette.errorText)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -86,7 +86,7 @@ struct NewSessionStartCommandSection: View {
             }
         ))
         .textFieldStyle(ThemedTextFieldStyle())
-        .font(.system(.body, design: .monospaced))
+        .font(ThemeFont.body.monospaced())
         .autocorrectionDisabled()
         .disabled(isChecking)
         .focused($isFieldFocused)
@@ -99,7 +99,7 @@ struct NewSessionStartCommandSection: View {
     /// draws its placeholder in the same color as a kept command. A long command wraps, so all its flags show.
     private var lockedCommand: some View {
         Text(verbatim: savedCommand.isEmpty ? provider.defaultStartCommand : savedCommand)
-            .font(.system(.body, design: .monospaced))
+            .font(ThemeFont.body.monospaced())
             .foregroundStyle(savedCommand.isEmpty ? ThemePalette.tertiaryText : ThemePalette.secondaryText)
             .lineLimit(4)
             .fixedSize(horizontal: false, vertical: true)

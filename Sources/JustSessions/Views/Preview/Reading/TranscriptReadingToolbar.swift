@@ -13,7 +13,7 @@ struct TranscriptReadingToolbar: View {
     var body: some View {
         HStack(spacing: 14) {
             Text(messageCount == 1 ? "1 message" : "\(messageCount) messages")
-                .font(.caption)
+                .font(ThemeFont.caption)
                 .foregroundStyle(ThemePalette.secondaryText)
             Spacer(minLength: 8)
             if let onFind {
@@ -33,7 +33,7 @@ struct TranscriptReadingToolbar: View {
                     .help("Larger text")
                     .accessibilityLabel("Larger reading text")
             }
-            .font(.system(size: 13, weight: .medium))
+            .font(ThemeFont.body.weight(.medium))
             readingWidthButton
             HStack(spacing: 12) {
                 Button("First message", systemImage: "arrow.up.to.line", action: onFirstMessage)

@@ -25,21 +25,20 @@ struct AppThemeColorsEditor: View {
         DisclosureGroup(isExpanded: $isExpanded) {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 12) {
-                    Picker("Version", selection: Binding(
+                    ThemeSegmentedPicker("Version", selection: Binding(
                         get: { editsDarkVersion },
                         set: { editedVersionIsDark = $0 }
-                    )) {
-                        Text("Light").tag(false)
-                        Text("Dark").tag(true)
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
+                    ), segments: [
+                        ThemeSegment(value: false, title: Text("Light")),
+                        ThemeSegment(value: true, title: Text("Dark")),
+                    ])
                     .fixedSize()
                     Spacer(minLength: 0)
                     Button("Reset") {
                         appThemeStore.removeCustomization()
                         refusedPick = nil
                     }
+                    .buttonStyle(QuietBorderedButtonStyle())
                     .controlSize(.small)
                     .disabled(appThemeStore.resolvedTheme.customization.isEmpty)
                     .help("Gives the theme back its own colors, light and dark.")

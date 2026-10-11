@@ -1,24 +1,28 @@
 import AppKit
-import CoreText
 import GhosttyTerminal
 
 /// The terminal appearance settings as Ghostty configuration, so a Ghostty terminal looks and behaves like a SwiftTerm
-/// terminal styled by `TerminalAppearanceStyling`. Colors go in the theme, in a light and a dark version: the terminal
-/// view switches its controller between them from its own appearance, which `TerminalAppearanceStyling.nativeAppearance`
-/// sets, so the Appearance setting needs nothing here. Everything else goes in the terminal configuration.
+/// terminal styled by `TerminalAppearanceStyling`. Colors, and how strongly text in them is thickened, go in the theme,
+/// in a light and a dark version: the terminal view switches its controller between them from its own appearance,
+/// which `TerminalAppearanceStyling.nativeAppearance` sets, so the Appearance setting needs nothing here. Everything
+/// else goes in the terminal configuration; the font keys come from `GhosttyFontConfiguration`.
 @MainActor
 struct GhosttyAppearanceConfiguration {
     let terminalConfiguration: TerminalConfiguration
     let theme: TerminalTheme
 
-    /// `ghosttyFindsFontFamily` stands in for Ghostty's font lookup, `fontDiscoveryFinds(family:)`, in tests.
+    /// `ghosttyFindsFontFamily` stands in for Ghostty's font lookup, `GhosttyFontConfiguration.fontDiscoveryFinds`, in
+    /// tests. The cells are sized for a screen of `backingScaleFactor`.
     init(
         preferences: TerminalAppearancePreferences,
         appTheme: ResolvedAppTheme,
-        ghosttyFindsFontFamily: (String) -> Bool = GhosttyAppearanceConfiguration.fontDiscoveryFinds(family:)
+        backingScaleFactor: CGFloat = GhosttyFontConfiguration.screensBackingScaleFactor,
+        ghosttyFindsFontFamily: (String) -> Bool = GhosttyFontConfiguration.fontDiscoveryFinds(family:)
     ) {
         let preferences = preferences.validated
-        terminalConfiguration = Self.terminalConfiguration(for: preferences, ghosttyFindsFontFamily: ghosttyFindsFontFamily)
+        terminalConfiguration = Self.terminalConfiguration(
+            for: preferences, backingScaleFactor: backingScaleFactor, ghosttyFindsFontFamily: ghosttyFindsFontFamily
+        )
         let variants = preferences.colorVariants(appTheme: appTheme)
         theme = TerminalTheme(
             light: Self.colors(variants.palette(usesDarkColors: false)),
@@ -26,15 +30,19 @@ struct GhosttyAppearanceConfiguration {
         )
     }
 
-    /// Built from empty rather than from `TerminalConfiguration.default`, which thickens the font. Ghostty rejects a
-    /// whole configuration over one unknown key or value, so each key here is one Ghostty knows.
+    /// Built from empty rather than from `TerminalConfiguration.default`, which thickens the font at full strength
+    /// whatever the colors. Ghostty rejects a whole configuration over one unknown key or value, so each key here is
+    /// one Ghostty knows.
     private static func terminalConfiguration(
         for preferences: TerminalAppearancePreferences,
+        backingScaleFactor: CGFloat,
         ghosttyFindsFontFamily: (String) -> Bool
     ) -> TerminalConfiguration {
         TerminalConfiguration { builder in
-            builder.withFontFamily(fontFamily(preferences.fontFamily, size: preferences.fontSize, ghosttyFinds: ghosttyFindsFontFamily))
-            builder.withFontSize(Float(preferences.fontSize))
+            GhosttyFontConfiguration.add(
+                to: &builder, preferences: preferences, backingScaleFactor: backingScaleFactor,
+                ghosttyFindsFontFamily: ghosttyFindsFontFamily
+            )
             builder.withMinimumContrast(Double(TerminalAppearanceStyling.minimumContrastRatio))
             // SwiftTerm draws bold text in ANSI colors 0–6 in their bright versions, 8–14 (its `useBrightColors`).
             // Ghostty does the same for 0–7, so unlike SwiftTerm it also draws bold white (7) as bright white (15).
@@ -78,28 +86,6 @@ struct GhosttyAppearanceConfiguration {
         "super+arrow_down=ignore",
     ]
 
-    /// The family of the font a SwiftTerm terminal would draw with. System Monospaced is SF Mono under its hidden
-    /// family name, `.AppleSystemUIFontMonospaced`, which Ghostty's font discovery finds. A named family that is no
-    /// longer installed gives the system font, as it does in SwiftTerm. A family Ghostty can't find gives Menlo,
-    /// rather than Ghostty's built-in JetBrains Mono, whose cells are a different size.
-    private static func fontFamily(_ fontFamily: TerminalFontFamily, size: Double, ghosttyFinds: (String) -> Bool) -> String {
-        let font = fontFamily.font(size: CGFloat(size))
-        let family = font.familyName ?? font.fontName
-        guard !ghosttyFinds(family), ghosttyFinds(fallbackFontFamily) else { return family }
-        return fallbackFontFamily
-    }
-
-    private static let fallbackFontFamily = "Menlo"
-
-    /// Whether Ghostty's font discovery finds faces of `family`: it asks Core Text for a collection of the fonts whose
-    /// family name is `family`.
-    nonisolated static func fontDiscoveryFinds(family: String) -> Bool {
-        let descriptor = CTFontDescriptorCreateWithAttributes([kCTFontFamilyNameAttribute: family] as CFDictionary)
-        let collection = CTFontCollectionCreateWithFontDescriptors([descriptor] as CFArray, nil)
-        let matches = CTFontCollectionCreateMatchingFontDescriptors(collection) as? [CTFontDescriptor] ?? []
-        return !matches.isEmpty
-    }
-
     private static func colors(_ palette: TerminalPalette) -> TerminalConfiguration {
         let scheme = palette.scheme
         return TerminalConfiguration { builder in
@@ -111,6 +97,7 @@ struct GhosttyAppearanceConfiguration {
             builder.withSelectionForeground(hex(scheme.readableSelectionForeground))
             builder.withCursorColor(hex(scheme.foreground))
             builder.withCursorText(hex(palette.background))
+            builder.withFontThickenStrength(GhosttyFontConfiguration.thickenStrength(drawing: scheme.foreground))
             // The colors SwiftTerm draws with too, each kept apart from the background. Like SwiftTerm, which ignores a
             // set of other than 16 colors; Ghostty rejects the whole configuration over an index past 255.
             let ansiColors = palette.distinguishableANSIHexColors

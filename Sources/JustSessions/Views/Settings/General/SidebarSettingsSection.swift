@@ -8,7 +8,7 @@ struct SidebarSettingsSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Sidebar")
-                .font(.subheadline.weight(.medium))
+                .font(ThemeFont.heading)
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Toggle("Show subagents under the sessions that started them", isOn: $showsSubagents)
                     .accessibilityIdentifier("settings.showsSubagents")

@@ -23,14 +23,14 @@ struct OnboardingTourCard: View {
         VStack(alignment: .leading, spacing: 6) {
             if stepCount > 1 {
                 Text("\(stepNumber) of \(stepCount)")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(ThemeFont.detail.weight(.medium))
                     .monospacedDigit()
                     .foregroundStyle(ThemePalette.secondaryText)
             }
             Text(stop.title)
-                .font(.system(size: 13, weight: .semibold))
+                .font(ThemeFont.heading)
             Text(stop.message)
-                .font(.system(size: 12))
+                .font(ThemeFont.callout)
                 .foregroundStyle(ThemePalette.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -38,7 +38,7 @@ struct OnboardingTourCard: View {
                 if !isLastStep {
                     Button("Skip", action: onEnd)
                         .buttonStyle(ThemePlainButtonStyle(horizontalPadding: 6, verticalPadding: 4))
-                        .font(.system(size: 12))
+                        .font(ThemeFont.callout)
                         .foregroundStyle(ThemePalette.secondaryText)
                         .accessibilityIdentifier("onboarding-tour.skip")
                 }

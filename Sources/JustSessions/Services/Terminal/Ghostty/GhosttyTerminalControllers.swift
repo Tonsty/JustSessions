@@ -1,3 +1,4 @@
+import AppKit
 import Combine
 import GhosttyTerminal
 
@@ -36,20 +37,27 @@ private final class AppearanceFollower {
         self.appearanceStore = appearanceStore
         self.themeStore = themeStore
         let configuration = GhosttyAppearanceConfiguration(preferences: appearanceStore.preferences, appTheme: themeStore.terminalTheme)
-        // A base of only a comment rather than libghostty-spm's default configuration, which thickens the font and
-        // would sit under every reload. Ghostty logs an error for an empty file. The theme replaces libghostty-spm's
-        // default theme, which would otherwise override the colors.
+        // A base of only a comment rather than libghostty-spm's default configuration, which thickens the font at full
+        // strength whatever the colors and would sit under every reload. Ghostty logs an error for an empty file. The
+        // theme replaces libghostty-spm's default theme, which would otherwise override the colors.
         controller = TerminalController(
             configSource: .generated(Self.baseConfiguration),
             theme: configuration.theme,
             terminalConfiguration: configuration.terminalConfiguration
         )
+        // The cells are sized for the sharpest screen, which changes as screens connect and disconnect.
+        let backingScaleFactors = NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
+            .map { _ in GhosttyFontConfiguration.screensBackingScaleFactor }
+            .prepend(GhosttyFontConfiguration.screensBackingScaleFactor)
+            .removeDuplicates()
         // The stores publish before their values change, so take the values from the publishers.
-        subscription = appearanceStore.$preferences.combineLatest(themeStore.$terminalTheme)
+        subscription = appearanceStore.$preferences.combineLatest(themeStore.$terminalTheme, backingScaleFactors)
             .dropFirst()
-            .sink { [controller] preferences, appTheme in
+            .sink { [controller] preferences, appTheme, backingScaleFactor in
                 // Each reloads and redraws every terminal on the controller, and does nothing for an unchanged value.
-                let configuration = GhosttyAppearanceConfiguration(preferences: preferences, appTheme: appTheme)
+                let configuration = GhosttyAppearanceConfiguration(
+                    preferences: preferences, appTheme: appTheme, backingScaleFactor: backingScaleFactor
+                )
                 controller.setTerminalConfiguration(configuration.terminalConfiguration)
                 controller.setTheme(configuration.theme)
             }

@@ -61,18 +61,18 @@ struct SessionPreviewHeader: View {
 
         return HStack(alignment: .center, spacing: 12) {
             conversation.provider.iconImage(size: 15)
-                .font(.system(size: 15, weight: .medium))
+                .font(ThemeFont.glyph(.badge, weight: .medium))
                 .foregroundStyle(conversation.provider.tintColor)
                 .frame(width: 34, height: 34)
-                .background(conversation.provider.tintColor.opacity(0.14), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                .background(conversation.provider.tintColor.opacity(0.14), in: RoundedRectangle(.card))
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
                     Text(title)
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(ThemeFont.title)
                         .lineLimit(1)
                         .truncationMode(.tail)
-                    if isPinned { PinnedIndicator(size: 10) }
+                    if isPinned { PinnedIndicator(size: .control) }
                 }
                 HStack(spacing: 5) {
                     Text(conversation.provider.rawValue)
@@ -87,7 +87,7 @@ struct SessionPreviewHeader: View {
                     Text("·")
                     Text(conversation.updatedAt, style: .relative)
                 }
-                .font(.caption)
+                .font(ThemeFont.caption)
                 .foregroundStyle(ThemePalette.secondaryText)
                 .lineLimit(1)
             }
@@ -120,7 +120,7 @@ struct SessionPreviewHeader: View {
         } icon: {
             Image(systemName: "arrow.turn.down.right")
         }
-        .font(.callout)
+        .font(ThemeFont.callout)
         .foregroundStyle(ThemePalette.secondaryText)
         .lineLimit(1)
         .frame(maxWidth: 260, alignment: .trailing)

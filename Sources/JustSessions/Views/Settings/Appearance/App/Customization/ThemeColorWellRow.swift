@@ -28,7 +28,7 @@ struct ThemeColorWellRow: View {
                     onChange(nil)
                 } label: {
                     Image(systemName: "arrow.uturn.backward")
-                        .font(.system(size: 11))
+                        .font(ThemeFont.detail)
                         .foregroundStyle(ThemePalette.secondaryText)
                         .frame(width: 20, height: 20)
                 }
@@ -46,12 +46,12 @@ struct ThemeColorWellRow: View {
     @ViewBuilder private var note: some View {
         if let refusal {
             Text(refusal)
-                .font(.caption)
+                .font(ThemeFont.caption)
                 .foregroundStyle(ThemePalette.warningText)
                 .fixedSize(horizontal: false, vertical: true)
         } else if isAdjustedForReadability {
             Text("Adjusted to stay readable")
-                .font(.caption)
+                .font(ThemeFont.caption)
                 .foregroundStyle(ThemePalette.tertiaryText)
         }
     }

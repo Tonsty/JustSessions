@@ -3,7 +3,12 @@ import Foundation
 struct AntigravityRemoteSessionMirror {
     var runner = RemoteHostCommandRunner()
 
-    func synchronize(host: String, sourceHomeOverride: String?, destination: URL) throws {
+    func synchronize(
+        host: String,
+        sourceHomeOverride: String?,
+        destination: URL,
+        connectionSharingOptions: [String] = []
+    ) throws {
         let snapshotPath: String
         if let sourceHomeOverride {
             let snapshot = FileManager.default.temporaryDirectory.appendingPathComponent("justsessions-agy-" + UUID().uuidString)
@@ -38,7 +43,10 @@ struct AntigravityRemoteSessionMirror {
         }
         let source = sourceHomeOverride != nil ? snapshotPath + "/" : host + ":" + snapshotPath + "/"
         guard let result = RemoteSessionMirror.runRsync(
-            for: .antigravity, source: source, destination: destination.path + "/", host: sourceHomeOverride == nil ? host : nil
+            for: .antigravity,
+            source: source,
+            destination: destination.path + "/",
+            connectionSharingOptions: sourceHomeOverride == nil ? connectionSharingOptions : []
         )
         else { throw RemoteSessionMirrorError.couldNotRun(host: host) }
         guard result.exitStatus == 0 else {

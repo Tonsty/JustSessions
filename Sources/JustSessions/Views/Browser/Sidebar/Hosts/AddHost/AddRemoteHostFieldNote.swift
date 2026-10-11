@@ -45,7 +45,7 @@ struct AddRemoteHostFieldNote: View {
             }
             Text("Requires passwordless SSH.")
         }
-        .font(.caption)
+        .font(ThemeFont.caption)
         .foregroundStyle(ThemePalette.secondaryText)
     }
 
@@ -53,18 +53,18 @@ struct AddRemoteHostFieldNote: View {
         VStack(alignment: .leading, spacing: 6) {
             warning(Text("A port goes in `~/.ssh/config`. Add these lines there, then enter \(hostName)."))
             Text(verbatim: RemoteHostInput.configLines(user: user, hostName: hostName, port: port))
-                .font(.system(.callout, design: .monospaced))
+                .font(ThemeFont.callout.monospaced())
                 .textSelection(.enabled)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 6)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(ThemePalette.trackFill, in: RoundedRectangle(cornerRadius: 5))
+                .background(ThemePalette.trackFill, in: RoundedRectangle(.small))
         }
     }
 
     private func warning(_ text: Text) -> some View {
         text
-            .font(.callout)
+            .font(ThemeFont.callout)
             .foregroundStyle(ThemePalette.warningText)
             .fixedSize(horizontal: false, vertical: true)
     }

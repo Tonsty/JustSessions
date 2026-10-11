@@ -3,8 +3,8 @@ import Foundation
 extension RemoteSessionMirror {
     /// Finds where the host keeps each tool's files, and keeps the answer beside the host's copy, so deleting one of
     /// its sessions later reaches the folder the session was copied from.
-    func lookUpToolFolders(host: String) throws -> RemoteToolFolders {
-        let folders = try toolFoldersLookup(host)
+    func lookUpToolFolders(host: String, connectionSharingOptions: [String] = []) throws -> RemoteToolFolders {
+        let folders = try toolFoldersLookup(host, connectionSharingOptions)
         let file = toolFoldersFile(host: host)
         try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
         try? JSONEncoder().encode(folders).write(to: file, options: .atomic)
