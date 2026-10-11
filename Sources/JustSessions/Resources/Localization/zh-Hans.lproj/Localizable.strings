@@ -590,8 +590,8 @@
 	<string>将标签页移至拆分视图</string>
 	<key>Name</key>
 	<string>名称</string>
-	<key>Needs my input, such as a permission prompt (not Codex)</key>
-	<string>需要我的输入，例如权限确认（Codex 除外）</string>
+	<key>Needs my input, such as a permission prompt</key>
+	<string>需要我的输入，例如权限确认</string>
 	<key>Nerd Font icons</key>
 	<string>Nerd Font 图标</string>
 	<key>New</key>

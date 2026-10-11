@@ -12,6 +12,8 @@ final class UnseenTurnSandboxApp {
     let store: ConversationStore
     let notifier = RecordingSessionNotifier()
     let liveSessionReporting: LiveSessionReporting
+    /// Codex's background server, once a test starts it; see `UnseenTurnSandboxApp+CodexAppServer`.
+    var codexAppServer: FakeCodexAppServer?
     private let settings: IsolatedUserDefaults
     private let claudeRegistry: ClaudeLiveSessionRegistry
 
@@ -54,6 +56,7 @@ final class UnseenTurnSandboxApp {
     }
 
     func tearDown() {
+        codexAppServer?.stop()
         store.closeAllTerminals()
         sandbox.tearDown()
         settings.removeSuite()
@@ -157,7 +160,7 @@ final class UnseenTurnSandboxApp {
 
     /// Follows the CLIs as the app does every second, until `condition` holds or 120 seconds pass, as
     /// `expectEventually` allows for the release runner's busy start.
-    private func followCLIs(until condition: () -> Bool) async -> Bool {
+    func followCLIs(until condition: () -> Bool) async -> Bool {
         let clock = ContinuousClock()
         let deadline = clock.now + .seconds(120)
         while clock.now < deadline {
@@ -169,7 +172,7 @@ final class UnseenTurnSandboxApp {
     }
 
     /// What the session's CLI does, in its tab or in tmux with no tab open.
-    private func activity(of title: String) -> CLIActivity? {
+    func activity(of title: String) -> CLIActivity? {
         guard let conversation = listedConversation(title) else { return nil }
         if let tab = store.runningTerminal(for: conversation), tab.isRunning { return tab.cliActivity }
         return store.detachedCLIActivities[conversation.id]

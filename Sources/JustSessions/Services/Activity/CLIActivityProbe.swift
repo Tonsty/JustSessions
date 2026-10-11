@@ -7,12 +7,19 @@ struct CLIActivityProbe: Sendable {
     let processID: Int32
     /// The session's file, where Codex records its turns; nil before a new session's file is known.
     let sessionFile: URL?
+    /// The session's id, which names a Codex thread on Codex's background server; nil while it is unknown.
+    var sessionID: String? = nil
 }
 
 extension TerminalSession {
     /// Nil for a tab on an SSH host, whose CLI runs out of reach, and for a plain terminal, which runs no CLI.
     var cliActivityProbe: CLIActivityProbe? {
         guard host == .thisMac, let provider else { return nil }
-        return CLIActivityProbe(provider: provider, processID: cliProcessID, sessionFile: conversation?.sourceFile)
+        return CLIActivityProbe(
+            provider: provider,
+            processID: cliProcessID,
+            sessionFile: conversation?.sourceFile,
+            sessionID: conversation?.sessionID
+        )
     }
 }
