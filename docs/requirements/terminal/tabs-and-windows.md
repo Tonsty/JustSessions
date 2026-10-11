@@ -1,0 +1,45 @@
+# Tab bar, tab groups, and windows
+
+[Back to requirements](../README.md)
+
+Split view has [its own file](split-view.md). Sizes are in `WorkspaceTabMetrics`.
+
+## Tab bar
+
+| ID | Requirement | Origin | Related tests |
+| --- | --- | --- | --- |
+| TAB-01 | The tab bar sits in the hidden title bar, level with the window buttons and the sidebar toggle. With the sidebar hidden, tabs start past the toggle. With no tabs, the title bar stays clear. | `348de00`, `b4c6d11` | `TabBarVisibilityTests` |
+| TAB-02 | The tab bar stays visible and clickable whenever a tab is open, including while a preview or an ended tab's bar shows below it, on this Mac and SSH. | `5c5402c`, `14bafaa` | `TabBarVisibilityTests` |
+| TAB-03 | Tabs are drawn like Chrome's: the bar takes the sidebar's color; the selected tab is filled with its terminal's background, with rounded top corners and feet into the bar's bottom line; it is outlined 2 points in its group's color, joining the group underline without a seam. Thin lines part tabs that are neither selected nor hovered. All titles use one weight. | `82bbaed`, `d3e9898` | Manual |
+| TAB-04 | Tabs are 200 points wide while they fit, then narrow together to 72 points, then the bar scrolls sideways with no visible scroller. Titles fade out at the edge instead of an ellipsis. Under 100 points, × shows only on the selected or hovered tab. Selecting a tab scrolls it into sight. | `26a8b33`, `457652d`, `1f6545d` | `WorkspaceTabWidthTests` |
+| TAB-05 | Resting on a tab shows a card under it: the whole title over two lines, project, host (when remote hosts exist), CLI, and status. A group label's card shows the folder and its tabs with status. Timing follows Chrome (300–800 ms by tab width, 500 ms more at full width; moves straight to the next tab while shown or within 300 ms of hiding) and the card hides on click, key, or scroll. Tabs have no system tooltips. | `08525c2` | `TabHoverCardDelayTests`, `TabHoverCardTimingTests` |
+| TAB-06 | The tab bar is a window move zone: dragging a tab never moves the window; dragging the bar's empty space moves it, and double-clicking it zooms or minimizes as System Settings says. Outside the bar the window stays movable, so Move & Resize and tiling work. A click on the bar still closes an open sheet. | `36ba3b7`, `24dc09a` | `TitleBarDoubleClickActionTests` |
+| TAB-07 | No header above a tab's terminal. A bar appears only once the CLI has ended, with its exit status and, for SSH, Reconnect. | `90b2bd0` | `TabBarVisibilityTests` |
+| TAB-08 | A tab's terminal sits in a margin of its own background color: 16 points leading, lined up with tab labels, and 6 points above and below. | `6a6a3ed` | Manual |
+
+## Groups and order
+
+| ID | Requirement | Origin | Related tests |
+| --- | --- | --- | --- |
+| TAB-20 | Tabs group by project like browser tab groups. A new tab opens next to its project's tabs, behind a label in the project's color with an underline. Closing the selected tab shows another tab of its project when there is one. | `26e7ae1` | `TerminalTabGroupTests`, `TerminalTabGroupingStoreTests` |
+| TAB-21 | Clicking a group label collapses the group to its label, showing how many tabs it hides and their most pressing status. Collapsing the selected tab's group switches to the nearest visible tab, right first; with none, the selected tab keeps showing. Selecting a hidden tab expands its group. | `d0c7f15` | `TerminalTabGroupTests` |
+| TAB-22 | A double-click on a label toggles once, and the label's click target runs the tabs' full height. | `aeae5f9` | `TerminalTabGroupTests` |
+| TAB-23 | A tab drags only within its group, a split's two tabs move together, and dragging a label moves the whole group. A press becomes a drag after 4 points, so clicks still select, close, or collapse. The order is saved for the next launch. | `f61f85a` | `TabBarDragTests`, `TabBarDragInteractionTests`, `TerminalTabOrderTests` |
+| TAB-24 | A tab's right-click menu starts with New session (the group host's CLIs, then Terminal; disabled when the folder is missing). The new tab opens at the end of that group, selected, expanding the group. | `625b4d5` | `TabGroupNewSessionTests` |
+
+## Shortcuts
+
+| ID | Requirement | Origin | Related tests |
+| --- | --- | --- | --- |
+| TAB-40 | ⌘⇧] or Control-Tab selects the next tab and ⌘⇧[ or Control-Shift-Tab the previous, wrapping. ⌘1–⌘8 select by position and ⌘9 the last tab. They work while a CLI has focus. From a preview, next and previous select the first and last tab. | `bb692ae` | `TabCycleShortcutTests`, `TabNavigationTests` |
+| TAB-41 | ⌘W closes the selected tab as its × does, with its confirmation. In a preview with tabs open it is disabled; with no tabs it closes the window. | `bb692ae` | `TabNavigationTests` |
+| TAB-42 | The File and Tabs menus list the tab commands, and Settings → Help lists every shortcut. | `bb692ae`, `52b82b9` | Manual |
+
+## Windows
+
+| ID | Requirement | Origin | Related tests |
+| --- | --- | --- | --- |
+| TAB-60 | ⌘⇧N and **New Window** in the Dock icon's menu open a workspace window; the Dock menu follows the chosen language and works with every window closed. | `9999a36` | `WorkspaceDockMenuTests` |
+| TAB-61 | A session runs in at most one tab across windows. Resuming it elsewhere, or clicking its notification, selects that tab and brings its window forward. Other windows count that tab in their rows, filters, and deletion checks. | `0f3fd89` | `SessionTabAcrossWindowsTests`, `SessionStatusAcrossWindowsTests` |
+| TAB-62 | **Move Here** or **Move Tab to This Window** closes the other window's tab with its CLI kept in tmux and reattaches here. Offered only when tmux runs the CLI or the tab hasn't started; an SSH host confirms its tmux session first. | `70a1137` | `TabMovingAcrossWindowsTests`, `TabMovingAcrossWindowsTmuxTests` |
+| TAB-63 | A tab, or a split's two tabs, dragged out of the bar becomes a new window that follows the pointer, or joins another window's bar where it is dropped. Its terminal and CLI keep running. A window closes when its last tab leaves, and each window keeps its selection and saved tabs right. | `f9c1db1` | `TabDraggingBetweenWindowsTests`, `TabTerminalDraggingBetweenWindowsTests`, `TabDragBetweenWindowsGeometryTests` |

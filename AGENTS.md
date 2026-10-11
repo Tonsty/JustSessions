@@ -1,5 +1,9 @@
 # Working on JustSessions
 
+## Feature requirements
+
+Before changing behavior, UI, or a hot path, read the matching files in [feature requirements](docs/requirements/README.md). A change that contradicts a line there is a regression unless the same pull request updates that line and says why. New features add a line; performance changes rerun the named measurement. Don't bring back anything in [removed on purpose](docs/requirements/removed-on-purpose.md) without a decision that answers its reason.
+
 ## SSH testing from a Mac
 
 Contributors develop and run JustSessions on macOS. Use a disposable local Ubuntu 24.04 VM in Multipass as the standard Linux SSH test target; follow [SSH development testing](docs/development/ssh-testing.md) for setup and the manual checklist. Use the `justsessions-test` SSH alias so instructions are consistent across contributors and coding agents.
