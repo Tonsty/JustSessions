@@ -1,9 +1,10 @@
 import SwiftUI
 
 extension HelpKeyboardShortcutGroup {
-    /// Every shortcut JustSessions adds. The tab, sidebar, text size, and Settings shortcuts are menu commands
-    /// (`WorkspaceTabCommands`, `SidebarToggleCommands`, `TextZoomCommands`, `AppWideSheetCommands`); Control-Tab is
-    /// `WorkspaceTabCycleShortcuts`, ⌘= is `ZoomInEqualsKey`, and Find is `TranscriptSearchKeyboardShortcuts`.
+    /// Every shortcut JustSessions adds. The Back and Forward, tab, sidebar, text size, and Settings shortcuts are menu
+    /// commands (`WorkspaceNavigationCommands`, `WorkspaceTabCommands`, `SidebarToggleCommands`, `TextZoomCommands`,
+    /// `AppWideSheetCommands`); Control-Tab is `WorkspaceTabCycleShortcuts`, ⌘= is `ZoomInEqualsKey`, and Find is
+    /// `TranscriptSearchKeyboardShortcuts`.
     static var all: [HelpKeyboardShortcutGroup] {
         [
             HelpKeyboardShortcutGroup(title: "Tabs and windows", shortcuts: [
@@ -14,6 +15,8 @@ extension HelpKeyboardShortcutGroup {
                 HelpKeyboardShortcut(keys: "⇧⌘[", "⌃⇧Tab", action: "Previous tab"),
                 HelpKeyboardShortcut(keys: "⌘1–⌘8", action: "Go to a tab by its position"),
                 HelpKeyboardShortcut(keys: "⌘9", action: "Last tab"),
+                HelpKeyboardShortcut(keys: "⌘[", action: "Back to the tab or session shown before"),
+                HelpKeyboardShortcut(keys: "⌘]", action: "Forward again"),
                 HelpKeyboardShortcut(keys: "⌘B", action: "Hide or show the sidebar"),
                 HelpKeyboardShortcut(keys: "⌘,", action: "Settings"),
             ]),

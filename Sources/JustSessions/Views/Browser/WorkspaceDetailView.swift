@@ -33,8 +33,8 @@ struct WorkspaceDetailView: View {
             } else {
                 WorkspaceTabBar(
                     store: store,
-                    // With the sidebar hidden, the bar's leading edge is the window's, under the window buttons.
-                    leadingClearance: isSidebarHidden ? titleBarRow.toggleTrailingEdge : 0,
+                    // With the sidebar hidden, the bar's leading edge is the window's, under the title bar's controls.
+                    leadingClearance: isSidebarHidden ? titleBarRow.controlsTrailingEdge : 0,
                     onRenameConversation: onRename,
                     onCloseTerminal: onCloseTerminal
                 )

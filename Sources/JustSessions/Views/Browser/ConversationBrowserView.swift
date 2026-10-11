@@ -10,7 +10,9 @@ struct ConversationBrowserView: View {
     let onRenameProject: (ProjectConversationGroup) -> Void
     let onRequestDeletion: (SessionDeletionRequest) -> Void
 
-    @State private var sessionSelection = SessionMultiSelection()
+    @State var sessionSelection = SessionMultiSelection()
+    /// What this window showed, for Back and Forward; see `ConversationBrowserView+Navigation`.
+    @State var navigationHistory = WorkspaceNavigationHistory()
     @State private var messageSearch = SidebarMessageSearch()
     /// The match a click on a session row found in messages opens the reader at.
     @State private var transcriptMatchReveal: TranscriptMatchReveal?
@@ -47,6 +49,7 @@ struct ConversationBrowserView: View {
 
     var body: some View {
         let filteredProjection = filteredProjection
+        let navigation = navigation(listedConversationIDs: filteredProjection.listedConversationIDs)
 
         ResizableSidebarLayout(isSidebarHidden: isSidebarHidden) {
             ConversationSidebarView(
@@ -108,8 +111,12 @@ struct ConversationBrowserView: View {
         .onChange(of: sessionSelection.onlySelectedConversationID) { _, conversationID in
             if conversationID != transcriptMatchReveal?.conversationID { transcriptMatchReveal = nil }
         }
-        .titleBarSidebarToggle(isSidebarHidden: $isSidebarHidden)
+        .titleBarControls(isSidebarHidden: $isSidebarHidden, navigation: navigation)
         .focusedSceneValue(\.isSidebarHidden, $isSidebarHidden)
+        .focusedSceneValue(\.workspaceNavigation, navigation)
+        .onChange(of: shownLocation, initial: true) { previous, location in
+            recordShownLocation(location, after: previous)
+        }
         .background(TextZoomTargetReporter(target: store.selectedTerminalID == nil ? .conversation : .terminals))
         .sheet(item: $newSessionSheetHost) { host in
             let startableProjects = startableProjects
@@ -192,7 +199,7 @@ struct ConversationBrowserView: View {
         }
     }
 
-    private var workspaceTabCommandsEnabled: Bool {
+    var workspaceTabCommandsEnabled: Bool {
         newSessionSheetHost == nil && appWideSheet == nil && closingTerminalID == nil && endingConversation == nil
     }
 

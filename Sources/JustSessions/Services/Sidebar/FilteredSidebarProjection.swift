@@ -25,6 +25,8 @@ struct FilteredSidebarProjection {
     let inputs: Inputs
     /// Narrowed by the tool, recency, and search filters, in sidebar order.
     let projects: [ProjectConversationGroup]
+    /// The sessions `projects` list, so Back and Forward can tell which ones the sidebar still lists.
+    let listedConversationIDs: Set<String>
     /// The tool filter's sessions before the recency filter: the filter bar's "All" count.
     let allSessionCount: Int
     /// Those of `allSessionCount`'s sessions the Recent filter keeps: the filter bar's "Recent" count.
@@ -58,5 +60,6 @@ struct FilteredSidebarProjection {
             title: title,
             messageMatchConversationIDs: inputs.messageMatchConversationIDs
         )
+        listedConversationIDs = Set(projects.lazy.flatMap(\.conversations).map(\.id))
     }
 }
