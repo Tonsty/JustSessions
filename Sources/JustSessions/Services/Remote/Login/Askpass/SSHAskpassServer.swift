@@ -23,10 +23,7 @@ final class SSHAskpassServer: @unchecked Sendable {
         self.ask = ask
         acceptSource = DispatchSource.makeReadSource(fileDescriptor: descriptor, queue: .global(qos: .userInitiated))
         acceptSource.setEventHandler { [weak self] in self?.acceptConnection(on: descriptor) }
-        acceptSource.setCancelHandler {
-            Darwin.close(descriptor)
-            unlink(socketPath)
-        }
+        acceptSource.setCancelHandler { Darwin.close(descriptor) }
         acceptSource.resume()
     }
 
@@ -34,7 +31,8 @@ final class SSHAskpassServer: @unchecked Sendable {
         stop()
     }
 
-    /// Stops listening and cancels the questions still waiting for an answer. Safe to call more than once.
+    /// Stops listening, removes the socket, and cancels the questions still waiting for an answer. Safe to call more
+    /// than once.
     func stop() {
         let tasks: [Task<Void, Never>]? = lock.withLock {
             guard !isStopped else { return nil }
@@ -42,6 +40,8 @@ final class SSHAskpassServer: @unchecked Sendable {
             return Array(questionTasks.values)
         }
         guard let tasks else { return }
+        // Here rather than when the listener closes on its queue, so the socket is gone once this returns.
+        unlink(socketPath)
         acceptSource.cancel()
         tasks.forEach { $0.cancel() }
     }
