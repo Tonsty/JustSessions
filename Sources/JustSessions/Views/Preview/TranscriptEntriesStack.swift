@@ -14,15 +14,15 @@ struct TranscriptEntriesStack: View, Equatable {
     let positionController: TranscriptScrollPositionController
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        TranscriptEntryGeometryLayout(entryIndices: transcript.positionIDs, controller: positionController) {
             ForEach(transcript.positionedEntries) { positionedEntry in
                 let entryIndex = positionedEntry.id
                 TranscriptEntryView(entry: positionedEntry.entry, assistantName: provider.rawValue, assistantNameColor: provider.textColor)
                     .environment(\.transcriptSearchEntryIndex, entryIndex)
-                    .background(TranscriptEntryPositionMarker(entryIndex: entryIndex, controller: positionController))
                     .id(entryIndex)
             }
         }
+        .background(TranscriptEntryGeometryObserver(controller: positionController))
     }
 
     nonisolated static func == (lhs: Self, rhs: Self) -> Bool {
