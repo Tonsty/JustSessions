@@ -11,7 +11,7 @@ enum RemoteFolderResolutionError: LocalizedError, Equatable {
         case .couldNotRun(let host):
             "Looking up the folder on \(host) did not finish within 30 seconds."
         case .sshFailed(let host):
-            "Could not connect to \(host). Check that `ssh \(host)` works in Terminal without a password prompt."
+            "Could not connect to \(host). Check that `ssh \(host)` works in Terminal. If it asks for a password or a code, click Connect… on the host's heading first."
         case .missingFolder(let host, let folder):
             "There is no folder \(folder) on \(host)."
         case .couldNotCreateFolder(let host, let folder):

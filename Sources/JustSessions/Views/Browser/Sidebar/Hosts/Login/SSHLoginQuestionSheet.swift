@@ -1,0 +1,88 @@
+import SwiftUI
+
+/// One question `ssh` asks while Connect… logs in to a host: a password, passphrase, or code typed out of sight;
+/// whether to trust a host key it has not seen, with the fingerprint to check; a yes or no question; or a notice,
+/// such as to touch a security key, which leaves by itself once `ssh` is done with it. What `ssh` printed since the
+/// last question, such as a second factor's options or "Permission denied, please try again.", comes first, and a
+/// secret asked again says the last answer wasn't accepted.
+struct SSHLoginQuestionSheet: View {
+    let question: SSHAskpassQuestion
+    /// The answer for `ssh`, or nil for Cancel.
+    let onAnswer: (String?) -> Void
+    @State private var typedText = ""
+    /// The answer field takes the typing at once, also for a question that follows another, such as a code after
+    /// the password.
+    @FocusState private var isAnswerFocused: Bool
+
+    var body: some View {
+        ThemeSheetLayout(title: title, intro: intro, width: ThemeSheetMetrics.compactWidth) {
+            VStack(alignment: .leading, spacing: 8) {
+                if let context = question.context {
+                    sshText(context)
+                }
+                if question.isAskedAgain {
+                    Text("That answer wasn't accepted. Try again.")
+                        .font(ThemeFont.callout)
+                        .foregroundStyle(ThemePalette.warningText)
+                }
+                sshText(question.prompt)
+                switch question.kind {
+                case .secret:
+                    SecureField("Answer", text: $typedText)
+                        .textFieldStyle(ThemedTextFieldStyle())
+                        .accessibilityLabel(Text(verbatim: question.prompt))
+                        .focused($isAnswerFocused)
+                        .onAppear { isAnswerFocused = true }
+                        .onSubmit(answer)
+                case .notice:
+                    ProgressView().controlSize(.small)
+                case .unknownHostKey, .confirmation:
+                    EmptyView()
+                }
+            }
+        } footer: {
+            Spacer()
+            Button("Cancel") { onAnswer(nil) }
+                .keyboardShortcut(.cancelAction)
+            if question.kind != .notice {
+                Button(answerButtonTitle, action: answer)
+                    .buttonStyle(ThemeProminentButtonStyle())
+                    .keyboardShortcut(.defaultAction)
+            }
+        }
+    }
+
+    private var title: Text {
+        question.kind == .unknownHostKey ? Text("Trust \(question.host)?") : Text("Log in to \(question.host)")
+    }
+
+    private var intro: Text {
+        switch question.kind {
+        case .unknownHostKey:
+            Text("This Mac hasn't connected to this host before. Trust it only if the fingerprint matches the host's.")
+        case .secret, .confirmation, .notice:
+            Text("`ssh` asks this to log in. JustSessions keeps nothing you type.")
+        }
+    }
+
+    private var answerButtonTitle: LocalizedStringKey {
+        switch question.kind {
+        case .unknownHostKey: "Trust and connect"
+        case .confirmation: "Yes"
+        case .secret, .notice: "Continue"
+        }
+    }
+
+    /// What `ssh` printed, as it printed it.
+    private func sshText(_ text: String) -> some View {
+        Text(verbatim: text)
+            .font(ThemeFont.callout.monospaced())
+            .textSelection(.enabled)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func answer() {
+        onAnswer(question.answer(typedText: typedText))
+    }
+}

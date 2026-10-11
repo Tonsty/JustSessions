@@ -5,9 +5,14 @@ import Foundation
 /// drops or the tab closes, and opening the same name again reattaches to it.
 struct RemoteCLICommandBuilder {
     let inheritedEnvironment: [String: String]
+    let loginConnections: SSHLoginConnections
 
-    init(inheritedEnvironment: [String: String] = SSHProcessEnvironment.standard) {
+    init(
+        inheritedEnvironment: [String: String] = SSHProcessEnvironment.standard,
+        loginConnections: SSHLoginConnections = .shared
+    ) {
         self.inheritedEnvironment = inheritedEnvironment
+        self.loginConnections = loginConnections
     }
 
     /// `startCommand` is one set in the New session sheet; nil starts the tool's own executable. It stands in for
@@ -36,23 +41,43 @@ struct RemoteCLICommandBuilder {
         )
     }
 
-    /// `ssh -t <host> <remoteCommand>`, with a terminal for the remote command.
+    /// `ssh -t <host> <remoteCommand>`, with a terminal for the remote command. On a host logged in to with
+    /// Connect…, the tab goes through that login, so it asks nothing; without one, `ssh` asks in the tab's terminal.
     func sshCommand(host: String, remoteCommand: String) -> NativeCLICommand {
         NativeCLICommand(
             executablePath: "/usr/bin/ssh",
-            arguments: [
-                "-t",
-                // Notice a dead connection within a minute, so the tab ends and offers to reconnect.
-                "-o", "ServerAliveInterval=15", "-o", "ServerAliveCountMax=4",
-                // With a `RemoteCommand` in `~/.ssh/config`, `ssh` would refuse to run the tab's command.
-                "-o", "RemoteCommand=none",
-                host,
-                remoteCommand,
-            ],
+            arguments: ["-t"]
+                + loginConnections.connectionOptions(for: host)
+                + [
+                    // Notice a dead connection within a minute, so the tab ends and offers to reconnect.
+                    "-o", "ServerAliveInterval=15", "-o", "ServerAliveCountMax=4",
+                    // With a `RemoteCommand` in `~/.ssh/config`, `ssh` would refuse to run the tab's command.
+                    "-o", "RemoteCommand=none",
+                    host,
+                    remoteCommand,
+                ],
             workingDirectory: NSHomeDirectory(),
             environment: NativeCLICommand.environmentEntries(
                 TerminalColorEnvironment.embeddedTerminalEnvironment(from: inheritedEnvironment)
             )
+        )
+    }
+
+    /// A tab's command to connect again, through the host's login open now: the login it went through may have
+    /// closed since, and Connect… may have opened another, or the first, since the tab opened.
+    func withCurrentLogin(_ command: NativeCLICommand, host: String) -> NativeCLICommand {
+        var arguments = command.arguments
+        // `sshCommand` puts a login's options right after `-t`.
+        if arguments.count > 5, Array(arguments[1...3]) == ["-o", "ControlMaster=no", "-o"],
+           arguments[4].hasPrefix("ControlPath=") {
+            arguments.removeSubrange(1...4)
+        }
+        arguments.insert(contentsOf: loginConnections.connectionOptions(for: host), at: 1)
+        return NativeCLICommand(
+            executablePath: command.executablePath,
+            arguments: arguments,
+            workingDirectory: command.workingDirectory,
+            environment: command.environment
         )
     }
 

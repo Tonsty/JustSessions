@@ -7,9 +7,17 @@ enum SSHSocketDirectory {
     /// Makes a new directory for one refresh. A unique path keeps a stale socket left by a crashed app, or another
     /// refresh of the same host, from ever being mistaken for this refresh's master.
     static func makeRefreshDirectory(at rootPath: String, identifier: UUID = UUID()) -> URL? {
+        makeDirectory(at: rootPath, named: "refresh-\(identifier.uuidString)")
+    }
+
+    /// Makes a new directory for one login made with Connect…, unique for the same reason as a refresh's.
+    static func makeLoginDirectory(at rootPath: String, identifier: UUID = UUID()) -> URL? {
+        makeDirectory(at: rootPath, named: "login-\(identifier.uuidString)")
+    }
+
+    private static func makeDirectory(at rootPath: String, named name: String) -> URL? {
         guard preparedRoot(at: rootPath) != nil else { return nil }
-        let directory = URL(fileURLWithPath: rootPath, isDirectory: true)
-            .appendingPathComponent("refresh-\(identifier.uuidString)", isDirectory: true)
+        let directory = URL(fileURLWithPath: rootPath, isDirectory: true).appendingPathComponent(name, isDirectory: true)
         guard mkdir(directory.path, 0o700) == 0 else { return nil }
         return directory
     }

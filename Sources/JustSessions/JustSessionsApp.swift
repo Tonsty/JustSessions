@@ -1,6 +1,14 @@
 import SwiftUI
 
+/// The app's start, unless `ssh` started it as its askpass program; see `SSHAskpassRelay`.
 @main
+enum JustSessionsMain {
+    static func main() {
+        if let exitStatus = SSHAskpassRelay.exitStatusIfStartedAsAskpass() { exit(exitStatus) }
+        JustSessionsApp.main()
+    }
+}
+
 struct JustSessionsApp: App {
     @StateObject private var languageStore = AppLanguageStore.shared
     @StateObject private var workspaceReads = WorkspaceReadService()

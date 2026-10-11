@@ -567,12 +567,12 @@
         }
       }
     },
-    "Add a server you reach with passwordless SSH to browse and resume its sessions here.": {
+    "Add a server you reach over SSH to browse and resume its sessions here.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "添加一台可通过免密 SSH 连接的服务器，就能在这里浏览并继续它上面的会话。"
+            "value": "添加一台可通过 SSH 连接的服务器，就能在这里浏览并继续它上面的会话。"
           }
         }
       }
@@ -769,6 +769,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "已归档的项目会从侧栏中隐藏。其文件夹和会话仍保留在磁盘上，恢复后会重新列出。在其文件夹中新建会话也会恢复该项目。"
+          }
+        }
+      }
+    },
+    "Answer": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回答"
           }
         }
       }
@@ -1656,6 +1666,16 @@
         }
       }
     },
+    "Connecting…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在连接…"
+          }
+        }
+      }
+    },
     "Connects to %@, port %@.": {
       "localizations": {
         "zh-Hans": {
@@ -1672,6 +1692,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "连接到 %@。"
+          }
+        }
+      }
+    },
+    "Connect…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接…"
+          }
+        }
+      }
+    },
+    "Continue": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续"
           }
         }
       }
@@ -2086,6 +2126,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "删除进度"
+          }
+        }
+      }
+    },
+    "Disconnect": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "断开连接"
           }
         }
       }
@@ -3062,6 +3112,26 @@
         }
       }
     },
+    "Log in to %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录 %@"
+          }
+        }
+      }
+    },
+    "Logged in with Connect…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已通过“连接…”登录"
+          }
+        }
+      }
+    },
     "Markdown (.md)…": {
       "shouldTranslate": false
     },
@@ -3561,12 +3631,12 @@
         }
       }
     },
-    "On an SSH host, check passwordless SSH, rsync, and the CLI there. A host at a local address also needs **Local Network** in Permissions.": {
+    "On an SSH host, check that SSH works, or click **Connect…** on its heading, then check rsync and the CLI there. A host at a local address also needs **Local Network** in Permissions.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "对于 SSH 主机，检查免密码 SSH、rsync 以及主机上的 CLI。位于本地地址的主机还需要在权限中开启 **本地网络**。"
+            "value": "对于 SSH 主机，检查 SSH 能否连接，或点按其标题上的 **连接…**，然后检查 rsync 以及主机上的 CLI。位于本地地址的主机还需要在权限中开启 **本地网络**。"
           }
         }
       }
@@ -3747,16 +3817,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "整理"
-          }
-        }
-      }
-    },
-    "Passwordless SSH from this Mac": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "从这台 Mac 免密码 SSH 登录"
           }
         }
       }
@@ -4201,16 +4261,6 @@
         }
       }
     },
-    "Requires passwordless SSH.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "需要 SSH 免密登录。"
-          }
-        }
-      }
-    },
     "Reset": {
       "localizations": {
         "zh-Hans": {
@@ -4405,6 +4455,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "SSH 别名在 `~/.ssh/config` 中配置。"
+          }
+        }
+      }
+    },
+    "SSH from this Mac. If it asks for a password or a code, click **Connect…** on the host's heading.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "能从这台 Mac 通过 SSH 连接。如果它要求输入密码或验证码，请点按主机标题上的 **连接…**。"
           }
         }
       }
@@ -5355,6 +5415,16 @@
         }
       }
     },
+    "That answer wasn't accepted. Try again.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个回答未被接受。请重试。"
+          }
+        }
+      }
+    },
     "The Antigravity session database, associated folder, and annotations will move to the macOS Trash. This also removes its entry from Antigravity's local index.": {
       "localizations": {
         "zh-Hans": {
@@ -5561,6 +5631,16 @@
         }
       }
     },
+    "This Mac hasn't connected to this host before. Trust it only if the fingerprint matches the host's.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这台 Mac 之前没有连接过这台主机。只有在指纹与主机的一致时才信任它。"
+          }
+        }
+      }
+    },
     "This affects all tools in %@, including sessions hidden by the current filter.": {
       "localizations": {
         "zh-Hans": {
@@ -5657,6 +5737,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "工具"
+          }
+        }
+      }
+    },
+    "Trust %@?": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "信任 %@？"
+          }
+        }
+      }
+    },
+    "Trust and connect": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "信任并连接"
           }
         }
       }
@@ -5841,6 +5941,26 @@
         }
       }
     },
+    "Works with SSH keys, or with a password or code.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支持 SSH 密钥，也支持密码或验证码。"
+          }
+        }
+      }
+    },
+    "Yes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是"
+          }
+        }
+      }
+    },
     "You": {
       "localizations": {
         "zh-Hans": {
@@ -5937,6 +6057,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "`rsync`，以及你使用的 CLI"
+          }
+        }
+      }
+    },
+    "`ssh` asks this to log in. JustSessions keeps nothing you type.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "`ssh` 需要这些信息来登录。JustSessions 不会保存你输入的任何内容。"
           }
         }
       }

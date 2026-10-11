@@ -34,6 +34,8 @@ struct ConversationSidebarView: View {
     @State var pinDrag: SidebarPinDrag?
     @State var sidebarRowFrames = SidebarRowFrames()
     @State private var isAddRemoteHostSheetPresented = false
+    /// Asks for a password or code while Connect… on a host's heading logs in.
+    @StateObject private var sshLoginPrompter = SSHLoginPrompter()
     /// The host whose archived projects are listed, from its heading's context menu.
     @State private var hostShowingArchivedProjects: SessionHost?
     /// The SSH host a folder path is being typed for, from its heading's +.
@@ -167,6 +169,7 @@ struct ConversationSidebarView: View {
             AddProjectOnSSHHostSheet(store: store, host: host, onAdded: revealAddedProject)
         }
         .dismissesOnClickOutside(item: $sshHostAddingProject)
+        .sshLoginQuestions(from: sshLoginPrompter)
         .onAppear { expandProjectsWithOpenTerminals() }
         .onOnboardingTourStop(showOnboardingTourStop)
         .onChange(of: contentMode) { _, _ in
@@ -221,10 +224,21 @@ struct ConversationSidebarView: View {
                     shellStartupCheck: store.shellStartupCheck(on: destination),
                     isCheckingShellStartup: store.hostsCheckingShellStartup.contains(destination),
                     onCheckShellStartup: { store.checkRemoteShellStartupNow(on: destination) },
+                    login: sshHostLogin(destination),
+                    onConnect: { [sshLoginPrompter] in
+                        store.logInFromHeading(to: destination) { await sshLoginPrompter.ask($0) }
+                    },
+                    onDisconnect: { store.disconnect(destination) },
                     onRemove: { store.removeRemoteHost(destination) }
                 )
             }
         )
+    }
+
+    private func sshHostLogin(_ host: String) -> SidebarSSHHostLogin {
+        if store.sshHostsLoggingIn.contains(host) { return .loggingIn }
+        if store.sshHostsLoggedIn.contains(host) { return .loggedIn }
+        return .notLoggedIn(needsLogIn: store.sshHostsNeedingLogIn.contains(host))
     }
 
     /// This Mac's folder is picked in the system's panel; an SSH host's is typed, as nothing can browse it.

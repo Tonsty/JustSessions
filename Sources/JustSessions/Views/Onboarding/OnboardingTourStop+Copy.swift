@@ -31,7 +31,7 @@ extension OnboardingTourStop {
         case .newSession:
             "Start a session in any installed CLI, or open a plain terminal, in a project folder. ⌘N does the same."
         case .sshHosts:
-            "Add a server you reach with passwordless SSH to browse and resume its sessions here."
+            "Add a server you reach over SSH to browse and resume its sessions here."
         case .keepRunning:
             "When you close this tab, choose **Keep running**: the CLI carries on, even after you quit. Click its session to return."
         case .resume:

@@ -96,8 +96,8 @@
 	<string>在 %@ 上添加项目文件夹，或恢复已归档的项目</string>
 	<key>Add a project folder or restore an archived project on this Mac</key>
 	<string>在此 Mac 上添加项目文件夹，或恢复已归档的项目</string>
-	<key>Add a server you reach with passwordless SSH to browse and resume its sessions here.</key>
-	<string>添加一台可通过免密 SSH 连接的服务器，就能在这里浏览并继续它上面的会话。</string>
+	<key>Add a server you reach over SSH to browse and resume its sessions here.</key>
+	<string>添加一台可通过 SSH 连接的服务器，就能在这里浏览并继续它上面的会话。</string>
 	<key>Add anyway</key>
 	<string>仍然添加</string>
 	<key>Add host</key>
@@ -136,6 +136,8 @@
 	<string>在这台 Mac 上恢复 %@ 会话时也会用它。JustSessions 会在它后面加上自己的参数。</string>
 	<key>An archived project is hidden from the sidebar. Its folder and sessions stay on disk, and restoring it lists them again. Starting a new session in its folder also restores it.</key>
 	<string>已归档的项目会从侧栏中隐藏。其文件夹和会话仍保留在磁盘上，恢复后会重新列出。在其文件夹中新建会话也会恢复该项目。</string>
+	<key>Answer</key>
+	<string>回答</string>
 	<key>Antigravity and OpenCode need `python3`; deleting Antigravity sessions also needs `lsof`.</key>
 	<string>Antigravity 和 OpenCode 需要 `python3`；删除 Antigravity 会话还需要 `lsof`。</string>
 	<key>App</key>
@@ -306,10 +308,16 @@
 	<string>重新连接；仍在主机 tmux 中运行的 CLI 会重新接入</string>
 	<key>Connecting to %@…</key>
 	<string>正在连接 %@…</string>
+	<key>Connecting…</key>
+	<string>正在连接…</string>
 	<key>Connects to %@, port %@.</key>
 	<string>连接到 %@，端口 %@。</string>
 	<key>Connects to %@.</key>
 	<string>连接到 %@。</string>
+	<key>Connect…</key>
+	<string>连接…</string>
+	<key>Continue</key>
+	<string>继续</string>
 	<key>Copied</key>
 	<string>已复制</string>
 	<key>Copies the colors once. JustSessions doesn't read iTerm2's settings again.</key>
@@ -382,6 +390,8 @@
 	<string>正在删除会话</string>
 	<key>Deletion progress</key>
 	<string>删除进度</string>
+	<key>Disconnect</key>
+	<string>断开连接</string>
 	<key>Don't ask again</key>
 	<string>不再询问</string>
 	<key>Done</key>
@@ -568,6 +578,10 @@
 	<string>加载后续消息</string>
 	<key>Local Network</key>
 	<string>本地网络</string>
+	<key>Log in to %@</key>
+	<string>登录 %@</string>
+	<key>Logged in with Connect…</key>
+	<string>已通过“连接…”登录</string>
 	<key>Match app</key>
 	<string>与应用一致</string>
 	<key>Match app theme</key>
@@ -666,8 +680,8 @@
 	<string>在以下情况通知我</string>
 	<key>OK</key>
 	<string>好</string>
-	<key>On an SSH host, check passwordless SSH, rsync, and the CLI there. A host at a local address also needs **Local Network** in Permissions.</key>
-	<string>对于 SSH 主机，检查免密码 SSH、rsync 以及主机上的 CLI。位于本地地址的主机还需要在权限中开启 **本地网络**。</string>
+	<key>On an SSH host, check that SSH works, or click **Connect…** on its heading, then check rsync and the CLI there. A host at a local address also needs **Local Network** in Permissions.</key>
+	<string>对于 SSH 主机，检查 SSH 能否连接，或点按其标题上的 **连接…**，然后检查 rsync 以及主机上的 CLI。位于本地地址的主机还需要在权限中开启 **本地网络**。</string>
 	<key>Once Claude Code, Codex, or another supported CLI saves a conversation, it shows up here, grouped by project.</key>
 	<string>Claude Code、Codex 或其他支持的 CLI 保存对话后，它会按项目出现在这里。</string>
 	<key>Only renames it in JustSessions. Leave empty to use the folder name (%@).</key>
@@ -704,8 +718,6 @@
 	<string>可选。没有它时，终端中的 CLI 第一次打开受保护文件夹（例如「文稿」或外置磁盘）中的文件，macOS 会逐个询问。</string>
 	<key>Organize</key>
 	<string>整理</string>
-	<key>Passwordless SSH from this Mac</key>
-	<string>从这台 Mac 免密码 SSH 登录</string>
 	<key>Paste</key>
 	<string>粘贴</string>
 	<key>Path on the host, such as ~/code/app</key>
@@ -794,8 +806,6 @@
 	<string>在 GitHub 上报告</string>
 	<key>Reporting the crash helps get it fixed. The report opens with the crash details filled in: add what you were doing, then send it. The crash report file shows in Finder, so you can attach it.</key>
 	<string>报告这次崩溃，能帮我们修复它。报告打开时已填好崩溃详情：补充你当时在做什么，然后发送。崩溃报告文件会在访达中显示，方便你附上。</string>
-	<key>Requires passwordless SSH.</key>
-	<string>需要 SSH 免密登录。</string>
 	<key>Reset</key>
 	<string>重置</string>
 	<key>Restore</key>
@@ -832,6 +842,8 @@
 	<string>SSH 别名或 user@hostname</string>
 	<key>SSH aliases come from `~/.ssh/config`.</key>
 	<string>SSH 别名在 `~/.ssh/config` 中配置。</string>
+	<key>SSH from this Mac. If it asks for a password or a code, click **Connect…** on the host's heading.</key>
+	<string>能从这台 Mac 通过 SSH 连接。如果它要求输入密码或验证码，请点按主机标题上的 **连接…**。</string>
 	<key>SSH host</key>
 	<string>SSH 主机</string>
 	<key>SSH hosts</key>
@@ -1014,6 +1026,8 @@
 	<string>文字在这个颜色上无法清晰可读，请选更浅的颜色。</string>
 	<key>Text size, in the terminals or the conversation shown</key>
 	<string>字号：终端，或当前显示的对话</string>
+	<key>That answer wasn't accepted. Try again.</key>
+	<string>这个回答未被接受。请重试。</string>
 	<key>The Antigravity session database, associated folder, and annotations will move to the macOS Trash. This also removes its entry from Antigravity's local index.</key>
 	<string>Antigravity 会话数据库、关联文件夹和注释将移到 macOS 废纸篓，并从 Antigravity 本地索引中移除。</string>
 	<key>The CLI tab choice is for tabs whose CLI can keep running in tmux. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.</key>
@@ -1054,6 +1068,8 @@
 	<string>%2$@ 上没有文件夹 %1$@。创建它即可添加此项目。</string>
 	<key>This Mac</key>
 	<string>此 Mac</string>
+	<key>This Mac hasn't connected to this host before. Trust it only if the fingerprint matches the host's.</key>
+	<string>这台 Mac 之前没有连接过这台主机。只有在指纹与主机的一致时才信任它。</string>
 	<key>This affects all tools in %@, including sessions hidden by the current filter.</key>
 	<string>此操作会影响 %@ 中所有工具的会话，包括被当前筛选条件隐藏的会话。</string>
 	<key>This affects all tools in %lld projects, including sessions hidden by the current filter.</key>
@@ -1074,6 +1090,10 @@
 	<string>时间范围</string>
 	<key>Tool</key>
 	<string>工具</string>
+	<key>Trust %@?</key>
+	<string>信任 %@？</string>
+	<key>Trust and connect</key>
+	<string>信任并连接</string>
 	<key>Try Again</key>
 	<string>重试</string>
 	<key>Try again</key>
@@ -1110,6 +1130,10 @@
 	<string>关闭终端时</string>
 	<key>When you close this tab, choose **Keep running**: the CLI carries on, even after you quit. Click its session to return.</key>
 	<string>关闭这个标签页时选择 **保持运行**：CLI 会继续运行，退出 App 后也不会停。单击它的会话即可回来。</string>
+	<key>Works with SSH keys, or with a password or code.</key>
+	<string>支持 SSH 密钥，也支持密码或验证码。</string>
+	<key>Yes</key>
+	<string>是</string>
 	<key>You</key>
 	<string>你</string>
 	<key>Your login shell, with no CLI</key>
@@ -1130,6 +1154,8 @@
 	<string>`python3`，用于 Antigravity 和 OpenCode</string>
 	<key>`rsync`, and the CLIs you use</key>
 	<string>`rsync`，以及你使用的 CLI</string>
+	<key>`ssh` asks this to log in. JustSessions keeps nothing you type.</key>
+	<string>`ssh` 需要这些信息来登录。JustSessions 不会保存你输入的任何内容。</string>
 	<key>`tmux`, so a CLI keeps running when the connection drops</key>
 	<string>`tmux`，这样连接断开时 CLI 也会继续运行</string>
 	<key>iTerm2 Color Preset File…</key>

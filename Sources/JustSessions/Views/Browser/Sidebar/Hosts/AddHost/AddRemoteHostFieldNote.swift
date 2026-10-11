@@ -6,11 +6,12 @@ struct AddRemoteHostFieldNote: View {
     let isListed: Bool
     /// For the host typed, once `ssh -G` has read it.
     let sameMachineCheck: SSHHostSameMachineCheck?
-    let failedConnection: (host: String, problem: SSHConnectionProblem)?
+    /// Why logging in to the host failed.
+    let connectionFailure: String?
 
     var body: some View {
-        if let failedConnection {
-            warning(Text(verbatim: failedConnection.problem.explanation(host: failedConnection.host)))
+        if let connectionFailure {
+            warning(Text(verbatim: connectionFailure))
         } else {
             switch input {
             case .notADestination:
@@ -43,7 +44,7 @@ struct AddRemoteHostFieldNote: View {
                 }
                 .textSelection(.enabled)
             }
-            Text("Requires passwordless SSH.")
+            Text("Works with SSH keys, or with a password or code.")
         }
         .font(ThemeFont.caption)
         .foregroundStyle(ThemePalette.secondaryText)

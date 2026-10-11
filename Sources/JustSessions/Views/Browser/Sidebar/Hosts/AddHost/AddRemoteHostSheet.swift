@@ -4,10 +4,12 @@ import SwiftUI
 /// removing it are on that heading's right-click menu. What is typed is read as `ssh` would read it, so a pasted
 /// `ssh devbox` adds `devbox`, a port is shown how to put in `~/.ssh/config`, and a host that connects where a listed
 /// one does is refused. Adding first logs in to the host as the app's background commands do, so a host they can't
-/// reach says why here; Add anyway keeps it, as for a host that is only offline now.
+/// reach says why here; Add anyway keeps it, as for a host that is only offline now. A host that asks for a password,
+/// a code, or a new host key's approval offers Connect…, which logs in, asking in a sheet over this one, then adds it.
 struct AddRemoteHostSheet: View {
     @ObservedObject var store: ConversationStore
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var loginPrompter = SSHLoginPrompter()
     @State private var proposedHost = ""
     /// The host being logged in to before it is added. The field is locked meanwhile.
     @State private var hostBeingChecked: String?
@@ -20,6 +22,12 @@ struct AddRemoteHostSheet: View {
     private struct FailedConnection {
         let host: String
         let problem: SSHConnectionProblem
+        /// Connect… asked its questions and still failed.
+        var afterLoggingIn = false
+
+        var explanation: String {
+            afterLoggingIn ? problem.loginFailureExplanation(host: host) : problem.explanationBesideConnect(host: host)
+        }
     }
 
     private var input: RemoteHostInput {
@@ -63,7 +71,7 @@ struct AddRemoteHostSheet: View {
                     input: input,
                     isListed: isListed,
                     sameMachineCheck: sameMachineCheckOfInput,
-                    failedConnection: failedConnectionToHostToAdd.map { ($0.host, $0.problem) }
+                    connectionFailure: failedConnectionToHostToAdd?.explanation
                 )
             }
 
@@ -85,12 +93,23 @@ struct AddRemoteHostSheet: View {
             if let failedConnection = failedConnectionToHostToAdd {
                 Button("Add anyway") { add(failedConnection.host) }
             }
-            Button(addButtonTitle, action: checkAndAddHost)
-                .buttonStyle(ThemeProminentButtonStyle())
-                .keyboardShortcut(.defaultAction)
-                .disabled(hostToAdd == nil || hostBeingChecked != nil)
+            // Connect… stands in for Try again: once nothing needs asking, it logs in without a question. After a
+            // failed login, trying again is logging in again.
+            if let failedConnection = failedConnectionToHostToAdd,
+               failedConnection.problem.isFixedByLoggingIn || failedConnection.afterLoggingIn {
+                Button("Connect…") { logInAndAdd(failedConnection.host) }
+                    .buttonStyle(ThemeProminentButtonStyle())
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(hostBeingChecked != nil)
+            } else {
+                Button(addButtonTitle, action: checkAndAddHost)
+                    .buttonStyle(ThemeProminentButtonStyle())
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(hostToAdd == nil || hostBeingChecked != nil)
+            }
         }
         .task(id: input.validDestination) { await readWhereTheHostConnects() }
+        .sshLoginQuestions(from: loginPrompter)
         .onDisappear { connectionCheck?.cancel() }
     }
 
@@ -143,6 +162,25 @@ struct AddRemoteHostSheet: View {
                 failedConnection = FailedConnection(host: host, problem: problem)
             } else {
                 add(host)
+            }
+        }
+    }
+
+    /// Logs in with Connect…, then adds the host, whose refresh goes through that login.
+    private func logInAndAdd(_ host: String) {
+        guard hostBeingChecked == nil else { return }
+        hostBeingChecked = host
+        connectionCheck = Task { [loginPrompter] in
+            let outcome = await store.logIn(to: host) { await loginPrompter.ask($0) }
+            guard !Task.isCancelled else { return }
+            hostBeingChecked = nil
+            switch outcome {
+            case .loggedIn:
+                add(host)
+            case .cancelled:
+                break
+            case .failed(let problem):
+                failedConnection = FailedConnection(host: host, problem: problem, afterLoggingIn: true)
             }
         }
     }

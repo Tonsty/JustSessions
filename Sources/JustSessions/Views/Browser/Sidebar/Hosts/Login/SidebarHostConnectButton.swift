@@ -1,0 +1,27 @@
+import SwiftUI
+
+/// After an SSH host's name when its last refresh needed a login: Connect… logs in, asking for the password or code
+/// in a sheet. While it logs in, a spinner takes its place. Its tooltip says why the refresh failed.
+struct SidebarHostConnectButton: View {
+    let host: SessionHost
+    let isLoggingIn: Bool
+    let failureMessage: String?
+    let action: () -> Void
+
+    var body: some View {
+        if isLoggingIn {
+            ProgressView()
+                .controlSize(.mini)
+                .frame(height: 20)
+                .accessibilityLabel(Text("Connecting to \(host.displayName)…"))
+        } else {
+            Button("Connect…", action: action)
+                .font(ThemeFont.caption.weight(.semibold))
+                .foregroundStyle(ThemePalette.ink)
+                .buttonStyle(ThemePlainButtonStyle(horizontalPadding: 4, verticalPadding: 2, cornerRadius: .small))
+                .fixedSize()
+                .help(failureMessage ?? AppLocalization.string("Log in to \(host.displayName)"))
+                .accessibilityIdentifier(host.sshDestination.map { "sidebar.connectHost.ssh.\($0)" } ?? "")
+        }
+    }
+}

@@ -29,12 +29,15 @@ extension ConversationStore {
 
     /// A new session's or branch's tab that took its session's tmux name must attach under that name, not the
     /// one it started with. Attaching ignores the CLI arguments, so resume arguments are right whenever tmux still runs it.
+    /// Either way the tab connects through the host's login open now, if any.
     private func reconnectCommand(for ended: TerminalSession) -> NativeCLICommand {
-        guard let host = ended.host.sshDestination,
-              let conversation = ended.conversation,
+        guard let host = ended.host.sshDestination else { return ended.command }
+        guard let conversation = ended.conversation,
               let tmuxName = ended.tmuxSessionName,
               tmuxName == TmuxSessionName.forConversation(conversation),
-              let adapter = adapter(for: conversation.provider) else { return ended.command }
+              let adapter = adapter(for: conversation.provider) else {
+            return RemoteCLICommandBuilder().withCurrentLogin(ended.command, host: host)
+        }
         return RemoteCLICommandBuilder().command(
             host: host,
             provider: conversation.provider,

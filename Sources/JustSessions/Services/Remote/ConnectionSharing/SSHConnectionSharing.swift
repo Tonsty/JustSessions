@@ -4,17 +4,24 @@ import Foundation
 /// One app-owned SSH connection for one remote-session refresh. Snapshot commands, rsync copies, and cleanup
 /// commands receive the same private control path, then the refresh explicitly ends that master and removes its
 /// socket directory. A concurrent refresh gets a different path, and a user's own multiplexing policy is left alone.
+/// A host logged in to with Connect… shares that login instead, which the refresh leaves open.
 struct SSHConnectionSharing: Sendable {
     static let socketRoot = "/tmp/justsessions-ssh-\(getuid())"
     static let crashFallbackSeconds = 60
 
     let options: [String]
-    private let state: State
+    /// Nil when the refresh goes through a login it does not own.
+    private let state: State?
 
     /// Starts a scope only when the user's SSH configuration leaves connection sharing unset. The first command in
     /// the refresh starts the master; `ControlPersist` keeps it available between sequential commands and limits
     /// its life if the app exits before explicit teardown.
-    static func startRefresh(to host: String) -> SSHConnectionSharing? {
+    static func startRefresh(
+        to host: String,
+        loginConnections: SSHLoginConnections = .shared
+    ) -> SSHConnectionSharing? {
+        let loginOptions = loginConnections.connectionOptions(for: host)
+        if !loginOptions.isEmpty { return SSHConnectionSharing(throughLoginWithOptions: loginOptions) }
         guard let directory = SSHSocketDirectory.makeRefreshDirectory(at: socketRoot) else { return nil }
         let controlPath = directory.appendingPathComponent("master").path
         guard let configuration = SSHHostConfiguration.resolveWithConnectionSharingFallback(
@@ -38,6 +45,11 @@ struct SSHConnectionSharing: Sendable {
         state = State(host: host, directory: directory, controlPath: controlPath, close: close ?? Self.close)
     }
 
+    private init(throughLoginWithOptions options: [String]) {
+        self.options = options
+        state = nil
+    }
+
     static func options(controlPath: String) -> [String] {
         [
             "-o", "ControlMaster=auto",
@@ -48,7 +60,7 @@ struct SSHConnectionSharing: Sendable {
 
     /// Safe to call more than once. The explicit path can only name this refresh's master, never one the user owns.
     func finish() {
-        state.finish()
+        state?.finish()
     }
 
     private static func close(host: String, controlPath: String) {

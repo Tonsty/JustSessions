@@ -7,7 +7,7 @@ struct HelpRemoteHostSection: View {
             Text("Choose **Add SSH host…** at the bottom of the sidebar, then enter `user@hostname` or an alias from `~/.ssh/config`. Your code and CLIs run on the host; its history is cached on this Mac.")
             Text("The host needs:")
             HelpBulletList(items: [
-                "Passwordless SSH from this Mac",
+                "SSH from this Mac. If it asks for a password or a code, click **Connect…** on the host's heading.",
                 "`rsync`, and the CLIs you use",
                 "`tmux`, so a CLI keeps running when the connection drops",
                 "`python3`, for Antigravity and OpenCode",

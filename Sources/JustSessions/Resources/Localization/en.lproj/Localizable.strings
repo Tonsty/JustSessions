@@ -106,8 +106,8 @@
 	<string>Add a project folder or restore an archived project on %@</string>
 	<key>Add a project folder or restore an archived project on this Mac</key>
 	<string>Add a project folder or restore an archived project on this Mac</string>
-	<key>Add a server you reach with passwordless SSH to browse and resume its sessions here.</key>
-	<string>Add a server you reach with passwordless SSH to browse and resume its sessions here.</string>
+	<key>Add a server you reach over SSH to browse and resume its sessions here.</key>
+	<string>Add a server you reach over SSH to browse and resume its sessions here.</string>
 	<key>Add anyway</key>
 	<string>Add anyway</string>
 	<key>Add host</key>
@@ -144,6 +144,8 @@
 	<string>Also resumes %@ sessions on this Mac. JustSessions adds its own arguments after it.</string>
 	<key>An archived project is hidden from the sidebar. Its folder and sessions stay on disk, and restoring it lists them again. Starting a new session in its folder also restores it.</key>
 	<string>An archived project is hidden from the sidebar. Its folder and sessions stay on disk, and restoring it lists them again. Starting a new session in its folder also restores it.</string>
+	<key>Answer</key>
+	<string>Answer</string>
 	<key>Antigravity and OpenCode need `python3`; deleting Antigravity sessions also needs `lsof`.</key>
 	<string>Antigravity and OpenCode need `python3`; deleting Antigravity sessions also needs `lsof`.</string>
 	<key>App</key>
@@ -310,10 +312,16 @@
 	<string>Connect again; a CLI still running in tmux on the host is reattached</string>
 	<key>Connecting to %@…</key>
 	<string>Connecting to %@…</string>
+	<key>Connecting…</key>
+	<string>Connecting…</string>
 	<key>Connects to %@, port %@.</key>
 	<string>Connects to %@, port %@.</string>
 	<key>Connects to %@.</key>
 	<string>Connects to %@.</string>
+	<key>Connect…</key>
+	<string>Connect…</string>
+	<key>Continue</key>
+	<string>Continue</string>
 	<key>Copied</key>
 	<string>Copied</string>
 	<key>Copies the colors once. JustSessions doesn't read iTerm2's settings again.</key>
@@ -380,6 +388,8 @@
 	<string>Deleting sessions</string>
 	<key>Deletion progress</key>
 	<string>Deletion progress</string>
+	<key>Disconnect</key>
+	<string>Disconnect</string>
 	<key>Don't ask again</key>
 	<string>Don't ask again</string>
 	<key>Done</key>
@@ -566,6 +576,10 @@
 	<string>Load later messages</string>
 	<key>Local Network</key>
 	<string>Local Network</string>
+	<key>Log in to %@</key>
+	<string>Log in to %@</string>
+	<key>Logged in with Connect…</key>
+	<string>Logged in with Connect…</string>
 	<key>Markdown (.md)…</key>
 	<string>Markdown (.md)…</string>
 	<key>Match app</key>
@@ -664,8 +678,8 @@
 	<string>Notify me when a session</string>
 	<key>OK</key>
 	<string>OK</string>
-	<key>On an SSH host, check passwordless SSH, rsync, and the CLI there. A host at a local address also needs **Local Network** in Permissions.</key>
-	<string>On an SSH host, check passwordless SSH, rsync, and the CLI there. A host at a local address also needs **Local Network** in Permissions.</string>
+	<key>On an SSH host, check that SSH works, or click **Connect…** on its heading, then check rsync and the CLI there. A host at a local address also needs **Local Network** in Permissions.</key>
+	<string>On an SSH host, check that SSH works, or click **Connect…** on its heading, then check rsync and the CLI there. A host at a local address also needs **Local Network** in Permissions.</string>
 	<key>Once Claude Code, Codex, or another supported CLI saves a conversation, it shows up here, grouped by project.</key>
 	<string>Once Claude Code, Codex, or another supported CLI saves a conversation, it shows up here, grouped by project.</string>
 	<key>Only renames it in JustSessions. Leave empty to use the folder name (%@).</key>
@@ -702,8 +716,6 @@
 	<string>Optional. Without it, macOS asks about each protected folder, such as Documents or an external drive, the first time a CLI in a terminal opens files there.</string>
 	<key>Organize</key>
 	<string>Organize</string>
-	<key>Passwordless SSH from this Mac</key>
-	<string>Passwordless SSH from this Mac</string>
 	<key>Paste</key>
 	<string>Paste</string>
 	<key>Path on the host, such as ~/code/app</key>
@@ -792,8 +804,6 @@
 	<string>Report on GitHub</string>
 	<key>Reporting the crash helps get it fixed. The report opens with the crash details filled in: add what you were doing, then send it. The crash report file shows in Finder, so you can attach it.</key>
 	<string>Reporting the crash helps get it fixed. The report opens with the crash details filled in: add what you were doing, then send it. The crash report file shows in Finder, so you can attach it.</string>
-	<key>Requires passwordless SSH.</key>
-	<string>Requires passwordless SSH.</string>
 	<key>Reset</key>
 	<string>Reset</string>
 	<key>Restore</key>
@@ -828,6 +838,8 @@
 	<string>SSH alias or user@hostname</string>
 	<key>SSH aliases come from `~/.ssh/config`.</key>
 	<string>SSH aliases come from `~/.ssh/config`.</string>
+	<key>SSH from this Mac. If it asks for a password or a code, click **Connect…** on the host's heading.</key>
+	<string>SSH from this Mac. If it asks for a password or a code, click **Connect…** on the host's heading.</string>
 	<key>SSH host</key>
 	<string>SSH host</string>
 	<key>SSH hosts</key>
@@ -1002,6 +1014,8 @@
 	<string>Text can't stay readable on that color. Choose a lighter one.</string>
 	<key>Text size, in the terminals or the conversation shown</key>
 	<string>Text size, in the terminals or the conversation shown</string>
+	<key>That answer wasn't accepted. Try again.</key>
+	<string>That answer wasn't accepted. Try again.</string>
 	<key>The Antigravity session database, associated folder, and annotations will move to the macOS Trash. This also removes its entry from Antigravity's local index.</key>
 	<string>The Antigravity session database, associated folder, and annotations will move to the macOS Trash. This also removes its entry from Antigravity's local index.</string>
 	<key>The CLI tab choice is for tabs whose CLI can keep running in tmux. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.</key>
@@ -1040,6 +1054,8 @@
 	<string>Theme</string>
 	<key>This Mac</key>
 	<string>This Mac</string>
+	<key>This Mac hasn't connected to this host before. Trust it only if the fingerprint matches the host's.</key>
+	<string>This Mac hasn't connected to this host before. Trust it only if the fingerprint matches the host's.</string>
 	<key>This affects all tools in %@, including sessions hidden by the current filter.</key>
 	<string>This affects all tools in %@, including sessions hidden by the current filter.</string>
 	<key>This affects all tools in %lld projects, including sessions hidden by the current filter.</key>
@@ -1060,6 +1076,10 @@
 	<string>Time range</string>
 	<key>Tool</key>
 	<string>Tool</string>
+	<key>Trust %@?</key>
+	<string>Trust %@?</string>
+	<key>Trust and connect</key>
+	<string>Trust and connect</string>
 	<key>Try Again</key>
 	<string>Try Again</string>
 	<key>Try again</key>
@@ -1096,6 +1116,10 @@
 	<string>When you close a terminal</string>
 	<key>When you close this tab, choose **Keep running**: the CLI carries on, even after you quit. Click its session to return.</key>
 	<string>When you close this tab, choose **Keep running**: the CLI carries on, even after you quit. Click its session to return.</string>
+	<key>Works with SSH keys, or with a password or code.</key>
+	<string>Works with SSH keys, or with a password or code.</string>
+	<key>Yes</key>
+	<string>Yes</string>
 	<key>You</key>
 	<string>You</string>
 	<key>Your login shell, with no CLI</key>
@@ -1116,6 +1140,8 @@
 	<string>`python3`, for Antigravity and OpenCode</string>
 	<key>`rsync`, and the CLIs you use</key>
 	<string>`rsync`, and the CLIs you use</string>
+	<key>`ssh` asks this to log in. JustSessions keeps nothing you type.</key>
+	<string>`ssh` asks this to log in. JustSessions keeps nothing you type.</string>
 	<key>`tmux`, so a CLI keeps running when the connection drops</key>
 	<string>`tmux`, so a CLI keeps running when the connection drops</string>
 	<key>iTerm2 Color Preset File…</key>

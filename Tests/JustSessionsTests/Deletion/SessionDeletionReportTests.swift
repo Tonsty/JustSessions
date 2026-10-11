@@ -96,8 +96,8 @@ struct SessionDeletionReportTests {
         let alert = try #require(SessionDeletionReport(requestedCount: 3, deletedCount: 0, failures: failures).alert(titleOf: \.suggestedTitle))
 
         #expect(alert.message == """
-            None of the 3 sessions were deleted. devbox didn't accept the SSH login without a password. Check that \
-            “ssh devbox” works in Terminal without asking for a password.
+            None of the 3 sessions were deleted. devbox asks for a password, a passphrase, or a code. Click Connect… \
+            on its heading to log in.
             """)
         #expect(!alert.offersTryAgain)
     }
@@ -115,7 +115,7 @@ struct SessionDeletionReportTests {
 
             The connection to devbox was lost, for example because the Mac slept or the network changed. 4 sessions on devbox weren't deleted.
 
-            buildbox's host key has changed or isn't trusted. Connect once with “ssh buildbox” in Terminal to check it. \
+            buildbox's host key isn't trusted yet, or has changed. Click Connect… on its heading to check it. \
             2 sessions on buildbox weren't deleted.
 
             Claude Code · Locked: Permission denied.
