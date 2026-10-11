@@ -10,7 +10,8 @@ import Testing
 @Suite(.serialized)
 struct GhosttyFontConfigurationTests {
     /// SwiftTerm draws a Chinese character the terminal font lacks with the font macOS picks for it. Ghostty finds it
-    /// among the configured families rather than looking one up and scaling it.
+    /// among the configured families rather than looking one up and scaling it. The symbols font joins them for Nerd
+    /// Font icons; see `GhosttySymbolsFallbackTests`.
     @Test func missingCharactersComeFromTheFamiliesMacOSDrawsThemWith() throws {
         let font = TerminalFontFamily.system.font(size: 13)
         let lines = Self.lines(of: TerminalAppearancePreferences())
@@ -18,7 +19,8 @@ struct GhosttyFontConfigurationTests {
         let families = Self.values(of: "font-family", in: lines)
 
         #expect(families.first == ".AppleSystemUIFontMonospaced")
-        #expect(Array(families.dropFirst()) == CoreTextFallbackFamilies.families(after: font))
+        #expect(families.contains(TerminalSymbolsFont.familyName))
+        #expect(families.dropFirst().filter { $0 != TerminalSymbolsFont.familyName } == CoreTextFallbackFamilies.families(after: font))
         #expect(families.dropFirst().contains { Self.family($0, draws: "中") })
     }
 
@@ -97,7 +99,7 @@ struct GhosttyFontConfigurationTests {
         return CTFontGetGlyphsForCharacters(font, &characters, &glyphs, characters.count)
     }
 
-    private static func values(of key: String, in lines: [String]) -> [String] {
+    static func values(of key: String, in lines: [String]) -> [String] {
         lines.compactMap { line in line.hasPrefix("\(key) = ") ? String(line.dropFirst("\(key) = ".count)) : nil }
     }
 }
