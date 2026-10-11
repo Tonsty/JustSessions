@@ -21,7 +21,9 @@ struct RemoteShellStartupStoreTests {
         #expect(store.shellStartupCheck(on: host) == expected)
         #expect(RemoteShellStartupChecks.load(from: settings.userDefaults).result(for: host) == expected)
         #expect(RemoteHostShellStartups.shared.startup(on: host) == .loginOnly)
-        #expect(!store.hostsCheckingShellStartup.contains(host))
+        // The new startup refreshes the host, which fails here and checks it again; that check finds nothing new.
+        try await expectEventually { !store.hostsCheckingShellStartup.contains(host) }
+        #expect(store.shellStartupCheck(on: host) == expected)
     }
 
     @Test func aCheckedHostIsCheckedAgainOnceARunWhenItsStatusSaysNothingAboutItsCLIs() async throws {

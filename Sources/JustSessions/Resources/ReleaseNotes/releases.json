@@ -24,6 +24,10 @@
         "kind": "fixed",
         "items": [
           {
+            "en": "Segmented controls in Settings and the new session sheet show the selected choice in every theme.",
+            "zh-Hans": "设置和新建会话面板里的分段控件在所有主题下都能看清选中项。"
+          },
+          {
             "en": "Small bug fixes.",
             "zh-Hans": "修复了一些小问题。"
           }
