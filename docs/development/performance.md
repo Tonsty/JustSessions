@@ -130,6 +130,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 17 | [SSH connections during a remote refresh](#17-ssh-connections-during-a-remote-refresh) | Changed, not measured live: issue #64 |
 | 18 | [Workspace windows repeated discovery and message indexing](#18-workspace-windows-repeated-discovery-and-message-indexing) | Done: issue #57 |
 | 19 | [The working spinner re-rendered the window 30 times a second](#19-the-working-spinner-re-rendered-the-window-30-times-a-second) | Done: idle render loop PR |
+| 20 | [Every sidebar row hosted its hover menus](#20-every-sidebar-row-hosted-its-hover-menus) | Done: hover menus PR |
 
 ### 1. Timestamp parsing
 
@@ -434,6 +435,25 @@ Traces recorded with `xcrun xctrace record --template 'Time Profiler' --instrume
 **Change:** the arc is a `CAShapeLayer` in a small `NSViewRepresentable`, turned by a repeating `CABasicAnimation` on `transform.rotation.z` that the render server runs; SwiftUI draws the view once. The animation runs only while the arc can be seen — the view is in a window that is not minimized, neither it nor an ancestor is hidden, and the SwiftUI view hosting it is not at zero opacity, which is how the app keeps hidden content mounted — and is removed otherwise, so a spinner in a hidden tab, a hidden sidebar panel, or a minimized window costs the render server nothing; one in a window covered by another, or clipped out of a scroll view, still turns. Reduce Motion still shows the arc standing still. The stroke color is resolved from the view's effective appearance, as the SwiftUI arc's `ThemePalette.live` was. `WorkingSpinnerRenderingTests` checks the arc draws in the live color of each appearance, that held still it covers the pixels the SwiftUI arc did, and that no view under `Views/` animates with a per-frame `TimelineView` again; `WorkingSpinnerLifecycleTests` checks it stops and restarts with opacity and hiding, and stops on leaving the window.
 
 **Limits:** the remaining 3–4% is Ghostty frame delivery and periodic syncs, not SwiftUI. The hosting view still re-renders whole on every state change it observes, and a tab switch and a right-click still stall in accessibility walks of it; those are separate items.
+
+### 20. Every sidebar row hosted its hover menus
+
+**Evidence:** every tab switch stalled the main thread for about 270 ms, a microhang on every click in the Hangs instrument. In a Time Profiler trace of main at f156493 (after item 19), 5 tabs open, 20 tab clicks a second apart delivered as real mouse events: 20 hangs of 252–287 ms, 7,000 ms of the 26 s inside `NSHostingView.layout`, about 350 ms per click. Inside those, `AppKitPopUpAdaptor` accounted for 2,400 ms and `ViewGraphFeatureBuffer` 1,350, with `_CFBundleCopyLocalizedString` and `CUICatalog` under them: the ⋯ and + menus of every project row, and the ⋯ of every session row. Each row kept them in the view tree at zero opacity, for the pointer to find, and each `Menu` is an `NSPopUpButton` underneath; the hosted browser with 50 projects held 49 pop-up buttons among 283 AppKit views. A tab switch changes `selectedTerminalID`, every row observing the store re-evaluates, and every pop-up button's localized title and image are resolved and its view re-registered with accessibility, whether or not anything in the row changed. The focus-responder walk the baseline named (`AccessibilityNode.updateFocusResponder`) is real but small: ~100 samples in 26 s, 5 ms per switch, visiting every SwiftUI responder node once with a protocol-conformance lookup each; the hidden tabs' terminals are 4 of those samples.
+
+Traces recorded with `xcrun xctrace record --template 'Time Profiler' --instrument Hangs --attach <pid> --time-limit 26s`, the clicks posted by a small accessibility driver (`/tmp/axdrive click 20 1`, tab buttons in rotation, CGEvents at their centers). Apple M4 Pro, macOS 26.6.1, Xcode 27.0, release builds, this session's CLI working throughout.
+
+| Build | Main thread busy | Inside `NSHostingView.layout` | Hangs ≥ 100 ms | Focus walk samples |
+| --- | ---: | ---: | ---: | ---: |
+| f156493, run 1 | 34.4% | 26.9% | 20 (259–285 ms) | 103 |
+| f156493, run 2 | 34.7% | 27.9% | 20 (270–287 ms) | 112 |
+| f156493, run 3 | 34.9% | 28.1% | 20 (271–287 ms) | 111 |
+| After, run 1 | 14.7% | 10.1% | 0 | 118 |
+| After, run 2 | 13.7% | 9.3% | 0 | 80 |
+| After, run 3 | 14.8% | 9.8% | 0 | 73 |
+
+**Change:** a row puts its menus in the view tree only while the pointer is over it, and lays out a placeholder of the same size otherwise, so nothing moves under the pointer: `SidebarProjectRow`, `SidebarSessionRow`, `SidebarSubagentRow`, `SidebarOpenTabGroupHeading`, and `SidebarHostHeading`. The sidebar at rest hosts one pop-up button, its header's filter, which `SidebarHoverMenusTests` checks with the 300-session harness, along with the placeholder's size. The right-click menus are unchanged: `.contextMenu` adds no view until it opens.
+
+**Limits:** a click still costs about 125 ms of SwiftUI update, most of it `ViewGraph.updateOutputs` and `ScrollViewCommitMutation` re-evaluating the sidebar's rows because they observe the whole store; that is a later item's question. The focus walk's cost is SwiftUI's per node, not the app's, and was left as measured. A row's menus appear on hover as before; VoiceOver reaches them through the row's actions and the right-click menu, as it did while they were at zero opacity, which hid them from it too.
 
 ## How to profile
 

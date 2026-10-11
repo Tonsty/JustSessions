@@ -92,24 +92,27 @@ struct SidebarProjectRow: View {
         }
     }
 
-    /// The session count gives way to the ⋯ and + menus while the pointer is over the row. Both keep their room
-    /// while hidden, so nothing in the row moves as the pointer passes over it.
+    /// The session count gives way to the ⋯ and + menus while the pointer is over the row. The menus are in the view
+    /// tree only then: each is an AppKit pop-up button underneath, and one per row for every row re-laid out on
+    /// every change costs more than the rows themselves; see item 20 in docs/development/performance.md. Their room
+    /// is kept while they are not, so nothing in the row moves as the pointer passes over it.
     private var sessionCountOrHoverActions: some View {
         ZStack(alignment: .trailing) {
-            Text(project.sessionCount.formatted())
-                .font(ThemeFont.detail.monospacedDigit())
-                .foregroundStyle(ThemePalette.secondaryText)
-                .opacity(isHovered ? 0 : 1)
-            ProjectHoverActions(
-                store: store,
-                location: project.location,
-                projectDisplayName: project.displayName,
-                onNewSession: onNewSession
-            ) {
-                menuItems
+            if isHovered {
+                ProjectHoverActions(
+                    store: store,
+                    location: project.location,
+                    projectDisplayName: project.displayName,
+                    onNewSession: onNewSession
+                ) {
+                    menuItems
+                }
+            } else {
+                Text(project.sessionCount.formatted())
+                    .font(ThemeFont.detail.monospacedDigit())
+                    .foregroundStyle(ThemePalette.secondaryText)
+                ProjectHoverActions<EmptyView>.placeholder
             }
-            .opacity(isHovered ? 1 : 0)
-            .allowsHitTesting(isHovered)
         }
     }
 }

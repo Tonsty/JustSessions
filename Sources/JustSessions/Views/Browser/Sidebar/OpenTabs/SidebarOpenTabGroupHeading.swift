@@ -72,20 +72,23 @@ struct SidebarOpenTabGroupHeading: View {
         .contextMenu { menuItems }
     }
 
-    /// The tab count gives way to the ⋯ and + menus while the pointer is over the heading. Both keep their room while
-    /// hidden, so nothing in the heading moves as the pointer passes over it.
+    /// The tab count gives way to the ⋯ and + menus while the pointer is over the heading. The menus are in the view
+    /// tree only then, see `SidebarProjectRow`; their room is kept while they are not, so nothing in the heading
+    /// moves as the pointer passes over it.
     private var tabCountOrHoverActions: some View {
         ZStack(alignment: .trailing) {
-            Text(verbatim: "\(tabCount)")
-                .monospacedDigit()
-                .foregroundStyle(ThemePalette.tertiaryText)
-                .opacity(isHovered ? 0 : 1)
-            ProjectHoverActions(store: store, location: location, projectDisplayName: projectName, onNewSession: onNewSession) {
-                menuItems
+            if isHovered {
+                ProjectHoverActions(store: store, location: location, projectDisplayName: projectName, onNewSession: onNewSession) {
+                    menuItems
+                }
+                .font(ThemeFont.body)
+            } else {
+                Text(verbatim: "\(tabCount)")
+                    .monospacedDigit()
+                    .foregroundStyle(ThemePalette.tertiaryText)
+                ProjectHoverActions<EmptyView>.placeholder
+                    .font(ThemeFont.body)
             }
-            .font(ThemeFont.body)
-            .opacity(isHovered ? 1 : 0)
-            .allowsHitTesting(isHovered)
         }
     }
 }

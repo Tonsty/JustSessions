@@ -45,12 +45,13 @@ struct SidebarSubagentRow: View {
             }
         }
         .overlay(alignment: .trailing) {
-            SidebarRowMoreActionsMenu(accessibilityLabel: "More actions for \(title)") {
-                menuItems
+            // In the view tree only while the pointer is over the row; see `SidebarProjectRow`.
+            if isHovered {
+                SidebarRowMoreActionsMenu(accessibilityLabel: "More actions for \(title)") {
+                    menuItems
+                }
+                .padding(.trailing, SidebarSessionRowMetrics.trailingPadding)
             }
-            .padding(.trailing, SidebarSessionRowMetrics.trailingPadding)
-            .opacity(isHovered ? 1 : 0)
-            .allowsHitTesting(isHovered)
         }
         .background(
             SidebarRowBackground(isSelected: isSelected, isHovered: isHovered, selectionProvider: conversation.provider)
