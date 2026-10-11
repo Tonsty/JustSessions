@@ -11,7 +11,6 @@ struct SessionEndingAcrossWindowsTests {
         defer { sandbox.tearDown() }
         _ = try #require(sandbox.openTab(of: sandbox.conversation, in: sandbox.first))
         #expect(sandbox.second.canEndSession(sandbox.conversation))
-        #expect(sandbox.second.endingSessionClosesTab(sandbox.conversation))
 
         sandbox.second.endSession(sandbox.conversation)
 
@@ -27,7 +26,6 @@ struct SessionEndingAcrossWindowsTests {
         let tmuxSessionName = TmuxSessionName.forConversation(sandbox.conversation)
         for store in [sandbox.first, sandbox.second] { store.setTmuxSessionNames([tmuxSessionName], on: .thisMac) }
         #expect(sandbox.second.canEndSession(sandbox.conversation))
-        #expect(!sandbox.second.endingSessionClosesTab(sandbox.conversation))
 
         sandbox.second.endSession(sandbox.conversation)
 

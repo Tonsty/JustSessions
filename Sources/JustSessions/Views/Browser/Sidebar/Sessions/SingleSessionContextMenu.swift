@@ -2,14 +2,13 @@ import SwiftUI
 
 /// Right-click menu for a sidebar session row that is not part of a multi-selection. The row stands for the session,
 /// not its tab, so it offers Resume while nothing runs the session and End session while its CLI runs, wherever that
-/// is. Closing the tab alone, which can keep the CLI running, is left to the tab and Open tabs.
+/// is. End session doesn't ask first: choosing it from the row's menu is already deliberate, and the session can be
+/// resumed. Closing the tab alone, which can keep the CLI running, is left to the tab and Open tabs.
 struct SingleSessionContextMenu: View {
     @ObservedObject var store: ConversationStore
     let conversation: Conversation
     let onRename: () -> Void
     let onDelete: () -> Void
-    /// Asks before ending the session's CLI.
-    let onEndSession: () -> Void
 
     var body: some View {
         // Resuming a session a tab already runs would only show that tab, which clicking the row does.
@@ -38,7 +37,9 @@ struct SingleSessionContextMenu: View {
             .disabled(!store.canLaunch(conversation, action: .branch))
         }
         if store.canEndSession(conversation) {
-            Button("End session…", systemImage: "stop.circle", role: .destructive, action: onEndSession)
+            Button("End session", systemImage: "stop.circle", role: .destructive) {
+                store.endSession(conversation)
+            }
         }
         Divider()
         SessionManagementMenuItems(store: store, conversation: conversation, onRename: onRename, onDelete: onDelete)
