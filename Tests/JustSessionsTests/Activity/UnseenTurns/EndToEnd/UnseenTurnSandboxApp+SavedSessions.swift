@@ -6,6 +6,7 @@ import Testing
 extension UnseenTurnSandboxApp {
     static let piSessionsFolder = ".pi/agent/sessions"
     static let openCodeDatabaseFile = ".local/share/opencode/opencode.db"
+    static let antigravityFolder = ".gemini/antigravity-cli"
 
     /// Saves a session as its CLI does with its first prompt, which titles it, and refreshes until it is listed.
     func saveSession(_ title: String, of provider: ConversationProvider) async throws {
@@ -21,7 +22,9 @@ extension UnseenTurnSandboxApp {
                 ])
         case .opencode:
             try saveOpenCodeSession(title)
-        case .antigravity, .kiro:
+        case .antigravity:
+            try saveAntigravitySession(title)
+        case .kiro:
             Issue.record("\(provider) does not tell what it is doing")
             return
         }
@@ -56,5 +59,17 @@ extension UnseenTurnSandboxApp {
         let database = try OpenCodeDatabaseFixture(file: databaseFile, createsTables: isNewDatabase)
         let sessionID = "ses_" + UUID().uuidString.replacingOccurrences(of: "-", with: "").prefix(26)
         try database.addSession(sessionID, directory: sandbox.project.path, title: title)
+    }
+
+    /// Antigravity keeps each conversation in a database of its own; this one's first turn ended.
+    private func saveAntigravitySession(_ title: String) throws {
+        let conversation = try AntigravitySessionFixture(
+            configurationDirectory: sandbox.root.appendingPathComponent(Self.antigravityFolder),
+            projectPath: sandbox.project.path
+        )
+        try AntigravitySessionFixture.execute(["DELETE FROM steps"], at: conversation.databaseFile)
+        try conversation.appendPrompt(title, index: 0)
+        try conversation.appendStep(type: 15, index: 1)
+        try conversation.appendExecution(index: 0, endingAtStep: 1)
     }
 }

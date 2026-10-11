@@ -2,10 +2,10 @@ import Foundation
 import Testing
 @testable import JustSessions
 
-/// The app as it runs on this Mac, in a tmux sandbox: the real Claude Code, Codex, Pi, and OpenCode adapters list
-/// sessions saved in the sandbox's home, tabs start their CLI in the sandbox's tmux server, Pi and OpenCode with the
-/// app's reporting extension, and the CLIs are `StandInActivityCLI`s that report what they do as the real ones do.
-/// Sessions are called by their title. `make()` returns nil where tmux is missing; see `ThisMacTmuxSandbox`.
+/// The app as it runs on this Mac, in a tmux sandbox: the real Claude Code, Codex, Pi, OpenCode, and Antigravity
+/// adapters list sessions saved in the sandbox's home, tabs start their CLI in the sandbox's tmux server, Pi and OpenCode
+/// with the app's reporting extension, and the CLIs are `StandInActivityCLI`s that report what they do as the real ones
+/// do. Sessions are called by their title. `make()` returns nil where tmux is missing; see `ThisMacTmuxSandbox`.
 @MainActor
 final class UnseenTurnSandboxApp {
     let sandbox: ThisMacTmuxSandbox
@@ -26,6 +26,7 @@ final class UnseenTurnSandboxApp {
         try sandbox.writeExecutable(named: "codex", script: StandInActivityCLI.codex)
         try sandbox.writeExecutable(named: "pi", script: StandInActivityCLI.pi)
         try sandbox.writeExecutable(named: "opencode", script: StandInActivityCLI.opencode)
+        try sandbox.writeExecutable(named: "agy", script: StandInActivityCLI.antigravity)
         try FileManager.default.createDirectory(at: sandbox.root.appendingPathComponent("turn-ends"), withIntermediateDirectories: true)
         settings = try IsolatedUserDefaults()
         claudeRegistry = ClaudeLiveSessionRegistry(configurationDirectory: sandbox.root.appendingPathComponent(".claude"))
@@ -37,6 +38,7 @@ final class UnseenTurnSandboxApp {
                 CodexAdapter(codexDirectory: sandbox.root.appendingPathComponent(".codex")),
                 PiAdapter(sessionsDirectory: sandbox.root.appendingPathComponent(Self.piSessionsFolder)),
                 OpenCodeAdapter(databaseFile: sandbox.root.appendingPathComponent(Self.openCodeDatabaseFile)),
+                AntigravityAdapter(configurationDirectory: sandbox.root.appendingPathComponent(Self.antigravityFolder)),
             ],
             commandResolver: NativeCLICommandResolver(
                 searchDirectories: [sandbox.binaryDirectory.path],
