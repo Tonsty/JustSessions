@@ -1,29 +1,19 @@
 import AppKit
 
-/// Renaming and pinning the tab's session, then copying, exporting, or finding it, as the tab's menu in the tab bar
-/// offers them; see `TerminalTabMenuItems`.
+/// Renaming the tab's session, then copying, exporting, or finding it, as the tab's menu in the tab bar offers them;
+/// see `TerminalTabMenuItems`.
 extension TerminalContextMenu {
-    /// Rename, then, once the tab knows its session, Pin and the session's other items, each group followed by a
-    /// separator, as in the tab bar.
+    /// Rename, then, once the tab knows its session, the session's other items, each group followed by a separator, as
+    /// in the tab bar.
     var conversationItems: [NSMenuItem] {
         let renameItem = ActionMenuItem(title: localized("Rename"), systemImage: "pencil", isEnabled: tab.conversation != nil) {
             if let conversation = tab.conversation { onRename(conversation) }
         }
         guard let conversation = tab.conversation else { return [renameItem, .separator()] }
-        return [renameItem, pinItem(for: conversation), .separator()]
+        return [renameItem, .separator()]
             + sharingItems(for: conversation)
             + locationItems(for: conversation)
             + [.separator()]
-    }
-
-    private func pinItem(for conversation: Conversation) -> NSMenuItem {
-        let isPinned = store.pinnedItems.isPinned(conversationID: conversation.id)
-        return ActionMenuItem(
-            title: isPinned ? localized("Unpin session") : localized("Pin session"),
-            systemImage: isPinned ? "pin.slash" : "pin"
-        ) { [store] in
-            store.setPinned(!isPinned, conversation: conversation)
-        }
     }
 
     /// Reveal is only for a session on this Mac, whose file the Finder can show.

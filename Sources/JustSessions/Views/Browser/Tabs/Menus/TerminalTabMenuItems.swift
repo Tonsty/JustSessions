@@ -1,9 +1,10 @@
 import SwiftUI
 
 /// A tab's menu, from a right-click on it in the tab bar or on its row in Open tabs. A session's tab starts with
-/// Rename, then what else is about its session, in the order its sidebar row's menu has them; then the split view
-/// entries; then closing it. New session is about the tab's project, so it is in the group's menu instead. A tab's
-/// terminal offers the same items after its text's; see `TerminalContextMenu`.
+/// Rename, then sharing and finding its session, in the order its sidebar row's menu has them; then the split view
+/// entries; then closing it. New session is about the tab's project, so it is in the group's menu instead. Pinning is
+/// left to the session's row: a pinned session stays at the top of the sidebar, which a tab has nothing to do with. A
+/// tab's terminal offers the same items after its text's; see `TerminalContextMenu`.
 struct TerminalTabMenuItems: View {
     @ObservedObject var store: ConversationStore
     @ObservedObject var tab: TerminalSession
@@ -31,10 +32,6 @@ struct TerminalTabMenuItems: View {
         }
         .disabled(tab.conversation == nil)
         if let conversation = tab.conversation {
-            let isPinned = store.pinnedItems.isPinned(conversationID: conversation.id)
-            Button(isPinned ? "Unpin session" : "Pin session", systemImage: isPinned ? "pin.slash" : "pin") {
-                store.setPinned(!isPinned, conversation: conversation)
-            }
             Divider()
             ConversationSharingMenuItems(selections: [ConversationExportSelection(conversation: conversation, title: tab.displayTitle)])
             Button("Copy session ID", systemImage: "doc.on.doc") {

@@ -3,7 +3,8 @@ import Testing
 @testable import JustSessions
 
 /// A right-click in a tab's terminal offers copying, pasting, and selecting its text, then what the tab's menu in the
-/// tab bar offers, in the same order and in the app's language: Rename first, then the session's other items.
+/// tab bar offers, in the same order and in the app's language: Rename first, then the session's other items. Pinning
+/// stays in the session's sidebar row, since a tab is not its session.
 @MainActor
 struct TerminalContextMenuItemsTests {
     @Test(arguments: TerminalEngine.allCases)
@@ -15,7 +16,7 @@ struct TerminalContextMenuItemsTests {
 
         #expect(TerminalContextMenuFixture.titles(of: fixture.menu(for: tab)) == [
             "Copy", "Paste", "Select All", "—",
-            "Rename", "Pin session", "—",
+            "Rename", "—",
             "Copy conversation", "Export conversation", "Copy session ID", "Reveal session file in Finder", "—",
             "Add tab to new split view", "—",
             "Close Tab…",
@@ -34,19 +35,6 @@ struct TerminalContextMenuItemsTests {
 
         #expect(titles.contains("Copy session ID"))
         #expect(!titles.contains("Reveal session file in Finder"))
-    }
-
-    @Test(arguments: TerminalEngine.allCases)
-    func pinSessionPinsTheTabsSessionThenOffersUnpin(engine: TerminalEngine) throws {
-        let fixture = try TerminalContextMenuFixture()
-        defer { fixture.tearDown() }
-        let conversation = Conversation.fixture()
-        let tab = fixture.openTab(engine: engine, conversation: conversation)
-
-        try TerminalContextMenuFixture.choose(TerminalContextMenuFixture.item("Pin session", in: fixture.menu(for: tab)))
-
-        #expect(fixture.store.pinnedItems.isPinned(conversationID: conversation.id))
-        #expect(TerminalContextMenuFixture.titles(of: fixture.menu(for: tab)).contains("Unpin session"))
     }
 
     @Test(arguments: TerminalEngine.allCases)
@@ -150,7 +138,7 @@ struct TerminalContextMenuItemsTests {
 
         #expect(TerminalContextMenuFixture.titles(of: fixture.menu(for: tab, language: "zh-Hans")) == [
             "复制", "粘贴", "全选", "—",
-            "重命名", "置顶会话", "—",
+            "重命名", "—",
             "复制对话", "导出对话", "复制会话 ID", "在 Finder 中显示会话文件", "—",
             "向新拆分视图添加标签页", "—",
             "关闭标签…",
