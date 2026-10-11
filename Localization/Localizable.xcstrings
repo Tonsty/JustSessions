@@ -206,6 +206,34 @@
         }
       }
     },
+    "%lld matches": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld match"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld matches"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个匹配项"
+          }
+        }
+      }
+    },
     "%lld messages": {
       "localizations": {
         "en": {
@@ -366,6 +394,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld 次工具调用"
+          }
+        }
+      }
+    },
+    "%lld+ matches": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld+ 个匹配项"
           }
         }
       }
@@ -1592,6 +1630,16 @@
         }
       }
     },
+    "Close find, while its field has the keyboard": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭查找（查找框有键盘焦点时）"
+          }
+        }
+      }
+    },
     "Close left view": {
       "localizations": {
         "zh-Hans": {
@@ -2670,12 +2718,32 @@
         }
       }
     },
+    "Find in terminal": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在终端中查找"
+          }
+        }
+      }
+    },
     "Find in the conversation": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "在对话中查找"
+          }
+        }
+      }
+    },
+    "Find in the terminal. In a tab linked to a session, find in its conversation in a reading window.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在终端中查找。在已关联会话的标签页中，于阅读窗口里查找其对话。"
           }
         }
       }
@@ -3717,6 +3785,26 @@
         }
       }
     },
+    "Newer match": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "较新的匹配项"
+          }
+        }
+      }
+    },
+    "Newer match (⇧⌘G or ⇧Return)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "较新的匹配项（⇧⌘G 或 ⇧Return）"
+          }
+        }
+      }
+    },
     "Next": {
       "localizations": {
         "zh-Hans": {
@@ -3989,6 +4077,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "好"
+          }
+        }
+      }
+    },
+    "Older match": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "较早的匹配项"
+          }
+        }
+      }
+    },
+    "Older match (⌘G or Return)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "较早的匹配项（⌘G 或 Return）"
           }
         }
       }

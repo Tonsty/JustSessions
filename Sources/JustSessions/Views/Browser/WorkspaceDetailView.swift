@@ -117,9 +117,22 @@ struct WorkspaceDetailView: View {
         // Over the terminals too, which the card hangs over from the tab bar.
         .overlay { TabHoverCardOverlay(store: store, controller: hoverCards) }
         .background(TabHoverCardEventWatcher(controller: hoverCards))
+        .background(TerminalFindShortcuts(selectedTabFind: store.selectedTerminal?.findState, onFind: findInSelectedTab))
         .onChange(of: store.terminalSplits.map(\.id)) { _, splitIDs in
             // Forget the pane widths of splits that are gone.
             splitFractions = splitFractions.filter { splitIDs.contains($0.key) }
+        }
+    }
+
+    /// ⌘F in the selected tab: its conversation's Find in a reading window, or the tab's find bar; see
+    /// `TerminalFindTarget`.
+    private func findInSelectedTab() {
+        guard let tab = store.selectedTerminal else { return }
+        switch TerminalFindTarget(tab: tab) {
+        case .conversation(let conversation):
+            SessionReadingWindowManager.shared.open(conversation, store: store, showingFind: true)
+        case .terminal:
+            tab.findState.show()
         }
     }
 

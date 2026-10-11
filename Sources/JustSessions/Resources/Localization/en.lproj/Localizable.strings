@@ -62,6 +62,8 @@
 	<string>%lld subagent sessions stay on disk.</string>
 	<key>%lld tool calls</key>
 	<string>%lld tool calls</string>
+	<key>%lld+ matches</key>
+	<string>%lld+ matches</string>
 	<key>**Open tabs** lists every tab with what its CLI is doing. ⌘1 to ⌘8 go to a tab by its position, and ⌘9 to the last.</key>
 	<string>**Open tabs** lists every tab with what its CLI is doing. ⌘1 to ⌘8 go to a tab by its position, and ⌘9 to the last.</string>
 	<key>**Resume** continues this conversation in its CLI, in its original folder. Double-clicking the session in the sidebar does the same.</key>
@@ -294,6 +296,8 @@
 	<string>Close and delete session…</string>
 	<key>Close find</key>
 	<string>Close find</string>
+	<key>Close find, while its field has the keyboard</key>
+	<string>Close find, while its field has the keyboard</string>
 	<key>Close left view</key>
 	<string>Close left view</string>
 	<key>Close right view</key>
@@ -484,8 +488,12 @@
 	<string>Find in conversation</string>
 	<key>Find in conversation (⌘F)</key>
 	<string>Find in conversation (⌘F)</string>
+	<key>Find in terminal</key>
+	<string>Find in terminal</string>
 	<key>Find in the conversation</key>
 	<string>Find in the conversation</string>
+	<key>Find in the terminal. In a tab linked to a session, find in its conversation in a reading window.</key>
+	<string>Find in the terminal. In a tab linked to a session, find in its conversation in a reading window.</string>
 	<key>Find in this conversation</key>
 	<string>Find in this conversation</string>
 	<key>Finishes its turn</key>
@@ -692,6 +700,10 @@
 	<string>New terminal</string>
 	<key>New window</key>
 	<string>New window</string>
+	<key>Newer match</key>
+	<string>Newer match</string>
+	<key>Newer match (⇧⌘G or ⇧Return)</key>
+	<string>Newer match (⇧⌘G or ⇧Return)</string>
 	<key>Next</key>
 	<string>Next</string>
 	<key>Next Tab</key>
@@ -744,6 +756,10 @@
 	<string>Notify me when a session</string>
 	<key>OK</key>
 	<string>OK</string>
+	<key>Older match</key>
+	<string>Older match</string>
+	<key>Older match (⌘G or Return)</key>
+	<string>Older match (⌘G or Return)</string>
 	<key>On an SSH host, check that SSH works, or click **Connect…** on its heading, then check rsync and the CLI there. A host at a local address also needs **Local Network** in Permissions.</key>
 	<string>On an SSH host, check that SSH works, or click **Connect…** on its heading, then check rsync and the CLI there. A host at a local address also needs **Local Network** in Permissions.</string>
 	<key>Once Claude Code, Codex, or another supported CLI saves a conversation, it shows up here, grouped by project.</key>
