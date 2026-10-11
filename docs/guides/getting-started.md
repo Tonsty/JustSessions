@@ -23,6 +23,8 @@ You need **macOS 14 Sonoma or later on Apple Silicon**, plus at least one instal
 
 On first launch, a short tour points out your sessions, **New session**, and SSH hosts beside the controls themselves. After that, tips show the first time you need them: reading a session points out **Resume** and find, reading another points out its right-click menu and search, and your first tabs point out tab groups, hiding the sidebar, **Keep running**, **Open tabs**, and split view. Each shows once; skip any of them. To see the tour again, choose **Help → Take the Tour**, or **Take the tour** in **Settings → Help**; the tips then show again too, the next time you reach each part.
 
+Each time JustSessions opens after that first launch, the bottom of the sidebar shows a random tip about something you may not have tried. → shows another, × hides it until the next launch, and **Show a tip in the sidebar each time JustSessions opens** in **Settings → Help** turns tips off for good. Right-clicking the tip offers **Don't show tips** too.
+
 Sparkle delivers subsequent app updates. Your CLI provider's plans and charges still apply.
 
 ## Resume your first session

@@ -62,12 +62,20 @@
 	<string>%lld subagent sessions stay on disk.</string>
 	<key>%lld tool calls</key>
 	<string>%lld tool calls</string>
+	<key>**Add SSH host…** at the bottom of the sidebar lists the sessions on another machine, ready to read and resume.</key>
+	<string>**Add SSH host…** at the bottom of the sidebar lists the sessions on another machine, ready to read and resume.</string>
+	<key>**Branch** starts a new session from a copy of a conversation and leaves the original as it was.</key>
+	<string>**Branch** starts a new session from a copy of a conversation and leaves the original as it was.</string>
+	<key>**Open in new window** gives a conversation a window of its own, so you can read it beside a terminal.</key>
+	<string>**Open in new window** gives a conversation a window of its own, so you can read it beside a terminal.</string>
 	<key>**Open tabs** lists every tab with what its CLI is doing. ⌘1 to ⌘8 go to a tab by its position, and ⌘9 to the last.</key>
 	<string>**Open tabs** lists every tab with what its CLI is doing. ⌘1 to ⌘8 go to a tab by its position, and ⌘9 to the last.</string>
 	<key>**Resume** continues this conversation in its CLI, in its original folder. Double-clicking the session in the sidebar does the same.</key>
 	<string>**Resume** continues this conversation in its CLI, in its original folder. Double-clicking the session in the sidebar does the same.</string>
 	<key>**Resume**, or a double-click, continues the conversation in its CLI and original folder. **Branch**, where the CLI supports it, starts a new session from a copy and leaves the original as it was.</key>
 	<string>**Resume**, or a double-click, continues the conversation in its CLI and original folder. **Branch**, where the CLI supports it, starts a new session from a copy and leaves the original as it was.</string>
+	<key>**Waiting for you** in the sidebar's filter menu lists sessions that stopped for your answer or finished a turn you haven't seen.</key>
+	<string>**Waiting for you** in the sidebar's filter menu lists sessions that stopped for your answer or finished a turn you haven't seen.</string>
 	<key>**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab to show two side by side.</key>
 	<string>**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab to show two side by side.</string>
 	<key>1 message</key>
@@ -162,6 +170,8 @@
 	<string>Archive %lld projects</string>
 	<key>Archive %lld projects and delete 1 session</key>
 	<string>Archive %lld projects and delete 1 session</string>
+	<key>Archive a project you are done with. The host's **+** menu brings it back from **Archived projects**.</key>
+	<string>Archive a project you are done with. The host's **+** menu brings it back from **Archived projects**.</string>
 	<key>Archive and delete sessions…</key>
 	<string>Archive and delete sessions…</string>
 	<key>Archive project</key>
@@ -252,6 +262,8 @@
 	<string>Clear filters</string>
 	<key>Clear the selection, or close search</key>
 	<string>Clear the selection, or close search</string>
+	<key>Click a project's label in the tab bar to collapse its tabs. A collapsed group still shows when a CLI is waiting on you.</key>
+	<string>Click a project's label in the tab bar to collapse its tabs. A collapsed group still shows when a CLI is waiting on you.</string>
 	<key>Click a session to read it; nothing runs. Double-click it to continue in its CLI, in the original folder.</key>
 	<string>Click a session to read it; nothing runs. Double-click it to continue in its CLI, in the original folder.</string>
 	<key>Click a session to read its conversation; no CLI starts. **Open in new window** gives it a window of its own.</key>
@@ -268,6 +280,8 @@
 	<string>Close Tab…</string>
 	<key>Close Window</key>
 	<string>Close Window</string>
+	<key>Close a tab with **Keep running** and its CLI carries on in tmux, even after you quit. Click its session to return.</key>
+	<string>Close a tab with **Keep running** and its CLI carries on in tmux, even after you quit. Click its session to return.</string>
 	<key>Close a tab with **Keep running**, or quit the app, and the CLI carries on in tmux. Click its session to return. A plain terminal ends with its tab.</key>
 	<string>Close a tab with **Keep running**, or quit the app, and the CLI carries on in tmux. Click its session to return. A plain terminal ends with its tab.</string>
 	<key>Close all tabs in %@?</key>
@@ -404,8 +418,14 @@
 	<string>Disconnect</string>
 	<key>Don't ask again</key>
 	<string>Don't ask again</string>
+	<key>Don't show tips</key>
+	<string>Don't show tips</string>
 	<key>Done</key>
 	<string>Done</string>
+	<key>Drag a tab out of the tab bar to give it a window of its own. Its CLI keeps running.</key>
+	<string>Drag a tab out of the tab bar to give it a window of its own. Its CLI keeps running.</string>
+	<key>Drop files from Finder on a tab on this Mac to type their paths into it.</key>
+	<string>Drop files from Finder on a tab on this Mac to type their paths into it.</string>
 	<key>Edit</key>
 	<string>Edit</string>
 	<key>End and close this terminal</key>
@@ -516,6 +536,10 @@
 	<string>Hide subagent sessions of %@</string>
 	<key>Hide the sidebar to give the terminal the whole window, and click again to bring it back. ⌘B does the same.</key>
 	<string>Hide the sidebar to give the terminal the whole window, and click again to bring it back. ⌘B does the same.</string>
+	<key>Hide until JustSessions opens again</key>
+	<string>Hide until JustSessions opens again</string>
+	<key>Hold ⇧ while dragging in a terminal to select its text, then press ⌘C to copy it.</key>
+	<string>Hold ⇧ while dragging in a terminal to select its text, then press ⌘C to copy it.</string>
 	<key>Host</key>
 	<string>Host</string>
 	<key>Hosts run Linux or macOS. For Windows, connect to WSL over SSH.</key>
@@ -664,6 +688,8 @@
 	<string>Next match (⌘G or Return)</string>
 	<key>Next tab</key>
 	<string>Next tab</string>
+	<key>Next tip</key>
+	<string>Next tip</string>
 	<key>No Claude Code, Codex, Antigravity, Pi, or OpenCode session is waiting for you</key>
 	<string>No Claude Code, Codex, Antigravity, Pi, or OpenCode session is waiting for you</string>
 	<key>No archived projects</key>
@@ -862,12 +888,20 @@
 	<string>Reverse views</string>
 	<key>Right view</key>
 	<string>Right view</string>
+	<key>Right-click a project to open it in Finder or in an editor you have installed.</key>
+	<string>Right-click a project to open it in Finder or in an editor you have installed.</string>
 	<key>Right-click a selected row in the sidebar to resume, branch, or delete them.</key>
 	<string>Right-click a selected row in the sidebar to resume, branch, or delete them.</string>
+	<key>Right-click a session or project to pin it. Pins keep the order you give them; drag one to move it.</key>
+	<string>Right-click a session or project to pin it. Pins keep the order you give them; drag one to move it.</string>
+	<key>Right-click a session to copy its conversation, or export it as Markdown or plain text.</key>
+	<string>Right-click a session to copy its conversation, or export it as Markdown or plain text.</string>
 	<key>Right-click a session to rename, pin, export, or delete it, and a project to rename, pin, or archive it. ⌘-click or ⇧-click selects several.</key>
 	<string>Right-click a session to rename, pin, export, or delete it, and a project to rename, pin, or archive it. ⌘-click or ⇧-click selects several.</string>
 	<key>Right-click a session to rename, pin, export, or delete it. ⌘-click or Shift-click to select several at once.</key>
 	<string>Right-click a session to rename, pin, export, or delete it. ⌘-click or Shift-click to select several at once.</string>
+	<key>Right-click another tab and choose **New split view with current tab** to see two tabs side by side.</key>
+	<string>Right-click another tab and choose **New split view with current tab** to see two tabs side by side.</string>
 	<key>Right-click another tab and choose **New split view with current tab**. Drag between the two views to resize them.</key>
 	<string>Right-click another tab and choose **New split view with current tab**. Drag between the two views to resize them.</string>
 	<key>Running</key>
@@ -934,10 +968,14 @@
 	<string>Sessions on %@ open a shell instead of their CLI, because its shell startup starts another program first. Click for how to fix it.</string>
 	<key>Sessions on other machines</key>
 	<string>Sessions on other machines</string>
+	<key>Sessions on this Mac can notify you when a turn ends or a CLI needs your input. Choose which in Settings → General.</key>
+	<string>Sessions on this Mac can notify you when a turn ends or a CLI needs your input. Choose which in Settings → General.</string>
 	<key>Settings</key>
 	<string>Settings</string>
 	<key>Settings (⌘,)</key>
 	<string>Settings (⌘,)</string>
+	<key>Settings → Appearance can customize your theme's colors, and the terminal's colors and font.</key>
+	<string>Settings → Appearance can customize your theme's colors, and the terminal's colors and font.</string>
 	<key>Settings…</key>
 	<string>Settings…</string>
 	<key>Setup requirements</key>
@@ -954,6 +992,8 @@
 	<string>Show %@</string>
 	<key>Show Sidebar</key>
 	<string>Show Sidebar</string>
+	<key>Show a tip in the sidebar each time JustSessions opens</key>
+	<string>Show a tip in the sidebar each time JustSessions opens</string>
 	<key>Show explanation</key>
 	<string>Show explanation</string>
 	<key>Show in Other Window</key>
@@ -968,6 +1008,8 @@
 	<string>Show subagents under the sessions that started them</string>
 	<key>Sidebar</key>
 	<string>Sidebar</string>
+	<key>Sidebar search also finds words inside messages. Click a matching line to open the conversation at that message.</key>
+	<string>Sidebar search also finds words inside messages. Click a matching line to open the conversation at that message.</string>
 	<key>Sidebar width</key>
 	<string>Sidebar width</string>
 	<key>Size</key>
@@ -1068,6 +1110,8 @@
 	<string>The Pi session file and its associated folder will be permanently deleted on %@. SSH hosts have no Trash, so this cannot be undone.</string>
 	<key>The Pi session file and its associated folder will move to the macOS Trash.</key>
 	<string>The Pi session file and its associated folder will move to the macOS Trash.</string>
+	<key>The bottom of the sidebar shows a random tip about something you may not have tried. → shows another, and × hides it until JustSessions opens again.</key>
+	<string>The bottom of the sidebar shows a random tip about something you may not have tried. → shows another, and × hides it until JustSessions opens again.</string>
 	<key>The folder is listed under %@ in the sidebar, ready for new sessions.</key>
 	<string>The folder is listed under %@ in the sidebar, ready for new sessions.</string>
 	<key>The host needs:</key>
@@ -1116,6 +1160,10 @@
 	<string>This session will be permanently deleted on %@. SSH hosts have no Trash, so this cannot be undone.</string>
 	<key>Time range</key>
 	<string>Time range</string>
+	<key>Tip</key>
+	<string>Tip</string>
+	<key>Tips</key>
+	<string>Tips</string>
 	<key>Tool</key>
 	<string>Tool</string>
 	<key>Trust %@?</key>
@@ -1202,7 +1250,19 @@
 	<string>·</string>
 	<key>⇧-click</key>
 	<string>⇧-click</string>
+	<key>⌘+ and ⌘− change the text size of the terminals or the conversation you are reading, and ⌘0 goes back to the default.</key>
+	<string>⌘+ and ⌘− change the text size of the terminals or the conversation you are reading, and ⌘0 goes back to the default.</string>
 	<key>⌘-click</key>
 	<string>⌘-click</string>
+	<key>⌘-click or ⇧-click in the sidebar to select several sessions, then right-click one to resume or delete them together.</key>
+	<string>⌘-click or ⇧-click in the sidebar to select several sessions, then right-click one to resume or delete them together.</string>
+	<key>⌘1 to ⌘8 go to a tab by its position, and ⌘9 to the last one. They work while a CLI has focus too.</key>
+	<string>⌘1 to ⌘8 go to a tab by its position, and ⌘9 to the last one. They work while a CLI has focus too.</string>
+	<key>⌘B hides the sidebar to give the terminal the whole window. Press it again to bring the sidebar back.</key>
+	<string>⌘B hides the sidebar to give the terminal the whole window. Press it again to bring the sidebar back.</string>
+	<key>⌘F finds text in the conversation you are reading, and ⌘G goes to the next match.</key>
+	<string>⌘F finds text in the conversation you are reading, and ⌘G goes to the next match.</string>
+	<key>⌘[ and ⌘] go back and forward through the tabs and sessions this window showed. Right-click the arrows for the whole list.</key>
+	<string>⌘[ and ⌘] go back and forward through the tabs and sessions this window showed. Right-click the arrows for the whole list.</string>
 </dict>
 </plist>
