@@ -37,10 +37,10 @@ struct SidebarEmptyHostMessage: Equatable {
                     ? "No session is running"
                     : "No session was running at the last refresh")
             } else if statusFilter == .waitingForYou {
-                // Only Claude Code, Codex, Pi, and OpenCode on this Mac tell what they are doing, so say so rather
-                // than suggest nothing else waits.
+                // Only Claude Code, Codex, Antigravity, Pi, and OpenCode on this Mac tell what they are doing, so say
+                // so rather than suggest nothing else waits.
                 self.init(text: host == .thisMac
-                    ? "No Claude Code, Codex, Pi, or OpenCode session is waiting for you"
+                    ? "No Claude Code, Codex, Antigravity, Pi, or OpenCode session is waiting for you"
                     : "SSH hosts don't tell when a session waits for you")
             } else {
                 self.init(text: recencyFilter == .recent ? "No sessions in the past seven days" : "No sessions")

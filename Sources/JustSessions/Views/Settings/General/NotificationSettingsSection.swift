@@ -13,7 +13,7 @@ struct NotificationSettingsSection: View {
                     .font(ThemeFont.heading)
                 HelpPopoverButton(
                     title: "Notifications",
-                    explanation: "Supports local Claude Code, Codex, Pi, and OpenCode, including sessions running in tmux without an open tab. Sessions you are viewing do not notify you. Click a notification to open its session."
+                    explanation: "Supports local Claude Code, Codex, Antigravity, Pi, and OpenCode, including sessions running in tmux without an open tab. Sessions you are viewing do not notify you. Click a notification to open its session."
                 )
                 .accessibilityIdentifier("settings.help.notifications")
             }

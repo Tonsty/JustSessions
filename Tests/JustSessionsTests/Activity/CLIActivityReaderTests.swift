@@ -17,6 +17,21 @@ struct CLIActivityReaderTests {
         #expect(CLIActivityReader.codexActivity(turnState: .inTurn(startedAt: cliStartedAt - 5), cliStartedAt: nil) == .working)
     }
 
+    @Test func anAntigravityTurnWaitsOnYouWhileAStepAwaitsApproval() {
+        let cliStartedAt = Date(timeIntervalSince1970: 1_790_000_000)
+        func activity(_ turnState: AntigravityTurnState?) -> CLIActivity? {
+            CLIActivityReader.antigravityActivity(turnState: turnState, cliStartedAt: cliStartedAt)
+        }
+
+        #expect(activity(nil) == nil)
+        #expect(activity(.betweenTurns) == .idle)
+        #expect(activity(.inTurn(startedAt: cliStartedAt + 5, isWaitingForApproval: false)) == .working)
+        #expect(activity(.inTurn(startedAt: cliStartedAt + 5, isWaitingForApproval: true)) == .needsInput(reason: nil))
+        // An earlier CLI ended in the middle of this turn, even one that waited for approval then.
+        #expect(activity(.inTurn(startedAt: cliStartedAt - 5, isWaitingForApproval: true)) == .idle)
+        #expect(activity(.inTurn(startedAt: nil, isWaitingForApproval: false)) == .working)
+    }
+
     @Test func readsEachProbedCLI() throws {
         let directory = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -37,6 +52,14 @@ struct CLIActivityReaderTests {
             .write(to: reporting.reportsDirectory.appendingPathComponent("5151.json"), atomically: true, encoding: .utf8)
         try #"{"pid":5252,"sessionId":"ses_2f3b1c4d5e6f7a8b9c0d1e2f3a","activity":"idle"}"#
             .write(to: reporting.reportsDirectory.appendingPathComponent("5252.json"), atomically: true, encoding: .utf8)
+        let antigravityDirectory = directory.appendingPathComponent("antigravity-cli")
+        let waitingConversation = try AntigravitySessionFixture(configurationDirectory: antigravityDirectory)
+        try AntigravitySessionFixture.execute(["DELETE FROM steps"], at: waitingConversation.databaseFile)
+        try waitingConversation.appendPrompt("Run date", index: 0, createdAt: cliStartedAt + 1)
+        try waitingConversation.appendStep(type: 132, index: 1, status: 9, createdAt: cliStartedAt + 2)
+        let leftOpenConversation = try AntigravitySessionFixture(configurationDirectory: antigravityDirectory)
+        try AntigravitySessionFixture.execute(["DELETE FROM steps"], at: leftOpenConversation.databaseFile)
+        try leftOpenConversation.appendPrompt("Fix the build", index: 0, createdAt: cliStartedAt - 60)
         let reader = CLIActivityReader(
             claudeRegistry: ClaudeLiveSessionRegistry(configurationDirectory: directory),
             codexTurnTracker: CodexRolloutTurnTracker(),
@@ -53,9 +76,15 @@ struct CLIActivityReaderTests {
             CLIActivityProbe(provider: .opencode, processID: 5252, sessionFile: nil),
             CLIActivityProbe(provider: .pi, processID: 5353, sessionFile: nil),
             CLIActivityProbe(provider: .antigravity, processID: cliProcessID, sessionFile: nil),
+            CLIActivityProbe(provider: .antigravity, processID: cliProcessID, sessionFile: waitingConversation.databaseFile),
+            CLIActivityProbe(provider: .antigravity, processID: cliProcessID, sessionFile: leftOpenConversation.databaseFile),
+            CLIActivityProbe(provider: .kiro, processID: cliProcessID, sessionFile: nil),
         ])
 
-        #expect(activities == [.working, nil, .working, .idle, nil, .needsInput(reason: "Allow rm?"), .idle, nil, nil])
+        #expect(activities == [
+            .working, nil, .working, .idle, nil, .needsInput(reason: "Allow rm?"), .idle, nil,
+            nil, .needsInput(reason: nil), .idle, nil,
+        ])
     }
 
     @Test func piAndOpenCodeTellNothingWithoutTheAppsExtension() throws {

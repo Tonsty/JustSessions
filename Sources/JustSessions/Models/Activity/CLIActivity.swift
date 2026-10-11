@@ -1,8 +1,8 @@
 import Foundation
 
 /// What a running CLI is doing, as far as it tells: Claude Code in its live process registry, Codex in its session
-/// file, Pi and OpenCode through the app's extension. A CLI that tells nothing, such as one on an SSH host, has no
-/// activity; it only runs.
+/// file, Antigravity in its conversation database, Pi and OpenCode through the app's extension. A CLI that tells
+/// nothing, such as Kiro CLI or one on an SSH host, has no activity; it only runs.
 enum CLIActivity: Equatable, Sendable {
     /// Working on a turn.
     case working
