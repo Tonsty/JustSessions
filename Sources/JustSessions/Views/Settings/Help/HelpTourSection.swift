@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// The top of Help: the tour, which also shows every tip again, and the user guide.
+/// The top of Help: the tour, which also shows every tip again, the user guide, and whether the sidebar shows a
+/// random tip.
 struct HelpTourSection: View {
     @Environment(\.startOnboardingTour) private var startOnboardingTour
     @Environment(\.dismiss) private var dismiss
@@ -20,6 +21,8 @@ struct HelpTourSection: View {
                     .buttonStyle(ThemePlainButtonStyle(verticalPadding: 2))
                     .accessibilityIdentifier("help.user-guide")
             }
+            ThemeDivider()
+            HelpRandomTipsToggle()
         }
         .font(ThemeFont.callout)
         .fixedSize(horizontal: false, vertical: true)

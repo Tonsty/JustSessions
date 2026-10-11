@@ -80,6 +80,8 @@
 	<string>1 tool call</string>
 	<key>A CLI still running in tmux reattaches. Other sessions resume when you select their tab, including after a Mac restart. Plain terminals open a new shell in their folder.</key>
 	<string>A CLI still running in tmux reattaches. Other sessions resume when you select their tab, including after a Mac restart. Plain terminals open a new shell in their folder.</string>
+	<key>A blue dot means a CLI finished a turn you haven't seen yet.</key>
+	<string>A blue dot means a CLI finished a turn you haven't seen yet.</string>
 	<key>A port goes in `~/.ssh/config`. Add these lines there, then enter %@.</key>
 	<string>A port goes in `~/.ssh/config`. Add these lines there, then enter %@.</string>
 	<key>A session whose subagents ran sessions of their own gets a chevron before its icon. Click it to list them under the session and read them. Kiro's aren't listed; on SSH hosts, only Codex's and Antigravity's are.</key>
@@ -172,6 +174,8 @@
 	<string>Archive project and delete 1 session</string>
 	<key>Archive project and delete all sessions (%lld)…</key>
 	<string>Archive project and delete all sessions (%lld)…</string>
+	<key>Archive projects you're done with; restore them anytime from the host's **+** menu.</key>
+	<string>Archive projects you're done with; restore them anytime from the host's **+** menu.</string>
 	<key>Archive selected projects</key>
 	<string>Archive selected projects</string>
 	<key>Archive selected projects and delete their sessions</key>
@@ -206,6 +210,8 @@
 	<string>Branch</string>
 	<key>Browse and resume sessions on another machine.</key>
 	<string>Browse and resume sessions on another machine.</string>
+	<key>Browse and resume sessions on other machines with **Add SSH host…**.</key>
+	<string>Browse and resume sessions on other machines with **Add SSH host…**.</string>
 	<key>Browse…</key>
 	<string>Browse…</string>
 	<key>CLIs skip your interactive shell startup, which starts another program</key>
@@ -252,6 +258,10 @@
 	<string>Clear filters</string>
 	<key>Clear the selection, or close search</key>
 	<string>Clear the selection, or close search</string>
+	<key>Click a project's label in the tab bar to fold away its tabs.</key>
+	<string>Click a project's label in the tab bar to fold away its tabs.</string>
+	<key>Click a session to read it without starting its CLI.</key>
+	<string>Click a session to read it without starting its CLI.</string>
 	<key>Click a session to read it; nothing runs. Double-click it to continue in its CLI, in the original folder.</key>
 	<string>Click a session to read it; nothing runs. Double-click it to continue in its CLI, in the original folder.</string>
 	<key>Click a session to read its conversation; no CLI starts. **Open in new window** gives it a window of its own.</key>
@@ -330,6 +340,8 @@
 	<string>Connect…</string>
 	<key>Continue</key>
 	<string>Continue</string>
+	<key>Continue any past session in its own CLI and folder: just double-click it.</key>
+	<string>Continue any past session in its own CLI and folder: just double-click it.</string>
 	<key>Copied</key>
 	<string>Copied</string>
 	<key>Copies the colors once. JustSessions doesn't read iTerm2's settings again.</key>
@@ -404,8 +416,14 @@
 	<string>Disconnect</string>
 	<key>Don't ask again</key>
 	<string>Don't ask again</string>
+	<key>Don't show tips</key>
+	<string>Don't show tips</string>
 	<key>Done</key>
 	<string>Done</string>
+	<key>Drag a tab out of the tab bar to give it its own window.</key>
+	<string>Drag a tab out of the tab bar to give it its own window.</string>
+	<key>Drop files from Finder onto a terminal on this Mac to paste their paths.</key>
+	<string>Drop files from Finder onto a terminal on this Mac to paste their paths.</string>
 	<key>Edit</key>
 	<string>Edit</string>
 	<key>End and close this terminal</key>
@@ -488,8 +506,12 @@
 	<string>Full Disk Access</string>
 	<key>General</key>
 	<string>General</string>
+	<key>Get notified when a CLI finishes a turn or needs you. Choose which in Settings → General.</key>
+	<string>Get notified when a CLI finishes a turn or needs you. Choose which in Settings → General.</string>
 	<key>GitHub ↗</key>
 	<string>GitHub ↗</string>
+	<key>Give the terminal the whole window: ⌘B hides the sidebar.</key>
+	<string>Give the terminal the whole window: ⌘B hides the sidebar.</string>
 	<key>Gives the theme back its own colors, light and dark.</key>
 	<string>Gives the theme back its own colors, light and dark.</string>
 	<key>Go</key>
@@ -516,6 +538,8 @@
 	<string>Hide subagent sessions of %@</string>
 	<key>Hide the sidebar to give the terminal the whole window, and click again to bring it back. ⌘B does the same.</key>
 	<string>Hide the sidebar to give the terminal the whole window, and click again to bring it back. ⌘B does the same.</string>
+	<key>Hide until JustSessions opens again</key>
+	<string>Hide until JustSessions opens again</string>
 	<key>Host</key>
 	<string>Host</string>
 	<key>Hosts run Linux or macOS. For Windows, connect to WSL over SSH.</key>
@@ -544,6 +568,8 @@
 	<string>Its CLI, still running on %@, ends first.</string>
 	<key>Its tab closes and its CLI ends first.</key>
 	<string>Its tab closes and its CLI ends first.</string>
+	<key>Jump back to the tab or session you just left with ⌘[, forward with ⌘].</key>
+	<string>Jump back to the tab or session you just left with ⌘[, forward with ⌘].</string>
 	<key>JustSessions</key>
 	<string>JustSessions</string>
 	<key>JustSessions Help</key>
@@ -604,6 +630,8 @@
 	<string>Log in to %@</string>
 	<key>Logged in with Connect…</key>
 	<string>Logged in with Connect…</string>
+	<key>Make text bigger or smaller with ⌘+ and ⌘−, in terminals and conversations.</key>
+	<string>Make text bigger or smaller with ⌘+ and ⌘−, in terminals and conversations.</string>
 	<key>Markdown (.md)…</key>
 	<string>Markdown (.md)…</string>
 	<key>Match app</key>
@@ -664,6 +692,8 @@
 	<string>Next match (⌘G or Return)</string>
 	<key>Next tab</key>
 	<string>Next tab</string>
+	<key>Next tip</key>
+	<string>Next tip</string>
 	<key>No Claude Code, Codex, Antigravity, Pi, or OpenCode session is waiting for you</key>
 	<string>No Claude Code, Codex, Antigravity, Pi, or OpenCode session is waiting for you</string>
 	<key>No archived projects</key>
@@ -720,6 +750,8 @@
 	<string>Open System Settings</string>
 	<key>Open a new issue on GitHub</key>
 	<string>Open a new issue on GitHub</string>
+	<key>Open a project in your editor straight from its right-click menu.</key>
+	<string>Open a project in your editor straight from its right-click menu.</string>
 	<key>Open in</key>
 	<string>Open in</string>
 	<key>Open in Finder</key>
@@ -764,10 +796,14 @@
 	<string>Pin project</string>
 	<key>Pin session</key>
 	<string>Pin session</string>
+	<key>Pin your most-used sessions and projects to the top from their right-click menu.</key>
+	<string>Pin your most-used sessions and projects to the top from their right-click menu.</string>
 	<key>Pinned</key>
 	<string>Pinned</string>
 	<key>Plain text (.txt)…</key>
 	<string>Plain text (.txt)…</string>
+	<key>Prefer Ghostty's renderer? Pick it in Settings → Appearance → Terminal → Engine. New tabs use it.</key>
+	<string>Prefer Ghostty's renderer? Pick it in Settings → Appearance → Terminal → Engine. New tabs use it.</string>
 	<key>Preview</key>
 	<string>Preview</string>
 	<key>Previous Tab</key>
@@ -786,6 +822,14 @@
 	<string>Project folder on %@</string>
 	<key>Projects</key>
 	<string>Projects</string>
+	<key>Put two tabs side by side: right-click a tab for split view.</key>
+	<string>Put two tabs side by side: right-click a tab for split view.</string>
+	<key>Quit or restart your Mac: your tabs reopen, and CLIs still in tmux reattach.</key>
+	<string>Quit or restart your Mac: your tabs reopen, and CLIs still in tmux reattach.</string>
+	<key>Quit the app and your CLIs keep running: close tabs with **Keep running**.</key>
+	<string>Quit the app and your CLIs keep running: close tabs with **Keep running**.</string>
+	<key>Read a conversation in its own window with **Open in new window**.</key>
+	<string>Read a conversation in its own window with **Open in new window**.</string>
 	<key>Read a session</key>
 	<string>Read a session</string>
 	<key>Read first, then resume</key>
@@ -914,6 +958,10 @@
 	<string>Search the text of the conversation you are reading. ⌘F does the same.</string>
 	<key>Searching…</key>
 	<string>Searching…</string>
+	<key>See the sessions a session's subagents ran: turn them on in Settings → General.</key>
+	<string>See the sessions a session's subagents ran: turn them on in Settings → General.</string>
+	<key>See which sessions are waiting on you: filter by **Waiting for you**.</key>
+	<string>See which sessions are waiting on you: filter by **Waiting for you**.</string>
 	<key>Select All</key>
 	<string>Select All</string>
 	<key>Select a range</key>
@@ -954,6 +1002,8 @@
 	<string>Show %@</string>
 	<key>Show Sidebar</key>
 	<string>Show Sidebar</string>
+	<key>Show a tip in the sidebar each time JustSessions opens</key>
+	<string>Show a tip in the sidebar each time JustSessions opens</string>
 	<key>Show explanation</key>
 	<string>Show explanation</string>
 	<key>Show in Other Window</key>
@@ -988,6 +1038,8 @@
 	<string>Start a native CLI or a plain terminal in a project folder.</string>
 	<key>Start a new session in %@</key>
 	<string>Start a new session in %@</string>
+	<key>Start a session in any installed CLI, or a plain terminal, with ⌘N.</key>
+	<string>Start a session in any installed CLI, or a plain terminal, with ⌘N.</string>
 	<key>Start a session in any installed CLI, or open a plain terminal, in a project folder. ⌘N does the same.</key>
 	<string>Start a session in any installed CLI, or open a plain terminal, in a project folder. ⌘N does the same.</string>
 	<key>Start command</key>
@@ -1016,6 +1068,8 @@
 	<string>Swap with left view</string>
 	<key>Swap with right view</key>
 	<string>Swap with right view</string>
+	<key>Switch tabs with ⌘1 to ⌘9, even while typing in a CLI.</key>
+	<string>Switch tabs with ⌘1 to ⌘9, even while typing in a CLI.</string>
 	<key>Switches between a readable width and the full window width</key>
 	<string>Switches between a readable width and the full window width</string>
 	<key>System</key>
@@ -1068,6 +1122,8 @@
 	<string>The Pi session file and its associated folder will be permanently deleted on %@. SSH hosts have no Trash, so this cannot be undone.</string>
 	<key>The Pi session file and its associated folder will move to the macOS Trash.</key>
 	<string>The Pi session file and its associated folder will move to the macOS Trash.</string>
+	<key>The bottom of the sidebar shows a random tip about something you may not have tried. → shows another, and × hides it until JustSessions opens again.</key>
+	<string>The bottom of the sidebar shows a random tip about something you may not have tried. → shows another, and × hides it until JustSessions opens again.</string>
 	<key>The folder is listed under %@ in the sidebar, ready for new sessions.</key>
 	<string>The folder is listed under %@ in the sidebar, ready for new sessions.</string>
 	<key>The host needs:</key>
@@ -1116,6 +1172,10 @@
 	<string>This session will be permanently deleted on %@. SSH hosts have no Trash, so this cannot be undone.</string>
 	<key>Time range</key>
 	<string>Time range</string>
+	<key>Tip</key>
+	<string>Tip</string>
+	<key>Tips</key>
+	<string>Tips</string>
 	<key>Tool</key>
 	<string>Tool</string>
 	<key>Trust %@?</key>
@@ -1126,6 +1186,8 @@
 	<string>Try Again</string>
 	<key>Try again</key>
 	<string>Try again</string>
+	<key>Try another direction without touching the original: **Branch** a session.</key>
+	<string>Try another direction without touching the original: **Branch** a session.</string>
 	<key>Two tabs side by side</key>
 	<string>Two tabs side by side</string>
 	<key>Unknown error</key>
@@ -1150,6 +1212,8 @@
 	<string>Version</string>
 	<key>Waiting for you</key>
 	<string>Waiting for you</string>
+	<key>Want computer use? Add a computer-use MCP server to your CLI, then allow Accessibility in Settings → Permissions.</key>
+	<string>Want computer use? Add a computer-use MCP server to your CLI, then allow Accessibility in Settings → Permissions.</string>
 	<key>Website ↗</key>
 	<string>Website ↗</string>
 	<key>When you close a CLI tab</key>
@@ -1204,5 +1268,7 @@
 	<string>⇧-click</string>
 	<key>⌘-click</key>
 	<string>⌘-click</string>
+	<key>⌘-click to select several sessions, then resume or delete them together.</key>
+	<string>⌘-click to select several sessions, then resume or delete them together.</string>
 </dict>
 </plist>

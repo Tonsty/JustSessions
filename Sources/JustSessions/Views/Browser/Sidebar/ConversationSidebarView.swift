@@ -132,6 +132,8 @@ struct ConversationSidebarView: View {
                 )
             }
 
+            SidebarRandomTip()
+
             if isDeletionProgressBarShown {
                 ThemeDivider()
                 SidebarDeletionProgressBar(progress: store.deletionProgress, onCancel: store.cancelDeletion)

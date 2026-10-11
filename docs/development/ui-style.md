@@ -87,7 +87,7 @@ Each button takes one of the theme's styles:
 | Kind | Style |
 | --- | --- |
 | A view's one primary action | `ThemeProminentButtonStyle`, filled with ink |
-| A primary action that starts a CLI (Resume, Start session) | `ProviderProminentButtonStyle`, in that CLI's hue |
+| A primary action that starts a CLI (Resume, Start session) | `ProviderProminentButtonStyle`, filled with that CLI's hue. Like the ink button, it has no gradient or shadow. |
 | Every other text button, including Cancel | `QuietBorderedButtonStyle`. Use `role: .destructive` to show the label in `errorText`. |
 | Icon buttons and row actions | `ThemePlainButtonStyle`. Use `cornerRadius: nil` for a round button. |
 | A text link | `ThemePlainButtonStyle(verticalPadding: 2)` |

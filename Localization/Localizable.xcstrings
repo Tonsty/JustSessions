@@ -444,6 +444,16 @@
         }
       }
     },
+    "A blue dot means a CLI finished a turn you haven't seen yet.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "蓝点表示 CLI 完成了一轮，你还没看。"
+          }
+        }
+      }
+    },
     "A port goes in `~/.ssh/config`. Add these lines there, then enter %@.": {
       "localizations": {
         "zh-Hans": {
@@ -945,6 +955,16 @@
         }
       }
     },
+    "Archive projects you're done with; restore them anytime from the host's **+** menu.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不用的项目可以归档，随时从主机的 **+** 菜单恢复。"
+          }
+        }
+      }
+    },
     "Archive selected projects": {
       "localizations": {
         "zh-Hans": {
@@ -1132,6 +1152,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "浏览并继续其他机器上的会话。"
+          }
+        }
+      }
+    },
+    "Browse and resume sessions on other machines with **Add SSH host…**.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "**添加 SSH 主机…** 后，可以浏览和继续其他机器上的会话。"
           }
         }
       }
@@ -1362,6 +1392,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "取消选择，或关闭搜索"
+          }
+        }
+      }
+    },
+    "Click a project's label in the tab bar to fold away its tabs.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单击标签栏里的项目名称，可以折叠它的标签页。"
+          }
+        }
+      }
+    },
+    "Click a session to read it without starting its CLI.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单击会话即可阅读，不会启动 CLI。"
           }
         }
       }
@@ -1752,6 +1802,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "继续"
+          }
+        }
+      }
+    },
+    "Continue any past session in its own CLI and folder: just double-click it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "双击任意会话，就能在原来的 CLI 和文件夹里接着聊。"
           }
         }
       }
@@ -2226,12 +2286,42 @@
         }
       }
     },
+    "Don't show tips": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不再显示提示"
+          }
+        }
+      }
+    },
     "Done": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "完成"
+          }
+        }
+      }
+    },
+    "Drag a tab out of the tab bar to give it its own window.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把标签页拖出标签栏，就能放进单独的窗口。"
+          }
+        }
+      }
+    },
+    "Drop files from Finder onto a terminal on this Mac to paste their paths.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把 Finder 里的文件拖到本机终端上，就能输入它们的路径。"
           }
         }
       }
@@ -2674,8 +2764,28 @@
         }
       }
     },
+    "Get notified when a CLI finishes a turn or needs you. Choose which in Settings → General.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CLI 完成一轮或需要你时会发通知，可在 设置 → 通用 中选择。"
+          }
+        }
+      }
+    },
     "GitHub ↗": {
       "shouldTranslate": false
+    },
+    "Give the terminal the whole window: ⌘B hides the sidebar.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘B 隐藏侧栏，让终端占满整个窗口。"
+          }
+        }
+      }
     },
     "Gives the theme back its own colors, light and dark.": {
       "localizations": {
@@ -2835,6 +2945,16 @@
         }
       }
     },
+    "Hide until JustSessions opens again": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏，下次打开 JustSessions 时再显示"
+          }
+        }
+      }
+    },
     "Host": {
       "localizations": {
         "zh-Hans": {
@@ -2971,6 +3091,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "会先关闭它的标签页并结束它的 CLI。"
+          }
+        }
+      }
+    },
+    "Jump back to the tab or session you just left with ⌘[, forward with ⌘].": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘[ 回到刚才的标签页或会话，⌘] 前进。"
           }
         }
       }
@@ -3268,6 +3398,16 @@
         }
       }
     },
+    "Make text bigger or smaller with ⌘+ and ⌘−, in terminals and conversations.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘+ / ⌘− 调整终端和对话的文字大小。"
+          }
+        }
+      }
+    },
     "Markdown (.md)…": {
       "shouldTranslate": false
     },
@@ -3557,6 +3697,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "下一个标签页"
+          }
+        }
+      }
+    },
+    "Next tip": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一条提示"
           }
         }
       }
@@ -3857,6 +4007,16 @@
         }
       }
     },
+    "Open a project in your editor straight from its right-click menu.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右键单击项目，可以直接在编辑器中打开。"
+          }
+        }
+      }
+    },
     "Open in": {
       "localizations": {
         "zh-Hans": {
@@ -4077,6 +4237,16 @@
         }
       }
     },
+    "Pin your most-used sessions and projects to the top from their right-click menu.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右键单击即可把常用的会话和项目置顶。"
+          }
+        }
+      }
+    },
     "Pinned": {
       "localizations": {
         "zh-Hans": {
@@ -4093,6 +4263,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "纯文本（.txt）…"
+          }
+        }
+      }
+    },
+    "Prefer Ghostty's renderer? Pick it in Settings → Appearance → Terminal → Engine. New tabs use it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "想用 Ghostty 渲染终端？在 设置 → 外观 → 终端 → 引擎 里选择，之后新开的标签页生效。"
           }
         }
       }
@@ -4183,6 +4363,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "项目"
+          }
+        }
+      }
+    },
+    "Put two tabs side by side: right-click a tab for split view.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "两个标签页可以并排：右键单击标签页选择拆分视图。"
+          }
+        }
+      }
+    },
+    "Quit or restart your Mac: your tabs reopen, and CLIs still in tmux reattach.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出 App 或重启 Mac 后，标签页会重新打开，tmux 里的 CLI 直接接上。"
+          }
+        }
+      }
+    },
+    "Quit the app and your CLIs keep running: close tabs with **Keep running**.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关标签页时选 **保持运行**，退出 App 后 CLI 也照样跑。"
+          }
+        }
+      }
+    },
+    "Read a conversation in its own window with **Open in new window**.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "**在新窗口中打开** 可以单独开一个窗口阅读对话。"
           }
         }
       }
@@ -4871,6 +5091,26 @@
         }
       }
     },
+    "See the sessions a session's subagents ran: turn them on in Settings → General.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "想看子代理跑出的会话？在 设置 → 通用 中打开。"
+          }
+        }
+      }
+    },
+    "See which sessions are waiting on you: filter by **Waiting for you**.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "筛选 **等待我处理**，一眼看到哪些会话在等你。"
+          }
+        }
+      }
+    },
     "Select All": {
       "localizations": {
         "zh-Hans": {
@@ -5115,6 +5355,16 @@
         }
       }
     },
+    "Show a tip in the sidebar each time JustSessions opens": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次打开 JustSessions 时在侧栏显示一条提示"
+          }
+        }
+      }
+    },
     "Show explanation": {
       "localizations": {
         "zh-Hans": {
@@ -5301,6 +5551,16 @@
         }
       }
     },
+    "Start a session in any installed CLI, or a plain terminal, with ⌘N.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘N 可以用任一已安装的 CLI 新建会话，或打开普通终端。"
+          }
+        }
+      }
+    },
     "Start a session in any installed CLI, or open a plain terminal, in a project folder. ⌘N does the same.": {
       "localizations": {
         "zh-Hans": {
@@ -5437,6 +5697,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "与右侧视图交换"
+          }
+        }
+      }
+    },
+    "Switch tabs with ⌘1 to ⌘9, even while typing in a CLI.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘1–⌘9 直接切换标签页，在 CLI 里输入时也能用。"
           }
         }
       }
@@ -5701,6 +5971,16 @@
         }
       }
     },
+    "The bottom of the sidebar shows a random tip about something you may not have tried. → shows another, and × hides it until JustSessions opens again.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "侧栏底部会随机显示一条提示，介绍你可能还没用过的功能。→ 换一条，× 隐藏到下次打开 JustSessions。"
+          }
+        }
+      }
+    },
     "The folder is listed under %@ in the sidebar, ready for new sessions.": {
       "localizations": {
         "zh-Hans": {
@@ -5957,6 +6237,26 @@
         }
       }
     },
+    "Tip": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提示"
+          }
+        }
+      }
+    },
+    "Tips": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提示"
+          }
+        }
+      }
+    },
     "Tool": {
       "localizations": {
         "zh-Hans": {
@@ -6003,6 +6303,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "重试"
+          }
+        }
+      }
+    },
+    "Try another direction without touching the original: **Branch** a session.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "**分支** 从副本开新会话，原会话保持不变。"
           }
         }
       }
@@ -6123,6 +6433,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "等待我处理"
+          }
+        }
+      }
+    },
+    "Want computer use? Add a computer-use MCP server to your CLI, then allow Accessibility in Settings → Permissions.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "想用 computer use？给 CLI 加一个 computer-use MCP，再在 设置 → 权限 里允许辅助功能。"
           }
         }
       }
@@ -6386,6 +6706,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "⌘ 点击"
+          }
+        }
+      }
+    },
+    "⌘-click to select several sessions, then resume or delete them together.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘ 单击可多选会话，一次全部继续或删除。"
           }
         }
       }
