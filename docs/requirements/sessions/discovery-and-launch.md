@@ -1,0 +1,41 @@
+# Session discovery, CLIs, and launching
+
+[Back to requirements](../README.md)
+
+## Finding sessions
+
+| ID | Requirement | Origin | Related tests |
+| --- | --- | --- | --- |
+| DSC-01 | Sessions are grouped by machine (this Mac, then each SSH host), then by project folder. Projects sort by their newest session's activity. | `93f5753`, `a2be251`, `d5c9dfc` | `ProjectConversationGroupTests`, `SidebarProjectionTests` |
+| DSC-02 | Each CLI's history is read where that CLI keeps it, following `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `KIRO_HOME`, `PI_CODING_AGENT_DIR`, `PI_CODING_AGENT_SESSION_DIR`, and Pi's `sessionDir`. OpenCode's SQLite database is opened read-only. | `12abb26` | `PiSessionsDirectoryTests`, `OpenCodeAdapterTests` |
+| DSC-03 | A session's title is the first non-blank line of its first prompt. A prompt sent as parts, such as text with a screenshot, is titled by its text part. | `4c7df7a`, `d66de32` | `ClaudeTranscriptHeadTests`, `CodexFirstUserPromptTests`, `PiSessionTitleTests` |
+| DSC-04 | A Claude Code session whose first prompt carries a large screenshot is still listed: the head reader streams up to 8 MB and stops once it has the folder and prompt. | `d66de32` | `ClaudeTranscriptHeadTests` |
+| DSC-05 | Damaged or cut-off session files are skipped or read as far as they go; they never stop discovery. | `4c7df7a` | `MalformedTranscriptTests` |
+| DSC-06 | Pi's session list skips symbolic links and pipes named like session files. | `e0831a5` | `PiAdapterTests` |
+| DSC-07 | Codex threads started by another thread (`thread_spawn`) are subagents, not top-level sessions. | `27c9939` | `CodexAdapterTests`, `SubagentConversationsTests` |
+| DSC-08 | Subagents' sessions are hidden by default. With **Show subagents under the sessions that started them** on in Settings → General, a parent session shows a chevron that lists them, newest first. They can be read but never launched, renamed, pinned, or deleted on their own, and they stay out of search, notifications, and tab linking. Kiro CLI records no parent, so its subagents stay hidden. | `27c9939`, `23c4377` | `SidebarSubagentRowsTests`, `SidebarSubagentVisibilityTests` |
+
+## Finding the CLIs
+
+| ID | Requirement | Origin | Related tests |
+| --- | --- | --- | --- |
+| DSC-20 | CLIs are found when the app is opened from Finder or the Dock: the login shell's `PATH` is read once in the background, with common install folders (nvm, bun, volta, pnpm, `~/.toolbox/bin`) as a fallback. Spawned CLIs get that combined `PATH`, so npm-installed CLIs find `node`. | `022aad5`, `112a6aa` | `CLILookupTests`, `LoginShellEnvironmentTests` |
+| DSC-21 | Spawned CLIs never inherit `NO_COLOR` or similar variables, and see `TERM=xterm-256color` and `COLORTERM=truecolor`. | `3f2b21b` | `TerminalColorEnvironmentTests` |
+| DSC-22 | New session menus offer only CLIs installed on that machine; until a machine's first check finishes, every CLI that runs there is offered. The sidebar's CLI filter lists CLIs that are installed or have sessions. | `12abb26` | `InstalledCLIsTests` |
+
+## Starting and resuming
+
+| ID | Requirement | Origin | Related tests |
+| --- | --- | --- | --- |
+| DSC-40 | Resume opens the session in its own CLI in its original folder: double-click, **Resume**, or the row's menu. | `65f5ade`, `d5c9dfc` | `CLIArgumentContractTests`, `NativeCLICommandResolverTests` |
+| DSC-41 | A new session or branch shows under its project at once, as an italic pending row, before its CLI writes anything. | `758b100`, `d2cabd7` | `NewSessionLinkTests`, `BranchTabLinkTests`, `ThisMacAppearingSessionTests` |
+| DSC-42 | A new Claude Code tab starts with `--session-id` when that `claude` (or its start command) lists it in `--help`, checked once per command line, on this Mac and on SSH hosts. The tab links only to that session. | `758b100`, `5c8ad54`, `9a9d465` | `ClaudeSessionIDFlagSupportTests`, `RemoteClaudeNewSessionLinkingTests` |
+| DSC-43 | Other new tabs link through the CLI's process tree (one `sysctl` and one `lsof` for all waiting tabs), or, for CLIs that give no such sign, to the first session that appears in their project after the tab started. While such a tab waits, this Mac refreshes every 6 seconds. | `758b100`, `12abb26` | `NewSessionFileFinderTests`, `ClaudeSessionFileLocatorTests` |
+| DSC-44 | A branch starts unlinked and links to the fork once written, never to the session it forked. Resuming the forked session doesn't jump to the branch's tab. | `d2cabd7` | `BranchTabLinkTests` |
+| DSC-45 | A still-untitled linked session gets up to three refreshes to pick up its first prompt. | `758b100` | `NewSessionLinkTests` |
+| DSC-46 | **Start command** in the New session sheet is kept per CLI and per host, and every launch there uses it: new sessions, resumes, branches, reconnects. The app's own arguments go after it, and `env` runs the CLI so the tab's process stays the CLI's. For Kiro CLI it stands in for `kiro-cli chat`; no second `chat` is added. | `9a9d465`, `3330273` | `CLIStartCommandsTests`, `EveryToolStartCommandTests`, `StartCommandLaunchTests` |
+| DSC-47 | The start command field is locked until **Edit**. **Save** or Return keeps it; **Cancel** drops the edit; **Use default** is an edit that changes nothing until Save. **Start session** waits while the field is being edited. | `f6b0a76`, `1ee9c24` | `SaveStartCommandTests` |
+| DSC-48 | Save refuses an unclosed quote, a shell operator (`;`, `&`, `|`, `<`, `>`, `(`, `)`, `#`), or a command with no program, and checks the program exists where the CLI runs. Programs only the shell can resolve are kept unchecked; flags are never checked. A long command wraps. | `2e91517` | `StartCommandCheckTests`, `StartCommandShapeTests` |
+| DSC-49 | When a session's project folder on this Mac is gone, Resume and Branch are off and the preview says where the folder was and how to get Resume back. It checks again whenever the app comes to the front. | `4d4bc24` | `MissingProjectFolderNoteTests` |
+| DSC-50 | A plain terminal opens the login shell in a project folder, on this Mac or over SSH, from a project's **+** menu, its **New terminal** menu item, the New session sheet's **Terminal** row, or a tab's New session submenu. It is not a session: no pending row, no linking, no activity, no notifications, no tmux. The sheet keeps **Terminal** available when the host has no CLI. | `f623508`, `6758000`, `625b4d5` | `PlainTerminalTabTests`, `PlainTerminalCommandTests` |
+| DSC-51 | ⌘T or ⌘N opens New session prefilled with the current tab's host, CLI, and folder. | `bb692ae` | `TabNavigationTests` |
