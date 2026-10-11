@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>%@ (%lld of %lld)</key>
+	<string>%1$@（%2$lld/%3$lld）</string>
 	<key>%@ (imported)</key>
 	<string>%@（已导入）</string>
 	<key>%@ (not installed)</key>
@@ -220,6 +222,8 @@
 	<string>无法检查</string>
 	<key>Cancel</key>
 	<string>取消</string>
+	<key>Cancel copying</key>
+	<string>取消复制</string>
 	<key>Cancel deletion</key>
 	<string>取消删除</string>
 	<key>Changes the chosen theme's colors, in its light or dark version. Your changes stay with the theme when you choose another one. Text is made readable on your colors, so the text color can come out darker or lighter than you chose. Terminals that match the app theme take its background.</key>
@@ -268,6 +272,8 @@
 	<string>单击会话即可阅读对话，不会启动 CLI。**在新窗口中打开** 可以让它单独占一个窗口。</string>
 	<key>Click the project's name to collapse its tabs. A collapsed group still shows when a CLI is waiting on you.</key>
 	<string>单击项目名称即可折叠它的标签页。折叠后，有 CLI 在等你时仍会显示出来。</string>
+	<key>Close</key>
+	<string>关闭</string>
 	<key>Close %@</key>
 	<string>关闭 %@</string>
 	<key>Close Left View</key>
@@ -370,8 +376,12 @@
 	<string>复制所选内容。按住 ⇧ 拖动即可选择文字。</string>
 	<key>Copying %@ sessions (%lld of %lld)…</key>
 	<string>正在复制 %@ 会话（%lld/%lld）…</string>
+	<key>Copying dropped files to %@</key>
+	<string>正在将拖入的文件复制到 %@</string>
 	<key>Copying sessions…</key>
 	<string>正在复制会话…</string>
+	<key>Copying to %@…</key>
+	<string>正在复制到 %@…</string>
 	<key>Could not change launch at login: %@</key>
 	<string>无法更改开机启动设置：%@</string>
 	<key>Could not copy conversation</key>
@@ -386,6 +396,8 @@
 	<string>无法读取此会话</string>
 	<key>Could not start session</key>
 	<string>无法启动会话</string>
+	<key>Couldn't copy to %@</key>
+	<string>无法复制到 %@</string>
 	<key>Couldn't find iTerm2's default profile. A dynamic profile can't be imported.</key>
 	<string>找不到 iTerm2 的默认 Profile。动态 Profile 无法导入。</string>
 	<key>Create folder and add</key>
@@ -1082,6 +1094,8 @@
 	<string>开始新的工作</string>
 	<key>Startup</key>
 	<string>启动</string>
+	<key>Stop copying; nothing is typed</key>
+	<string>停止复制，不会输入任何路径</string>
 	<key>Stop deleting after the current session; the rest stay listed</key>
 	<string>删除当前会话后停止；保留其余会话</string>
 	<key>Stopping deletion</key>

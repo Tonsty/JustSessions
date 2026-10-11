@@ -129,6 +129,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 16 | [Typing beside flooding terminals](#16-typing-beside-flooding-terminals) | Measured, no change: issue #58 |
 | 17 | [SSH connections during a remote refresh](#17-ssh-connections-during-a-remote-refresh) | Changed, not measured live: issue #64 |
 | 18 | [Workspace windows repeated discovery and message indexing](#18-workspace-windows-repeated-discovery-and-message-indexing) | Done: issue #57 |
+| 19 | [The working spinner re-rendered the window 30 times a second](#19-the-working-spinner-re-rendered-the-window-30-times-a-second) | Done: idle render loop PR |
 
 ### 1. Timestamp parsing
 
@@ -415,6 +416,24 @@ Repeating the identical generation caused zero additional reads in every case. A
 **Change:** `WorkspaceReadService` is owned by the app and passed to each workspace. It owns one `SessionMessageIndexer`, one set of adapters and command resolver, and one in-flight full-discovery task. The indexer keeps each active search user's session set and indexes their union, so one window changing hosts, filters, or closing cannot prune or cancel another's text. Generations reject a read that finishes after an append, rename, deletion, or host removal changed the desired set. Text leaves memory only after the final search user and the existing grace delay; restarting within it reuses the in-memory index. A closed window leaves the shared discovery running for other waiters, but the final waiter synchronously marks and evicts it so an immediately opened window starts fresh. Adapter scans check cancellation between reads, tmux probes are bounded, and only the current discovery generation commits the selected tmux server. Selection, sidebar filters, expanded projects, terminal tabs, alerts, and all other presentation state remain in each window's store.
 
 **Limits:** this is a service-level proxy, not four real SwiftUI windows. Its cold caches read zero cache bytes; it does not quantify warm cache decoding. Peak RSS was recorded for the process (about 54–56 MB) but was cumulative across cases, so it cannot isolate per-configuration memory; index-entry and folded-copy counts are the useful memory bound. The fake tmux proves subprocess coalescing but is not a live shell or SSH measurement. Periodic lightweight probes remain per window; this change shares only full refreshes and search indexing.
+
+### 19. The working spinner re-rendered the window 30 times a second
+
+**Evidence:** `WorkingSpinner`, the turning arc beside a session whose CLI is working, animated with a `TimelineView(.animation(minimumInterval: 1 / 30))`. Each tick invalidated the window's whole SwiftUI hosting view: in a Time Profiler trace of v1.2.4 at idle with one CLI working and five tabs open, 2,567 of 10,000 ms were inside `NSHostingView.layout` → `ViewGraphRootValueUpdater.render`, every one a full `ViewGraph.updateOutputs` pass, and `TimelineView<>.UpdateFilter.updateValue` the only per-frame trigger in them. The main thread was busy 35% of the time with nothing happening, and every click, tab switch, and keystroke queued behind those renders. A shared clock publishing one angle would have cost the same: the price is the hosting view's re-render, not the number of timelines.
+
+Traces recorded with `xcrun xctrace record --template 'Time Profiler' --instrument Hangs --attach <pid> --time-limit 10s`, attached to the running app, this session's CLI working the whole time, no interaction. Apple M4 Pro, macOS 26.6.1, Xcode 27.0, release builds.
+
+| Build | Main thread busy | Inside `NSHostingView.layout` | Hangs |
+| --- | ---: | ---: | --- |
+| v1.2.4, before | 35.0% | 25.7% | none |
+| After, run 1 | 3.3% | 0.0% | none |
+| After, run 2 | 3.0% | 0.0% | none |
+| After, run 3 | 3.7% | 0.0% | none |
+| After, run 4 | 3.5% | 0.1% | none |
+
+**Change:** the arc is a `CAShapeLayer` in a small `NSViewRepresentable`, turned by a repeating `CABasicAnimation` on `transform.rotation.z` that the render server runs; SwiftUI draws the view once. The animation runs only while the arc can be seen — the view is in a window that is not minimized, neither it nor an ancestor is hidden, and the SwiftUI view hosting it is not at zero opacity, which is how the app keeps hidden content mounted — and is removed otherwise, so a spinner in a hidden tab, a hidden sidebar panel, or a minimized window costs the render server nothing; one in a window covered by another, or clipped out of a scroll view, still turns. Reduce Motion still shows the arc standing still. The stroke color is resolved from the view's effective appearance, as the SwiftUI arc's `ThemePalette.live` was. `WorkingSpinnerRenderingTests` checks the arc draws in the live color of each appearance, that held still it covers the pixels the SwiftUI arc did, and that no view under `Views/` animates with a per-frame `TimelineView` again; `WorkingSpinnerLifecycleTests` checks it stops and restarts with opacity and hiding, and stops on leaving the window.
+
+**Limits:** the remaining 3–4% is Ghostty frame delivery and periodic syncs, not SwiftUI. The hosting view still re-renders whole on every state change it observes, and a tab switch and a right-click still stall in accessibility walks of it; those are separate items.
 
 ## How to profile
 

@@ -1,7 +1,9 @@
 import SwiftUI
 
 /// A tab's terminal. The tab names the session and its group names the project, so the terminal starts right under
-/// the tab bar; a bar above it appears only once the CLI has ended. The tab's find bar floats over the terminal.
+/// the tab bar; a bar above it appears only once the CLI has ended. On an SSH host, files dropped on it copy there
+/// under a notice in its corner; see `TerminalSSHFileDropNotice`. The tab's find bar floats over the same corner, above
+/// the notice.
 struct TerminalWorkspaceView: View {
     @ObservedObject var session: TerminalSession
     /// The terminal is on screen, full width or as either half of a split.
@@ -32,10 +34,13 @@ struct TerminalWorkspaceView: View {
                 .id(session.id)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .overlay(alignment: .topTrailing) {
-                    if session.findState.isPresented {
-                        TerminalFindBar(findState: session.findState)
-                            .padding(.top, 8)
-                            .padding(.horizontal, 16)
+                    VStack(alignment: .trailing, spacing: 0) {
+                        if session.findState.isPresented {
+                            // The notice's margin, so the two line up when both show.
+                            TerminalFindBar(findState: session.findState)
+                                .padding([.top, .horizontal], TerminalSSHFileDropNotice.marginFromTerminalEdges)
+                        }
+                        if let sshFileDrop = session.sshFileDrop { TerminalSSHFileDropNotice(fileDrop: sshFileDrop) }
                     }
                 }
         }

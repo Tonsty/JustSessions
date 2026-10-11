@@ -38,8 +38,15 @@ protocol TabTerminalView: NSView, TerminalTextFinding {
     var trailingMarginWidth: CGFloat { get }
     /// For a tab whose CLI runs in tmux on this Mac; see `SelectableTerminalView.sendsShiftReturnAsCSIu`.
     var sendsShiftReturnAsCSIu: Bool { get set }
-    /// Files dropped on the terminal type their paths into it. Only a tab whose CLI runs on this Mac turns it on.
+    /// The terminal takes files dropped on it. Every tab turns it on.
     var acceptsDroppedFiles: Bool { get set }
+    /// Takes the files dropped on a tab whose CLI runs on an SSH host, which copies them there before typing the host's
+    /// paths, and returns whether it took them; see `TerminalSSHFileDrop`. Without it, a drop types the files' paths.
+    var copyDroppedFilesToHost: ((_ fileURLs: [URL]) -> Bool)? { get set }
+    /// Types each path, backslash-escaped, as its own paste, as a drop does; see `TerminalFileDropPaste`. Returns
+    /// whether every path went in.
+    @discardableResult
+    func typeDroppedPaths(_ paths: [String]) -> Bool
     /// The terminal is on screen, full width or as either half of a split, so it draws its output.
     func setWorkspaceActive(_ isActive: Bool)
     /// Starts the tab's process on a pseudo-terminal, as a child of the app.

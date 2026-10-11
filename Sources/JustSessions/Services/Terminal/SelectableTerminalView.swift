@@ -20,14 +20,15 @@ final class SelectableTerminalView: LocalProcessTerminalView {
     var makeContextMenu: ((_ linkUnderPointer: String?) -> NSMenu)?
     /// See `TabTerminalView.onOpenLink`.
     var onOpenLink: ((String) -> Void)?
-    /// Files dropped on the terminal type their paths into it; see `SelectableTerminalView+FileDrop`. Only a tab whose
-    /// CLI runs on this Mac turns it on, since a CLI on an SSH host can't open this Mac's files.
+    /// The terminal takes files dropped on it; see `SelectableTerminalView+FileDrop`.
     var acceptsDroppedFiles = false {
         didSet {
             guard acceptsDroppedFiles != oldValue else { return }
             if acceptsDroppedFiles { registerForDraggedTypes([.fileURL]) } else { unregisterDraggedTypes() }
         }
     }
+    /// See `TabTerminalView.copyDroppedFilesToHost`.
+    var copyDroppedFilesToHost: ((_ fileURLs: [URL]) -> Bool)?
 
     private var appearancePreferences = TerminalAppearancePreferences()
     private var theme = ResolvedAppTheme(.justSessions)
