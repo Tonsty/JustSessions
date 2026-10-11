@@ -50,12 +50,9 @@ struct TerminalSplitAcrossProjectsSection: View {
                     isSplitPartnerHovered: hoveredTabID.map { split.partner(of: session.id) == $0 } ?? false,
                     showsLeadingSeparator: false,
                     groupColor: color,
-                    splitMenu: store.splitMenu(forTab: session.id),
-                    newSessionMenu: newSessionMenu(of: session, projectName: projectName),
+                    menuItems: TerminalTabMenuItems(store: store, tab: session, onRename: onRenameConversation, onCloseTab: onCloseTab),
                     onHoverChange: { trackHover(of: session.id, isHovering: $0) },
                     onSelect: { store.selectTerminal(session.id) },
-                    onRename: onRenameConversation,
-                    onSplitAction: { store.performSplitAction($0, fromTab: session.id, closeTab: onCloseTab) },
                     onClose: { onCloseTab(session.id) }
                 )
                 .tabHoverCardAnchor(.tab(session.id))
@@ -85,20 +82,6 @@ struct TerminalSplitAcrossProjectsSection: View {
         .tabBarGroupCoordinateSpace()
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Split view across projects")
-    }
-
-    /// The new session menu of a tab's context menu, the same as its project's + in the sidebar, which opens the new
-    /// tab with its project's tabs.
-    private func newSessionMenu(of tab: TerminalSession, projectName: String) -> ProjectNewSessionMenu {
-        let location = store.groupLocation(of: tab)
-        return ProjectNewSessionMenu(
-            location: location,
-            projectDisplayName: projectName,
-            providers: store.newSessionProviders(on: location.host),
-            showsTitle: true,
-            onStart: { store.launchNewSession(provider: $0, inGroupOf: tab) },
-            onOpenTerminal: { store.openPlainTerminal(inGroupOf: tab) }
-        )
     }
 
     /// Moves the split among the groups as the pointer moves along the bar, until the drag goes on between windows.

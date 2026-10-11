@@ -3,7 +3,8 @@ import Testing
 @testable import JustSessions
 
 /// A right-click in a tab's terminal offers copying, pasting, and selecting its text, then what the tab's menu in the
-/// tab bar offers after New session, in the same order and in the app's language.
+/// tab bar offers, in the same order and in the app's language: Rename first, then the session's other items. Pinning
+/// stays in the session's sidebar row, since a tab is not its session.
 @MainActor
 struct TerminalContextMenuItemsTests {
     @Test(arguments: TerminalEngine.allCases)
@@ -16,10 +17,24 @@ struct TerminalContextMenuItemsTests {
         #expect(TerminalContextMenuFixture.titles(of: fixture.menu(for: tab)) == [
             "Copy", "Paste", "Select All", "—",
             "Rename", "—",
-            "Copy conversation", "Export conversation", "—",
+            "Copy conversation", "Export conversation", "Copy session ID", "Reveal session file in Finder", "—",
             "Add tab to new split view", "—",
             "Close Tab…",
         ])
+    }
+
+    /// The Finder can't show a session file that is on an SSH host.
+    @Test(arguments: TerminalEngine.allCases)
+    func aSessionOnAnSSHHostIsNotRevealedInFinder(engine: TerminalEngine) throws {
+        let fixture = try TerminalContextMenuFixture()
+        defer { fixture.tearDown() }
+        let host = SessionHost.ssh("devbox")
+        let tab = fixture.openTab(engine: engine, conversation: .fixture(host: host), host: host)
+
+        let titles = TerminalContextMenuFixture.titles(of: fixture.menu(for: tab))
+
+        #expect(titles.contains("Copy session ID"))
+        #expect(!titles.contains("Reveal session file in Finder"))
     }
 
     @Test(arguments: TerminalEngine.allCases)
@@ -47,7 +62,7 @@ struct TerminalContextMenuItemsTests {
 
         #expect(TerminalContextMenuFixture.titles(of: menu) == [
             "Copy", "Paste", "Select All", "—",
-            "Rename",
+            "Rename", "—",
             "Add tab to new split view", "—",
             "Close Tab…",
         ])
@@ -124,7 +139,7 @@ struct TerminalContextMenuItemsTests {
         #expect(TerminalContextMenuFixture.titles(of: fixture.menu(for: tab, language: "zh-Hans")) == [
             "复制", "粘贴", "全选", "—",
             "重命名", "—",
-            "复制对话", "导出对话", "—",
+            "复制对话", "导出对话", "复制会话 ID", "在 Finder 中显示会话文件", "—",
             "向新拆分视图添加标签页", "—",
             "关闭标签…",
         ])

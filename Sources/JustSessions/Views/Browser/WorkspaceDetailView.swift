@@ -17,7 +17,9 @@ struct WorkspaceDetailView: View {
     var transcriptMatchReveal: TranscriptMatchReveal? = nil
     let isSidebarHidden: Bool
     let onRename: (Conversation) -> Void
+    let onNewSession: () -> Void
     let onCloseTerminal: (UUID) -> Void
+    let onCloseTabGroup: ([UUID], _ projectName: String) -> Void
     let onDelete: (Conversation) -> Void
 
     @Environment(\.titleBarRow) private var titleBarRow
@@ -36,7 +38,9 @@ struct WorkspaceDetailView: View {
                     // With the sidebar hidden, the bar's leading edge is the window's, under the title bar's controls.
                     leadingClearance: isSidebarHidden ? titleBarRow.controlsTrailingEdge : 0,
                     onRenameConversation: onRename,
-                    onCloseTerminal: onCloseTerminal
+                    onNewSession: onNewSession,
+                    onCloseTerminal: onCloseTerminal,
+                    onCloseTabGroup: onCloseTabGroup
                 )
                 // Above the area below it, which sits in the title bar's safe area too, since the bar is shorter than
                 // the title bar. A background there extends up through that safe area, as the preview's and a tab's

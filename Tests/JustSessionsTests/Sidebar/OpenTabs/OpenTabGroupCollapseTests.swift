@@ -30,6 +30,17 @@ struct OpenTabGroupCollapseTests {
         #expect(collapse.collapsedProjectKeys == ["b"])
     }
 
+    @Test func collapseAllAndExpandAllChangeEveryGroup() {
+        var collapse = OpenTabGroupCollapse()
+        collapse.toggle("a")
+
+        collapse.collapse(["a", "b", "c"])
+        #expect(collapse.collapsedProjectKeys == ["a", "b", "c"])
+
+        collapse.expandAll()
+        #expect(collapse.collapsedProjectKeys.isEmpty)
+    }
+
     @Test func aGroupWhoseTabsAllClosedOpensExpandedNextTime() {
         var collapse = OpenTabGroupCollapse()
         collapse.toggle("a")

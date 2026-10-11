@@ -51,7 +51,9 @@ final class TabBarWindowFixture {
                 store: store,
                 leadingClearance: 0,
                 onRenameConversation: { _ in },
-                onCloseTerminal: { [weak self] in self?.closeRequests.append($0) }
+                onNewSession: {},
+                onCloseTerminal: { [weak self] in self?.closeRequests.append($0) },
+                onCloseTabGroup: { _, _ in }
             )
             .frame(width: Self.barSize.width, height: Self.barSize.height)
         ))
@@ -229,7 +231,16 @@ final class TabBarWindowFixture {
             isCollapsed: false,
             hiddenTabCount: 0,
             hiddenTabsActivity: SessionActivitySummary(tabs: []),
-            onToggleCollapsed: {}
+            onToggleCollapsed: {},
+            menuItems: TabGroupMenuItems(
+                store: store,
+                projectKey: groupKey,
+                projectDisplayName: store.projectDisplayName(forProjectPath: groupKey),
+                isCollapsed: false,
+                onToggleCollapsed: {},
+                allGroups: AllTabGroupsCollapsing(canCollapseAll: true, canExpandAll: false, collapseAll: {}, expandAll: {}),
+                onCloseTabs: {}
+            )
         )
         return NSHostingView(rootView: label).fittingSize.width + 6
     }

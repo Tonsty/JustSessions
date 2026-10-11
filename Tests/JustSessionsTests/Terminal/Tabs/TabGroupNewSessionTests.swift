@@ -2,8 +2,8 @@ import Foundation
 import Testing
 @testable import JustSessions
 
-/// A tab's right-click menu starts a new session or a plain terminal in the tab's group, so the new tab joins that
-/// group and is selected.
+/// A tab group's right-click menu, on its label in the tab bar or its heading in Open tabs, starts a new session or a
+/// plain terminal in its project, so the new tab joins the group, at its end, and is selected.
 @MainActor
 struct TabGroupNewSessionTests {
     @MainActor
@@ -47,6 +47,16 @@ struct TabGroupNewSessionTests {
             return tab
         }
 
+        /// What New session in the menu of the tab's project's group does.
+        func launchNewSession(_ provider: ConversationProvider, inProjectOf tab: TerminalSession) {
+            store.launchNewSessionFromProject(provider: provider, projectPath: tab.projectDirectoryKey)
+        }
+
+        /// What New terminal in the menu of the tab's project's group does.
+        func openPlainTerminal(inProjectOf tab: TerminalSession) {
+            store.openPlainTerminal(in: ProjectLocation(key: tab.projectDirectoryKey))
+        }
+
         /// The tab the store opened last, which it selects.
         func newestTab(besides earlierTabs: [TerminalSession]) throws -> TerminalSession {
             let earlierIDs = Set(earlierTabs.map(\.id))
@@ -60,14 +70,14 @@ struct TabGroupNewSessionTests {
         }
     }
 
-    @Test func aNewSessionFromATabsMenuJoinsItsGroupSelected() throws {
+    @Test func aNewSessionFromAGroupsMenuJoinsItsGroupSelected() throws {
         let fixture = try Fixture()
         defer { fixture.tearDown() }
         let first = fixture.openTab(in: fixture.project)
         let other = fixture.openTab(in: fixture.otherProject)
         fixture.store.selectTerminal(other.id)
 
-        fixture.store.launchNewSession(provider: .codex, inGroupOf: first)
+        fixture.launchNewSession(.codex, inProjectOf: first)
 
         let newTab = try fixture.newestTab(besides: [first, other])
         #expect(fixture.store.tabGroupKey(of: newTab) == fixture.store.tabGroupKey(of: first))
@@ -78,28 +88,29 @@ struct TabGroupNewSessionTests {
         #expect(fixture.store.terminalSessions.map(\.id) == [first.id, newTab.id, other.id])
     }
 
-    @Test func aTerminalFromAPlainTerminalsMenuJoinsItsGroupSelected() throws {
+    @Test func aTerminalFromAGroupsMenuJoinsItsGroupSelected() throws {
         let fixture = try Fixture()
         defer { fixture.tearDown() }
         let terminal = fixture.openTab(in: fixture.project, isPlainTerminal: true)
         let other = fixture.openTab(in: fixture.otherProject)
 
-        fixture.store.openPlainTerminal(inGroupOf: terminal)
+        fixture.openPlainTerminal(inProjectOf: terminal)
 
         let newTab = try fixture.newestTab(besides: [terminal, other])
         #expect(newTab.isPlainTerminal)
         #expect(fixture.store.tabGroupKey(of: newTab) == fixture.store.tabGroupKey(of: terminal))
         #expect(fixture.store.selectedTerminalID == newTab.id)
 
-        fixture.store.launchNewSession(provider: .codex, inGroupOf: terminal)
+        fixture.launchNewSession(.codex, inProjectOf: terminal)
 
         let newSession = try fixture.newestTab(besides: [terminal, other, newTab])
         #expect(fixture.store.tabGroupKey(of: newSession) == fixture.store.tabGroupKey(of: terminal))
         #expect(fixture.store.selectedTerminalID == newSession.id)
     }
 
-    /// A tab in a split across projects keeps its own project, and so does what is started from its menu.
-    @Test func aSplitsTabFromAnotherProjectStartsItsNewTabInItsOwnProject() throws {
+    /// A tab in a split across projects keeps its own project, and a tab started in that project opens with its
+    /// project's tabs, not in the split.
+    @Test func aNewTabInTheProjectOfASplitsTabOpensInItsOwnProject() throws {
         let fixture = try Fixture()
         defer { fixture.tearDown() }
         let store = fixture.store
@@ -111,18 +122,17 @@ struct TabGroupNewSessionTests {
         try #require(splitGroupKey == store.tabGroupKey(of: paper))
         try #require(api.projectDirectoryKey != splitGroupKey)
 
-        store.launchNewSession(provider: .codex, inGroupOf: api)
+        fixture.launchNewSession(.codex, inProjectOf: api)
         let newSession = try fixture.newestTab(besides: [paper, api])
-        store.openPlainTerminal(inGroupOf: api)
+        fixture.openPlainTerminal(inProjectOf: api)
         let newTerminal = try fixture.newestTab(besides: [paper, api, newSession])
 
-        #expect(store.groupLocation(of: api) == ProjectLocation(key: api.projectDirectoryKey))
         #expect(store.tabGroupKey(of: newSession) == api.projectDirectoryKey)
         #expect(store.tabGroupKey(of: newTerminal) == api.projectDirectoryKey)
         #expect(store.selectedTerminalID == newTerminal.id)
     }
 
-    @Test func aNewTabFromAnSSHHostsTabOpensInItsGroupOnThatHost() throws {
+    @Test func aNewTabInAnSSHHostsGroupOpensInItOnThatHost() throws {
         let fixture = try Fixture()
         defer { fixture.tearDown() }
         let store = fixture.store
@@ -139,9 +149,9 @@ struct TabGroupNewSessionTests {
         store.openTerminal(remoteTab)
         let localTab = fixture.openTab(in: fixture.project)
 
-        store.launchNewSession(provider: .claude, inGroupOf: remoteTab)
+        fixture.launchNewSession(.claude, inProjectOf: remoteTab)
         let newSession = try fixture.newestTab(besides: [remoteTab, localTab])
-        store.openPlainTerminal(inGroupOf: remoteTab)
+        fixture.openPlainTerminal(inProjectOf: remoteTab)
         let newTerminal = try fixture.newestTab(besides: [remoteTab, localTab, newSession])
 
         for newTab in [newSession, newTerminal] {
@@ -159,15 +169,15 @@ struct TabGroupNewSessionTests {
         defer { fixture.tearDown() }
         let store = fixture.store
         let tab = fixture.openTab(in: fixture.project)
-        #expect(store.groupLocation(of: tab).canStartSessions)
+        #expect(ProjectLocation(key: tab.projectDirectoryKey).canStartSessions)
 
         store.setInstalledProviders([], on: .thisMac)
-        #expect(store.newSessionProviders(on: store.groupLocation(of: tab).host).isEmpty)
+        #expect(store.newSessionProviders(on: ProjectLocation(key: tab.projectDirectoryKey).host).isEmpty)
         try FileManager.default.removeItem(at: fixture.project)
-        #expect(!store.groupLocation(of: tab).canStartSessions)
+        #expect(!ProjectLocation(key: tab.projectDirectoryKey).canStartSessions)
 
         // The folder is gone: an error instead of a tab.
-        store.openPlainTerminal(inGroupOf: tab)
+        fixture.openPlainTerminal(inProjectOf: tab)
         #expect(store.terminalSessions.map(\.id) == [tab.id])
         #expect(store.errorMessage != nil)
     }

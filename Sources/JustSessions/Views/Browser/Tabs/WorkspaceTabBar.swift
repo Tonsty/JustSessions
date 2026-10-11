@@ -11,7 +11,8 @@ import SwiftUI
 /// share one tab's width. Dragging a group's label moves the whole group among the others, as dragging either tab of
 /// a split across projects moves the split; tabs drag within their group, see `TerminalTabGroupSection`, and between
 /// windows, see `TabDragBetweenWindows`, which also draws a tab dragged in from another window as its own group among
-/// the others. Dragging the bar's space around and past them moves the window.
+/// the others. Dragging the bar's space around and past them moves the window, and a right-click there offers a new
+/// session and collapsing or expanding every group; see `TabGroupsBackgroundMenuItems`.
 struct WorkspaceTabBar: View {
     @ObservedObject var store: ConversationStore
     @ObservedObject private var tabDragBetweenWindows = TabDragBetweenWindows.shared
@@ -19,7 +20,11 @@ struct WorkspaceTabBar: View {
     /// stay clear of them.
     let leadingClearance: CGFloat
     let onRenameConversation: (Conversation) -> Void
+    /// Opens the New session sheet, as ⌘N does.
+    let onNewSession: () -> Void
     let onCloseTerminal: (UUID) -> Void
+    /// Closes a group's tabs, asking once for them all.
+    let onCloseTabGroup: ([UUID], _ projectName: String) -> Void
     @State private var collapsedProjectKeys: Set<String> = []
     /// The bar's visible width, past the leading clearance. Until measured, tabs take their full width.
     @State private var barWidth: CGFloat = .infinity
@@ -56,6 +61,7 @@ struct WorkspaceTabBar: View {
             groupLabelsWidth: groupLabelsWidth,
             barWidth: barWidth
         )
+        let allGroups = allGroupsCollapsing(groupKeys)
         ScrollViewReader { scrollProxy in
             ScrollView(.horizontal) {
                 HStack(spacing: WorkspaceTabMetrics.groupSpacing) {
@@ -82,11 +88,13 @@ struct WorkspaceTabBar: View {
                                     isCollapsed: collapsedProjectKeys.contains(group.projectDirectoryKey),
                                     tabWidth: tabWidth,
                                     onToggleCollapsed: { toggleCollapsed(group.projectDirectoryKey) },
+                                    allGroups: allGroups,
                                     onLabelWidthChange: { groupLabelWidthsByProjectKey[group.projectDirectoryKey] = $0 },
                                     onLabelDragChanged: { dragGroup(group.projectDirectoryKey, by: $0, among: groupKeys) },
                                     onLabelDragEnded: dropDraggedGroup,
                                     onRenameConversation: onRenameConversation,
-                                    onCloseTab: onCloseTerminal
+                                    onCloseTab: onCloseTerminal,
+                                    onCloseTabs: onCloseTabGroup
                                 )
                             }
                         }
@@ -106,6 +114,8 @@ struct WorkspaceTabBar: View {
             // As in Chrome, the bar shows no scroller, which would lie over the tab titles; selecting a tab, from the
             // sidebar or by shortcut, scrolls it into sight.
             .scrollIndicators(.never)
+            // Tabs and group labels have menus of their own, which a right-click on them shows instead.
+            .contextMenu { TabGroupsBackgroundMenuItems(onNewSession: onNewSession, allGroups: allGroups) }
             .onGeometryChange(for: CGFloat.self, of: \.size.width) { barWidth = $0 }
             // Past the leading clearance, which the window buttons and sidebar toggle can lie over.
             .windowMoveZone()
@@ -162,6 +172,18 @@ struct WorkspaceTabBar: View {
         withAnimation(ThemeMotion.slide) {
             _ = collapsedProjectKeys.insert(projectKey)
         }
+    }
+
+    /// A split across projects has no label, so it never collapses. Collapsing every group leaves the selected tab
+    /// showing behind its collapsed label rather than switching to a tab still in sight.
+    private func allGroupsCollapsing(_ groupKeys: [String]) -> AllTabGroupsCollapsing {
+        let collapsibleKeys = groupKeys.filter { !TerminalSplit.isGroupKeyOfSplitAcrossProjects($0) }
+        return AllTabGroupsCollapsing(
+            canCollapseAll: collapsibleKeys.contains { !collapsedProjectKeys.contains($0) },
+            canExpandAll: !collapsedProjectKeys.isEmpty,
+            collapseAll: { withAnimation(ThemeMotion.slide) { collapsedProjectKeys.formUnion(collapsibleKeys) } },
+            expandAll: { withAnimation(ThemeMotion.slide) { collapsedProjectKeys.removeAll() } }
+        )
     }
 
     /// Expands the selected tab's group if it is collapsed, and scrolls the tab into sight.

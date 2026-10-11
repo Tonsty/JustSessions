@@ -266,6 +266,10 @@
 	<string>关闭窗口</string>
 	<key>Close a tab with **Keep running**, or quit the app, and the CLI carries on in tmux. Click its session to return. A plain terminal ends with its tab.</key>
 	<string>关闭标签页时选择 **保持运行**，或直接退出应用，CLI 都会在 tmux 中继续运行。单击它的会话即可回去。普通终端会随标签页一起结束。</string>
+	<key>Close all tabs in %@?</key>
+	<string>关闭 %@ 中的所有标签？</string>
+	<key>Close all tabs in group…</key>
+	<string>关闭标签组中的所有标签…</string>
 	<key>Close and delete session</key>
 	<string>关闭并删除会话</string>
 	<key>Close and delete session…</key>
@@ -280,6 +284,8 @@
 	<string>关闭搜索</string>
 	<key>Close search (Escape)</key>
 	<string>关闭搜索（Escape）</string>
+	<key>Close tabs</key>
+	<string>关闭标签</string>
 	<key>Close terminal</key>
 	<string>关闭终端</string>
 	<key>Close terminal…</key>
@@ -298,7 +304,9 @@
 	<string>直接关闭</string>
 	<key>Closing tabs</key>
 	<string>关闭标签</string>
-	<key>Collapse Group</key>
+	<key>Collapse all groups</key>
+	<string>折叠所有标签组</string>
+	<key>Collapse group</key>
 	<string>折叠标签组</string>
 	<key>Collapse project</key>
 	<string>折叠项目</string>
@@ -408,6 +416,8 @@
 	<string>结束并关闭此终端</string>
 	<key>End session</key>
 	<string>结束会话</string>
+	<key>End sessions</key>
+	<string>结束会话</string>
 	<key>End this CLI session?</key>
 	<string>结束此 CLI 会话？</string>
 	<key>Ended</key>
@@ -420,7 +430,9 @@
 	<string>所有标签页都在这里</string>
 	<key>Exited (%d)</key>
 	<string>已退出（%d）</string>
-	<key>Expand Group</key>
+	<key>Expand all groups</key>
+	<string>展开所有标签组</string>
+	<key>Expand group</key>
 	<string>展开标签组</string>
 	<key>Expand project</key>
 	<string>展开项目</string>
@@ -552,6 +564,10 @@
 	<string>保持运行</string>
 	<key>Keep running leaves the CLI running in tmux on %@; click the session to reattach. End session stops it.</key>
 	<string>保持运行会让 CLI 继续在 %@ 的 tmux 中运行；点击会话即可重新连接。结束会话会停止 CLI。</string>
+	<key>Keep running leaves their CLIs running in tmux; click a session to reattach. End sessions stops them.</key>
+	<string>保持运行会让这些 CLI 继续在 tmux 中运行；点击会话即可重新连接。结束会话会停止这些 CLI。</string>
+	<key>Keep running leaves their CLIs running in tmux; click a session to reattach. End sessions stops them. The other tabs' CLIs and shells stop either way.</key>
+	<string>保持运行会让这些 CLI 继续在 tmux 中运行；点击会话即可重新连接。结束会话会停止这些 CLI。其他标签的 CLI 和 shell 无论如何都会停止。</string>
 	<key>Keyboard shortcuts</key>
 	<string>键盘快捷键</string>
 	<key>Larger reading text</key>
@@ -632,6 +648,8 @@
 	<string>新建会话（⌘N）</string>
 	<key>New session in %@</key>
 	<string>在 %@ 中新建会话</string>
+	<key>New session…</key>
+	<string>新建会话…</string>
 	<key>New split view with current tab</key>
 	<string>使用当前标签页创建新的拆分视图</string>
 	<key>New terminal</key>
@@ -1056,6 +1074,8 @@
 	<string>Antigravity 会话数据库、关联文件夹和注释将移到 macOS 废纸篓，并从 Antigravity 本地索引中移除。</string>
 	<key>The CLI tab choice is for tabs whose CLI can keep running in tmux. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.</key>
 	<string>CLI 标签的选项适用于 CLI 可在 tmux 中保持运行的标签。终端的 shell 总会随标签一起结束。关闭对话框中的“不再询问”也会设置这些选项。</string>
+	<key>The CLIs and shells running in them will stop.</key>
+	<string>其中运行的 CLI 和 shell 都会停止。</string>
 	<key>The Claude Code session file and its associated folder will move to the macOS Trash. This also removes its entry from Claude Code's local index.</key>
 	<string>Claude Code 会话文件及其关联文件夹将移到 macOS 废纸篓，并从 Claude Code 本地索引中移除。</string>
 	<key>The Pi session file and its associated folder will be permanently deleted on %@. SSH hosts have no Trash, so this cannot be undone.</key>

@@ -13,6 +13,7 @@ struct TerminalTabGroupLabel: View {
     let hiddenTabCount: Int
     let hiddenTabsActivity: SessionActivitySummary
     let onToggleCollapsed: () -> Void
+    let menuItems: TabGroupMenuItems
 
     @State private var isHovered = false
 
@@ -54,9 +55,7 @@ struct TerminalTabGroupLabel: View {
         .accessibilityHint(Text(verbatim: location.copyablePath))
         .accessibilityLabel("\(projectName) tab group")
         .accessibilityValue("\(isCollapsed ? "Collapsed" : "Expanded"), \(CountedNoun.phrase(count: tabCount, singular: "tab"))")
-        .contextMenu {
-            Button(isCollapsed ? "Expand Group" : "Collapse Group", systemImage: isCollapsed ? "chevron.right" : "chevron.left", action: onToggleCollapsed)
-        }
+        .contextMenu { menuItems }
     }
 
     /// A double-click counts as one click. Its second click would otherwise open the group right back up.

@@ -3,12 +3,16 @@ import SwiftUI
 /// A full-height list in tab-bar order, grouped by project like the tab bar, each group under a heading in its color
 /// that collapses it. It stays mounted beside the project list to retain its scroll position and collapsed groups.
 /// Each tab of a split across projects lists under its own project, marked with its side of the split, as is each
-/// tab of a split in its project's group.
+/// tab of a split in its project's group. Rows, headings, and the space around them offer the menus of the tab bar's
+/// tabs, group labels, and space.
 struct SidebarOpenTabsView: View {
     @ObservedObject var store: ConversationStore
     let searchText: String
     let onSelectTab: (UUID) -> Void
+    let onRenameConversation: (Conversation) -> Void
     let onCloseTab: (UUID) -> Void
+    /// Closes a group's tabs, asking once for them all.
+    let onCloseTabGroup: ([UUID], _ projectName: String) -> Void
     let onNewSession: () -> Void
 
     @State private var groupCollapse = OpenTabGroupCollapse()
@@ -37,6 +41,7 @@ struct SidebarOpenTabsView: View {
         let groups = TerminalTabGroup.groups(of: tabs, projectDirectoryKey: \.projectDirectoryKey)
         // Colors come from every open tab's project, as in the tab bar, so a search that hides a group recolors no other.
         let colorsByProjectKey = TabGroupPalette.colorsByProjectKey(store.tabProjectKeysInOrder)
+        let allGroups = allGroupsCollapsing(groups.map(\.projectDirectoryKey))
 
         ScrollView {
             LazyVStack(spacing: SidebarIndentGuide.rowSpacing) {
@@ -54,7 +59,16 @@ struct SidebarOpenTabsView: View {
                         onToggleCollapsed: { groupCollapse.toggle(group.projectDirectoryKey) },
                         onNewSession: { provider in
                             store.launchNewSessionFromProject(provider: provider, projectPath: group.projectDirectoryKey)
-                        }
+                        },
+                        menuItems: TabGroupMenuItems(
+                            store: store,
+                            projectKey: group.projectDirectoryKey,
+                            projectDisplayName: projectName,
+                            isCollapsed: isCollapsed,
+                            onToggleCollapsed: { groupCollapse.toggle(group.projectDirectoryKey) },
+                            allGroups: allGroups,
+                            onCloseTabs: { onCloseTabGroup(group.tabs.map(\.id), projectName) }
+                        )
                     )
                     .padding(.top, group.id == groups.first?.id ? 0 : Self.groupSpacing)
                     if !isCollapsed {
@@ -65,7 +79,7 @@ struct SidebarOpenTabsView: View {
                                 splitSide: store.split(containing: tab.id).flatMap { store.sides(of: $0)?.side(of: tab.id) },
                                 isSelected: store.selectedTerminalID == tab.id,
                                 onSelect: { onSelectTab(tab.id) },
-                                onClose: { onCloseTab(tab.id) }
+                                menuItems: TerminalTabMenuItems(store: store, tab: tab, onRename: onRenameConversation, onCloseTab: onCloseTab)
                             )
                         }
                     }
@@ -75,6 +89,8 @@ struct SidebarOpenTabsView: View {
             .padding(.top, 8)
             .padding(.bottom, 12)
         }
+        // Rows and headings have menus of their own, which a right-click on them shows instead.
+        .contextMenu { TabGroupsBackgroundMenuItems(onNewSession: onNewSession, allGroups: allGroups) }
         .overlay {
             if tabs.isEmpty {
                 VStack(spacing: 10) {
@@ -103,6 +119,16 @@ struct SidebarOpenTabsView: View {
         .onChange(of: store.tabProjectKeysInOrder) { _, openProjectKeys in
             groupCollapse.keepOnly(openProjectKeys)
         }
+    }
+
+    /// A search shows every group expanded, but these still collapse and expand the groups it leaves for afterwards.
+    private func allGroupsCollapsing(_ groupKeys: [String]) -> AllTabGroupsCollapsing {
+        AllTabGroupsCollapsing(
+            canCollapseAll: groupKeys.contains { !groupCollapse.collapsedProjectKeys.contains($0) },
+            canExpandAll: !groupCollapse.collapsedProjectKeys.isEmpty,
+            collapseAll: { groupCollapse.collapse(groupKeys) },
+            expandAll: { groupCollapse.expandAll() }
+        )
     }
 
     private func expandSelectedTabsGroup() {

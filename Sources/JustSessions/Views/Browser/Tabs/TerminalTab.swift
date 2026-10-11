@@ -28,15 +28,10 @@ struct TerminalTab: View {
     let showsLeadingSeparator: Bool
     /// The color of the tab's group, which outlines the tab while it is active.
     let groupColor: ThemeColor
-    /// The split items this tab's context menu offers, or nil for none.
-    let splitMenu: TerminalTabSplitMenu?
-    /// Starts a new session or a plain terminal in the tab's group, first in its context menu, as Chrome's tab menu
-    /// starts with New tab.
-    let newSessionMenu: ProjectNewSessionMenu
+    /// What a right-click anywhere on the tab offers, its × included.
+    let menuItems: TerminalTabMenuItems
     let onHoverChange: (Bool) -> Void
     let onSelect: () -> Void
-    let onRename: (Conversation) -> Void
-    let onSplitAction: (TerminalTabSplitAction) -> Void
     let onClose: () -> Void
 
     @Environment(\.tabBarTerminalPalette) private var terminalPalette
@@ -61,26 +56,6 @@ struct TerminalTab: View {
             // The tab's hover card shows its whole title and details; see `TabHoverCardOverlay`.
             .accessibilityHint(Text(verbatim: details))
             .accessibilityAddTraits(isSelected ? .isSelected : [])
-            .contextMenu {
-                newSessionMenu
-                Divider()
-                if session.isPlainTerminal {
-                    splitMenuItems
-                    Button("Close terminal…", systemImage: "xmark", role: .destructive, action: onClose)
-                } else {
-                    Button("Rename", systemImage: "pencil") {
-                        if let conversation = session.conversation { onRename(conversation) }
-                    }
-                    .disabled(session.conversation == nil)
-                    if let conversation = session.conversation {
-                        Divider()
-                        ConversationSharingMenuItems(selections: [ConversationExportSelection(conversation: conversation, title: session.displayTitle)])
-                        Divider()
-                    }
-                    splitMenuItems
-                    Button("Close Tab…", systemImage: "xmark", role: .destructive, action: onClose)
-                }
-            }
 
             if showsCloseButton {
                 TerminalTabCloseButton(title: session.displayTitle, action: onClose)
@@ -103,61 +78,13 @@ struct TerminalTab: View {
                 splitSide: drawsOwnShape ? nil : splitSide
             )
         }
+        .contextMenu { menuItems }
         .onHover { isHovering in
             isHovered = isHovering
             onHoverChange(isHovering)
         }
         .onboardingTourStop(isSelected ? .keepRunning : nil)
         .onboardingTourStop(isSelected ? .splitView : nil)
-    }
-
-    /// The split view entries, as Chrome's tab menu offers them, each a submenu but the first.
-    @ViewBuilder private var splitMenuItems: some View {
-        switch splitMenu {
-        case .newSplitWithSelectedTab:
-            Button("New split view with current tab", systemImage: "rectangle.split.2x1") {
-                onSplitAction(.newSplitWithSelectedTab)
-            }
-            Divider()
-        case .addTabToNewSplit(let candidates):
-            Menu {
-                ForEach(candidates) { candidate in
-                    Button(candidate.menuTitle) { onSplitAction(.addToNewSplit(candidate.id)) }
-                }
-            } label: {
-                Label("Add tab to new split view", systemImage: "rectangle.split.2x1")
-            }
-            .disabled(candidates.isEmpty)
-            Divider()
-        case .moveIntoShownSplit:
-            Menu {
-                Button("Swap with left view", systemImage: "rectangle.lefthalf.inset.filled") {
-                    onSplitAction(.moveIntoShownSplit(swappingWith: .left))
-                }
-                Button("Swap with right view", systemImage: "rectangle.righthalf.inset.filled") {
-                    onSplitAction(.moveIntoShownSplit(swappingWith: .right))
-                }
-            } label: {
-                Label("Move tab into split view", systemImage: "rectangle.split.2x1")
-            }
-            Divider()
-        case .arrangeSplit:
-            Menu {
-                Button("Separate views", systemImage: "arrow.up.left.and.arrow.down.right") {
-                    onSplitAction(.separateViews)
-                }
-                Divider()
-                Button("Close left view", systemImage: "xmark") { onSplitAction(.closeView(.left)) }
-                Button("Close right view", systemImage: "xmark") { onSplitAction(.closeView(.right)) }
-                Divider()
-                Button("Reverse views", systemImage: "arrow.left.arrow.right") { onSplitAction(.reverseViews) }
-            } label: {
-                Label("Arrange split view", systemImage: "rectangle.split.2x1")
-            }
-            Divider()
-        case nil:
-            EmptyView()
-        }
     }
 
     /// A narrow tab hides its × until active or pointed at, as in Chrome, so its title keeps the room.

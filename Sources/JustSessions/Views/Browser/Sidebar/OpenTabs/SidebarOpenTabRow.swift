@@ -10,7 +10,8 @@ struct SidebarOpenTabRow: View {
     var splitSide: TerminalSplit.Side? = nil
     let isSelected: Bool
     let onSelect: () -> Void
-    let onClose: () -> Void
+    /// The tab's menu in the tab bar.
+    let menuItems: TerminalTabMenuItems
 
     static let height: CGFloat = 28
 
@@ -43,13 +44,7 @@ struct SidebarOpenTabRow: View {
         .accessibilityLabel(Text(verbatim: "\(tab.displayTitle), \(projectContext)"))
         .accessibilityValue(splitAccessibilityValue)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .contextMenu {
-            if tab.isPlainTerminal {
-                Button("Close terminal…", systemImage: "xmark", role: .destructive, action: onClose)
-            } else {
-                Button("Close Tab…", systemImage: "xmark", role: .destructive, action: onClose)
-            }
-        }
+        .contextMenu { menuItems }
     }
 
     /// Which view of its split the tab is, as the tab bar's tabs say; nothing for a tab in no split.

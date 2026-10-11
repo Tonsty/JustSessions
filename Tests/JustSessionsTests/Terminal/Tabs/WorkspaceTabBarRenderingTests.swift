@@ -72,7 +72,10 @@ struct WorkspaceTabBarRenderingTests {
     // MARK: - Helpers
 
     private func makeFixture(store: ConversationStore, colorScheme: ColorScheme) -> ThemeSurfaceRenderingFixture {
-        let bar = WorkspaceTabBar(store: store, leadingClearance: 0, onRenameConversation: { _ in }, onCloseTerminal: { _ in })
+        let bar = WorkspaceTabBar(
+            store: store, leadingClearance: 0, onRenameConversation: { _ in }, onNewSession: {},
+            onCloseTerminal: { _ in }, onCloseTabGroup: { _, _ in }
+        )
             .frame(width: Self.barWidth)
         return ThemeSurfaceRenderingFixture(
             content: AnyView(bar),
