@@ -7,4 +7,10 @@ extension TerminalSession {
     var canKeepCLIRunningAfterClose: Bool {
         tmuxSessionName != nil && !isWaitingToBeShown && (host != .thisMac || !hasExited)
     }
+
+    /// Whether closing the tab stops nothing, so it closes without asking: its CLI or shell already ended, and no tmux
+    /// on an SSH host may still run it.
+    var closingStopsNothing: Bool {
+        hasExited && !canKeepCLIRunningAfterClose
+    }
 }

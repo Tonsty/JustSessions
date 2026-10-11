@@ -10,11 +10,6 @@ extension ConversationStore {
             || isRunningInTmux(conversation)
     }
 
-    /// Whether ending the session closes a tab, in this window or another.
-    func endingSessionClosesTab(_ conversation: Conversation) -> Bool {
-        terminalSessions.contains { $0.conversation?.id == conversation.id } || hasTerminalInAnotherWindow(for: conversation)
-    }
-
     /// Closes the session's tabs in every window, ending the tmux sessions their CLIs run in, and ends the session's
     /// own tmux session when its CLI runs there without a tab. Each window ends its own tabs' tmux sessions, after the
     /// tmux commands it already queued, such as the rename that gave a new session's tmux session its name.

@@ -186,6 +186,12 @@
 	<string>立即请求</string>
 	<key>Ask each time</key>
 	<string>每次询问</string>
+	<key>Back</key>
+	<string>后退</string>
+	<key>Back (⌘[). Right-click to see history.</key>
+	<string>后退（⌘[）。右键单击可查看历史记录。</string>
+	<key>Back to the tab or session shown before</key>
+	<string>回到之前显示的标签页或会话</string>
 	<key>Background</key>
 	<string>背景</string>
 	<key>Branch</key>
@@ -386,8 +392,6 @@
 	<string>结束并关闭此终端</string>
 	<key>End session</key>
 	<string>结束会话</string>
-	<key>End session…</key>
-	<string>结束会话…</string>
 	<key>End this CLI session?</key>
 	<string>结束此 CLI 会话？</string>
 	<key>Ended</key>
@@ -450,6 +454,12 @@
 	<string>在主机上安装 `tmux`，可让会话在断线或关闭标签后继续运行。再次打开会话即可重新连接。</string>
 	<key>Fork in the native CLI</key>
 	<string>在原生 CLI 中创建分支</string>
+	<key>Forward</key>
+	<string>前进</string>
+	<key>Forward (⌘]). Right-click to see history.</key>
+	<string>前进（⌘]）。右键单击可查看历史记录。</string>
+	<key>Forward again</key>
+	<string>再次前进</string>
 	<key>Full</key>
 	<string>全宽</string>
 	<key>Full Disk Access</key>
@@ -458,6 +468,8 @@
 	<string>通用</string>
 	<key>Gives the theme back its own colors, light and dark.</key>
 	<string>恢复主题自带的浅色和深色颜色。</string>
+	<key>Go</key>
+	<string>前往</string>
 	<key>Go to a tab by its position</key>
 	<string>按位置切换到标签页</string>
 	<key>Go to the first available message</key>
@@ -1004,10 +1016,6 @@
 	<string>字号：终端，或当前显示的对话</string>
 	<key>The Antigravity session database, associated folder, and annotations will move to the macOS Trash. This also removes its entry from Antigravity's local index.</key>
 	<string>Antigravity 会话数据库、关联文件夹和注释将移到 macOS 废纸篓，并从 Antigravity 本地索引中移除。</string>
-	<key>The CLI stops on %@ and its tab closes. You can resume the session later.</key>
-	<string>CLI 会在 %@ 上停止，它的标签也会关闭。之后可以恢复这个会话。</string>
-	<key>The CLI stops on %@. You can resume the session later.</key>
-	<string>CLI 会在 %@ 上停止。之后可以恢复这个会话。</string>
 	<key>The CLI tab choice is for tabs whose CLI can keep running in tmux. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.</key>
 	<string>CLI 标签的选项适用于 CLI 可在 tmux 中保持运行的标签。终端的 shell 总会随标签一起结束。关闭对话框中的“不再询问”也会设置这些选项。</string>
 	<key>The Claude Code session file and its associated folder will move to the macOS Trash. This also removes its entry from Claude Code's local index.</key>

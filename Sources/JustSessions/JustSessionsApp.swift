@@ -17,6 +17,7 @@ struct JustSessionsApp: App {
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1100, height: 720)
         .commands {
+            WorkspaceNavigationCommands()
             WorkspaceTabCommands()
             SidebarToggleCommands()
             TextZoomCommands()
