@@ -3,6 +3,8 @@ import Testing
 @testable import JustSessions
 
 /// Find in a Ghostty tab, which scrolls the selected match to the top of the view; see `SwiftTermTerminalFindTests`.
+/// Each test waits for Ghostty's final layout before any output: a resize drops the selected match, so the next move
+/// selects the newest again.
 @MainActor
 @Suite(.serialized)
 struct GhosttyTerminalFindTests {
@@ -13,6 +15,7 @@ struct GhosttyTerminalFindTests {
     @Test func movesGoTowardOlderOrNewerOutputFromTheNewestMatch() async throws {
         let fixture = try GhosttyTabFixture()
         defer { fixture.tearDown() }
+        try await fixture.waitForLayout()
         fixture.view.inMemorySession.receive(TerminalFindFixtureOutput.linesWithThreeNeedles.joined(separator: "\r\n"))
         fixture.view.inMemorySession.waitForPendingOutput()
 
@@ -33,6 +36,7 @@ struct GhosttyTerminalFindTests {
     @Test func aQueryWithColonsAndBackslashesFindsItself() async throws {
         let fixture = try GhosttyTabFixture()
         defer { fixture.tearDown() }
+        try await fixture.waitForLayout()
         var lines = (1...300).map { String(format: "line-%04d", $0) }
         lines[49] = #"line-0050 C:\Users\x41:found"#
         fixture.view.inMemorySession.receive(lines.joined(separator: "\r\n"))

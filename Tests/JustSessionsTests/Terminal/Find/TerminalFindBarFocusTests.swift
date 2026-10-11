@@ -4,6 +4,8 @@ import Testing
 @testable import JustSessions
 
 /// Who has the keyboard as a tab's find bar opens and closes, with the tab's view in a window as the app shows it.
+/// A selected tab's terminal takes the keyboard a moment after it appears, so tests wait for that before opening the
+/// bar, as a person would.
 @MainActor
 @Suite(.serialized)
 struct TerminalFindBarFocusTests {
@@ -70,6 +72,7 @@ struct TerminalFindBarFocusTests {
     @Test func showingTheOpenBarAgainTakesTheKeyboardBack() async throws {
         let fixture = Fixture()
         defer { fixture.tearDown() }
+        try await expectEventually { fixture.terminalHasTheKeyboard }
         fixture.tab.findState.show()
         try await expectEventually { fixture.findFieldHasTheKeyboard }
         fixture.window.makeFirstResponder(fixture.tab.terminalView)
