@@ -4,8 +4,9 @@ import SwiftUI
 /// collapses or expands the group, as a project's chevron does in Projects; a collapsed group shows the most pressing
 /// status among its tabs, so a CLI waiting on you still shows. It lines up with the rows below instead of indenting
 /// them: its chevron sits in their icon column and its name starts where their titles do, so the rows keep the
-/// sidebar's full width. As a project row does, it trades its count for ⋯ and + while the pointer is over it, and its
-/// menu offers what a project row's does for the folder, leaving out what arranges projects in the sidebar.
+/// sidebar's full width. As a project row does, it trades its count for ⋯ and + while the pointer is over it. Its menu
+/// is its group label's in the tab bar: what a project row's offers for the folder, leaving out what arranges projects
+/// in the sidebar, then collapsing groups and closing the group's tabs.
 struct SidebarOpenTabGroupHeading: View {
     @ObservedObject var store: ConversationStore
     let projectName: String
@@ -17,6 +18,7 @@ struct SidebarOpenTabGroupHeading: View {
     let hiddenTabsActivity: SessionActivitySummary
     let onToggleCollapsed: () -> Void
     let onNewSession: (ConversationProvider) -> Void
+    let menuItems: TabGroupMenuItems
 
     @State private var isHovered = false
 
@@ -68,11 +70,6 @@ struct SidebarOpenTabGroupHeading: View {
         .background(SidebarRowBackground(isSelected: false, isHovered: isHovered))
         .onHover { isHovered = $0 }
         .contextMenu { menuItems }
-    }
-
-    /// The same items whether the menu comes from a right-click or the ⋯ button.
-    private var menuItems: some View {
-        ProjectFolderMenuItems(store: store, location: location, projectDisplayName: projectName, onNewSession: onNewSession)
     }
 
     /// The tab count gives way to the ⋯ and + menus while the pointer is over the heading. Both keep their room while

@@ -517,7 +517,8 @@ private struct SidebarPerfBrowserHarness: View {
                 onRenameConversation: { _ in },
                 onRenameProject: { _ in },
                 onRequestDeletion: { _ in },
-                onCloseTerminal: { _ in }
+                onCloseTerminal: { _ in },
+                onCloseTabGroup: { _, _ in }
             )
         } detail: {
             WorkspaceDetailView(
@@ -525,7 +526,9 @@ private struct SidebarPerfBrowserHarness: View {
                 sessionSelection: controls.sessionSelection,
                 isSidebarHidden: false,
                 onRename: { _ in },
+                onNewSession: {},
                 onCloseTerminal: { _ in },
+                onCloseTabGroup: { _, _ in },
                 onDelete: { _ in }
             )
         }

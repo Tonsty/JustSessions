@@ -1,15 +1,41 @@
 import AppKit
 
-/// Renaming the tab's session and copying or exporting its conversation, as the tab's menu in the tab bar offers them.
+/// Renaming and pinning the tab's session, then copying, exporting, or finding it, as the tab's menu in the tab bar
+/// offers them; see `TerminalTabMenuItems`.
 extension TerminalContextMenu {
-    /// Rename, then, once the tab knows its session, the conversation's sharing items, each group followed by a
+    /// Rename, then, once the tab knows its session, Pin and the session's other items, each group followed by a
     /// separator, as in the tab bar.
     var conversationItems: [NSMenuItem] {
         let renameItem = ActionMenuItem(title: localized("Rename"), systemImage: "pencil", isEnabled: tab.conversation != nil) {
             if let conversation = tab.conversation { onRename(conversation) }
         }
-        guard let conversation = tab.conversation else { return [renameItem] }
-        return [renameItem, .separator()] + sharingItems(for: conversation) + [.separator()]
+        guard let conversation = tab.conversation else { return [renameItem, .separator()] }
+        return [renameItem, pinItem(for: conversation), .separator()]
+            + sharingItems(for: conversation)
+            + locationItems(for: conversation)
+            + [.separator()]
+    }
+
+    private func pinItem(for conversation: Conversation) -> NSMenuItem {
+        let isPinned = store.pinnedItems.isPinned(conversationID: conversation.id)
+        return ActionMenuItem(
+            title: isPinned ? localized("Unpin session") : localized("Pin session"),
+            systemImage: isPinned ? "pin.slash" : "pin"
+        ) { [store] in
+            store.setPinned(!isPinned, conversation: conversation)
+        }
+    }
+
+    /// Reveal is only for a session on this Mac, whose file the Finder can show.
+    private func locationItems(for conversation: Conversation) -> [NSMenuItem] {
+        let copyIDItem = ActionMenuItem(title: localized("Copy session ID"), systemImage: "doc.on.doc") {
+            SessionLocationActions.copySessionID(conversation)
+        }
+        guard conversation.host == .thisMac else { return [copyIDItem] }
+        let revealItem = ActionMenuItem(title: localized("Reveal session file in Finder"), systemImage: "doc.text.magnifyingglass") {
+            SessionLocationActions.revealSessionFile(conversation)
+        }
+        return [copyIDItem, revealItem]
     }
 
     private func sharingItems(for conversation: Conversation) -> [NSMenuItem] {

@@ -20,6 +20,15 @@ struct OpenTabGroupCollapse: Equatable {
         collapsedProjectKeys.remove(projectKey)
     }
 
+    /// Collapses every one of the groups, from Collapse all groups.
+    mutating func collapse(_ projectKeys: [String]) {
+        collapsedProjectKeys.formUnion(projectKeys)
+    }
+
+    mutating func expandAll() {
+        collapsedProjectKeys.removeAll()
+    }
+
     /// Forgets groups that are no longer open, so a project whose last tab closed opens expanded next time.
     mutating func keepOnly(_ openProjectKeys: [String]) {
         collapsedProjectKeys.formIntersection(openProjectKeys)

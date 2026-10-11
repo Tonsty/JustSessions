@@ -91,7 +91,9 @@ private final class WorkspaceWindow {
             sessionSelection: SessionMultiSelection(),
             isSidebarHidden: false,
             onRename: { _ in },
+            onNewSession: {},
             onCloseTerminal: { _ in },
+            onCloseTabGroup: { _, _ in },
             onDelete: { _ in }
         ))
         try await settleLayout()

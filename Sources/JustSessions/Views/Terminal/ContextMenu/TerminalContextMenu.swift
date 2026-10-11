@@ -2,9 +2,9 @@ import AppKit
 
 /// What a right-click in a tab's terminal offers: what to do with the link under the pointer, if any; copying,
 /// pasting, and selecting its text, as a terminal app's menu does; then what the tab's menu in the tab bar offers, in
-/// the same order. It leaves out New session, which is about the tab's project rather than its terminal. AppKit asks
-/// for the menu on each right-click, so it is built each time, from the link, the terminal's selection, the tab's
-/// split, the installed editors, and the language chosen in Settings as they are then.
+/// the same order; see `TerminalTabMenuItems`. AppKit asks for the menu on each right-click, so it is built each time,
+/// from the link, the terminal's selection, the tab's session and split, the installed editors, and the language chosen
+/// in Settings as they are then.
 @MainActor
 struct TerminalContextMenu {
     let store: ConversationStore
@@ -49,7 +49,7 @@ struct TerminalContextMenu {
         ]
     }
 
-    /// As the tab's menu in the tab bar has them after New session.
+    /// As the tab's menu in the tab bar has them.
     private var tabItems: [NSMenuItem] {
         let closeTitle = tab.isPlainTerminal ? localized("Close terminal…") : localized("Close Tab…")
         let closeItem = ActionMenuItem(title: closeTitle, systemImage: "xmark") { onCloseTab(tab.id) }

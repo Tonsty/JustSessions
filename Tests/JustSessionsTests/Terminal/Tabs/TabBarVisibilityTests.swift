@@ -51,7 +51,8 @@ struct TabBarVisibilityTests {
             hostingView.rootView = AnyView(
                 WorkspaceDetailView(
                     store: store, sessionSelection: selection, isSidebarHidden: false,
-                    onRename: { _ in }, onCloseTerminal: { _ in }, onDelete: { _ in }
+                    onRename: { _ in }, onNewSession: {}, onCloseTerminal: { _ in }, onCloseTabGroup: { _, _ in },
+                    onDelete: { _ in }
                 )
                 .defaultAppStorage(settings.userDefaults)
             )

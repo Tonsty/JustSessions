@@ -21,6 +21,7 @@ struct ConversationBrowserView: View {
     /// Settings or Help while either shows as a sheet on this window.
     @State private var appWideSheet: AppWideSheet?
     @State private var closingTerminalID: UUID?
+    @State private var closingTabGroup: TabGroupClosingRequest?
     @SceneStorage("isSidebarHidden") private var isSidebarHidden = false
     @StateObject private var updateManager = SparkleUpdateManager()
     @StateObject private var onboardingTour = OnboardingTour()
@@ -84,7 +85,8 @@ struct ConversationBrowserView: View {
                 onRenameConversation: onRename,
                 onRenameProject: onRenameProject,
                 onRequestDeletion: onRequestDeletion,
-                onCloseTerminal: { requestClosingTerminal($0) }
+                onCloseTerminal: { requestClosingTerminal($0) },
+                onCloseTabGroup: { requestClosingTabGroup($0, projectName: $1) }
             )
         } detail: {
             WorkspaceDetailView(
@@ -93,7 +95,9 @@ struct ConversationBrowserView: View {
                 transcriptMatchReveal: transcriptMatchReveal,
                 isSidebarHidden: isSidebarHidden,
                 onRename: onRename,
+                onNewSession: { newSessionSheetHost = defaultNewSessionHost },
                 onCloseTerminal: { requestClosingTerminal($0) },
+                onCloseTabGroup: { requestClosingTabGroup($0, projectName: $1) },
                 onDelete: { onRequestDeletion(.conversation($0)) }
             )
         }
@@ -164,6 +168,7 @@ struct ConversationBrowserView: View {
             tabCloseChoiceSettingsStore: .shared,
             plainTerminalCloseChoiceSettingsStore: .shared
         ))
+        .modifier(TabGroupCloseConfirmation(store: store, request: $closingTabGroup))
         .modifier(OnboardingTipsPresenter(
             store: store,
             tour: onboardingTour,
@@ -181,25 +186,46 @@ struct ConversationBrowserView: View {
     /// whose CLI can keep running in tmux, or a plain terminal, closes without asking too once you chose Don't ask
     /// again, doing what you chose.
     private func requestClosingTerminal(_ id: UUID?) {
-        guard let id else { return }
-        let closingTab = store.terminalSessions.first { $0.id == id }
-        if closingTab?.isWaitingToBeShown == true {
+        guard let id, let closingTab = store.terminalSessions.first(where: { $0.id == id }) else { return }
+        switch closingTab.closingNeed {
+        case .nothingStarted:
             store.closeTerminal(id)
-        } else if closingTab?.closingStopsNothing == true {
+        case .alreadyEnded:
             store.closeTerminal(id, endingTmuxSession: true)
-        } else if closingTab?.canKeepCLIRunningAfterClose == true,
-                  let endsTmuxSession = TabCloseChoiceSettingsStore.shared.choice.endsTmuxSessionWithoutAsking {
-            store.closeTerminal(id, endingTmuxSession: endsTmuxSession)
-        } else if closingTab?.isPlainTerminal == true,
-                  PlainTerminalCloseChoiceSettingsStore.shared.choice == .closeWithoutAsking {
+        case .canKeepCLIRunning:
+            if let endsTmuxSession = TabCloseChoiceSettingsStore.shared.choice.endsTmuxSessionWithoutAsking {
+                store.closeTerminal(id, endingTmuxSession: endsTmuxSession)
+            } else {
+                closingTerminalID = id
+            }
+        case .plainTerminal where PlainTerminalCloseChoiceSettingsStore.shared.choice == .closeWithoutAsking:
             store.closeTerminal(id)
-        } else {
+        case .plainTerminal, .cliStopsWithTab:
             closingTerminalID = id
         }
     }
 
+    /// A group's one tab closes as its × closes it, with its own dialog. More ask once for them all, unless each would
+    /// close without asking on its own.
+    private func requestClosingTabGroup(_ tabIDs: [UUID], projectName: String) {
+        guard tabIDs.count > 1 else {
+            requestClosingTerminal(tabIDs.first)
+            return
+        }
+        let question = store.closingQuestion(
+            forTabs: tabIDs,
+            tabCloseChoice: TabCloseChoiceSettingsStore.shared.choice,
+            plainTerminalCloseChoice: PlainTerminalCloseChoiceSettingsStore.shared.choice
+        )
+        if case .closeWithoutAsking(let endingTmuxSessions) = question {
+            store.closeTabs(tabIDs, endingTmuxSessions: endingTmuxSessions)
+        } else {
+            closingTabGroup = TabGroupClosingRequest(projectName: projectName, tabIDs: tabIDs, question: question)
+        }
+    }
+
     var workspaceTabCommandsEnabled: Bool {
-        newSessionSheetHost == nil && appWideSheet == nil && closingTerminalID == nil
+        newSessionSheetHost == nil && appWideSheet == nil && closingTerminalID == nil && closingTabGroup == nil
     }
 
     /// The selected tab's tool, or a terminal when that tab is one; else the tool the sidebar shows, Codex when it shows

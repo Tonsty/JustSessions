@@ -181,8 +181,8 @@ struct TabBarDragInteractionTests {
         #expect(fixture.closeRequests == [first.id])
     }
 
-    /// A tab started from a tab's menu in a collapsed group is selected, so its group expands to show it.
-    @Test func aTabStartedFromATabsMenuExpandsItsCollapsedGroup() async throws {
+    /// A tab started from a collapsed group's menu is selected, so its group expands to show it.
+    @Test func aTabStartedFromAGroupsMenuExpandsItsCollapsedGroup() async throws {
         let project = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: project) }
         let fixture = try TabBarWindowFixture()
@@ -194,7 +194,7 @@ struct TabBarDragInteractionTests {
         try await fixture.click(atX: fixture.middle(ofGroupLabel: app.projectDirectoryKey))
         try #require(fixture.store.selectedTerminalID == tools.id)
 
-        fixture.store.openPlainTerminal(inGroupOf: app)
+        fixture.store.openPlainTerminal(in: ProjectLocation(key: app.projectDirectoryKey))
         try await fixture.settle()
         let newTab = try #require(fixture.store.terminalSessions.first { $0.id != app.id && $0.id != tools.id })
         #expect(fixture.store.tabGroupKey(of: newTab) == app.projectDirectoryKey)

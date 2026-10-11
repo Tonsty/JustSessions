@@ -14,12 +14,15 @@ struct TerminalTabGroupSection: View {
     let isCollapsed: Bool
     let tabWidth: CGFloat
     let onToggleCollapsed: () -> Void
+    let allGroups: AllTabGroupsCollapsing
     /// The label's width with the space after it, which the bar leaves out of the room its tabs share.
     let onLabelWidthChange: (CGFloat) -> Void
     let onLabelDragChanged: (_ translation: CGFloat) -> Void
     let onLabelDragEnded: () -> Void
     let onRenameConversation: (Conversation) -> Void
     let onCloseTab: (UUID) -> Void
+    /// Closes the group's tabs, asking once for them all; see `TabGroupCloseConfirmation`.
+    let onCloseTabs: ([UUID], _ projectName: String) -> Void
 
     @State private var hoveredTabID: UUID?
     /// The tab, or split, being dragged among the group's tabs and splits, each named by its tabs' ids.
@@ -44,7 +47,16 @@ struct TerminalTabGroupSection: View {
                 isCollapsed: isCollapsed,
                 hiddenTabCount: hiddenTabs.count,
                 hiddenTabsActivity: SessionActivitySummary(tabs: hiddenTabs),
-                onToggleCollapsed: onToggleCollapsed
+                onToggleCollapsed: onToggleCollapsed,
+                menuItems: TabGroupMenuItems(
+                    store: store,
+                    projectKey: group.projectDirectoryKey,
+                    projectDisplayName: projectName,
+                    isCollapsed: isCollapsed,
+                    onToggleCollapsed: onToggleCollapsed,
+                    allGroups: allGroups,
+                    onCloseTabs: { onCloseTabs(group.tabs.map(\.id), projectName) }
+                )
             )
             .tabHoverCardAnchor(.group(group.projectDirectoryKey))
             .onHover { trackHover(of: .group(group.projectDirectoryKey), isHovering: $0) }
@@ -67,12 +79,9 @@ struct TerminalTabGroupSection: View {
                     isSplitPartnerHovered: hoveredTabID.map { split?.partner(of: session.id) == $0 } ?? false,
                     showsLeadingSeparator: tabBefore(session.id, in: tabIDsInSight).map { showsSeparator(between: $0, and: session.id) } ?? false,
                     groupColor: color,
-                    splitMenu: store.splitMenu(forTab: session.id),
-                    newSessionMenu: newSessionMenu(inGroupOf: session, projectName: projectName),
+                    menuItems: TerminalTabMenuItems(store: store, tab: session, onRename: onRenameConversation, onCloseTab: onCloseTab),
                     onHoverChange: { trackHover(of: session.id, isHovering: $0) },
                     onSelect: { store.selectTerminal(session.id) },
-                    onRename: onRenameConversation,
-                    onSplitAction: { store.performSplitAction($0, fromTab: session.id, closeTab: onCloseTab) },
                     onClose: { onCloseTab(session.id) }
                 )
                 .tabHoverCardAnchor(.tab(session.id))
@@ -96,20 +105,6 @@ struct TerminalTabGroupSection: View {
                 .fill(color)
                 .frame(height: WorkspaceTabMetrics.groupLineWidth)
         }
-    }
-
-    /// The new session menu of a tab's context menu, the same as its project's + in the sidebar, which opens the new
-    /// tab in this group.
-    private func newSessionMenu(inGroupOf tab: TerminalSession, projectName: String) -> ProjectNewSessionMenu {
-        let location = store.groupLocation(of: tab)
-        return ProjectNewSessionMenu(
-            location: location,
-            projectDisplayName: projectName,
-            providers: store.newSessionProviders(on: location.host),
-            showsTitle: true,
-            onStart: { store.launchNewSession(provider: $0, inGroupOf: tab) },
-            onOpenTerminal: { store.openPlainTerminal(inGroupOf: tab) }
-        )
     }
 
     /// A split's tab is half as wide as the others, so the split's two take one tab's place.
