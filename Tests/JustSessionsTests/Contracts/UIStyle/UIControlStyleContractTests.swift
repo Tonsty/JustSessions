@@ -8,10 +8,10 @@ struct UIControlStyleContractTests {
         let systemStyle = try Regex(
             #"\.(buttonStyle|toggleStyle|textFieldStyle)\(\.(automatic|bordered|borderedProminent|borderless|plain|link|accessoryBar|accessoryBarAction|switch|checkbox|button|roundedBorder|squareBorder)\b"#
         )
-        // A custom search field draws the themed surface around a plain field itself.
+        // A custom search or find field draws the themed surface around a plain field itself.
         let plainFieldInSearchField = try Regex(#"\.textFieldStyle\(\.plain\)"#)
         let offendingLines = try ViewSourceLines().lines(matching: systemStyle).filter { line in
-            !(line.contains("Search") && line.contains(plainFieldInSearchField))
+            !((line.contains("Search") || line.contains("Find")) && line.contains(plainFieldInSearchField))
         }
         #expect(offendingLines.isEmpty, "Use the theme's styles in Views/Theme:\n\(offendingLines.joined(separator: "\n"))")
     }

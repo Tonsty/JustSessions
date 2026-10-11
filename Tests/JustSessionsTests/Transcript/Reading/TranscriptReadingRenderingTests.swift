@@ -41,7 +41,10 @@ struct TranscriptReadingRenderingTests {
         let store = ConversationStore(adapters: [], userDefaults: settings.userDefaults, sessionNotifier: RecordingSessionNotifier())
         let conversation = Conversation(provider: .claude, sessionID: "reading-window-fixture", projectPath: directory.path,
                                         suggestedTitle: "Read before you resume", updatedAt: .now, sourceFile: sourceFile)
-        let content = SessionReadingView(store: store, conversation: conversation, readingPositionStore: TranscriptReadingPositionStore())
+        let content = SessionReadingView(
+            store: store, conversation: conversation, readingPositionStore: TranscriptReadingPositionStore(),
+            findRequests: SessionReadingFindRequests()
+        )
             .defaultAppStorage(settings.userDefaults)
         let fixture = ThemeSurfaceRenderingFixture(content: AnyView(content), size: CGSize(width: 760, height: 900), colorScheme: .light)
         defer { fixture.close() }

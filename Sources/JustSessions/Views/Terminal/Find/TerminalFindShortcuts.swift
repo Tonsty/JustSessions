@@ -1,0 +1,71 @@
+import AppKit
+import SwiftUI
+
+/// Find's keys while the window shows a tab: ⌘F for the selected tab, and while its find bar shows, ⌘G and ⇧⌘G. Return,
+/// Shift-Return, and Escape belong to the bar only while its field has the keyboard; otherwise they go to the terminal,
+/// so a CLI keeps its Escape. The conversation reader has its own (`TranscriptSearchKeyboardShortcuts`), active only
+/// while no tab is selected.
+struct TerminalFindShortcuts: NSViewRepresentable {
+    /// The selected tab's find bar; nil while no tab is selected, which leaves every key alone.
+    let selectedTabFind: TerminalFindState?
+    /// What ⌘F does in the selected tab; see `TerminalFindTarget`.
+    let onFind: () -> Void
+
+    func makeNSView(context: Context) -> ShortcutView { ShortcutView() }
+
+    func updateNSView(_ view: ShortcutView, context: Context) {
+        view.selectedTabFind = selectedTabFind
+        view.onFind = onFind
+    }
+
+    static func dismantleNSView(_ view: ShortcutView, coordinator: ()) { view.stop() }
+
+    final class ShortcutView: NSView {
+        var selectedTabFind: TerminalFindState?
+        var onFind: (() -> Void)?
+        private var monitor: Any?
+
+        override init(frame: NSRect) {
+            super.init(frame: frame)
+            monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                guard let self else { return event }
+                let isHandled = MainActor.assumeIsolated { self.handle(event) == nil }
+                return isHandled ? nil : event
+            }
+        }
+
+        required init?(coder: NSCoder) { nil }
+
+        func stop() {
+            if let monitor { NSEvent.removeMonitor(monitor) }
+            monitor = nil
+        }
+
+        func handle(_ event: NSEvent) -> NSEvent? {
+            guard let window, event.window === window, let findState = selectedTabFind else { return event }
+            let modifiers = event.modifierFlags.intersection([.command, .shift, .option, .control])
+            let key = event.charactersIgnoringModifiers?.lowercased()
+            if modifiers == .command, key == "f" {
+                onFind?()
+                return nil
+            }
+            guard findState.isPresented else { return event }
+            if key == "g", modifiers == .command || modifiers == [.command, .shift] {
+                findState.move(modifiers.contains(.shift) ? .towardNewer : .towardOlder)
+                return nil
+            }
+            guard findState.isFieldFocused, let fieldEditor = window.firstResponder as? NSTextView,
+                  !fieldEditor.hasMarkedText()
+            else { return event }
+            if event.keyCode == 36 || event.keyCode == 76, modifiers.isEmpty || modifiers == .shift {
+                findState.move(modifiers.contains(.shift) ? .towardNewer : .towardOlder)
+                return nil
+            }
+            if event.keyCode == 53, modifiers.isEmpty {
+                findState.close()
+                return nil
+            }
+            return event
+        }
+    }
+}

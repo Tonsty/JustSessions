@@ -7,6 +7,8 @@ struct TranscriptView: View {
     var isActive = true
     /// Opens the reader at a match that a search through every session's messages found; see `TranscriptMatchReveal`.
     var matchReveal: TranscriptMatchReveal?
+    /// Each rise opens Find; see `SessionReadingFindRequests`.
+    var findRequestRevision = 0
     /// Shown as a reading toolbar button; see `TranscriptReadingToolbar.onOpenInNewWindow`.
     var onOpenInNewWindow: (() -> Void)?
 
@@ -33,6 +35,9 @@ struct TranscriptView: View {
             }
             .onChange(of: matchReveal?.id) {
                 if isActive { refresh() }
+            }
+            .onChange(of: findRequestRevision, initial: true) {
+                if findRequestRevision > 0 { searchState.show() }
             }
             .onChange(of: paging.revision) {
                 guard let loadingMatchReveal else { return }

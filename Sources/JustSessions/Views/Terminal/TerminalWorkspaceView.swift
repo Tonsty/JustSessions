@@ -2,7 +2,8 @@ import SwiftUI
 
 /// A tab's terminal. The tab names the session and its group names the project, so the terminal starts right under
 /// the tab bar; a bar above it appears only once the CLI has ended. On an SSH host, files dropped on it copy there
-/// under a notice in its corner; see `TerminalSSHFileDropNotice`.
+/// under a notice in its corner; see `TerminalSSHFileDropNotice`. The tab's find bar floats over the same corner, above
+/// the notice.
 struct TerminalWorkspaceView: View {
     @ObservedObject var session: TerminalSession
     /// The terminal is on screen, full width or as either half of a split.
@@ -33,8 +34,24 @@ struct TerminalWorkspaceView: View {
                 .id(session.id)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .overlay(alignment: .topTrailing) {
-                    if let sshFileDrop = session.sshFileDrop { TerminalSSHFileDropNotice(fileDrop: sshFileDrop) }
+                    VStack(alignment: .trailing, spacing: 0) {
+                        if session.findState.isPresented {
+                            // The notice's margin, so the two line up when both show.
+                            TerminalFindBar(findState: session.findState)
+                                .padding([.top, .horizontal], TerminalSSHFileDropNotice.marginFromTerminalEdges)
+                        }
+                        if let sshFileDrop = session.sshFileDrop { TerminalSSHFileDropNotice(fileDrop: sshFileDrop) }
+                    }
                 }
+        }
+        // Closing the bar gives the keyboard back to the terminal of the selected tab.
+        .onChange(of: session.findState.closeRevision) {
+            guard isActive else { return }
+            session.terminalView.window?.makeFirstResponder(session.terminalView)
+        }
+        // A click in the find field of a split's other pane selects its tab, so the find keys go to that bar.
+        .onChange(of: session.findState.isFieldFocused) {
+            if session.findState.isFieldFocused && !isActive { onFocus() }
         }
     }
 }

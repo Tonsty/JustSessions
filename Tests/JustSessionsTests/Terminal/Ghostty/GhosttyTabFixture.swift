@@ -63,8 +63,9 @@ final class GhosttyTabFixture {
         signal("laid-out")
     }
 
-    /// Ghostty lays a new terminal out twice, first at a provisional size; this waits until the grid stays put.
-    private func waitForLayout() async throws {
+    /// Ghostty lays a new terminal out twice, first at a provisional size; this waits until the grid stays put. Output
+    /// given before then is laid out again.
+    func waitForLayout() async throws {
         var lastViewport = view.viewport
         var stableSince = ContinuousClock.now
         let deadline = ContinuousClock.now + .seconds(120)

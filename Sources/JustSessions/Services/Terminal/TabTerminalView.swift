@@ -1,8 +1,9 @@
 import AppKit
 
-/// A tab's terminal, whichever engine draws it: what the tab, its inset view, and the workspace ask of it.
+/// A tab's terminal, whichever engine draws it: what the tab, its inset view, and the workspace ask of it. Finding text
+/// in it is `TerminalTextFinding`.
 @MainActor
-protocol TabTerminalView: NSView {
+protocol TabTerminalView: NSView, TerminalTextFinding {
     /// Called when a click lands on the terminal or its margin, or files are dropped on it, before the terminal takes
     /// the keyboard, so a split pane whose tab is not selected can select it.
     var onFocus: (() -> Void)? { get set }

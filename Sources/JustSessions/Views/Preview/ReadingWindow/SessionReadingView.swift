@@ -5,6 +5,7 @@ struct SessionReadingView: View {
     @ObservedObject var store: ConversationStore
     let conversation: Conversation
     let readingPositionStore: TranscriptReadingPositionStore
+    let findRequests: SessionReadingFindRequests
 
     private var currentConversation: Conversation {
         store.conversation(withID: conversation.id) ?? conversation
@@ -33,7 +34,11 @@ struct SessionReadingView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(24)
             ThemeDivider()
-            TranscriptView(conversation: conversation, readingPositionStore: readingPositionStore)
+            TranscriptView(
+                conversation: conversation,
+                readingPositionStore: readingPositionStore,
+                findRequestRevision: findRequests.revision
+            )
                 .id(conversation.id)
         }
         .frame(minWidth: 400, minHeight: 300)
