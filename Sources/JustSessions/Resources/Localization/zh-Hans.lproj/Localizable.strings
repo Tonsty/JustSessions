@@ -6,6 +6,8 @@
 	<string>%@（已导入）</string>
 	<key>%@ (not installed)</key>
 	<string>%@（未安装）</string>
+	<key>%@ (not supported)</key>
+	<string>%@（不支持）</string>
 	<key>%@ - Left view</key>
 	<string>%@ - 左侧视图</string>
 	<key>%@ - Right view</key>

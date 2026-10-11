@@ -1,11 +1,12 @@
 import SwiftUI
 
-/// The terminal font: the system's monospaced font, or any monospaced family installed on this Mac. A chosen family
-/// that is no longer installed stays listed, marked, while terminals use the system's font.
+/// The terminal font: the system's monospaced font, or any monospaced family installed on this Mac whose letters fill a
+/// terminal's cells. A chosen family that is no longer installed, or whose letters don't fill the cells, stays listed,
+/// marked, while terminals use the system's font.
 struct TerminalFontPicker: View {
     @ObservedObject var appearanceStore: TerminalAppearanceStore
     /// Nil until the installed families have loaded.
-    @State private var installedFamilies: [String]?
+    @State private var installedFamilies: InstalledMonospacedFontFamilies?
 
     var body: some View {
         HStack(spacing: 4) {
@@ -27,9 +28,12 @@ struct TerminalFontPicker: View {
             Text("System Monospaced").tag(TerminalFontFamily.system)
             Divider()
             ForEach(Self.choices(installed: installedFamilies, chosen: appearanceStore.preferences.fontFamily), id: \.self) { choice in
-                if choice.isMissing {
+                switch choice.unavailability {
+                case .notInstalled:
                     Text("\(choice.family) (not installed)").tag(TerminalFontFamily.named(choice.family))
-                } else {
+                case .notFillingCells:
+                    Text("\(choice.family) (not supported)").tag(TerminalFontFamily.named(choice.family))
+                case nil:
                     Text(verbatim: choice.family).tag(TerminalFontFamily.named(choice.family))
                 }
             }
@@ -43,20 +47,31 @@ struct TerminalFontPicker: View {
 
     struct Choice: Hashable {
         let family: String
-        /// Known only once the installed families have loaded.
-        let isMissing: Bool
+        /// Why terminals use the system's font instead, known only once the installed families have loaded.
+        let unavailability: Unavailability?
     }
 
-    /// The installed families, and the chosen one even before they load or after it is removed, so the picker always
-    /// shows the current choice.
-    static func choices(installed: [String]?, chosen: TerminalFontFamily) -> [Choice] {
-        var families = installed ?? []
+    enum Unavailability: Hashable {
+        case notInstalled
+        /// See `FontFillsTerminalCells`.
+        case notFillingCells
+    }
+
+    /// The families whose letters fill the cells, and the chosen one even before they load, after it is removed, or
+    /// when its letters don't, so the picker always shows the current choice.
+    static func choices(installed: InstalledMonospacedFontFamilies?, chosen: TerminalFontFamily) -> [Choice] {
+        var families = installed?.fillingCells ?? []
         if case .named(let chosenFamily) = chosen, !families.contains(chosenFamily) {
             families.append(chosenFamily)
             families.sort { $0.localizedStandardCompare($1) == .orderedAscending }
         }
         return families.map { family in
-            Choice(family: family, isMissing: installed.map { !$0.contains(family) } ?? false)
+            Choice(family: family, unavailability: installed.flatMap { unavailability(of: family, in: $0) })
         }
+    }
+
+    private static func unavailability(of family: String, in installed: InstalledMonospacedFontFamilies) -> Unavailability? {
+        if installed.fillingCells.contains(family) { return nil }
+        return installed.notFillingCells.contains(family) ? .notFillingCells : .notInstalled
     }
 }

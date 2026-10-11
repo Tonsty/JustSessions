@@ -30,6 +30,16 @@
         }
       }
     },
+    "%@ (not supported)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@（不支持）"
+          }
+        }
+      }
+    },
     "%@ - Left view": {
       "localizations": {
         "zh-Hans": {

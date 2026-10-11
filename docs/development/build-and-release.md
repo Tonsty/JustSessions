@@ -30,9 +30,12 @@ The verifier relocates the runtime to a path with spaces, restricts `PATH` to sy
 
 ## SwiftTerm fork
 
-The terminal comes from [yangzichao/SwiftTerm](https://github.com/yangzichao/SwiftTerm), a fork of [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm). Its `minimum-contrast-1.15` branch is upstream `v1.15.0` plus one commit that adds `minimumContrastRatio`: text whose color falls below the ratio against its cell's background, after dimming, is darkened or lightened just enough to reach it, as in VS Code's terminal. Box drawing and block elements keep their colors. The app sets the ratio to 4.5 in `TerminalAppearanceStyling`. SwiftTerm draws selected text in the one selection text color without that minimum, so the app first makes that color readable on the selection (`TerminalColorScheme.readableSelectionForeground`).
+The terminal comes from [yangzichao/SwiftTerm](https://github.com/yangzichao/SwiftTerm), a fork of [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm). Its `minimum-contrast-1.15` branch is upstream `v1.15.0` plus two commits:
 
-Fork tags are named `v<upstream version>-justsessions.<n>`, and `Package.swift` pins one exactly. To move to a newer SwiftTerm, rebase the commit onto the upstream tag, run `swift test` in the fork, push a new tag, and update `Package.swift` and `Package.resolved`. Drop the fork once upstream SwiftTerm has an equivalent setting.
+- `minimumContrastRatio`: text whose color falls below the ratio against its cell's background, after dimming, is darkened or lightened just enough to reach it, as in VS Code's terminal. Box drawing and block elements keep their colors. The app sets the ratio to 4.5 in `TerminalAppearanceStyling`. SwiftTerm draws selected text in the one selection text color without that minimum, so the app first makes that color readable on the selection (`TerminalColorScheme.readableSelectionForeground`). Upstream merged it in [#747](https://github.com/migueldeicaza/SwiftTerm/pull/747), after `v1.99.0`.
+- Cells as wide as the font's glyph for the character W, not the glyph it names W. Fonts whose glyphs are unnamed or named by CID, such as BIZ UDGothic, BIZ UDMincho, and PCMyungjo, name no glyph W, which made every cell as wide as a Chinese character. `SwiftTermCellWidth` mirrors this for the font picker and Ghostty's cell size. Upstream review: [#749](https://github.com/migueldeicaza/SwiftTerm/pull/749).
+
+Fork tags are named `v<upstream version>-justsessions.<n>`, and `Package.swift` pins one exactly. To move to a newer SwiftTerm, rebase the commits upstream doesn't have onto the upstream tag, run `swift test` in the fork, push a new tag, and update `Package.swift` and `Package.resolved`. Drop the fork once an upstream release has both changes.
 
 ## libghostty
 
