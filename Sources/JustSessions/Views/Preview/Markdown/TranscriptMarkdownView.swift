@@ -39,7 +39,7 @@ struct TranscriptMarkdownView: View {
             ForEach(blocks) { block in
                 HStack(alignment: .top, spacing: 10) {
                     if block.quoteDepth > 0 {
-                        RoundedRectangle(cornerRadius: 2).fill(ThemePalette.hairline).frame(width: 3)
+                        Capsule().fill(ThemePalette.hairline).frame(width: 3)
                     }
                     if block.listDepth > 0 {
                         Text(block.listMarker ?? "")

@@ -76,7 +76,7 @@ struct WorkspaceTabBar: View {
                 .padding(.horizontal, WorkspaceTabMetrics.horizontalInset)
                 .padding(.top, WorkspaceTabMetrics.topInset)
                 // Tabs narrow or widen smoothly as others open or close; resizing the window moves them directly.
-                .animation(.easeOut(duration: 0.15), value: shownTabCount)
+                .animation(ThemeMotion.slide, value: shownTabCount)
             }
             // As in Chrome, the bar shows no scroller, which would lie over the tab titles; selecting a tab, from the
             // sidebar or by shortcut, scrolls it into sight.
@@ -134,7 +134,7 @@ struct WorkspaceTabBar: View {
         }
         // Show another tab first, so the group's selected tab does not hide while its terminal stays in front.
         selectTabInSight(insteadOfTabsIn: projectKey)
-        withAnimation(.easeOut(duration: 0.15)) {
+        withAnimation(ThemeMotion.slide) {
             _ = collapsedProjectKeys.insert(projectKey)
         }
     }
@@ -150,7 +150,7 @@ struct WorkspaceTabBar: View {
     }
 
     private func expandGroup(_ projectKey: String) {
-        withAnimation(.easeOut(duration: 0.15)) {
+        withAnimation(ThemeMotion.slide) {
             _ = collapsedProjectKeys.remove(projectKey)
         }
     }

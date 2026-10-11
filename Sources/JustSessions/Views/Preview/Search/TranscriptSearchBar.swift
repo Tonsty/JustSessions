@@ -25,10 +25,10 @@ struct TranscriptSearchBar: View {
                 }
                 .padding(.horizontal, 9)
                 .padding(.vertical, 6)
-                .background(ThemePalette.raisedSurface, in: RoundedRectangle(cornerRadius: 6))
-                .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(ThemePalette.hairline))
+                .background(ThemePalette.raisedSurface, in: RoundedRectangle(.control))
+                .overlay(RoundedRectangle(.control).strokeBorder(ThemePalette.hairline))
                 Text(localizedResultLabel)
-                    .font(.caption.monospacedDigit())
+                    .font(ThemeFont.caption.monospacedDigit())
                     .foregroundStyle(ThemePalette.secondaryText)
                     .fixedSize()
                     .accessibilityIdentifier("preview.search-count")
@@ -46,11 +46,11 @@ struct TranscriptSearchBar: View {
             .buttonStyle(ThemePlainButtonStyle(horizontalPadding: 4, verticalPadding: 4))
             if hasOmittedEntries {
                 Text("Search covers the entries shown in this preview.")
-                    .font(.caption)
+                    .font(ThemeFont.caption)
                     .foregroundStyle(ThemePalette.secondaryText)
             }
         }
-        .font(.system(size: 13))
+        .font(ThemeFont.body)
         .foregroundStyle(ThemePalette.ink)
         .padding(.horizontal, 24)
         .padding(.vertical, 8)

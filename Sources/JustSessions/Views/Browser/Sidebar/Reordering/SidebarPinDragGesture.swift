@@ -34,7 +34,7 @@ enum SidebarPinDragMetrics {
     /// How far the pointer moves before a press on a row becomes a drag.
     static let minimumDistance: CGFloat = 4
     /// How long the rows take to settle into their new order once the dragged one is let go.
-    static let dropAnimation: Animation = .easeOut(duration: 0.15)
+    static let dropAnimation = ThemeMotion.slide
     static let draggedRowOpacity: Double = 0.4
     /// See-through, as a macOS drag image is, so the rows around where it would land still show.
     static let ghostOpacity: Double = 0.7
@@ -61,9 +61,9 @@ private struct SidebarPinDragGesture<Ghost: View>: ViewModifier {
                     ZStack(alignment: .top) {
                         ghost
                             .background {
-                                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                RoundedRectangle(.control)
                                     .fill(ThemePalette.raisedSurface)
-                                    .shadow(color: .black.opacity(0.18), radius: 6, y: 2)
+                                    .themeShadow(.floating)
                             }
                             .opacity(SidebarPinDragMetrics.ghostOpacity)
                             .offset(y: translation)

@@ -19,6 +19,7 @@
 | [Source layout](development/source-layout.md) | Feature folders and responsibilities. |
 | [Performance](development/performance.md) | Profiling baseline, known hotspots, the status of each optimization, and how to profile. |
 | [Counting update checks](development/update-checks.md) | The Cloudflare Worker that counts daily update checks, what it stores, and how to read the numbers. |
+| [UI style](development/ui-style.md) | Theme colors, type scale, corner radii, button and sheet rules, and the contract tests that enforce them. |
 | [Interface localization](development/localization.md) | String Catalog, language discovery, adding translations, and automated checks. |
 | [Website development](development/website.md) | Static Pages builds, app colors, metadata, sitemap, previews, and publishing. |
 | [Branding](../Branding/README.md) | Icon sources, brand colors, and asset generation. |

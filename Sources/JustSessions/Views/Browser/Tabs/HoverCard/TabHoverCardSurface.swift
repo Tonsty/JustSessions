@@ -16,7 +16,7 @@ struct TabHoverCardSurface<Content: View>: View {
             .background {
                 shape
                     .fill(ThemePalette.raisedSurface)
-                    .shadow(color: .black.opacity(0.18), radius: 6, y: 2)
+                    .themeShadow(.floating)
             }
             .overlay { shape.strokeBorder(ThemePalette.hairline) }
     }

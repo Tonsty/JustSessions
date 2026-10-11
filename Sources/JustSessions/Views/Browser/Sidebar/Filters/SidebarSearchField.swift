@@ -26,11 +26,11 @@ struct SidebarSearchField: View {
             .help("Close search")
             .accessibilityLabel("Close search")
         }
-        .font(.system(size: 12))
+        .font(ThemeFont.callout)
         .padding(.horizontal, 9)
         .frame(height: 28)
-        .background(ThemePalette.raisedSurface, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 7, style: .continuous).strokeBorder(ThemePalette.hairline))
+        .background(ThemePalette.raisedSurface, in: RoundedRectangle(.control))
+        .overlay(RoundedRectangle(.control).strokeBorder(ThemePalette.hairline))
         .padding(.horizontal, 12)
         .task { isFocused = true }
         .onChange(of: isFocused) { _, isFocused in

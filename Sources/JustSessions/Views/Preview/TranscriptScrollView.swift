@@ -105,7 +105,7 @@ struct TranscriptScrollView: View {
                             .disabled(!isActive)
                     } else if transcript.omittedEntryCount > 0 {
                         Text("\(transcript.omittedEntryCount) earlier entries are not shown. Resume the session to see all of it.")
-                            .font(.caption)
+                            .font(ThemeFont.caption)
                             .foregroundStyle(ThemePalette.tertiaryText)
                             .frame(maxWidth: .infinity)
                             .padding(.bottom, 8)
@@ -117,7 +117,7 @@ struct TranscriptScrollView: View {
                             .disabled(!isActive)
                     }
                     if let message = paging?.errorMessage {
-                        Text(verbatim: message).font(.caption).foregroundStyle(ThemePalette.secondaryText).padding(12)
+                        Text(verbatim: message).font(ThemeFont.caption).foregroundStyle(ThemePalette.secondaryText).padding(12)
                     }
                 }
                 .frame(width: min(readingWidth.maximumColumnWidth, max(0, viewport.size.width - 48)), alignment: .leading)

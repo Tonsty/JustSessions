@@ -15,10 +15,10 @@ struct SidebarOpenTabRow: View {
         Button(action: onSelect) {
             HStack(spacing: 8) {
                 toolIcon
-                    .font(.system(size: 10, weight: .medium))
+                    .font(ThemeFont.glyph(.control, weight: .medium))
                     .frame(width: 14)
                 Text(verbatim: tab.displayTitle)
-                    .font(.system(size: 12, weight: isSelected ? .medium : .regular))
+                    .font(ThemeFont.callout.weight(isSelected ? .medium : .regular))
                     .lineLimit(1)
                     .truncationMode(.tail)
                 Spacer(minLength: 6)

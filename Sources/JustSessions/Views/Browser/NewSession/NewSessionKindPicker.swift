@@ -28,7 +28,7 @@ struct NewSessionKindPicker: View {
                     ])
                     .fixedSize()
                     Text("Your login shell, with no CLI")
-                        .font(.callout)
+                        .font(ThemeFont.callout)
                         .foregroundStyle(ThemePalette.secondaryText)
                 }
             }

@@ -21,13 +21,13 @@ struct HelpTourSection: View {
                     .accessibilityIdentifier("help.user-guide")
             }
         }
-        .font(.callout)
+        .font(ThemeFont.callout)
         .fixedSize(horizontal: false, vertical: true)
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(ThemePalette.raisedSurface, in: RoundedRectangle(cornerRadius: 10))
+        .background(ThemePalette.raisedSurface, in: RoundedRectangle(.panel))
         .overlay {
-            RoundedRectangle(cornerRadius: 10).stroke(ThemePalette.hairline)
+            RoundedRectangle(.panel).stroke(ThemePalette.hairline)
         }
     }
 }

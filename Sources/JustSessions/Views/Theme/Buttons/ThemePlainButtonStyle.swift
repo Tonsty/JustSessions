@@ -4,7 +4,8 @@ import SwiftUI
 struct ThemePlainButtonStyle: ButtonStyle {
     var horizontalPadding: CGFloat = 0
     var verticalPadding: CGFloat = 0
-    var cornerRadius: CGFloat = 6
+    /// The corners of the hover and pressed surfaces; nil makes them a circle, for a round icon button.
+    var cornerRadius: ThemeCornerRadius? = .control
     var showsHover = true
 
     func makeBody(configuration: Configuration) -> some View {
@@ -24,14 +25,14 @@ private struct ThemePlainButtonSurface<Label: View>: View {
     let isPressed: Bool
     let horizontalPadding: CGFloat
     let verticalPadding: CGFloat
-    let cornerRadius: CGFloat
+    let cornerRadius: ThemeCornerRadius?
     let showsHover: Bool
 
     @Environment(\.isEnabled) private var isEnabled
     @State private var isHovered = false
 
-    private var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+    private var shape: AnyShape {
+        cornerRadius.map { AnyShape(RoundedRectangle($0)) } ?? AnyShape(Circle())
     }
 
     var body: some View {

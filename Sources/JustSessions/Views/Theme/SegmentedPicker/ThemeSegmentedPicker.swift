@@ -22,7 +22,7 @@ struct ThemeSegmentedPicker<Value: Hashable>: View {
             }
         }
         .padding(2)
-        .background(ThemePalette.trackFill, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .background(ThemePalette.trackFill, in: RoundedRectangle(.control))
         .accessibilityRepresentation {
             Picker(accessibilityTitle, selection: $selection) {
                 ForEach(segments, id: \.value) { segment in
@@ -40,7 +40,7 @@ struct ThemeSegmentedPicker<Value: Hashable>: View {
             selection = segment.value
         } label: {
             segment.title
-                .font(.system(size: 13))
+                .font(ThemeFont.body)
                 .foregroundStyle(isSelected ? ThemePalette.inkForeground : ThemePalette.secondaryText)
                 .lineLimit(1)
                 .padding(.horizontal, 10)
@@ -48,12 +48,12 @@ struct ThemeSegmentedPicker<Value: Hashable>: View {
                 .frame(height: 22)
                 .background {
                     if isSelected {
-                        RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        RoundedRectangle(.small)
                             .fill(ThemePalette.ink)
                     }
                 }
                 .contentShape(Rectangle())
         }
-        .buttonStyle(ThemePlainButtonStyle(cornerRadius: 5))
+        .buttonStyle(ThemePlainButtonStyle(cornerRadius: .small))
     }
 }

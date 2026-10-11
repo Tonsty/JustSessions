@@ -4,7 +4,7 @@ import SwiftUI
 /// mini toolbar in its corner.
 enum WorkspaceSplitPaneMetrics {
     static let outlineWidth: CGFloat = 1
-    static let outlineCornerRadius: CGFloat = 8
+    static let outlineCornerRadius = ThemeCornerRadius.card.rawValue
     /// Between the outline and the terminal inside it.
     static let contentPadding: CGFloat = 4
     /// From the pane's edge to its terminal.

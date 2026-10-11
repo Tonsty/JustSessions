@@ -12,7 +12,7 @@ struct PendingNewSessionRow: View {
             SidebarSessionRowLayout(provider: provider, isSelected: isSelected) {
                 Text(terminal.displayTitle)
                     .italic()
-                    .foregroundStyle(isSelected ? AnyShapeStyle(.primary) : AnyShapeStyle(ThemePalette.secondaryText))
+                    .foregroundStyle(isSelected ? AnyShapeStyle(ThemePalette.ink) : AnyShapeStyle(ThemePalette.secondaryText))
             } trailing: {
                 TerminalStatusIndicator(session: terminal)
             }

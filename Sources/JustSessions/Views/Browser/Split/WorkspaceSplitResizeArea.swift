@@ -16,9 +16,8 @@ struct WorkspaceSplitResizeArea: View {
     @State private var isHovering = false
     @Environment(\.tabBarTerminalPalette) private var terminalPalette
 
-    /// Chrome's hover handle: 4 by 24 points, with corners of 2.
+    /// Chrome's hover handle: 4 by 24 points, with round ends.
     private static let handleSize = CGSize(width: 4, height: 24)
-    private static let handleCornerRadius: CGFloat = 2
     /// The app's line color at this opacity reads, on the terminal's background, about as strongly as Chrome's grey
     /// handle on its toolbar.
     private static let handleColor = ThemeColor(role: .line, opacity: 0.4)
@@ -31,7 +30,7 @@ struct WorkspaceSplitResizeArea: View {
             .fill(terminalPalette.backgroundColor)
             .overlay {
                 if isHovering || dragStartFraction != nil {
-                    RoundedRectangle(cornerRadius: Self.handleCornerRadius)
+                    Capsule()
                         .fill(Self.handleColor)
                         .frame(width: Self.handleSize.width, height: Self.handleSize.height)
                         // The line color as it reads on the terminal's background, not the window's.

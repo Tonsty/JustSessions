@@ -12,6 +12,7 @@ struct TerminalAppearanceSection: View {
         GridRow {
             SettingsSectionHeading("Terminal") {
                 Button("Restore Defaults") { appearanceStore.restoreDefaults() }
+                    .buttonStyle(QuietBorderedButtonStyle())
                     .controlSize(.small)
                     .disabled(appearanceStore.preferences == TerminalAppearancePreferences())
                     .help("Restores the terminal colors, font, and size.")
@@ -74,8 +75,8 @@ struct TerminalAppearanceSection: View {
                 .id(engineStore.engine)
                 // A fixed height, so a bigger font shows fewer lines instead of making the tab taller.
                 .frame(height: 130)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(ThemePalette.hairline))
+                .clipShape(RoundedRectangle(.card))
+                .overlay(RoundedRectangle(.card).strokeBorder(ThemePalette.hairline))
                 .allowsHitTesting(false)
                 .accessibilityLabel("Terminal appearance preview")
         }

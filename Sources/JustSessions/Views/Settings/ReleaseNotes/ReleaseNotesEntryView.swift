@@ -8,19 +8,19 @@ struct ReleaseNotesEntryView: View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 5) {
                 HStack(alignment: .firstTextBaseline) {
-                    Text(verbatim: "v\(release.version)").font(.subheadline.weight(.semibold))
+                    Text(verbatim: "v\(release.version)").font(ThemeFont.detail.weight(.semibold))
                     Spacer()
                     Text(verbatim: release.formattedDate(locale: locale))
-                        .font(.caption)
+                        .font(ThemeFont.caption)
                         .foregroundStyle(ThemePalette.secondaryText)
                 }
-                Text(verbatim: release.title.localized(for: locale)).font(.headline)
+                Text(verbatim: release.title.localized(for: locale)).font(ThemeFont.heading)
             }
             ForEach(release.sections.indices, id: \.self) { sectionIndex in
                 let section = release.sections[sectionIndex]
                 VStack(alignment: .leading, spacing: 6) {
                     Text(section.kind.title)
-                        .font(.caption.weight(.semibold))
+                        .font(ThemeFont.caption.weight(.semibold))
                         .foregroundStyle(ThemePalette.secondaryText)
                     ForEach(section.items.indices, id: \.self) { itemIndex in
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -32,7 +32,7 @@ struct ReleaseNotesEntryView: View {
                 }
             }
         }
-        .font(.callout)
+        .font(ThemeFont.callout)
         .fixedSize(horizontal: false, vertical: true)
     }
 }

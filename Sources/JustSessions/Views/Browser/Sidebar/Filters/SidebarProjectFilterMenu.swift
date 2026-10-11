@@ -79,12 +79,12 @@ struct SidebarProjectFilterMenu: View {
         .frame(width: 26, height: 26)
         .background(
             filteredProvider.map { AnyShapeStyle($0.tintColor.opacity(0.15)) } ?? AnyShapeStyle(ThemePalette.trackFill),
-            in: RoundedRectangle(cornerRadius: 7, style: .continuous)
+            in: RoundedRectangle(.control)
         )
         .overlay(alignment: .topTrailing) {
             // The tool's icon takes the chip, so a dot tells that another filter is on too.
             if recencyFilter == .recent || statusFilter != .all, filteredProvider != nil {
-                Circle().fill(.primary).frame(width: 4, height: 4)
+                Circle().fill(.foreground).frame(width: 4, height: 4)
             }
         }
         .help(isFiltering ? "Project filters are active" : "Filter project sessions")

@@ -17,7 +17,7 @@ struct TerminalTabGroupLabel: View {
     @State private var isHovered = false
 
     private var labelShape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: 6, style: .continuous)
+        RoundedRectangle(.control)
     }
 
     var body: some View {
@@ -25,7 +25,7 @@ struct TerminalTabGroupLabel: View {
             HStack(spacing: 5) {
                 if location.host != .thisMac {
                     Image(systemName: location.host.symbolName)
-                        .font(.system(size: 9, weight: .semibold))
+                        .font(ThemeFont.glyph(.small, weight: .semibold))
                 }
                 Text(projectName)
                     .lineLimit(1)
@@ -39,7 +39,7 @@ struct TerminalTabGroupLabel: View {
                     }
                 }
             }
-            .font(.system(size: 11, weight: .semibold))
+            .font(ThemeFont.detail.weight(.semibold))
             .foregroundStyle(color)
             .padding(.horizontal, 8)
             .frame(height: WorkspaceTabMetrics.height - 8)

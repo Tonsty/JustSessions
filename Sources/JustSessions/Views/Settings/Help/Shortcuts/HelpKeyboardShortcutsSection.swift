@@ -8,7 +8,7 @@ struct HelpKeyboardShortcutsSection: View {
             Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 16, verticalSpacing: 6) {
                 ForEach(Array(HelpKeyboardShortcutGroup.all.enumerated()), id: \.offset) { groupIndex, group in
                     Text(group.title)
-                        .font(.subheadline.weight(.medium))
+                        .font(ThemeFont.fieldLabel)
                         .foregroundStyle(ThemePalette.secondaryText)
                         .padding(.top, groupIndex > 0 ? 8 : 0)
                         .gridCellColumns(2)

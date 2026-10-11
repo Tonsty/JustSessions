@@ -39,7 +39,7 @@ struct SidebarHeader: View {
             JustSessionsMark()
                 .frame(width: 21, height: 18)
             Text("JustSessions")
-                .font(.system(size: 13, weight: .semibold))
+                .font(ThemeFont.heading)
                 .lineLimit(1)
             Spacer(minLength: 4)
             HStack(spacing: 4) {

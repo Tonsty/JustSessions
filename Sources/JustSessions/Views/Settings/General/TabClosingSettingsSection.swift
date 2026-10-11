@@ -10,7 +10,7 @@ struct TabClosingSettingsSection: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text("Closing tabs")
-                    .font(.subheadline.weight(.medium))
+                    .font(ThemeFont.heading)
                 HelpPopoverButton(
                     title: "Closing tabs",
                     explanation: "The CLI tab choice is for tabs whose CLI can keep running in tmux. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too."
