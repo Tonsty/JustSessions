@@ -6,9 +6,10 @@ import Testing
 @MainActor
 struct TerminalCellPixelSizeTests {
     /// STHeiti ships with macOS and, as BIZ UDGothic and PCMyungjo, names no glyph W. Its glyph named W would be
-    /// `.notdef`, a full em wide, but SwiftTerm and the size Ghostty's cells are adjusted to take its W.
+    /// `.notdef`, a full em wide, but SwiftTerm and the size Ghostty's cells are adjusted to take its W. Its W is 0.96
+    /// em wide, so at 24 points both round to 24 pixels on a 1x screen, such as the release runner's; at 48 they don't.
     @Test func swiftTermsCellsAreAsWideAsWInAFontThatNamesNoGlyphW() throws {
-        let font = try #require(NSFont(name: "STHeitiSC-Light", size: 24))
+        let font = try #require(NSFont(name: "STHeitiSC-Light", size: 48))
         #expect(CTFontGetGlyphWithName(font, "W" as CFString) == 0)
         let stores = try IsolatedAppearanceStores()
         defer { stores.remove() }
