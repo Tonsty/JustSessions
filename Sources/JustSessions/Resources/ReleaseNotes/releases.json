@@ -1,5 +1,37 @@
 [
   {
+    "version": "1.2.2",
+    "publishedOn": "2026-10-10",
+    "title": {
+      "en": "Clearer tab and session menus",
+      "zh-Hans": "更清楚的标签页和会话菜单"
+    },
+    "sections": [
+      {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "A tab's right-click menu says Close Tab…; a session's row offers End session… to stop its CLI.",
+            "zh-Hans": "标签页右键菜单改为“关闭标签…”；会话行提供“结束会话…”，确认后停止它的 CLI。"
+          },
+          {
+            "en": "Ghostty tabs draw text as SwiftTerm tabs do.",
+            "zh-Hans": "Ghostty 标签页的文字绘制方式与 SwiftTerm 标签页一致。"
+          }
+        ]
+      },
+      {
+        "kind": "fixed",
+        "items": [
+          {
+            "en": "Small bug fixes.",
+            "zh-Hans": "修复了一些小问题。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.1",
     "publishedOn": "2026-10-10",
     "title": {
