@@ -426,13 +426,14 @@ Traces recorded with `xcrun xctrace record --template 'Time Profiler' --instrume
 | Build | Main thread busy | Inside `NSHostingView.layout` | Hangs |
 | --- | ---: | ---: | --- |
 | v1.2.4, before | 35.0% | 25.7% | none |
-| After, run 1 | 2.9% | 0.0% | none |
-| After, run 2 | 3.1% | 0.2% | none |
-| After, run 3 | 2.5% | 0.0% | none |
+| After, run 1 | 3.3% | 0.0% | none |
+| After, run 2 | 3.0% | 0.0% | none |
+| After, run 3 | 3.7% | 0.0% | none |
+| After, run 4 | 3.5% | 0.1% | none |
 
 **Change:** the arc is a `CAShapeLayer` in a small `NSViewRepresentable`, turned by a repeating `CABasicAnimation` on `transform.rotation.z` that the render server runs; SwiftUI draws the view once. The animation runs only while the arc can be seen — the view is in a window that is not minimized, neither it nor an ancestor is hidden, and the SwiftUI view hosting it is not at zero opacity, which is how the app keeps hidden content mounted — and is removed otherwise, so no spinner out of sight keeps the render server busy; Reduce Motion still shows the arc standing still. The stroke color is resolved from the view's effective appearance, as the SwiftUI arc's `ThemePalette.live` was. `WorkingSpinnerRenderingTests` checks the arc draws in the live color of each appearance, that held still it covers the pixels the SwiftUI arc did, and that no view under `Views/` animates with a per-frame `TimelineView` again; `WorkingSpinnerLifecycleTests` checks it stops and restarts with opacity, hiding, and leaving the window.
 
-**Limits:** the remaining 2.5–3% is Ghostty frame delivery and periodic syncs, not SwiftUI. The hosting view still re-renders whole on every state change it observes, and a tab switch and a right-click still stall in accessibility walks of it; those are separate items.
+**Limits:** the remaining 3–4% is Ghostty frame delivery and periodic syncs, not SwiftUI. The hosting view still re-renders whole on every state change it observes, and a tab switch and a right-click still stall in accessibility walks of it; those are separate items.
 
 ## How to profile
 
