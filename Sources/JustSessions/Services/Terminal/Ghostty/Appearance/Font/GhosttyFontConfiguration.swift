@@ -3,10 +3,12 @@ import CoreText
 import GhosttyTerminal
 
 /// The font keys that make a Ghostty terminal's text look like a SwiftTerm terminal's with the same font settings:
-/// the same font, faces, and fallback fonts at the same size, in cells of the same size, with strokes as thick.
+/// the same font, faces, and fallback fonts at the same size, including the symbols font for Nerd Font icons, in cells
+/// of the same size, with strokes as thick.
 ///
-/// One difference remains: SwiftTerm centers a wide character, such as a Chinese one, in its two cells, while Ghostty
-/// draws it from the left, a point or two further left.
+/// Two differences remain: SwiftTerm centers a wide character, such as a Chinese one, in its two cells, while Ghostty
+/// draws it from the left, a point or two further left. And with System Monospaced, Ghostty draws Nerd Font icons,
+/// which SwiftTerm can't; see `GhosttySymbolsFallback`.
 @MainActor
 enum GhosttyFontConfiguration {
     static func add(
@@ -46,13 +48,15 @@ enum GhosttyFontConfiguration {
         NSScreen.screens.map(\.backingScaleFactor).max() ?? 2
     }
 
-    /// Characters the font lacks come from the families macOS would draw them with in SwiftTerm, at the font's size.
-    /// Ghostty's own fallback scales a font to match the ideograph width it estimates for the terminal font, which
-    /// draws Chinese larger than SwiftTerm does. Bold text gets them in bold, as in SwiftTerm. Italic text finds its
-    /// missing characters in the regular ones, where Ghostty looks next: giving it its own would have Ghostty look up
-    /// every family's italic faces too, which slowed opening the first Ghostty tab by a few tenths of a second.
+    /// Characters the font lacks come from the families macOS would draw them with in SwiftTerm, at the font's size,
+    /// and Nerd Font icons from the symbols font; see `GhosttySymbolsFallback`. Ghostty's own fallback scales a font to
+    /// match the ideograph width it estimates for the terminal font, which draws Chinese larger than SwiftTerm does.
+    /// Bold text gets them in bold, as in SwiftTerm. Italic text finds its missing characters in the regular ones, where
+    /// Ghostty looks next: giving it its own would have Ghostty look up every family's italic faces too, which slowed
+    /// opening the first Ghostty tab by a few tenths of a second.
     private static func addFallbackFamilies(to builder: inout TerminalConfiguration.Builder, family: String, after font: NSFont) {
-        let fallbackFamilies = CoreTextFallbackFamilies.families(after: font)
+        let symbolsFallback = GhosttySymbolsFallback.placing(in: CoreTextFallbackFamilies.families(after: font), terminalFamily: family)
+        let fallbackFamilies = symbolsFallback.fallbackFamilies
         for fallbackFamily in fallbackFamilies {
             builder.withCustom("font-family", fallbackFamily)
         }
@@ -61,6 +65,9 @@ enum GhosttyFontConfiguration {
         }
         builder.withCustom("font-family-italic", family)
         builder.withCustom("font-family-bold-italic", family)
+        for codepointMap in symbolsFallback.codepointMaps {
+            builder.withCustom("font-codepoint-map", codepointMap)
+        }
     }
 
     /// Bold and italic text in the faces SwiftTerm draws it with, which `NSFontManager` picks, such as SF Mono's
