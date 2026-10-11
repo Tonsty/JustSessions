@@ -95,7 +95,9 @@ Each button takes one of the theme's styles:
 
 Use `ThemedCheckboxToggleStyle` for checkboxes, `ThemedTextFieldStyle` for text fields, `ThemeSegmentedPicker` in place of a segmented `Picker`, and `ThemeDivider()` for lines between views. A custom search field may use `.textFieldStyle(.plain)` inside the themed surface it draws. `Divider()` is allowed only inside menus, pickers, and commands, where macOS draws the separator.
 
-Enforced by `UIControlStyleContractTests`. The test rejects the system button, toggle, and text field styles, `.pickerStyle(.segmented)`, and `Divider()` outside menu code.
+A `DisclosureGroup` takes its title as `ThemeDisclosureTitleButton`, so a click on the title opens it as a click on the chevron does.
+
+Enforced by `UIControlStyleContractTests`. The test rejects the system button, toggle, and text field styles, `.pickerStyle(.segmented)`, `Divider()` outside menu code, and a `DisclosureGroup` without `ThemeDisclosureTitleButton`.
 
 ## Sheets
 
