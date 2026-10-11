@@ -220,6 +220,8 @@
 	<string>Can't check</string>
 	<key>Cancel</key>
 	<string>Cancel</string>
+	<key>Cancel copying</key>
+	<string>Cancel copying</string>
 	<key>Cancel deletion</key>
 	<string>Cancel deletion</string>
 	<key>Changes the chosen theme's colors, in its light or dark version. Your changes stay with the theme when you choose another one. Text is made readable on your colors, so the text color can come out darker or lighter than you chose. Terminals that match the app theme take its background.</key>
@@ -268,6 +270,8 @@
 	<string>Click a session to read its conversation; no CLI starts. **Open in new window** gives it a window of its own.</string>
 	<key>Click the project's name to collapse its tabs. A collapsed group still shows when a CLI is waiting on you.</key>
 	<string>Click the project's name to collapse its tabs. A collapsed group still shows when a CLI is waiting on you.</string>
+	<key>Close</key>
+	<string>Close</string>
 	<key>Close %@</key>
 	<string>Close %@</string>
 	<key>Close Left View</key>
@@ -366,8 +370,12 @@
 	<string>Copy the selection. Hold ⇧ while dragging to select text.</string>
 	<key>Copying %@ sessions (%lld of %lld)…</key>
 	<string>Copying %@ sessions (%lld of %lld)…</string>
+	<key>Copying dropped files to %@</key>
+	<string>Copying dropped files to %@</string>
 	<key>Copying sessions…</key>
 	<string>Copying sessions…</string>
+	<key>Copying to %@…</key>
+	<string>Copying to %@…</string>
 	<key>Could not change launch at login: %@</key>
 	<string>Could not change launch at login: %@</string>
 	<key>Could not copy conversation</key>
@@ -380,6 +388,8 @@
 	<string>Could not read this session</string>
 	<key>Could not start session</key>
 	<string>Could not start session</string>
+	<key>Couldn't copy to %@</key>
+	<string>Couldn't copy to %@</string>
 	<key>Couldn't find iTerm2's default profile. A dynamic profile can't be imported.</key>
 	<string>Couldn't find iTerm2's default profile. A dynamic profile can't be imported.</string>
 	<key>Create folder and add</key>
@@ -1050,6 +1060,8 @@
 	<string>Start something new</string>
 	<key>Startup</key>
 	<string>Startup</string>
+	<key>Stop copying; nothing is typed</key>
+	<string>Stop copying; nothing is typed</string>
 	<key>Stop deleting after the current session; the rest stay listed</key>
 	<string>Stop deleting after the current session; the rest stay listed</string>
 	<key>Stopping deletion</key>
