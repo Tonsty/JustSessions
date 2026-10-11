@@ -78,9 +78,10 @@ struct ThemeSurfaceRenderingTests {
         let edgeInset = Int(20 * renderingScale)
         // The guide and feedback links are the first row below the tab picker and the page's top padding.
         let actionRows = Int(70 * renderingScale)..<Int(100 * renderingScale)
-        // Without a Retina display, as on CI, each link has only about 40 pixels of solid ink; the rest of its text
-        // is antialiased. With the links in another color, other text still leaves up to about 18.
-        let minimumInkPixels = Int(30 * renderingScale * renderingScale)
+        // Without a Retina display, as on CI, a link has as little as 27 pixels of solid ink, as the guide link has in
+        // the theme's 12pt callout font; the rest of its text is antialiased. With the links in another color, other
+        // text still leaves up to about 18.
+        let minimumInkPixels = Int(23 * renderingScale * renderingScale)
         // The guide link comes first, then the feedback links.
         let linkPixels = matchingPixelCount(ink, in: bitmap, columns: edgeInset..<(bitmap.pixelsWide / 4), rows: actionRows)
         #expect(linkPixels > minimumInkPixels, "\(description) guide link uses theme ink")
