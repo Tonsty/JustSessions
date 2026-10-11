@@ -40,14 +40,6 @@ extension ConversationStore {
         }
     }
 
-    /// Stops the session's CLI on its host, whether or not a tab shows it.
-    func endTmuxSession(for conversation: Conversation) {
-        for session in terminalSessions where session.conversation?.id == conversation.id {
-            closeTerminal(session.id)
-        }
-        endTmuxSession(named: TmuxSessionName.forConversation(conversation), on: conversation.host)
-    }
-
     func endTmuxSession(named name: String, on host: SessionHost, remoteRunner: RemoteHostCommandRunner = RemoteHostCommandRunner()) {
         tmuxSessionNamesByHost[host]?.remove(name)
         switch host {

@@ -57,7 +57,7 @@ struct SidebarSubagentVisibilityTests {
                 onRemoveSelectedProjects: {},
                 onRemoveSelectedProjectsAndDeleteSessions: {},
                 onRequestDeletion: { _ in },
-                onCloseTab: { _ in }
+                onEndSession: { _ in }
             )
         }
         .frame(width: 280)

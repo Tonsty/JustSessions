@@ -380,8 +380,6 @@
 	<string>Edit</string>
 	<key>End and close this terminal</key>
 	<string>End and close this terminal</string>
-	<key>End on %@</key>
-	<string>End on %@</string>
 	<key>End session</key>
 	<string>End session</string>
 	<key>End session…</key>
@@ -992,6 +990,10 @@
 	<string>Text size, in the terminals or the conversation shown</string>
 	<key>The Antigravity session database, associated folder, and annotations will move to the macOS Trash. This also removes its entry from Antigravity's local index.</key>
 	<string>The Antigravity session database, associated folder, and annotations will move to the macOS Trash. This also removes its entry from Antigravity's local index.</string>
+	<key>The CLI stops on %@ and its tab closes. You can resume the session later.</key>
+	<string>The CLI stops on %@ and its tab closes. You can resume the session later.</string>
+	<key>The CLI stops on %@. You can resume the session later.</key>
+	<string>The CLI stops on %@. You can resume the session later.</string>
 	<key>The CLI tab choice is for tabs whose CLI can keep running in tmux. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.</key>
 	<string>The CLI tab choice is for tabs whose CLI can keep running in tmux. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.</string>
 	<key>The Claude Code session file and its associated folder will move to the macOS Trash. This also removes its entry from Claude Code's local index.</key>

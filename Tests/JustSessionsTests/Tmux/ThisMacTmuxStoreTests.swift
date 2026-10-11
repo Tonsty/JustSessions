@@ -59,7 +59,7 @@ struct ThisMacTmuxStoreTests {
         #expect(await sandbox.waitUntil { !store.isScanningThisMac })
         #expect(store.isRunningInTmux(conversation))
 
-        store.endTmuxSession(for: conversation)
+        store.endSession(conversation)
         #expect(!store.isRunningInTmux(conversation))
         #expect(await sandbox.waitUntil { sandbox.server.sessionNames().isEmpty })
         #expect(await sandbox.waitUntil { kill(cliProcessID, 0) != 0 })

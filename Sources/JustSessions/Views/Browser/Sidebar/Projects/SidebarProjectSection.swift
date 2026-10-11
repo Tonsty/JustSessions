@@ -29,7 +29,7 @@ struct SidebarProjectSection: View {
     let onRemoveSelectedProjects: () -> Void
     let onRemoveSelectedProjectsAndDeleteSessions: () -> Void
     let onRequestDeletion: (SessionDeletionRequest) -> Void
-    let onCloseTab: (UUID) -> Void
+    let onEndSession: (Conversation) -> Void
 
     private var projectScope: SidebarPinDrag.Scope { .projects(on: project.host) }
     private var sessionScope: SidebarPinDrag.Scope { .sessions(inProject: project.id) }
@@ -146,7 +146,7 @@ struct SidebarProjectSection: View {
             onToggleSubagents: { onToggleSubagents(conversation) },
             onRename: onRenameConversation,
             onRequestDeletion: onRequestDeletion,
-            onCloseTab: onCloseTab
+            onEndSession: onEndSession
         )
         .sidebarIndentGuide(isFirstRow: isFirstRow, isLastRow: isLastRow && rowsUnder.isEmpty)
         .onboardingTourStop(

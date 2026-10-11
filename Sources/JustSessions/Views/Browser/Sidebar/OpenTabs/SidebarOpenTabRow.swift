@@ -37,7 +37,7 @@ struct SidebarOpenTabRow: View {
             if tab.isPlainTerminal {
                 Button("Close terminal…", systemImage: "xmark", role: .destructive, action: onClose)
             } else {
-                Button("End session…", systemImage: "xmark", role: .destructive, action: onClose)
+                Button("Close Tab…", systemImage: "xmark", role: .destructive, action: onClose)
             }
         }
     }

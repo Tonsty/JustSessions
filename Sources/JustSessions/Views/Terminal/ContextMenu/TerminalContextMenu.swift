@@ -44,7 +44,7 @@ struct TerminalContextMenu {
 
     /// As the tab's menu in the tab bar has them after New session.
     private var tabItems: [NSMenuItem] {
-        let closeTitle = tab.isPlainTerminal ? localized("Close terminal…") : localized("End session…")
+        let closeTitle = tab.isPlainTerminal ? localized("Close terminal…") : localized("Close Tab…")
         let closeItem = ActionMenuItem(title: closeTitle, systemImage: "xmark") { onCloseTab(tab.id) }
         if tab.isPlainTerminal { return splitItems + [closeItem] }
         return conversationItems + splitItems + [closeItem]

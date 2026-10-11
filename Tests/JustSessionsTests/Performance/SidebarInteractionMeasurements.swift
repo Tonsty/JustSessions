@@ -517,7 +517,8 @@ private struct SidebarPerfBrowserHarness: View {
                 onRenameConversation: { _ in },
                 onRenameProject: { _ in },
                 onRequestDeletion: { _ in },
-                onCloseTerminal: { _ in }
+                onCloseTerminal: { _ in },
+                onEndSession: { _ in }
             )
         } detail: {
             WorkspaceDetailView(

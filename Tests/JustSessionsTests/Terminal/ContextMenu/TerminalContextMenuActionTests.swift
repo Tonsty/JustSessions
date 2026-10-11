@@ -6,7 +6,7 @@ import Testing
 @MainActor
 struct TerminalContextMenuActionTests {
     @Test(arguments: TerminalEngine.allCases)
-    func renameAndEndSessionAskTheWindowAsTheTabsMenuDoes(engine: TerminalEngine) throws {
+    func renameAndCloseTabAskTheWindowAsTheTabsMenuDoes(engine: TerminalEngine) throws {
         let fixture = try TerminalContextMenuFixture()
         defer { fixture.tearDown() }
         let conversation = Conversation.fixture()
@@ -14,7 +14,7 @@ struct TerminalContextMenuActionTests {
         let menu = fixture.menu(for: tab)
 
         try TerminalContextMenuFixture.choose(TerminalContextMenuFixture.item("Rename", in: menu))
-        try TerminalContextMenuFixture.choose(TerminalContextMenuFixture.item("End session…", in: menu))
+        try TerminalContextMenuFixture.choose(TerminalContextMenuFixture.item("Close Tab…", in: menu))
 
         #expect(fixture.renamedConversations.map(\.id) == [conversation.id])
         #expect(fixture.tabsAskedToClose == [tab.id])
