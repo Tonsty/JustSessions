@@ -174,16 +174,30 @@ In `TranscriptInteractionMeasurements`, after item 8, removing the markers takes
 
 **Change:** the entries' `Layout` records their ordered frames as it places them, and one AppKit observer converts those stack-local frames to scroll-view coordinates. A scroll update binary-searches the ordered frames instead of scanning every entry. Direct entry lookup remains constant-time for restoration, paging, and Find. The layout hands changed frames to a pending restoration immediately, preserving the same-pass correction when a page loads above.
 
-`TranscriptInteractionMeasurements`, release build, median of three runs each on the baseline machine described below. Position lookup measures 1,000 searches for the first visible entry at the transcript midpoint:
+`TranscriptInteractionMeasurements`, release build, median of three runs each. Every metric resets to an explicit viewport first: scrolling starts at the top; hit testing, Find, and lookup start at the midpoint. Position lookup measures 1,000 searches for the first visible entry through the same type-agnostic harness adapter on both implementations:
 
 | Entries and accessibility | AppKit views | Scroll p50 / p95 / worst | 200 hit tests | Open Find | 1,000 position lookups |
 | --- | --- | --- | --- | --- | --- |
-| 240, off | 2,082 → 1,604 | 10.1 / 11.3 / 14.9 → 4.1 / 5.2 / 12.8 ms | 538 → 464 ms | 72 → 61 ms | 184 → 0.4 ms |
-| 240, on | 2,082 → 1,604 | 10.2 / 11.4 / 13.7 → 4.1 / 5.2 / 9.8 ms | 541 → 469 ms | 131 → 107 ms | 179 → 0.4 ms |
-| 640, off | 5,482 → 4,204 | 31.0 / 33.4 / 45.2 → 13.4 / 14.9 / 36.5 ms | 1,574 → 1,348 ms | 126 → 102 ms | 453 → 0.4 ms |
-| 640, on | 5,482 → 4,204 | 32.5 / 34.6 / 39.3 → 15.2 / 17.9 / 24.7 ms | 1,559 → 1,366 ms | 367 → 303 ms | 454 → 0.4 ms |
+| 240, off | 2,082 → 1,604 | 5.5 / 6.6 / 9.9 → 4.0 / 5.1 / 5.4 ms | 508 → 440 ms | 59.8 → 56.1 ms | 17.0 → 0.2 ms |
+| 240, on | 2,082 → 1,604 | 5.4 / 6.8 / 7.3 → 4.1 / 5.2 / 5.6 ms | 511 → 438 ms | 116 → 103 ms | 17.0 → 0.2 ms |
+| 640, off | 5,482 → 4,204 | 17.4 / 20.1 / 21.7 → 13.6 / 15.4 / 16.0 ms | 1,462 → 1,319 ms | 73.4 → 91.1 ms | 43.6 → 0.2 ms |
+| 640, on | 5,482 → 4,204 | 18.2 / 20.0 / 20.4 → 14.9 / 17.2 / 18.0 ms | 1,467 → 1,283 ms | 317 → 310 ms | 44.3 → 0.2 ms |
 
-**Method:** Apple M4 Pro, 24 GB, macOS 26.6.1, Xcode 27.0 (Swift 6.4, macOS 27.0 SDK), commit `895744b` before and the issue #53 branch after. Each run used `JUSTSESSIONS_PERF=1 swift test -c release --filter TranscriptInteractionMeasurements`. The machine was not isolated; one of three after runs was visibly slower, so the table reports medians rather than best runs.
+Opening Find with 640 entries and accessibility off reproducibly regressed from 73.4 to 91.1 ms. A bounded investigation put the extra time in synchronous SwiftUI layout: one diagnostic run spent 63.5 ms there before and 84.2 ms after. The geometry layout did not place entries during that update, so rebuilding its registry is not the cause. The likely cost is the `GeometryReader` wrapper that supplies an exact transcript width to the custom layout; removing it made full-width and readable-width layout incorrect, and no small safe replacement was found. The other three Find configurations were unchanged or faster.
+
+**Method:** Apple M4 Pro, 24 GB, macOS 26.6.1, Xcode 27.0 (Swift 6.4, macOS 27.0 SDK). The baseline was commit `895744b` with only the harness from `95ed3dd` copied over; after was `95ed3dd`. Reproduction commands:
+
+```sh
+git show 95ed3dd:Tests/JustSessionsTests/Performance/TranscriptInteractionMeasurements.swift > /tmp/issue-53-fair/TranscriptInteractionMeasurements.swift
+git switch --detach 895744b
+cp /tmp/issue-53-fair/TranscriptInteractionMeasurements.swift Tests/JustSessionsTests/Performance/TranscriptInteractionMeasurements.swift
+for run in 1 2 3; do JUSTSESSIONS_PERF=1 swift test -c release --filter TranscriptInteractionMeasurements; done
+git reset --hard 895744b
+git switch issue-53-transcript-marker-geometry
+for run in 1 2 3; do JUSTSESSIONS_PERF=1 swift test -c release --filter TranscriptInteractionMeasurements; done
+```
+
+Raw output is in `/tmp/issue-53-fair/baseline.txt` and `/tmp/issue-53-fair/after.txt`. The machine was not isolated; the first 240-entry baseline run was slower than the other two, so the table reports medians rather than best runs.
 
 ### 5. Text selection on very long blocks
 
