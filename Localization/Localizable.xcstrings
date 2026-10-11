@@ -10,6 +10,22 @@
     "%@ %@ — %@": {
       "shouldTranslate": false
     },
+    "%@ (%lld of %lld)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ (%2$lld of %3$lld)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@（%2$lld/%3$lld）"
+          }
+        }
+      }
+    },
     "%@ (imported)": {
       "localizations": {
         "zh-Hans": {
@@ -1206,6 +1222,16 @@
         }
       }
     },
+    "Cancel copying": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消复制"
+          }
+        }
+      }
+    },
     "Cancel deletion": {
       "localizations": {
         "zh-Hans": {
@@ -1442,6 +1468,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "单击项目名称即可折叠它的标签页。折叠后，有 CLI 在等你时仍会显示出来。"
+          }
+        }
+      }
+    },
+    "Close": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
           }
         }
       }
@@ -1964,12 +2000,32 @@
         }
       }
     },
+    "Copying dropped files to %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在将拖入的文件复制到 %@"
+          }
+        }
+      }
+    },
     "Copying sessions…": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "正在复制会话…"
+          }
+        }
+      }
+    },
+    "Copying to %@…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在复制到 %@…"
           }
         }
       }
@@ -2046,6 +2102,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法启动会话"
+          }
+        }
+      }
+    },
+    "Couldn't copy to %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法复制到 %@"
           }
         }
       }
@@ -5607,6 +5673,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "启动"
+          }
+        }
+      }
+    },
+    "Stop copying; nothing is typed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止复制，不会输入任何路径"
           }
         }
       }
