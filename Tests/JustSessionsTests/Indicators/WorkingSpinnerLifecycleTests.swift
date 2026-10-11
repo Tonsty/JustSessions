@@ -83,18 +83,51 @@ struct WorkingSpinnerLifecycleTests {
         #expect(!arc.isTurning)
     }
 
-    @Test func aMinimizedWindowStopsItByItsNotification() async throws {
+    /// A borderless test window cannot really miniaturize, so the state is read back through `canBeSeen` with the
+    /// window's notifications posted as AppKit posts them; the check itself is what `updateRotation` consults.
+    @Test func theWindowsMiniaturizationNotificationsReachTheArc() async throws {
         let (window, hostingView, _) = try await makeWindow()
         defer { window.close() }
         let arc = try #require(findArc(in: hostingView))
         #expect(arc.isTurning)
 
-        // A borderless test window cannot really miniaturize, so the window's notifications are posted as AppKit
-        // would, and `canBeSeen` is checked with the state they announce.
         NotificationCenter.default.post(name: NSWindow.didMiniaturizeNotification, object: window)
-        // Not miniaturized for real, so the arc still can be seen; the handler ran without stopping a visible arc.
+        // Not miniaturized for real, so the arc still can be seen and the handler left a visible arc turning.
+        #expect(arc.canBeSeen)
         #expect(arc.isTurning)
         NotificationCenter.default.post(name: NSWindow.didDeminiaturizeNotification, object: window)
+        #expect(arc.isTurning)
+    }
+
+    @Test func aMinimizedWindowStopsItAndRestoringTheWindowStartsItAgain() async throws {
+        _ = NSApplication.shared
+        // A window that can miniaturize is one with a title bar, shown first, as a user's window has been: AppKit
+        // posts `didDeminiaturize` for a window restored to the screen, not for one that was never on it.
+        let hostingView = NSHostingView(rootView: WorkingSpinner().frame(width: 10, height: 10).padding(7))
+        let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 200, height: 100), styleMask: [.titled, .miniaturizable], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
+        window.contentView = hostingView
+        window.orderFrontRegardless()
+        try await settle(hostingView)
+        let arc = try #require(findArc(in: hostingView))
+        try #require(arc.canBeSeen && arc.isTurning)
+
+        // Both ways are animated by the window server, which posts the window's notification once done; the arc's
+        // own state is what is waited for.
+        window.miniaturize(nil)
+        try await waitUntil { !arc.isTurning }
+        guard window.isMiniaturized else {
+            // Without a window server session, as on CI, the window cannot miniaturize; nothing to check then.
+            return
+        }
+        #expect(!arc.canBeSeen)
+        #expect(!arc.isTurning)
+
+        window.deminiaturize(nil)
+        try await waitUntil { arc.isTurning }
+        #expect(!window.isMiniaturized)
+        #expect(arc.canBeSeen)
         #expect(arc.isTurning)
     }
 
@@ -110,6 +143,13 @@ struct WorkingSpinnerLifecycleTests {
         window.orderFrontRegardless()
         try await settle(hostingView)
         return (window, hostingView, visibility)
+    }
+
+    /// Up to two seconds, polling, for the window server's animations.
+    private func waitUntil(_ condition: () -> Bool) async throws {
+        for _ in 0..<80 where !condition() {
+            try await Task.sleep(for: .milliseconds(25))
+        }
     }
 
     private func settle(_ hostingView: NSView) async throws {
