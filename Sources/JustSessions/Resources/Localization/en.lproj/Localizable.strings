@@ -12,6 +12,8 @@
 	<string>%@ (imported)</string>
 	<key>%@ (not installed)</key>
 	<string>%@ (not installed)</string>
+	<key>%@ (not supported)</key>
+	<string>%@ (not supported)</string>
 	<key>%@ - Left view</key>
 	<string>%@ - Left view</string>
 	<key>%@ - Right view</key>
