@@ -66,7 +66,7 @@ final class SessionMessageIndexer: ObservableObject {
             progress = nil
             let index = index
             unloadTask = Task { [weak self, index, unloadDelay] in
-                _ = await index.sessionsToRead(among: [], generation: generation)
+                await index.advanceGeneration(to: generation)
                 try? await Task.sleep(for: unloadDelay)
                 guard !Task.isCancelled, self?.users.isEmpty == true else { return }
                 await index.removeAll()

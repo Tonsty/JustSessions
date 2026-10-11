@@ -9,6 +9,7 @@ extension ConversationStore {
 
     /// Freeze the recovery snapshot before tearing down the terminal views on normal app termination.
     func prepareTabsForTermination() {
+        cancelThisMacRefresh()
         persistOpenTabs()
         isTearingDownWorkspace = true
         closeAllTerminals()
@@ -18,6 +19,7 @@ extension ConversationStore {
     /// tabs stay saved, so opening the app again reopens them; session CLIs keep running in tmux meanwhile.
     func closeWorkspace() {
         guard !isTearingDownWorkspace else { return }
+        cancelThisMacRefresh()
         persistOpenTabs()
         isTearingDownWorkspace = true
         closeAllTerminals()

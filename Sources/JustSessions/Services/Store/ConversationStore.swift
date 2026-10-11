@@ -116,6 +116,7 @@ final class ConversationStore: ObservableObject {
     /// joined during the one before.
     private var finishedDeletionRounds: SessionDeletionReport?
     private var deletionTask: Task<Void, Never>?
+    private var thisMacRefreshTask: Task<Void, Never>?
     /// Deleted sessions leave the list, and the progress bar moves, at most this often while a deletion runs, and
     /// once more when it ends. Tests set it to zero to follow each session.
     var deletionListUpdateInterval: Duration = .milliseconds(500)
@@ -186,6 +187,16 @@ final class ConversationStore: ObservableObject {
         windowRegistry.add(self)
     }
 
+    deinit {
+        thisMacRefreshTask?.cancel()
+    }
+
+    func cancelThisMacRefresh() {
+        thisMacRefreshTask?.cancel()
+        thisMacRefreshTask = nil
+        isRefreshQueued = false
+    }
+
     /// Scans the session folders on this Mac. SSH hosts refresh on their own, so a slow host never holds this up.
     func refreshThisMac() {
         guard !deferRefreshWhileDeleting(on: .thisMac) else { return }
@@ -195,28 +206,38 @@ final class ConversationStore: ObservableObject {
         }
         hostRefreshStatuses[.thisMac] = .refreshing
         lastRefreshStartedAt = .now
-        Task { [weak self, readService] in
-            let result = await readService.discoverThisMac()
-            guard let self else { return }
-            self.tmuxSessionNamesByHost[.thisMac] = Set(result.tmuxPaneProcessIDs.keys)
-            self.thisMacTmuxPaneProcessIDs = result.tmuxPaneProcessIDs
-            self.setInstalledProviders(result.installedProviders, on: .thisMac)
-            self.replaceConversations(
-                on: .thisMac,
-                with: result.conversations,
-                discardMissingReopeningTabs: result.failures.isEmpty
-            )
-            self.linkWaitingTabsByAppearance(on: .thisMac)
-            self.hostRefreshStatuses[.thisMac] = result.failures.isEmpty
-                ? .refreshed(.now)
-                : .failed(result.failures.joined(separator: "\n"))
-            if self.isRefreshQueued {
-                self.isRefreshQueued = false
-                self.refreshThisMac()
-            } else {
-                Task { await self.discoverNewSessions(mayRefresh: false) }
+        thisMacRefreshTask = Task { [weak self, readService] in
+            do {
+                let result = try await readService.discoverThisMac()
+                try Task.checkCancellation()
+                guard let self else { return }
+                self.thisMacRefreshTask = nil
+                self.tmuxSessionNamesByHost[.thisMac] = Set(result.tmuxPaneProcessIDs.keys)
+                self.thisMacTmuxPaneProcessIDs = result.tmuxPaneProcessIDs
+                self.setInstalledProviders(result.installedProviders, on: .thisMac)
+                self.replaceConversations(
+                    on: .thisMac,
+                    with: result.conversations,
+                    discardMissingReopeningTabs: result.failures.isEmpty
+                )
+                self.linkWaitingTabsByAppearance(on: .thisMac)
+                self.hostRefreshStatuses[.thisMac] = result.failures.isEmpty
+                    ? .refreshed(.now)
+                    : .failed(result.failures.joined(separator: "\n"))
+                if self.isRefreshQueued {
+                    self.isRefreshQueued = false
+                    self.refreshThisMac()
+                } else {
+                    Task { await self.discoverNewSessions(mayRefresh: false) }
+                }
+                self.startQueuedDeletion()
+            } catch is CancellationError {
+                self?.thisMacRefreshTask = nil
+            } catch {
+                guard let self else { return }
+                self.thisMacRefreshTask = nil
+                self.hostRefreshStatuses[.thisMac] = .failed(error.localizedDescription)
             }
-            self.startQueuedDeletion()
         }
     }
 

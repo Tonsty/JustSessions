@@ -286,20 +286,30 @@ struct SessionMessageIndexerTests {
     @Test func searchingAgainBeforeTheDelayKeepsTheTextAndReadsNothing() async throws {
         let directory = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
-        let indexer = makeIndexer(cacheIn: directory)
-        indexer.unloadDelay = .milliseconds(100)
+        let reads = AsyncCounter()
+        let index = SessionMessageIndex(cache: SessionMessageTextCache(directory: directory.appendingPathComponent("Cache")))
+        let indexer = SessionMessageIndexer(index: index) { conversation, fingerprint, cache in
+            await reads.increment()
+            return await SessionMessageIndex.searchableText(of: conversation, fingerprint: fingerprint, cache: cache)
+        }
+        indexer.unloadDelay = .milliseconds(200)
         let session = try codexSession(["Some words"], in: directory)
         indexer.beginUse(by: user)
         await indexer.update(with: [session], for: user)
         try await waitForUpdate(of: indexer, after: 0)
+        #expect(await reads.value == 1)
 
         indexer.endUse(by: user)
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(await index.sessionCount() == 1)
         indexer.beginUse(by: user)
         let revision = indexer.revision
         await indexer.update(with: [session], for: user)
         try await waitForUpdate(of: indexer, after: revision)
         try await Task.sleep(for: .milliseconds(300))
 
+        #expect(await reads.value == 1)
+        #expect(await index.sessionCount() == 1)
         #expect(try await matches("some words", in: indexer).count == 1)
     }
 }

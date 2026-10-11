@@ -34,6 +34,12 @@ actor SessionMessageIndex {
         }
     }
 
+    /// Rejects writes from work that was active when the final search user ended, without dropping the text kept
+    /// during the unload grace period.
+    func advanceGeneration(to proposedGeneration: Int) {
+        if proposedGeneration > generation { generation = proposedGeneration }
+    }
+
     /// Saves only text from the latest desired generation. This keeps a cancelled, renamed, appended, or removed
     /// session read from replacing fresher text after another window has changed the shared session set.
     func add(

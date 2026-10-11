@@ -29,47 +29,176 @@ final class WorkspaceReadService: ObservableObject {
         self.messageIndexer = messageIndexer
     }
 
-    /// Joins a scan already in flight. The detached producer is owned by the service, so cancellation or closure of
-    /// one window does not cancel the scan awaited by another.
-    func discoverThisMac() async -> ThisMacDiscovery {
-        await discovery.discover(adapters: adapters, commandResolver: commandResolver)
+    /// Joins a scan already in flight. Each caller is a waiter; when the final waiter cancels, that producer is
+    /// evicted so a later window starts fresh even if a synchronous adapter call has not returned yet.
+    func discoverThisMac() async throws -> ThisMacDiscovery {
+        try await discovery.discover(adapters: adapters, commandResolver: commandResolver)
     }
 }
 
 private actor ThisMacDiscoveryCoordinator {
+    typealias Discovery = WorkspaceReadService.ThisMacDiscovery
+    private typealias Waiter = CheckedContinuation<Discovery, any Error>
+
     private struct InFlight {
         let id: UUID
-        let task: Task<WorkspaceReadService.ThisMacDiscovery, Never>
+        let task: Task<Discovery, Never>
+        var waiters: [UUID: Waiter]
     }
 
     private var inFlight: InFlight?
 
-    func discover(
-        adapters: [any ConversationAdapter], commandResolver: NativeCLICommandResolver
-    ) async -> WorkspaceReadService.ThisMacDiscovery {
-        if let inFlight { return await inFlight.task.value }
+    func discover(adapters: [any ConversationAdapter], commandResolver: NativeCLICommandResolver) async throws -> Discovery {
+        let waiterID = UUID()
+        return try await withTaskCancellationHandler {
+            try Task.checkCancellation()
+            return try await withCheckedThrowingContinuation { continuation in
+                addWaiter(
+                    waiterID,
+                    continuation: continuation,
+                    adapters: adapters,
+                    commandResolver: commandResolver
+                )
+            }
+        } onCancel: {
+            Task { await self.cancelWaiter(waiterID) }
+        }
+    }
+
+    private func addWaiter(
+        _ waiterID: UUID,
+        continuation: Waiter,
+        adapters: [any ConversationAdapter],
+        commandResolver: NativeCLICommandResolver
+    ) {
+        if var inFlight {
+            inFlight.waiters[waiterID] = continuation
+            self.inFlight = inFlight
+            return
+        }
 
         let id = UUID()
         let task = Task.detached(priority: .userInitiated) {
-            var found: [Conversation] = []
-            var failures: [String] = []
-            for adapter in adapters {
-                do { found += try adapter.discover() }
-                catch { failures.append("\(adapter.provider.rawValue): \(error.localizedDescription)") }
+            await Self.scan(adapters: adapters, commandResolver: commandResolver)
+        }
+        inFlight = InFlight(id: id, task: task, waiters: [waiterID: continuation])
+        Task { [weak self] in
+            let result = await task.value
+            await self?.producerFinished(id: id, result: result)
+        }
+    }
+
+    private func cancelWaiter(_ waiterID: UUID) {
+        guard var inFlight, let waiter = inFlight.waiters.removeValue(forKey: waiterID) else { return }
+        waiter.resume(throwing: CancellationError())
+        guard !inFlight.waiters.isEmpty else {
+            inFlight.task.cancel()
+            self.inFlight = nil
+            return
+        }
+        self.inFlight = inFlight
+    }
+
+    private func producerFinished(id: UUID, result: Discovery) {
+        guard let inFlight, inFlight.id == id else { return }
+        self.inFlight = nil
+        for waiter in inFlight.waiters.values { waiter.resume(returning: result) }
+    }
+
+    private nonisolated static func scan(
+        adapters: [any ConversationAdapter], commandResolver: NativeCLICommandResolver
+    ) async -> Discovery {
+        var found: [Conversation] = []
+        var failures: [String] = []
+        for adapter in adapters {
+            do {
+                found += try await cancellableSynchronousCall { try adapter.discover() }
+            } catch is CancellationError {
+                return cancelledDiscovery()
+            } catch {
+                failures.append("\(adapter.provider.rawValue): \(error.localizedDescription)")
             }
-            let installedProviders = InstalledCLIs.onThisMac(commandResolver: commandResolver)
-            // The first refresh also checks the tmux version, so tabs can run in tmux from then on.
-            let tmuxPaneProcessIDs = commandResolver.refreshThisMacTmuxServer()?.appSessionPaneProcessIDs() ?? [:]
-            return WorkspaceReadService.ThisMacDiscovery(
+        }
+        do {
+            let installedProviders = try await cancellableSynchronousCall {
+                InstalledCLIs.onThisMac(commandResolver: commandResolver)
+            }
+            // The process runners used by the tmux probes are bounded; this wrapper also lets a producer cancelled
+            // by its final waiter finish without awaiting those synchronous probes.
+            let tmuxPaneProcessIDs = try await cancellableSynchronousCall {
+                commandResolver.refreshThisMacTmuxServer()?.appSessionPaneProcessIDs() ?? [:]
+            }
+            return Discovery(
                 conversations: found,
                 failures: failures,
                 installedProviders: installedProviders,
                 tmuxPaneProcessIDs: tmuxPaneProcessIDs
             )
+        } catch {
+            return cancelledDiscovery()
         }
-        inFlight = InFlight(id: id, task: task)
-        let result = await task.value
-        if inFlight?.id == id { inFlight = nil }
-        return result
+    }
+
+    private nonisolated static func cancelledDiscovery() -> Discovery {
+        Discovery(conversations: [], failures: [], installedProviders: [], tmuxPaneProcessIDs: [:])
+    }
+}
+
+/// Runs a legacy synchronous read without making its caller wait after cancellation. The underlying filesystem call
+/// cannot be forcibly interrupted, but it no longer retains the discovery generation or blocks a later producer.
+private func cancellableSynchronousCall<Value: Sendable>(
+    _ operation: @escaping @Sendable () throws -> Value
+) async throws -> Value {
+    let call = CancellableSynchronousCall<Value>()
+    return try await withTaskCancellationHandler {
+        try Task.checkCancellation()
+        return try await withCheckedThrowingContinuation { continuation in
+            call.start(continuation: continuation, operation: operation)
+        }
+    } onCancel: {
+        call.cancel()
+    }
+}
+
+private final class CancellableSynchronousCall<Value: Sendable>: @unchecked Sendable {
+    typealias Continuation = CheckedContinuation<Value, any Error>
+
+    private let lock = NSLock()
+    private var continuation: Continuation?
+    private var isFinished = false
+
+    func start(continuation: Continuation, operation: @escaping @Sendable () throws -> Value) {
+        let wasCancelled = lock.withLock {
+            guard !isFinished else { return true }
+            self.continuation = continuation
+            return false
+        }
+        guard !wasCancelled else {
+            continuation.resume(throwing: CancellationError())
+            return
+        }
+        DispatchQueue.global(qos: .userInitiated).async {
+            self.finish(with: Result { try operation() })
+        }
+    }
+
+    func cancel() {
+        let continuation = lock.withLock {
+            guard !isFinished else { return nil as Continuation? }
+            isFinished = true
+            defer { self.continuation = nil }
+            return self.continuation
+        }
+        continuation?.resume(throwing: CancellationError())
+    }
+
+    private func finish(with result: Result<Value, any Error>) {
+        let continuation = lock.withLock {
+            guard !isFinished else { return nil as Continuation? }
+            isFinished = true
+            defer { self.continuation = nil }
+            return self.continuation
+        }
+        continuation?.resume(with: result)
     }
 }
