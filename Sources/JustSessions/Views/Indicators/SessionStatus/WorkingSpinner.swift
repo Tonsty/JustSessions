@@ -22,8 +22,9 @@ struct WorkingSpinner: View {
     }
 }
 
-/// The arc as an AppKit view, so its turning costs the SwiftUI view graph nothing.
-private struct WorkingSpinnerArc: NSViewRepresentable {
+/// The arc as an AppKit view, so its turning costs the SwiftUI view graph nothing. A test hosts it directly to choose
+/// `turns` whatever the Mac's Reduce Motion is.
+struct WorkingSpinnerArc: NSViewRepresentable {
     let turns: Bool
 
     func makeNSView(context: Context) -> WorkingSpinnerArcView {

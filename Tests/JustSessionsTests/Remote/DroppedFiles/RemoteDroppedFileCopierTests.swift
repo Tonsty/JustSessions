@@ -116,6 +116,8 @@ struct RemoteDroppedFileCopierTests {
         }
     }
 
+    /// The copy, its cancel, and the clock all run on dispatch queues, as the app copies: a full run on the release
+    /// workflow's three-core runner can keep this test's own task waiting far longer than the copy takes.
     @Test func cancellingStopsTheCopy() async throws {
         let home = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: home) }
@@ -123,29 +125,19 @@ struct RemoteDroppedFileCopierTests {
         // A connection that never finishes.
         let copier = RemoteDroppedFileCopier.replacingSSH(with: "exec sleep 30")
         let cancellation = RemoteDroppedFileCopyCancellation()
-        let started = ContinuousClock.now
 
-        // On a dispatch queue, as the app copies, so the blocked copy holds no task thread the wait below needs.
-        let copy = Task {
-            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, any Error>) in
-                DispatchQueue.global().async {
-                    do {
-                        continuation.resume(returning: try copier.copy(
-                            file,
-                            to: "devbox",
-                            connectionOptions: [],
-                            cancellation: cancellation
-                        ) { _ in })
-                    } catch {
-                        continuation.resume(throwing: error)
-                    }
+        let (outcome, copyDuration) = await withCheckedContinuation { (continuation: CheckedContinuation<(Result<String, any Error>, Duration), Never>) in
+            DispatchQueue.global().async {
+                let started = ContinuousClock.now
+                DispatchQueue.global().asyncAfter(deadline: .now() + 0.3) { cancellation.cancel() }
+                let outcome = Result {
+                    try copier.copy(file, to: "devbox", connectionOptions: [], cancellation: cancellation) { _ in }
                 }
+                continuation.resume(returning: (outcome, ContinuousClock.now - started))
             }
         }
-        try await Task.sleep(for: .milliseconds(300))
-        cancellation.cancel()
 
-        await #expect(throws: CancellationError.self) { try await copy.value }
-        #expect(ContinuousClock.now - started < .seconds(20))
+        #expect(throws: CancellationError.self) { try outcome.get() }
+        #expect(copyDuration < .seconds(20))
     }
 }
