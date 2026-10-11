@@ -4,7 +4,7 @@ extension HelpKeyboardShortcutGroup {
     /// Every shortcut JustSessions adds. The Back and Forward, tab, sidebar, text size, and Settings shortcuts are menu
     /// commands (`WorkspaceNavigationCommands`, `WorkspaceTabCommands`, `SidebarToggleCommands`, `TextZoomCommands`,
     /// `AppWideSheetCommands`); Control-Tab is `WorkspaceTabCycleShortcuts`, ⌘= is `ZoomInEqualsKey`, and Find is
-    /// `TranscriptSearchKeyboardShortcuts`.
+    /// `TranscriptSearchKeyboardShortcuts` in the conversation and `TerminalFindShortcuts` in a tab.
     static var all: [HelpKeyboardShortcutGroup] {
         [
             HelpKeyboardShortcutGroup(title: "Tabs and windows", shortcuts: [
@@ -38,6 +38,13 @@ extension HelpKeyboardShortcutGroup {
             ]),
             HelpKeyboardShortcutGroup(title: "Terminal", shortcuts: [
                 HelpKeyboardShortcut(keys: "⌘C", action: "Copy the selection. Hold ⇧ while dragging to select text."),
+                HelpKeyboardShortcut(
+                    keys: "⌘F",
+                    action: "Find in the terminal. In a tab linked to a session, find in its conversation in a reading window."
+                ),
+                HelpKeyboardShortcut(keys: "⌘G", "Return", action: "Older match"),
+                HelpKeyboardShortcut(keys: "⇧⌘G", "⇧Return", action: "Newer match"),
+                HelpKeyboardShortcut(keys: "Esc", action: "Close find, while its field has the keyboard"),
             ]),
         ]
     }

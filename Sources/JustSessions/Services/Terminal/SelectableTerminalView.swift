@@ -92,13 +92,20 @@ final class SelectableTerminalView: LocalProcessTerminalView {
 
     init(frame: CGRect, appearanceStore: TerminalAppearanceStore, themeStore: AppThemeStore) {
         super.init(frame: frame)
+        getTerminal().changeScrollback(Self.scrollbackLineCount)
         observeAppearance(in: appearanceStore, themeStore: themeStore)
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
+        getTerminal().changeScrollback(Self.scrollbackLineCount)
         observeAppearance(in: .shared, themeStore: .shared)
     }
+
+    /// The lines kept above the screen, which scrolling and find reach, in place of SwiftTerm's 500. Full, they hold
+    /// about 30 MB, as measured in `docs/development/performance.md`. Only the main screen keeps any, so a CLI in tmux,
+    /// which draws on the alternate screen, costs none of it.
+    static let scrollbackLineCount = 10_000
 
     override func viewDidChangeEffectiveAppearance() {
         super.viewDidChangeEffectiveAppearance()

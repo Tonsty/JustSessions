@@ -32,6 +32,8 @@
 	<string>%@，%@，终端已打开，尚未保存</string>
 	<key>%lld earlier entries are not shown. Resume the session to see all of it.</key>
 	<string>未显示前面的 %lld 条记录。继续会话可查看全部内容。</string>
+	<key>%lld matches</key>
+	<string>%lld 个匹配项</string>
 	<key>%lld messages</key>
 	<string>%lld 条消息</string>
 	<key>%lld more tabs</key>
@@ -54,6 +56,8 @@
 	<string>%lld 个子代理会话将保留在磁盘上。</string>
 	<key>%lld tool calls</key>
 	<string>%lld 次工具调用</string>
+	<key>%lld+ matches</key>
+	<string>%lld+ 个匹配项</string>
 	<key>**Open tabs** lists every tab with what its CLI is doing. ⌘1 to ⌘8 go to a tab by its position, and ⌘9 to the last.</key>
 	<string>**已打开** 列出每个标签页及其 CLI 正在做什么。⌘1 到 ⌘8 按位置切换标签页，⌘9 切换到最后一个。</string>
 	<key>**Resume** continues this conversation in its CLI, in its original folder. Double-clicking the session in the sidebar does the same.</key>
@@ -286,6 +290,8 @@
 	<string>关闭并删除会话…</string>
 	<key>Close find</key>
 	<string>关闭查找</string>
+	<key>Close find, while its field has the keyboard</key>
+	<string>关闭查找（查找框有键盘焦点时）</string>
 	<key>Close left view</key>
 	<string>关闭左侧视图</string>
 	<key>Close right view</key>
@@ -480,8 +486,12 @@
 	<string>在对话中查找</string>
 	<key>Find in conversation (⌘F)</key>
 	<string>在对话中查找（⌘F）</string>
+	<key>Find in terminal</key>
+	<string>在终端中查找</string>
 	<key>Find in the conversation</key>
 	<string>在对话中查找</string>
+	<key>Find in the terminal. In a tab linked to a session, find in its conversation in a reading window.</key>
+	<string>在终端中查找。在已关联会话的标签页中，于阅读窗口里查找其对话。</string>
 	<key>Find in this conversation</key>
 	<string>在这段对话中查找</string>
 	<key>Finishes its turn</key>
@@ -684,6 +694,10 @@
 	<string>新建终端</string>
 	<key>New window</key>
 	<string>新建窗口</string>
+	<key>Newer match</key>
+	<string>较新的匹配项</string>
+	<key>Newer match (⇧⌘G or ⇧Return)</key>
+	<string>较新的匹配项（⇧⌘G 或 ⇧Return）</string>
 	<key>Next</key>
 	<string>下一步</string>
 	<key>Next Tab</key>
@@ -738,6 +752,10 @@
 	<string>在以下情况通知我</string>
 	<key>OK</key>
 	<string>好</string>
+	<key>Older match</key>
+	<string>较早的匹配项</string>
+	<key>Older match (⌘G or Return)</key>
+	<string>较早的匹配项（⌘G 或 Return）</string>
 	<key>On an SSH host, check that SSH works, or click **Connect…** on its heading, then check rsync and the CLI there. A host at a local address also needs **Local Network** in Permissions.</key>
 	<string>对于 SSH 主机，检查 SSH 能否连接，或点按其标题上的 **连接…**，然后检查 rsync 以及主机上的 CLI。位于本地地址的主机还需要在权限中开启 **本地网络**。</string>
 	<key>Once Claude Code, Codex, or another supported CLI saves a conversation, it shows up here, grouped by project.</key>

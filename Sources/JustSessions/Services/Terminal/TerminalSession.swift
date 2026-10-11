@@ -17,6 +17,8 @@ final class TerminalSession: ObservableObject, Identifiable {
     /// What draws the tab's terminal, chosen when the tab opens; see `TerminalEngineStore`.
     let engine: TerminalEngine
     let terminalView: any TabTerminalView
+    /// The tab's find bar, which searches its terminal; see `TerminalFindShortcuts` for when ⌘F opens it.
+    let findState: TerminalFindState
     /// The session id a new Claude Code tab was started with (`--session-id`), when the CLI accepts one.
     let preassignedSessionID: String?
     /// For a Branch tab, the session it forked. The CLI runs a new session, so this one is never the tab's own.
@@ -116,7 +118,9 @@ final class TerminalSession: ObservableObject, Identifiable {
         self.preassignedSessionID = preassignedSessionID
         self.branchedFromSessionID = branchedFromSessionID
         self.isWaitingToBeShown = startsOnceShown
-        self.terminalView = engine.makeTabTerminalView(frame: NSRect(x: 0, y: 0, width: 900, height: 600))
+        let terminalView = engine.makeTabTerminalView(frame: NSRect(x: 0, y: 0, width: 900, height: 600))
+        self.terminalView = terminalView
+        self.findState = TerminalFindState(finder: terminalView)
         self.processObserver = TerminalProcessObserver()
         self.linkOpener = TerminalLinkOpener(host: host, workingDirectory: projectPath)
         terminalView.sendsShiftReturnAsCSIu = host == .thisMac && tmuxSessionName != nil

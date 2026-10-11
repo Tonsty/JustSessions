@@ -83,7 +83,7 @@ Each hidden Ghostty tab added about 0.3% of a core, mostly off the main thread. 
 
 **Memory, in MB:** the medians of three runs. The runs differed by at most 2.3 MB per tab, and for SwiftTerm by under 0.5 MB.
 
-| Measure | Ghostty | SwiftTerm, shipped 500 lines | SwiftTerm, 10,000 lines |
+| Measure | Ghostty | SwiftTerm, 500 lines | SwiftTerm, 10,000 lines, shipped |
 | --- | --- | --- | --- |
 | Footprint before any tab | 59.8 | 59.9 | 60.0 |
 | Footprint with 10 idle tabs | 212.5 | 82.6 | 83.4 |
@@ -99,7 +99,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 - **For SwiftTerm, the footprint is the cost.** Its resident figure also counts memory the allocator freed and kept.
 - **One run per process.** In a process that had already run the same case, the footprint counted 0–22 MB per full SwiftTerm tab with 10,000 lines instead of 30: memory the process freed and then reused wasn't counted again.
 
-**Scrollback differs by engine.** A Ghostty tab keeps far more scrollback than a SwiftTerm tab by default: 46,341 rows here, against SwiftTerm's 500 lines. Full, it holds about 55 MB, against well under 1 MB for SwiftTerm's 500 lines, or 30 MB for 10,000. The app sets no limit for Ghostty, so Ghostty's default `scrollback-limit` applies. Upstream documents it as 10,000,000 bytes, so how Ghostty counts it against these 55 MB is unconfirmed.
+**Scrollback differs by engine.** A Ghostty tab keeps far more scrollback than SwiftTerm does by default: 46,341 rows here, against SwiftTerm's 500 lines. Full, it holds about 55 MB, against well under 1 MB for SwiftTerm's 500 lines, or 30 MB for 10,000. A SwiftTerm tab keeps 10,000 lines (`SelectableTerminalView.scrollbackLineCount`), so terminal Find reaches that far back. Only the main screen keeps scrollback, so a CLI in tmux, which draws on the alternate screen, adds none. The app sets no limit for Ghostty, so Ghostty's default `scrollback-limit` applies. Upstream documents it as 10,000,000 bytes, so how Ghostty counts it against these 55 MB is unconfirmed.
 
 **Profile:** one 5-second `sample` of the repaint for each engine.
 - **SwiftTerm:** the main thread was busy in 721 of 3,675 samples, 20%. Parsing the output (`feed`) took 12 of them, and Core Animation's commit, drawing the view, 693. No other thread did measurable work. The drawing went to:

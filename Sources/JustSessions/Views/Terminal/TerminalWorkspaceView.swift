@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// A tab's terminal. The tab names the session and its group names the project, so the terminal starts right under
-/// the tab bar; a bar above it appears only once the CLI has ended.
+/// the tab bar; a bar above it appears only once the CLI has ended. The tab's find bar floats over the terminal.
 struct TerminalWorkspaceView: View {
     @ObservedObject var session: TerminalSession
     /// The terminal is on screen, full width or as either half of a split.
@@ -31,6 +31,22 @@ struct TerminalWorkspaceView: View {
             )
                 .id(session.id)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .overlay(alignment: .topTrailing) {
+                    if session.findState.isPresented {
+                        TerminalFindBar(findState: session.findState)
+                            .padding(.top, 8)
+                            .padding(.horizontal, 16)
+                    }
+                }
+        }
+        // Closing the bar gives the keyboard back to the terminal of the selected tab.
+        .onChange(of: session.findState.closeRevision) {
+            guard isActive else { return }
+            session.terminalView.window?.makeFirstResponder(session.terminalView)
+        }
+        // A click in the find field of a split's other pane selects its tab, so the find keys go to that bar.
+        .onChange(of: session.findState.isFieldFocused) {
+            if session.findState.isFieldFocused && !isActive { onFocus() }
         }
     }
 }
