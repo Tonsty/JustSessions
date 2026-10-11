@@ -16,11 +16,13 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     var onUnheardLightDarkChange: (() -> Void)?
     var onFocus: (() -> Void)?
     /// Builds the menu a right-click shows in place of Ghostty's own; see `GhosttyTabTerminalView+ContextMenu`.
-    var makeContextMenu: (() -> NSMenu)?
+    var makeContextMenu: ((_ linkUnderPointer: String?) -> NSMenu)?
     /// Shows that menu: AppKit's pop-up, which a test replaces, since a menu shown in a test run ends the run.
     var popUpContextMenu: (NSMenu, NSEvent, NSView) -> Void = NSMenu.popUpContextMenu(_:with:for:)
     /// See `TabTerminalView.onOpenLink` and `GhosttyTabTerminalView+Links`.
     var onOpenLink: ((String) -> Void)?
+    /// The link Ghostty last reported under the pointer, which it does only while ⌘ is held; see `link(under:)`.
+    var hoveredLink: String?
     /// Files dropped on the terminal type their paths into it; see `SelectableTerminalView.acceptsDroppedFiles`.
     var acceptsDroppedFiles = false {
         didSet {

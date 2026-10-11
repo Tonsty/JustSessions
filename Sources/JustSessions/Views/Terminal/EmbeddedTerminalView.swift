@@ -10,8 +10,8 @@ struct EmbeddedTerminalView: NSViewRepresentable {
     /// Called when a click lands on the terminal or its margin, or files are dropped on it, before the terminal takes
     /// the keyboard.
     let onFocus: () -> Void
-    /// Builds the menu a right-click on the terminal or its margin shows.
-    let makeContextMenu: () -> NSMenu
+    /// Builds the menu a right-click on the terminal or its margin shows, with the link under the pointer, if any.
+    let makeContextMenu: (_ linkUnderPointer: String?) -> NSMenu
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 

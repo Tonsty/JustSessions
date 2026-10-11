@@ -30,16 +30,18 @@ final class TerminalContextMenuFixture {
     /// Opens and selects a tab, as a new tab is.
     @discardableResult
     func openTab(
-        engine: TerminalEngine, title: String = "Fix the build", conversation: Conversation? = nil, isPlainTerminal: Bool = false
+        engine: TerminalEngine, title: String = "Fix the build", conversation: Conversation? = nil, isPlainTerminal: Bool = false,
+        projectPath: String = TerminalContextMenuFixture.projectPath, host: SessionHost = .thisMac
     ) -> TerminalSession {
         let tab = TerminalSession(
             engine: engine,
             conversation: conversation,
             provider: isPlainTerminal ? nil : .claude,
-            projectPath: Self.projectPath,
+            projectPath: projectPath,
             action: isPlainTerminal ? nil : .resume,
             displayTitle: title,
-            command: NativeCLICommand(executablePath: "/usr/bin/true", arguments: [], workingDirectory: Self.projectPath, environment: [])
+            command: NativeCLICommand(executablePath: "/usr/bin/true", arguments: [], workingDirectory: projectPath, environment: []),
+            host: host
         )
         store.openTerminal(tab)
         return tab
@@ -55,13 +57,19 @@ final class TerminalContextMenuFixture {
         windows.append(window)
     }
 
-    func menu(for tab: TerminalSession, language: String = "en") -> NSMenu {
+    /// The menu a right-click on `linkUnderPointer` shows, or off any link, with `editorStore`'s editors.
+    func menu(
+        for tab: TerminalSession, language: String = "en", linkUnderPointer: String? = nil,
+        editorStore: ExternalEditorStore = ExternalEditorStore { _ in nil }
+    ) -> NSMenu {
         TerminalContextMenu(
             store: store,
             tab: tab,
             onRename: { [weak self] in self?.renamedConversations.append($0) },
             onCloseTab: { [weak self] in self?.tabsAskedToClose.append($0) },
-            language: AppInterfaceLanguage(identifier: language)
+            linkUnderPointer: linkUnderPointer,
+            language: AppInterfaceLanguage(identifier: language),
+            editorStore: editorStore
         ).makeMenu()
     }
 

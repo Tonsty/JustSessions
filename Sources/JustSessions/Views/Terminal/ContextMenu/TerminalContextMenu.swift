@@ -1,9 +1,10 @@
 import AppKit
 
-/// What a right-click in a tab's terminal offers: copying, pasting, and selecting its text, as a terminal app's menu
-/// does, then what the tab's menu in the tab bar offers, in the same order. It leaves out New session, which is about
-/// the tab's project rather than its terminal. AppKit asks for the menu on each right-click, so it is built each time,
-/// from the terminal's selection, the tab's split, and the language chosen in Settings as they are then.
+/// What a right-click in a tab's terminal offers: what to do with the link under the pointer, if any; copying,
+/// pasting, and selecting its text, as a terminal app's menu does; then what the tab's menu in the tab bar offers, in
+/// the same order. It leaves out New session, which is about the tab's project rather than its terminal. AppKit asks
+/// for the menu on each right-click, so it is built each time, from the link, the terminal's selection, the tab's
+/// split, the installed editors, and the language chosen in Settings as they are then.
 @MainActor
 struct TerminalContextMenu {
     let store: ConversationStore
@@ -11,11 +12,17 @@ struct TerminalContextMenu {
     let onRename: (Conversation) -> Void
     /// Asks what to do with the tab's CLI, as the tab's × does.
     let onCloseTab: (UUID) -> Void
+    /// The link the right-click landed on, as the terminal would hand it over for a ⌘-click; see `linkItems`.
+    var linkUnderPointer: String? = nil
     /// The language chosen in Settings when nil.
     var language: AppInterfaceLanguage? = nil
+    /// The editors a file or folder the link names can open in.
+    var editorStore: ExternalEditorStore = .shared
 
     func makeMenu() -> NSMenu {
-        let menu = makeMenu(items: textEditingItems + [.separator()] + tabItems)
+        let linkItems = linkItems
+        let linkSection = linkItems.isEmpty ? [] : linkItems + [.separator()]
+        let menu = makeMenu(items: linkSection + textEditingItems + [.separator()] + tabItems)
         // macOS's context menu plug-ins would add AutoFill (Contact…, Passwords…, Credit Card…), as for any view that
         // takes typing. A terminal has no form to fill.
         menu.allowsContextMenuPlugIns = false

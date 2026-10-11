@@ -16,8 +16,8 @@ final class SelectableTerminalView: LocalProcessTerminalView {
     /// Called when a click lands on the terminal or its margin, or files are dropped on it, before the terminal takes
     /// the keyboard, so a split pane whose tab is not selected can select it.
     var onFocus: (() -> Void)?
-    /// Builds the menu a right-click on the terminal or its margin shows; see `TerminalContextMenu`.
-    var makeContextMenu: (() -> NSMenu)?
+    /// See `TabTerminalView.makeContextMenu`.
+    var makeContextMenu: ((_ linkUnderPointer: String?) -> NSMenu)?
     /// See `TabTerminalView.onOpenLink`.
     var onOpenLink: ((String) -> Void)?
     /// Files dropped on the terminal type their paths into it; see `SelectableTerminalView+FileDrop`. Only a tab whose
@@ -118,7 +118,7 @@ final class SelectableTerminalView: LocalProcessTerminalView {
         guard let makeContextMenu else { return super.menu(for: event) }
         onFocus?()
         window?.makeFirstResponder(self)
-        return makeContextMenu()
+        return makeContextMenu(link(under: event))
     }
 
     /// SwiftTerm calls this for a ⌘-click on a link, with an OSC 8 hyperlink's target or the URL or path it found. Its

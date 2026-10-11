@@ -25,4 +25,37 @@ extension GhosttyTabTerminalView: TerminalSurfaceOpenURLDelegate {
         else { return event }
         return shiftedEvent
     }
+
+    /// The link a ⌘-click where `event` happened would hand over; see `SelectableTerminalView.link(under:)`. Ghostty
+    /// looks for links only while ⌘ is held, so the pointer moves to the same place with ⌘ for Ghostty to report the
+    /// link, then moves there again with the keys really held, which clears the link's underline. Ghostty skips the
+    /// look when the pointer stays in the cell it last looked in, so the pointer first leaves the terminal, as it does
+    /// when it leaves the view.
+    func link(under event: NSEvent) -> String? {
+        guard let terminalSurface, bounds.contains(convert(event.locationInWindow, from: nil)),
+              let commandMove = pointerMove(like: event, modifierFlags: .command),
+              let restoringMove = pointerMove(like: event, modifierFlags: event.modifierFlags)
+        else { return nil }
+        hoveredLink = nil
+        terminalSurface.sendMousePos(x: -1, y: -1, modifiers: TerminalInputModifiers(from: event.modifierFlags))
+        mouseMoved(with: commandMove)
+        let link = hoveredLink
+        mouseMoved(with: restoringMove)
+        return link
+    }
+
+    private func pointerMove(like event: NSEvent, modifierFlags: NSEvent.ModifierFlags) -> NSEvent? {
+        NSEvent.mouseEvent(
+            with: .mouseMoved, location: event.locationInWindow, modifierFlags: modifierFlags,
+            timestamp: event.timestamp, windowNumber: event.windowNumber, context: nil, eventNumber: 0, clickCount: 0,
+            pressure: 0
+        )
+    }
+}
+
+/// Ghostty reports the link under the pointer while ⌘ is held, and nil once it leaves it.
+extension GhosttyTabTerminalView: TerminalSurfaceHoverLinkDelegate {
+    func terminalDidUpdateHoverLink(_ url: String?) {
+        hoveredLink = url
+    }
 }

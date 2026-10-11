@@ -69,8 +69,11 @@ struct WorkspaceDetailView: View {
                             isActive: isActive,
                             onReconnect: session.host == .thisMac ? nil : { store.reconnectRemoteTerminal(session.id) },
                             onFocus: { store.selectTerminal(session.id) },
-                            makeContextMenu: {
-                                TerminalContextMenu(store: store, tab: session, onRename: onRename, onCloseTab: onCloseTerminal).makeMenu()
+                            makeContextMenu: { linkUnderPointer in
+                                TerminalContextMenu(
+                                    store: store, tab: session, onRename: onRename, onCloseTab: onCloseTerminal,
+                                    linkUnderPointer: linkUnderPointer
+                                ).makeMenu()
                             }
                         )
                         // A split's terminal keeps its place inside the pane's outline, above the mini toolbar, while

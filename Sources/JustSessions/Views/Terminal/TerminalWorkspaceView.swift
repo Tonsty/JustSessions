@@ -13,8 +13,8 @@ struct TerminalWorkspaceView: View {
     let onReconnect: (() -> Void)?
     /// Called when a click lands on the terminal, before it takes the keyboard.
     let onFocus: () -> Void
-    /// Builds the menu a right-click on the terminal shows.
-    let makeContextMenu: () -> NSMenu
+    /// Builds the menu a right-click on the terminal shows, with the link under the pointer, if any.
+    let makeContextMenu: (_ linkUnderPointer: String?) -> NSMenu
 
     var body: some View {
         VStack(spacing: 0) {

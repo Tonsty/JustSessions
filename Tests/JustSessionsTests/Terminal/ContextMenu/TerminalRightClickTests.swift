@@ -37,7 +37,7 @@ struct TerminalRightClickTests {
     /// As `WorkspaceDetailView` sets each tab's terminal up.
     private func wireUp(_ tab: TerminalSession, in fixture: TerminalContextMenuFixture) {
         tab.terminalView.onFocus = { [store = fixture.store] in store.selectTerminal(tab.id) }
-        tab.terminalView.makeContextMenu = { fixture.menu(for: tab) }
+        tab.terminalView.makeContextMenu = { _ in fixture.menu(for: tab) }
     }
 
     private func rightClick() throws -> NSEvent {
