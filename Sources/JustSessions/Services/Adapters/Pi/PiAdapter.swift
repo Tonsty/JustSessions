@@ -18,16 +18,18 @@ struct PiAdapter: ConversationAdapter {
     private static let subagentSessions = SessionFileSummaryCache<PiSubagentSession>(persistenceFile: SessionSummaryCacheLocation.file(named: "pi-subagents"))
 
     /// Each session, then the sessions its subagents ran in.
-    func discover() throws -> [Conversation] {
+    func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
+        try cancellation.checkCancellation()
         var subagentFiles: [URL] = []
         let conversations = PiSessionsDirectory.sessionFiles(in: sessionsDirectory).flatMap { file -> [Conversation] in
-            guard let conversation = conversation(in: file) else { return [] }
+            guard !cancellation.isCancelled, let conversation = conversation(in: file) else { return [] }
             let subagents = PiSubagentSessions.find(startedBy: file, sessionID: conversation.sessionID) { subagentFile in
                 Self.subagentSessions.summary(of: subagentFile, read: PiSubagentSession.init(file:))
             }
             subagentFiles += subagents.map(\.file)
             return [conversation] + subagents.map(subagentConversation(_:))
         }
+        try cancellation.checkCancellation()
         Self.subagentSessions.forgetFiles(in: sessionsDirectory, except: subagentFiles)
         return conversations
     }

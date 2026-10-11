@@ -38,13 +38,12 @@ struct WorkspaceReadServiceTests {
         first.refreshThisMac()
         try await expectEventually { adapter.discoveryCount == 1 }
         first.closeWorkspace()
-        try await Task.sleep(for: .milliseconds(50))
 
         let replacement = ConversationStore(startsBackgroundPolling: false, readService: service)
         replacement.refreshThisMac()
         try await expectEventually { adapter.discoveryCount == 2 }
         try await expectEventually { !replacement.isScanningThisMac }
-        adapter.allowFirstDiscoveryToFinish()
+        try await expectEventually { adapter.activeDiscoveryCount == 0 }
 
         #expect(replacement.conversations.map(\.id) == [conversation.id])
     }
@@ -71,19 +70,27 @@ private final class FirstDiscoveryBlocksAdapter: ConversationAdapter, @unchecked
     private let firstGate = DispatchSemaphore(value: 0)
     private let conversations: [Conversation]
     private var count = 0
+    private var activeCount = 0
 
     init(conversations: [Conversation]) {
         self.conversations = conversations
     }
 
     var discoveryCount: Int { lock.withLock { count } }
+    var activeDiscoveryCount: Int { lock.withLock { activeCount } }
 
-    func discover() throws -> [Conversation] {
+    func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
         let call = lock.withLock {
             count += 1
+            activeCount += 1
             return count
         }
-        if call == 1 { firstGate.wait() }
+        defer { lock.withLock { activeCount -= 1 } }
+        if call == 1 {
+            while !cancellation.isCancelled,
+                  firstGate.wait(timeout: .now() + .milliseconds(10)) == .timedOut {}
+            try cancellation.checkCancellation()
+        }
         return conversations
     }
 
@@ -107,9 +114,13 @@ private final class BlockingCountingAdapter: ConversationAdapter, @unchecked Sen
 
     var discoveryCount: Int { lock.withLock { count } }
 
-    func discover() throws -> [Conversation] {
+    func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
         lock.withLock { count += 1 }
-        if startsBlocked { gate.wait() }
+        if startsBlocked {
+            while !cancellation.isCancelled,
+                  gate.wait(timeout: .now() + .milliseconds(10)) == .timedOut {}
+            try cancellation.checkCancellation()
+        }
         return conversations
     }
 

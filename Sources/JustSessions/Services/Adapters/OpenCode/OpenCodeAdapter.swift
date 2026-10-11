@@ -26,9 +26,11 @@ struct OpenCodeAdapter: ConversationAdapter {
     }
 
     /// Every session, a subagent's under the session that started it.
-    func discover() throws -> [Conversation] {
-        OpenCodeSQLiteReader.sessions(in: databaseFile).compactMap { session in
-            guard provider.isValidSessionID(session.sessionID), session.projectPath.hasPrefix("/"),
+    func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
+        try cancellation.checkCancellation()
+        let conversations = OpenCodeSQLiteReader.sessions(in: databaseFile).compactMap { session -> Conversation? in
+            guard !cancellation.isCancelled,
+                  provider.isValidSessionID(session.sessionID), session.projectPath.hasPrefix("/"),
                   session.parentSessionID.map(provider.isValidSessionID) != false else { return nil }
             return Conversation(
                 provider: provider,
@@ -43,6 +45,8 @@ struct OpenCodeAdapter: ConversationAdapter {
                 parentSessionID: session.parentSessionID
             )
         }
+        try cancellation.checkCancellation()
+        return conversations
     }
 
     /// OpenCode titles a session `New session - <ISO 8601 time>` until it has written a title from the first prompt.

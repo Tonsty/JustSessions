@@ -25,7 +25,8 @@ struct ClaudeAdapter: ConversationAdapter {
     private static let transcriptTails = SessionFileSummaryCache<ClaudeTranscriptTail>(persistenceFile: SessionSummaryCacheLocation.file(named: "claude-tails"))
     private static let subagentSessions = SessionFileSummaryCache<ClaudeSubagentSession>(persistenceFile: SessionSummaryCacheLocation.file(named: "claude-subagents"))
 
-    func discover() throws -> [Conversation] {
+    func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
+        try cancellation.checkCancellation()
         let projectsDirectory = configurationDirectory.appendingPathComponent("projects")
         guard let projectDirectories = try? FileManager.default.contentsOfDirectory(
             at: projectsDirectory,
@@ -36,6 +37,7 @@ struct ClaudeAdapter: ConversationAdapter {
         var transcriptFiles: [URL] = []
         var subagentFiles: [URL] = []
         let conversations = projectDirectories.flatMap { projectDirectory -> [Conversation] in
+            guard !cancellation.isCancelled else { return [] }
             let index = ClaudeSessionsIndex(projectDirectory: projectDirectory)
             let files = (try? FileManager.default.contentsOfDirectory(
                 at: projectDirectory,
@@ -43,12 +45,16 @@ struct ClaudeAdapter: ConversationAdapter {
                 options: [.skipsHiddenFiles]
             )) ?? []
             transcriptFiles += files
-            return files.compactMap { conversation(in: $0, index: index) }.flatMap { conversation -> [Conversation] in
+            return files.compactMap {
+                cancellation.isCancelled ? nil : conversation(in: $0, index: index)
+            }.flatMap { conversation -> [Conversation] in
+                guard !cancellation.isCancelled else { return [] }
                 let sessionSubagentFiles = ClaudeSubagentSessions.files(ofSessionID: conversation.sessionID, inProjectDirectory: projectDirectory)
                 subagentFiles += sessionSubagentFiles
                 return [conversation] + sessionSubagentFiles.compactMap { subagentConversation(in: $0, startedBy: conversation) }
             }
         }
+        try cancellation.checkCancellation()
         Self.transcriptHeads.forgetFiles(in: projectsDirectory, except: transcriptFiles)
         Self.transcriptTails.forgetFiles(in: projectsDirectory, except: transcriptFiles)
         Self.subagentSessions.forgetFiles(in: projectsDirectory, except: subagentFiles)

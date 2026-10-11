@@ -164,9 +164,11 @@ private final class DiscoveryMeasurementAdapter: ConversationAdapter, @unchecked
 
     var discoveryCount: Int { lock.withLock { count } }
 
-    func discover() throws -> [Conversation] {
+    func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
         lock.withLock { count += 1 }
-        gate.wait()
+        while !cancellation.isCancelled,
+              gate.wait(timeout: .now() + .milliseconds(10)) == .timedOut {}
+        try cancellation.checkCancellation()
         return []
     }
 

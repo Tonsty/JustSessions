@@ -30,7 +30,7 @@ final class WorkspaceReadService: ObservableObject {
     }
 
     /// Joins a scan already in flight. Each caller is a waiter; when the final waiter cancels, that producer is
-    /// evicted so a later window starts fresh even if a synchronous adapter call has not returned yet.
+    /// evicted so a later window starts fresh.
     func discoverThisMac() async throws -> ThisMacDiscovery {
         try await discovery.discover(adapters: adapters, commandResolver: commandResolver)
     }
@@ -38,11 +38,22 @@ final class WorkspaceReadService: ObservableObject {
 
 private actor ThisMacDiscoveryCoordinator {
     typealias Discovery = WorkspaceReadService.ThisMacDiscovery
-    private typealias Waiter = CheckedContinuation<Discovery, any Error>
+    private typealias Continuation = CheckedContinuation<Discovery, any Error>
+
+    private struct Waiter {
+        let continuation: Continuation
+        let cancellation: DiscoveryWaiterCancellation
+    }
+
+    private struct ProducerResult: Sendable {
+        let discovery: Discovery
+        let tmuxServer: ThisMacTmuxServer?
+    }
 
     private struct InFlight {
-        let id: UUID
-        let task: Task<Discovery, Never>
+        let generation: Int
+        let task: Task<ProducerResult, Never>
+        let commandResolver: NativeCLICommandResolver
         var waiters: [UUID: Waiter]
     }
 
@@ -50,47 +61,73 @@ private actor ThisMacDiscoveryCoordinator {
 
     func discover(adapters: [any ConversationAdapter], commandResolver: NativeCLICommandResolver) async throws -> Discovery {
         let waiterID = UUID()
+        let cancellation = DiscoveryWaiterCancellation()
         return try await withTaskCancellationHandler {
             try Task.checkCancellation()
             return try await withCheckedThrowingContinuation { continuation in
                 addWaiter(
                     waiterID,
                     continuation: continuation,
+                    cancellation: cancellation,
                     adapters: adapters,
                     commandResolver: commandResolver
                 )
             }
         } onCancel: {
+            // This mark is synchronous and visible to `addWaiter`, even before the actor processes cleanup.
+            cancellation.cancel()
             Task { await self.cancelWaiter(waiterID) }
         }
     }
 
     private func addWaiter(
         _ waiterID: UUID,
-        continuation: Waiter,
+        continuation: Continuation,
+        cancellation: DiscoveryWaiterCancellation,
         adapters: [any ConversationAdapter],
         commandResolver: NativeCLICommandResolver
     ) {
+        removeCancelledWaiters()
+        guard !cancellation.isCancelled else {
+            continuation.resume(throwing: CancellationError())
+            return
+        }
         if var inFlight {
-            inFlight.waiters[waiterID] = continuation
+            inFlight.waiters[waiterID] = Waiter(continuation: continuation, cancellation: cancellation)
             self.inFlight = inFlight
             return
         }
 
-        let id = UUID()
+        let generation = commandResolver.beginThisMacTmuxProbeGeneration()
         let task = Task.detached(priority: .userInitiated) {
             await Self.scan(adapters: adapters, commandResolver: commandResolver)
         }
-        inFlight = InFlight(id: id, task: task, waiters: [waiterID: continuation])
+        inFlight = InFlight(
+            generation: generation,
+            task: task,
+            commandResolver: commandResolver,
+            waiters: [waiterID: Waiter(continuation: continuation, cancellation: cancellation)]
+        )
         Task { [weak self] in
             let result = await task.value
-            await self?.producerFinished(id: id, result: result)
+            await self?.producerFinished(generation: generation, result: result)
         }
     }
 
     private func cancelWaiter(_ waiterID: UUID) {
-        guard var inFlight, let waiter = inFlight.waiters.removeValue(forKey: waiterID) else { return }
-        waiter.resume(throwing: CancellationError())
+        guard inFlight?.waiters[waiterID] != nil else { return }
+        removeCancelledWaiters()
+    }
+
+    /// Removes synchronously marked waiters before a new caller can join their producer.
+    private func removeCancelledWaiters() {
+        guard var inFlight else { return }
+        let cancelledIDs = inFlight.waiters.compactMap { id, waiter in
+            waiter.cancellation.isCancelled ? id : nil
+        }
+        for id in cancelledIDs {
+            inFlight.waiters.removeValue(forKey: id)?.continuation.resume(throwing: CancellationError())
+        }
         guard !inFlight.waiters.isEmpty else {
             inFlight.task.cancel()
             self.inFlight = nil
@@ -99,106 +136,68 @@ private actor ThisMacDiscoveryCoordinator {
         self.inFlight = inFlight
     }
 
-    private func producerFinished(id: UUID, result: Discovery) {
-        guard let inFlight, inFlight.id == id else { return }
+    private func producerFinished(generation: Int, result: ProducerResult) {
+        removeCancelledWaiters()
+        guard let inFlight, inFlight.generation == generation else { return }
+        _ = inFlight.commandResolver.commitThisMacTmuxServer(result.tmuxServer, generation: generation)
         self.inFlight = nil
-        for waiter in inFlight.waiters.values { waiter.resume(returning: result) }
+        for waiter in inFlight.waiters.values { waiter.continuation.resume(returning: result.discovery) }
     }
 
     private nonisolated static func scan(
         adapters: [any ConversationAdapter], commandResolver: NativeCLICommandResolver
-    ) async -> Discovery {
+    ) async -> ProducerResult {
+        let cancellation = ConversationDiscoveryCancellation { Task.isCancelled }
         var found: [Conversation] = []
         var failures: [String] = []
         for adapter in adapters {
             do {
-                found += try await cancellableSynchronousCall { try adapter.discover() }
+                try cancellation.checkCancellation()
+                found += try adapter.discover(cancellation: cancellation)
             } catch is CancellationError {
-                return cancelledDiscovery()
+                return cancelledResult()
             } catch {
                 failures.append("\(adapter.provider.rawValue): \(error.localizedDescription)")
             }
         }
         do {
-            let installedProviders = try await cancellableSynchronousCall {
-                InstalledCLIs.onThisMac(commandResolver: commandResolver)
-            }
-            // The process runners used by the tmux probes are bounded; this wrapper also lets a producer cancelled
-            // by its final waiter finish without awaiting those synchronous probes.
-            let tmuxPaneProcessIDs = try await cancellableSynchronousCall {
-                commandResolver.refreshThisMacTmuxServer()?.appSessionPaneProcessIDs() ?? [:]
-            }
-            return Discovery(
-                conversations: found,
-                failures: failures,
-                installedProviders: installedProviders,
-                tmuxPaneProcessIDs: tmuxPaneProcessIDs
+            let installedProviders = try InstalledCLIs.onThisMac(
+                commandResolver: commandResolver,
+                cancellation: cancellation
+            )
+            try cancellation.checkCancellation()
+            // Version and tmux-server process probes have finite timeouts. Probing does not change the selected
+            // server; only `producerFinished` may commit, after checking this discovery generation is still current.
+            let tmuxServer = commandResolver.probeThisMacTmuxServer()
+            try cancellation.checkCancellation()
+            let tmuxPaneProcessIDs = tmuxServer?.appSessionPaneProcessIDs() ?? [:]
+            try cancellation.checkCancellation()
+            return ProducerResult(
+                discovery: Discovery(
+                    conversations: found,
+                    failures: failures,
+                    installedProviders: installedProviders,
+                    tmuxPaneProcessIDs: tmuxPaneProcessIDs
+                ),
+                tmuxServer: tmuxServer
             )
         } catch {
-            return cancelledDiscovery()
+            return cancelledResult()
         }
     }
 
-    private nonisolated static func cancelledDiscovery() -> Discovery {
-        Discovery(conversations: [], failures: [], installedProviders: [], tmuxPaneProcessIDs: [:])
+    private nonisolated static func cancelledResult() -> ProducerResult {
+        ProducerResult(
+            discovery: Discovery(conversations: [], failures: [], installedProviders: [], tmuxPaneProcessIDs: [:]),
+            tmuxServer: nil
+        )
     }
 }
 
-/// Runs a legacy synchronous read without making its caller wait after cancellation. The underlying filesystem call
-/// cannot be forcibly interrupted, but it no longer retains the discovery generation or blocks a later producer.
-private func cancellableSynchronousCall<Value: Sendable>(
-    _ operation: @escaping @Sendable () throws -> Value
-) async throws -> Value {
-    let call = CancellableSynchronousCall<Value>()
-    return try await withTaskCancellationHandler {
-        try Task.checkCancellation()
-        return try await withCheckedThrowingContinuation { continuation in
-            call.start(continuation: continuation, operation: operation)
-        }
-    } onCancel: {
-        call.cancel()
-    }
-}
-
-private final class CancellableSynchronousCall<Value: Sendable>: @unchecked Sendable {
-    typealias Continuation = CheckedContinuation<Value, any Error>
-
+private final class DiscoveryWaiterCancellation: @unchecked Sendable {
     private let lock = NSLock()
-    private var continuation: Continuation?
-    private var isFinished = false
+    private var cancelled = false
 
-    func start(continuation: Continuation, operation: @escaping @Sendable () throws -> Value) {
-        let wasCancelled = lock.withLock {
-            guard !isFinished else { return true }
-            self.continuation = continuation
-            return false
-        }
-        guard !wasCancelled else {
-            continuation.resume(throwing: CancellationError())
-            return
-        }
-        DispatchQueue.global(qos: .userInitiated).async {
-            self.finish(with: Result { try operation() })
-        }
-    }
-
-    func cancel() {
-        let continuation = lock.withLock {
-            guard !isFinished else { return nil as Continuation? }
-            isFinished = true
-            defer { self.continuation = nil }
-            return self.continuation
-        }
-        continuation?.resume(throwing: CancellationError())
-    }
-
-    private func finish(with result: Result<Value, any Error>) {
-        let continuation = lock.withLock {
-            guard !isFinished else { return nil as Continuation? }
-            isFinished = true
-            defer { self.continuation = nil }
-            return self.continuation
-        }
-        continuation?.resume(with: result)
-    }
+    var isCancelled: Bool { lock.withLock { cancelled } }
+    func cancel() { lock.withLock { cancelled = true } }
 }

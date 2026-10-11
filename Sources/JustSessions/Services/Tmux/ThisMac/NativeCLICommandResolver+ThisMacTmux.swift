@@ -17,6 +17,22 @@ extension NativeCLICommandResolver {
         return servers
     }
 
+    /// Reserves the only generation allowed to commit its probe.
+    func beginThisMacTmuxProbeGeneration() -> Int {
+        tmuxSelection.beginProbeGeneration()
+    }
+
+    /// Checks versions and existing servers without changing the server new tabs use.
+    func probeThisMacTmuxServer() -> ThisMacTmuxServer? {
+        tmuxSelection.probe(from: availableTmuxServers())
+    }
+
+    /// Commits a probe only if no newer shared discovery has committed first.
+    @discardableResult
+    func commitThisMacTmuxServer(_ server: ThisMacTmuxServer?, generation: Int) -> ThisMacTmuxServer? {
+        tmuxSelection.commit(server, generation: generation)
+    }
+
     /// Checks versions and existing servers off the main thread, preserving previously running work.
     func refreshThisMacTmuxServer() -> ThisMacTmuxServer? {
         tmuxSelection.select(from: availableTmuxServers())

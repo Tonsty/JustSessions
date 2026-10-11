@@ -16,8 +16,14 @@ struct FileBackedConversationAdapter: ConversationAdapter {
     /// Removes a refused session's file anyway, like a tool that deletes the file but then fails to update its index.
     var removesRefusedFiles = false
 
-    func discover() throws -> [Conversation] {
-        conversations.filter { $0.provider == provider && FileManager.default.fileExists(atPath: $0.sourceFile.path) }
+    func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
+        try cancellation.checkCancellation()
+        let found = conversations.filter {
+            !cancellation.isCancelled && $0.provider == provider
+                && FileManager.default.fileExists(atPath: $0.sourceFile.path)
+        }
+        try cancellation.checkCancellation()
+        return found
     }
 
     func arguments(for conversation: Conversation, action: ConversationAction) -> [String] { [] }

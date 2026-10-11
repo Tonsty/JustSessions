@@ -6,7 +6,10 @@ struct StaticConversationAdapter: ConversationAdapter {
     let provider: ConversationProvider = .claude
     let discoveredConversations: [Conversation]
 
-    func discover() throws -> [Conversation] { discoveredConversations }
+    func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
+        try cancellation.checkCancellation()
+        return discoveredConversations
+    }
     func arguments(for conversation: Conversation, action: ConversationAction) -> [String] { [] }
     func delete(_ conversation: Conversation) throws {}
 }

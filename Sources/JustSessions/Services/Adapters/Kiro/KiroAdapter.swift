@@ -20,13 +20,18 @@ struct KiroAdapter: ConversationAdapter {
         self.deletionExecutableURL = deletionExecutableURL
     }
 
-    func discover() throws -> [Conversation] {
+    func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
+        try cancellation.checkCancellation()
         guard let files = try? FileManager.default.contentsOfDirectory(
             at: sessionsDirectory,
             includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey],
             options: [.skipsHiddenFiles]
         ) else { return [] }
-        return files.filter { $0.pathExtension == "json" }.compactMap(conversation(describedBy:))
+        let conversations = files.filter { $0.pathExtension == "json" }.compactMap {
+            cancellation.isCancelled ? nil : conversation(describedBy: $0)
+        }
+        try cancellation.checkCancellation()
+        return conversations
     }
 
     func arguments(for conversation: Conversation, action: ConversationAction) -> [String] {
