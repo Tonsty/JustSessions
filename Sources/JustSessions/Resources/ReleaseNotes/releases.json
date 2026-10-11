@@ -1,5 +1,46 @@
 [
   {
+    "version": "1.2.4",
+    "publishedOn": "2026-10-11",
+    "title": {
+      "en": "Terminal links and splits across projects",
+      "zh-Hans": "终端链接与跨项目拆分视图"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "Right-click a link to open or copy it; files on this Mac also open in an editor or Finder.",
+            "zh-Hans": "右键点击链接可打开或复制；这台 Mac 上的文件还可在编辑器中打开或在访达中显示。"
+          }
+        ]
+      },
+      {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "⌘-click a link in either terminal engine to open it, including a file or folder path on this Mac.",
+            "zh-Hans": "在任一终端引擎中 ⌘-点击链接即可打开，包括这台 Mac 上的文件或文件夹路径。"
+          },
+          {
+            "en": "A split view of two projects' tabs now sits between their groups; each tab keeps its project's color and menu.",
+            "zh-Hans": "两个项目的标签页拆分后位于两个标签组之间；每个标签页保留自己项目的颜色和菜单。"
+          }
+        ]
+      },
+      {
+        "kind": "fixed",
+        "items": [
+          {
+            "en": "Small bug fixes.",
+            "zh-Hans": "修复了一些小问题。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.3",
     "publishedOn": "2026-10-11",
     "title": {
