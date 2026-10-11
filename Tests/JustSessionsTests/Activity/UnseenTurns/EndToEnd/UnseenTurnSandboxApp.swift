@@ -104,7 +104,7 @@ final class UnseenTurnSandboxApp {
 
     /// The tab view starts its terminal once shown; here nothing shows it.
     @discardableResult
-    private func startShownTab(of title: String) async throws -> TerminalSession {
+    func startShownTab(of title: String) async throws -> TerminalSession {
         let tab = try tab(of: title)
         #expect(store.selectedTerminalID == tab.id)
         tab.startIfNeeded()

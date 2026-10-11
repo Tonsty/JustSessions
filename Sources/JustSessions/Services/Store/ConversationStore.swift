@@ -44,12 +44,16 @@ final class ConversationStore: ObservableObject {
         didSet {
             selectedTerminal?.startNowThatItIsShown()
             markTerminalsOnScreenSeen()
+            terminalsOnScreenChangedForNotificationBells()
         }
     }
     /// Pairs of tabs linked side by side, as in Chrome's split view, any number of them, with a tab in at most one.
     /// A split outlives the selection; both its terminals show only while one of them is selected, see `shownSplit`.
     @Published private(set) var terminalSplits: [TerminalSplit] = [] {
-        didSet { markTerminalsOnScreenSeen() }
+        didSet {
+            markTerminalsOnScreenSeen()
+            terminalsOnScreenChangedForNotificationBells()
+        }
     }
     /// Every conversation queued in the running deletion, of one session or several. It changes only when a
     /// deletion starts, when sessions join it, and when it ends; `deletionProgress` follows the sessions in between.
@@ -103,6 +107,8 @@ final class ConversationStore: ObservableObject {
     var sessionAttentionTracker = SessionAttentionTracker()
     /// CLIs on this Mac that finished a turn while off screen; see `ConversationStore+UnseenFinishedTurns`.
     @Published var unseenFinishedTurns = UnseenFinishedTurns()
+    /// When each CLI on this Mac started waiting on you; see `ConversationStore+NotificationBell`.
+    @Published var waitingForYouStartTimes = WaitingForYouStartTimes()
     /// Tabs from the last quit still waiting for their host's sessions; see `ConversationStore+TabReopening`.
     var pendingTabReopening = PendingTabReopening()
     let tabPersistenceWindowID = UUID()

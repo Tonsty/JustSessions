@@ -254,8 +254,8 @@
 	<string>Claude Code, Antigravity, and Pi sessions move to the Trash; Codex, Kiro CLI, and OpenCode sessions are permanently deleted.</string>
 	<key>Claude Code, Antigravity, and Pi sessions on this Mac move to the Trash. Codex, Kiro CLI, and OpenCode sessions and all sessions on SSH hosts are permanently deleted.</key>
 	<string>Claude Code, Antigravity, and Pi sessions on this Mac move to the Trash. Codex, Kiro CLI, and OpenCode sessions and all sessions on SSH hosts are permanently deleted.</string>
-	<key>Claude Code, Codex, Antigravity, Pi, and OpenCode on this Mac notify you when they finish a turn or need your input, unless you are looking at their tab. Choose which in General.</key>
-	<string>Claude Code, Codex, Antigravity, Pi, and OpenCode on this Mac notify you when they finish a turn or need your input, unless you are looking at their tab. Choose which in General.</string>
+	<key>Claude Code, Codex, Antigravity, Pi, and OpenCode on this Mac notify you when they finish a turn or need your input, unless you are looking at their tab. Choose which in General. The bell at the top of the sidebar always lists the sessions waiting for you.</key>
+	<string>Claude Code, Codex, Antigravity, Pi, and OpenCode on this Mac notify you when they finish a turn or need your input, unless you are looking at their tab. Choose which in General. The bell at the top of the sidebar always lists the sessions waiting for you.</string>
 	<key>Clear filters</key>
 	<string>Clear filters</string>
 	<key>Clear the selection, or close search</key>
@@ -488,6 +488,8 @@
 	<string>Find in the conversation</string>
 	<key>Find in this conversation</key>
 	<string>Find in this conversation</string>
+	<key>Finished its turn</key>
+	<string>Finished its turn</string>
 	<key>Finishes its turn</key>
 	<string>Finishes its turn</string>
 	<key>First message</key>
@@ -668,6 +670,8 @@
 	<string>Name</string>
 	<key>Needs my input, such as a permission prompt</key>
 	<string>Needs my input, such as a permission prompt</string>
+	<key>Needs your input</key>
+	<string>Needs your input</string>
 	<key>Nerd Font icons</key>
 	<string>Nerd Font icons</string>
 	<key>New</key>

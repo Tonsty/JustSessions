@@ -95,6 +95,7 @@ struct ConversationSidebarView: View {
 
         VStack(alignment: .leading, spacing: 0) {
             SidebarHeader(
+                store: store,
                 searchText: contentMode == .projects ? $searchText : $openTabSearchText,
                 contentMode: contentMode,
                 onNewSession: onNewSession

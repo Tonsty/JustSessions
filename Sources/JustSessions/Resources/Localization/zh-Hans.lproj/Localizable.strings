@@ -48,6 +48,8 @@
 	<string>%lld 磅</string>
 	<key>%lld selected</key>
 	<string>已选择 %lld 项</string>
+	<key>%lld sessions</key>
+	<string>%lld 个会话</string>
 	<key>%lld sessions selected</key>
 	<string>已选择 %lld 个会话</string>
 	<key>%lld sessions with open terminals will be skipped.</key>
@@ -252,8 +254,8 @@
 	<string>Claude Code、Antigravity 和 Pi 会话将移到废纸篓；Codex、Kiro CLI 和 OpenCode 会话将被永久删除。</string>
 	<key>Claude Code, Antigravity, and Pi sessions on this Mac move to the Trash. Codex, Kiro CLI, and OpenCode sessions and all sessions on SSH hosts are permanently deleted.</key>
 	<string>本机的 Claude Code、Antigravity 和 Pi 会话将移到废纸篓。Codex、Kiro CLI、OpenCode 会话和 SSH 主机上的所有会话将被永久删除。</string>
-	<key>Claude Code, Codex, Antigravity, Pi, and OpenCode on this Mac notify you when they finish a turn or need your input, unless you are looking at their tab. Choose which in General.</key>
-	<string>这台 Mac 上的 Claude Code、Codex、Antigravity、Pi 和 OpenCode 完成一轮回复或需要你输入时会通知你，正在查看其标签页时除外。可在通用设置中选择通知哪些情况。</string>
+	<key>Claude Code, Codex, Antigravity, Pi, and OpenCode on this Mac notify you when they finish a turn or need your input, unless you are looking at their tab. Choose which in General. The bell at the top of the sidebar always lists the sessions waiting for you.</key>
+	<string>这台 Mac 上的 Claude Code、Codex、Antigravity、Pi 和 OpenCode 完成一轮回复或需要你输入时会通知你，正在查看其标签页时除外。可在通用设置中选择通知哪些情况。侧边栏顶部的铃铛会一直列出等你处理的会话。</string>
 	<key>Clear filters</key>
 	<string>清除筛选</string>
 	<key>Clear the selection, or close search</key>
@@ -496,6 +498,8 @@
 	<string>在对话中查找</string>
 	<key>Find in this conversation</key>
 	<string>在这段对话中查找</string>
+	<key>Finished its turn</key>
+	<string>已完成一轮</string>
 	<key>Finishes its turn</key>
 	<string>完成一轮任务</string>
 	<key>First message</key>
@@ -672,6 +676,8 @@
 	<string>名称</string>
 	<key>Needs my input, such as a permission prompt</key>
 	<string>需要我的输入，例如权限确认</string>
+	<key>Needs your input</key>
+	<string>需要你的输入</string>
 	<key>Nerd Font icons</key>
 	<string>Nerd Font 图标</string>
 	<key>New</key>

@@ -130,6 +130,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 17 | [SSH connections during a remote refresh](#17-ssh-connections-during-a-remote-refresh) | Changed, not measured live: issue #64 |
 | 18 | [Workspace windows repeated discovery and message indexing](#18-workspace-windows-repeated-discovery-and-message-indexing) | Done: issue #57 |
 | 19 | [The working spinner re-rendered the window 30 times a second](#19-the-working-spinner-re-rendered-the-window-30-times-a-second) | Done: idle render loop PR |
+| 20 | [The notification bell's list on each sidebar redraw](#20-the-notification-bells-list-on-each-sidebar-redraw) | Measured, no change: issue #176 |
 
 ### 1. Timestamp parsing
 
@@ -434,6 +435,25 @@ Traces recorded with `xcrun xctrace record --template 'Time Profiler' --instrume
 **Change:** the arc is a `CAShapeLayer` in a small `NSViewRepresentable`, turned by a repeating `CABasicAnimation` on `transform.rotation.z` that the render server runs; SwiftUI draws the view once. The animation runs only while the arc can be seen — the view is in a window that is not minimized, neither it nor an ancestor is hidden, and the SwiftUI view hosting it is not at zero opacity, which is how the app keeps hidden content mounted — and is removed otherwise, so a spinner in a hidden tab, a hidden sidebar panel, or a minimized window costs the render server nothing; one in a window covered by another, or clipped out of a scroll view, still turns. Reduce Motion still shows the arc standing still. The stroke color is resolved from the view's effective appearance, as the SwiftUI arc's `ThemePalette.live` was. `WorkingSpinnerRenderingTests` checks the arc draws in the live color of each appearance, that held still it covers the pixels the SwiftUI arc did, and that no view under `Views/` animates with a per-frame `TimelineView` again; `WorkingSpinnerLifecycleTests` checks it stops and restarts with opacity and hiding, and stops on leaving the window.
 
 **Limits:** the remaining 3–4% is Ghostty frame delivery and periodic syncs, not SwiftUI. The hosting view still re-renders whole on every state change it observes, and a tab switch and a right-click still stall in accessibility walks of it; those are separate items.
+
+### 20. The notification bell's list on each sidebar redraw
+
+**Question (issue #176):** the bell in the sidebar header observes the store, so it works out its list on every store change, and the activity sync now also times each wait. Does that slow the sidebar?
+
+**Measured:** `SidebarInteractionMeasurements`, release build, Apple M4 Max, macOS 27.0.1. The bell's branch and its base, `f156493`, ran the populate, filter, store-change, and preview scenarios alternately, twice each; every figure is a median of three. Another session's builds kept the load average between 4 and 6.
+
+| Turn, 2,000 sessions | Base, two runs | Bell, two runs |
+| --- | --- | --- |
+| A store change, projects collapsed | 6.8, 7.8 ms | 6.7, 7.1 ms |
+| A store change, every project expanded | 28.1, 30.3 ms | 33.0, 30.9 ms |
+| Listing the sessions (replace and first render) | 38.0, 39.6 ms | 39.2, 35.5 ms |
+| Click to preview | 37.5, 40.5 ms | 40.7, 41.2 ms |
+
+A first pass ran the whole suite on the base, then on the bell, minutes apart: populate and preview at 2,000 sessions took 26 and 22 ms on the base and 46 and 40 ms on the bell. Run alternately, both sides took 42–46 ms and 37–41 ms, so that gap was the machine's load changing between the passes.
+
+The list costs one look at each window's tabs and at this window's CLIs in tmux with no tab, never at the sessions, and the store publishes the wait times only when a wait starts or ends (`WaitingForYouStartTimesSyncTests`).
+
+**Conclusion:** no measurable change.
 
 ## How to profile
 
