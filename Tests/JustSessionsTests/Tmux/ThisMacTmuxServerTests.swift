@@ -17,7 +17,7 @@ struct ThisMacTmuxServerTests {
         let command = server.command(attachingTo: "justsessions-claude-abc", running: cli)
 
         #expect(command.executablePath == "/opt/homebrew/bin/tmux")
-        #expect(Array(command.arguments.prefix(7)) == ["-L", "justsessions", "-f", "/dev/null", "-u", "-T", "RGB"])
+        #expect(Array(command.arguments.prefix(7)) == ["-L", "justsessions", "-f", "/dev/null", "-u", "-T", "RGB,hyperlinks"])
         for option in ThisMacTmuxServer.globalOptions {
             #expect(command.arguments.containsSubsequence(["set-option", "-gq", option.name, option.value, ";"]))
         }
