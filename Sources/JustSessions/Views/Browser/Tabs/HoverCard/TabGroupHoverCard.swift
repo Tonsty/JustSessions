@@ -14,11 +14,11 @@ struct TabGroupHoverCard: View {
         TabHoverCardSurface {
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: projectName)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(ThemeFont.heading)
                     .foregroundStyle(ThemePalette.ink)
                     .lineLimit(2)
                 Text(verbatim: folder)
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(ThemeFont.detail.monospaced())
                     .foregroundStyle(ThemePalette.secondaryText)
                     .lineLimit(1)
                     .truncationMode(.middle)
@@ -28,7 +28,7 @@ struct TabGroupHoverCard: View {
                     }
                     if tabs.count > Self.maximumListedTabs {
                         Text("\(tabs.count - Self.maximumListedTabs) more tabs")
-                            .font(.system(size: 11))
+                            .font(ThemeFont.detail)
                             .foregroundStyle(ThemePalette.tertiaryText)
                     }
                 }
@@ -53,7 +53,7 @@ private struct TabGroupHoverCardRow: View {
             Text(verbatim: session.displayTitle)
                 .lineLimit(1)
         }
-        .font(.system(size: 12))
+        .font(ThemeFont.callout)
         .foregroundStyle(ThemePalette.secondaryText)
     }
 }

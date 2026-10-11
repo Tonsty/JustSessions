@@ -33,10 +33,10 @@ struct SidebarProjectRow: View {
         HStack(spacing: 0) {
             Button(action: onToggleExpansion) {
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 9, weight: .bold))
+                    .font(ThemeFont.glyph(.small, weight: .bold))
                     .foregroundStyle(ThemePalette.tertiaryText)
                     .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                    .animation(.easeOut(duration: 0.12), value: isExpanded)
+                    .animation(ThemeMotion.disclosure, value: isExpanded)
                     .frame(width: Self.chevronWidth, height: rowHeight)
                     .contentShape(Rectangle())
             }
@@ -97,7 +97,7 @@ struct SidebarProjectRow: View {
     private var sessionCountOrHoverActions: some View {
         ZStack(alignment: .trailing) {
             Text(project.sessionCount.formatted())
-                .font(.system(size: 11).monospacedDigit())
+                .font(ThemeFont.detail.monospacedDigit())
                 .foregroundStyle(ThemePalette.secondaryText)
                 .opacity(isHovered ? 0 : 1)
             ProjectHoverActions(

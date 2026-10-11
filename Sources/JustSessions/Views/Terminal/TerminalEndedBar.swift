@@ -11,12 +11,12 @@ struct TerminalEndedBar: View {
                 if let exitCode { Text("Exited (\(exitCode))") }
                 else { Text("Ended") }
             }
-            .font(.caption)
+            .font(ThemeFont.caption)
             .foregroundStyle(ThemePalette.secondaryText)
             Spacer()
             if let onReconnect {
                 Button("Reconnect", systemImage: "arrow.triangle.2.circlepath", action: onReconnect)
-                    .buttonStyle(.bordered)
+                    .buttonStyle(QuietBorderedButtonStyle())
                     .controlSize(.small)
                     .help("Connect again; a CLI still running in tmux on the host is reattached")
             }

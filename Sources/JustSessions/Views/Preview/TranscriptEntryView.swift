@@ -27,14 +27,14 @@ struct TranscriptEntryView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
-                .background(ThemePalette.userMessageSurface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .background(ThemePalette.userMessageSurface, in: RoundedRectangle(.panel))
         case .assistantMessage(let text):
             TranscriptMarkdownView(text: text, prepared: entry.markdown)
         case .toolCalls(let summaries):
             TranscriptToolCallsView(summaries: summaries)
         case .note(let text):
             TranscriptSearchableText(source: AttributedString(text), fontSize: 12, isSecondary: true)
-                .font(.caption)
+                .font(ThemeFont.caption)
                 .foregroundStyle(ThemePalette.tertiaryText)
                 .frame(maxWidth: .infinity)
         case .userImage(let image), .toolResultImage(let image):
@@ -51,11 +51,11 @@ struct TranscriptEntryView: View {
             Group {
                 if isUser { Text("You") } else { Text(verbatim: assistantName) }
             }
-                .font(.system(size: 12, weight: .semibold))
+                .font(ThemeFont.callout.weight(.semibold))
                 .foregroundStyle(isUser ? ThemePalette.secondaryText : assistantNameColor)
             if let timestamp = entry.timestamp {
                 Text(timestamp, format: .dateTime.month(.abbreviated).day().hour().minute())
-                    .font(.system(size: 11))
+                    .font(ThemeFont.detail)
                     .foregroundStyle(ThemePalette.tertiaryText)
             }
         }

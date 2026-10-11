@@ -114,7 +114,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 1 | [Timestamp parsing](#1-timestamp-parsing) | Done: #46 |
 | 2 | [Transcript text searches only during Find](#2-transcript-text-searches-only-during-find) | Done: #46 |
 | 3 | [Fast `AttributedString` to `String` conversion](#3-fast-attributedstring-to-string-conversion) | Done: #46 |
-| 4 | [One position marker view per transcript entry](#4-one-position-marker-view-per-transcript-entry) | Planned |
+| 4 | [One position marker view per transcript entry](#4-one-position-marker-view-per-transcript-entry) | Done: issue #53 |
 | 5 | [Text selection on very long blocks](#5-text-selection-on-very-long-blocks) | Measured, no change: issue #54 |
 | 6 | [Terminal drawing](#6-terminal-drawing) | Done for Ghostty, the engine you can choose in Settings: libghostty PR. SwiftTerm's Metal drawing measured and not turned on: issue #52 |
 | 7 | [The search context changes on every transcript update](#7-the-search-context-changes-on-every-transcript-update) | Done: scrolling PR |
@@ -127,6 +127,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 14 | [A CLI activity change updates only the rows in view](#14-a-cli-activity-change-updates-only-the-rows-in-view) | Measured, no change: issue #61 |
 | 15 | [Terminals in minimized windows drew as if in sight](#15-terminals-in-minimized-windows-drew-as-if-in-sight) | Done: issue #63 |
 | 16 | [Typing beside flooding terminals](#16-typing-beside-flooding-terminals) | Measured, no change: issue #58 |
+| 17 | [SSH connections during a remote refresh](#17-ssh-connections-during-a-remote-refresh) | Changed, not measured live: issue #64 |
 
 ### 1. Timestamp parsing
 
@@ -172,12 +173,32 @@ The Markdown parse itself stays. The search index stores the text as the reader 
 
 In `TranscriptInteractionMeasurements`, after item 8, removing the markers takes the median scroll step from 9.7 to 4.8 ms with 240 entries, and from 34 to 17 ms with 640. It takes 200 hit tests from 494 to 417 ms. Those runs also skip the reader's own scroll handling, such as recording the reading position, so not all of the difference is the views.
 
-**Plan:** track the reading position from the scroll view's geometry instead, so loaded entries add no AppKit views. The position controller uses each marker for more than recording the position:
-- restoring a position within an entry;
-- finding where a page's first entry starts;
-- revealing search matches.
+**Change:** the entries' `Layout` records their ordered frames as it places them, and one AppKit observer converts those stack-local frames to scroll-view coordinates. A scroll update binary-searches the ordered frames instead of scanning every entry. Direct entry lookup remains constant-time for restoration, paging, and Find. The layout hands changed frames to a pending restoration immediately, preserving the same-pass correction when a page loads above.
 
-It also restores the position from the marker's `layout()`, in the same layout pass as a page loading above, so the reader never sees the content jump. A replacement must keep that timing. The reading-position and paging tests cover these cases.
+`TranscriptInteractionMeasurements`, release build, median of three runs each. Every metric resets to an explicit viewport first: scrolling starts at the top; hit testing, Find, and lookup start at the midpoint. Position lookup measures 1,000 searches for the first visible entry through the same type-agnostic harness adapter on both implementations:
+
+| Entries and accessibility | AppKit views | Scroll p50 / p95 / worst | 200 hit tests | Open Find | 1,000 position lookups |
+| --- | --- | --- | --- | --- | --- |
+| 240, off | 2,082 → 1,604 | 5.5 / 6.6 / 9.9 → 4.0 / 5.1 / 5.4 ms | 508 → 440 ms | 59.8 → 56.1 ms | 17.0 → 0.2 ms |
+| 240, on | 2,082 → 1,604 | 5.4 / 6.8 / 7.3 → 4.1 / 5.2 / 5.6 ms | 511 → 438 ms | 116 → 103 ms | 17.0 → 0.2 ms |
+| 640, off | 5,482 → 4,204 | 17.4 / 20.1 / 21.7 → 13.6 / 15.4 / 16.0 ms | 1,462 → 1,319 ms | 73.4 → 91.1 ms | 43.6 → 0.2 ms |
+| 640, on | 5,482 → 4,204 | 18.2 / 20.0 / 20.4 → 14.9 / 17.2 / 18.0 ms | 1,467 → 1,283 ms | 317 → 310 ms | 44.3 → 0.2 ms |
+
+Opening Find with 640 entries and accessibility off reproducibly regressed from 73.4 to 91.1 ms. A supplemental investigation with temporary instrumentation, which the committed harness does not include, put the extra time in synchronous SwiftUI layout during the opening turn rather than in the geometry layout: `TranscriptEntryGeometryLayout` did not place entries during that update, so rebuilding its registry is not the cause. The likely cost is the `GeometryReader` wrapper that supplies an exact transcript width to the custom layout; removing it made full-width and readable-width layout incorrect, and no small safe replacement was found. The other three Find configurations were unchanged or faster.
+
+**Method:** Apple M4 Pro, 24 GB, macOS 26.6.1, Xcode 27.0 (Swift 6.4, macOS 27.0 SDK). The baseline was commit `895744b` with only the harness from `95ed3dd` copied over; after was `95ed3dd`. Reproduction commands:
+
+```sh
+git show 95ed3dd:Tests/JustSessionsTests/Performance/TranscriptInteractionMeasurements.swift > /tmp/issue-53-fair/TranscriptInteractionMeasurements.swift
+git switch --detach 895744b
+cp /tmp/issue-53-fair/TranscriptInteractionMeasurements.swift Tests/JustSessionsTests/Performance/TranscriptInteractionMeasurements.swift
+for run in 1 2 3; do JUSTSESSIONS_PERF=1 swift test -c release --filter TranscriptInteractionMeasurements; done
+git reset --hard 895744b
+git switch issue-53-transcript-marker-geometry
+for run in 1 2 3; do JUSTSESSIONS_PERF=1 swift test -c release --filter TranscriptInteractionMeasurements; done
+```
+
+Raw output is in `/tmp/issue-53-fair/baseline.txt` and `/tmp/issue-53-fair/after.txt`. The machine was not isolated; the first 240-entry baseline run was slower than the other two, so the table reports medians rather than best runs.
 
 ### 5. Text selection on very long blocks
 
@@ -370,6 +391,14 @@ A covered window is left alone. macOS reports `NSWindow.occlusionState` only to 
 Keystrokes wait only when the other terminals print as fast as a pseudo-terminal carries, about 50 MB/s each and 60 MB/s parsed in all, which no CLI does. Six terminals each printing a fast build log, 12 MB/s in all, leave typing where it is alone. Making the hidden tabs' batches smaller (16 or 4 KiB instead of 64) changed nothing, since at flood rates every read from the pseudo-terminal already exceeds the batch size and is parsed on arrival; the wait is the parsing itself.
 
 **Conclusion:** SwiftTerm's per-process budget and the app's hidden-tab batching are enough at any rate a CLI reaches. A shared budget across terminals would only matter under a synthetic flood, and would have to keep SwiftTerm's own backpressure working. Not done. The suite stays to check this again after a SwiftTerm upgrade or with Ghostty, which parses off the main thread.
+
+### 17. SSH connections during a remote refresh
+
+**Evidence:** a refresh runs its folder lookup and six provider copies sequentially; OpenCode and Antigravity also run snapshot and cleanup commands. Without multiplexing, each is a separate SSH login. Cached mirrors and rsync deltas already reduce the bytes copied. This change could not be timed against a live host: Multipass was unavailable and macOS Remote Login was off (`ssh localhost` was refused), so there is no handshake, snapshot, transfer, or cleanup timing and no latency claim.
+
+**Change:** one remote-session refresh gives its folder lookup, snapshot commands, rsync copies, and cleanup commands the same app-owned OpenSSH control socket. Each refresh has a unique directory owned only by the current user, including concurrent refreshes, and explicitly asks its own master to exit before removing the directory on success, failure, or task cancellation; a 60-second persistence limit is the fallback if the app exits first. A stale socket from an earlier process has a different path. Host aliases and their users, ports, jump hosts, host-key policy, and other SSH settings still resolve normally. A host with `ControlMaster no`, `ControlPath none`, `ControlPersist no`, or a control path of its own receives no app-owned sharing.
+
+The unit coverage checks option construction, config precedence, private and distinct socket directories, idempotent teardown, cancellation, and the same options in remote commands and rsync. A disposable Linux target and a separate macOS account remain required to verify actual reuse and teardown over SSH.
 
 ## How to profile
 

@@ -25,8 +25,8 @@ struct TranscriptImageView: View {
             }
         }
         .aspectRatio(aspectRatio, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(ThemePalette.hairline, lineWidth: 1))
+        .clipShape(RoundedRectangle(.panel))
+        .overlay(RoundedRectangle(.panel).stroke(ThemePalette.hairline, lineWidth: 1))
         .frame(maxWidth: .infinity, maxHeight: Self.maximumHeight, alignment: .leading)
         .task(id: image) { await decode() }
     }
@@ -40,7 +40,7 @@ struct TranscriptImageView: View {
         Group {
             if failedToDecode {
                 Label("Image can't be shown", systemImage: "photo")
-                    .font(.system(size: 12))
+                    .font(ThemeFont.callout)
                     .foregroundStyle(ThemePalette.secondaryText)
             } else {
                 ProgressView().controlSize(.small)

@@ -19,7 +19,7 @@ enum TabBarDragMetrics {
     /// How far the pointer moves before a press on a tab or group label becomes a drag.
     static let minimumDistance: CGFloat = 4
     /// How long a tab passed by the dragged one takes to slide over, and the dragged one to settle when dropped.
-    static let slideAnimation: Animation = .easeOut(duration: 0.15)
+    static let slideAnimation = ThemeMotion.slide
 }
 
 private struct TabBarDragGesture: ViewModifier {

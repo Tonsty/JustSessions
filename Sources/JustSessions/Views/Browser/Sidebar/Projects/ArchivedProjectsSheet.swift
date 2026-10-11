@@ -12,19 +12,19 @@ struct ArchivedProjectsSheet: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text("Archived projects on \(host.nameInSentence)").font(.title3.weight(.semibold))
-                HelpPopoverButton(
-                    title: "Archived projects",
-                    explanation: "An archived project is hidden from the sidebar. Its folder and sessions stay on disk, and restoring it lists them again. Starting a new session in its folder also restores it."
-                )
-                .accessibilityIdentifier("archivedProjects.help")
-            }
-
+        ThemeSheetLayout(
+            title: Text("Archived projects on \(host.nameInSentence)"),
+            width: ThemeSheetMetrics.compactWidth
+        ) {
+            HelpPopoverButton(
+                title: "Archived projects",
+                explanation: "An archived project is hidden from the sidebar. Its folder and sessions stay on disk, and restoring it lists them again. Starting a new session in its folder also restores it."
+            )
+            .accessibilityIdentifier("archivedProjects.help")
+        } content: {
             if archivedProjectPaths.isEmpty {
                 Text("No archived projects")
-                    .font(.callout)
+                    .font(ThemeFont.callout)
                     .foregroundStyle(ThemePalette.secondaryText)
                     .frame(maxWidth: .infinity, minHeight: 60)
             } else {
@@ -36,19 +36,15 @@ struct ArchivedProjectsSheet: View {
                         rows
                     }
                 }
-                .background(ThemePalette.raisedSurface, in: RoundedRectangle(cornerRadius: 8))
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(ThemePalette.hairline, lineWidth: 1))
+                .background(ThemePalette.raisedSurface, in: RoundedRectangle(.card))
+                .overlay(RoundedRectangle(.card).stroke(ThemePalette.hairline, lineWidth: 1))
             }
-
-            HStack {
-                Spacer()
-                Button("Done") { dismiss() }
-                    .keyboardShortcut(.defaultAction)
-            }
+        } footer: {
+            Spacer()
+            Button("Done") { dismiss() }
+                .buttonStyle(ThemeProminentButtonStyle())
+                .keyboardShortcut(.defaultAction)
         }
-        .padding(20)
-        .frame(width: 480)
-        .background(ThemePalette.contentSurface)
     }
 
     private var rows: some View {
@@ -66,10 +62,10 @@ struct ArchivedProjectsSheet: View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: store.projectDisplayName(forProjectPath: projectPath))
-                    .font(.system(size: 13, weight: .medium))
+                    .font(ThemeFont.body.weight(.medium))
                     .lineLimit(1)
                 Text(verbatim: ProjectLocation(key: projectPath).copyablePath)
-                    .font(.system(size: 11))
+                    .font(ThemeFont.detail)
                     .foregroundStyle(ThemePalette.secondaryText)
                     .lineLimit(1)
                     .truncationMode(.middle)

@@ -28,11 +28,12 @@ struct ThumbnailChoiceButton<Thumbnail: View>: View {
     @State private var isHovered = false
 
     private var thumbnailShape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: 6, style: .continuous)
+        RoundedRectangle(.control)
     }
 
+    /// Around the thumbnail with a gap, so its corners stay concentric with the thumbnail's.
     private var ringShape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: 9, style: .continuous)
+        RoundedRectangle(cornerRadius: ThemeCornerRadius.control.rawValue + ThumbnailChoiceMetrics.ringInset, style: .continuous)
     }
 
     private var ringStyle: AnyShapeStyle {
@@ -50,11 +51,11 @@ struct ThumbnailChoiceButton<Thumbnail: View>: View {
                     .padding(ThumbnailChoiceMetrics.ringInset)
                     .overlay(ringShape.strokeBorder(ringStyle, lineWidth: 2))
                 Text(title)
-                    .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
-                    .foregroundStyle(isSelected ? AnyShapeStyle(.primary) : AnyShapeStyle(ThemePalette.secondaryText))
+                    .font(ThemeFont.callout.weight(isSelected ? .semibold : .regular))
+                    .foregroundStyle(isSelected ? AnyShapeStyle(ThemePalette.ink) : AnyShapeStyle(ThemePalette.secondaryText))
                 if let detail {
                     Text(detail)
-                        .font(.system(size: 10))
+                        .font(ThemeFont.caption)
                         .foregroundStyle(ThemePalette.tertiaryText)
                         .padding(.top, -4)
                 }

@@ -15,7 +15,7 @@ extension View {
     nonisolated func themedTextFieldSurface() -> some View {
         padding(.horizontal, 8)
             .padding(.vertical, 6)
-            .background(ThemePalette.raisedSurface, in: RoundedRectangle(cornerRadius: 6))
-            .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(ThemePalette.hairline))
+            .background(ThemePalette.raisedSurface, in: RoundedRectangle(.control))
+            .overlay(RoundedRectangle(.control).strokeBorder(ThemePalette.hairline))
     }
 }

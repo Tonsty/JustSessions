@@ -12,7 +12,7 @@ struct TranscriptCodeBlock: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text(language.flatMap { $0.isEmpty ? nil : $0 } ?? "Code")
-                    .font(.caption.weight(.medium))
+                    .font(ThemeFont.caption.weight(.medium))
                     .foregroundStyle(ThemePalette.secondaryText)
                 Spacer()
                 Button(hasCopied ? "Copied" : "Copy", systemImage: hasCopied ? "checkmark" : "doc.on.doc") {
@@ -20,7 +20,7 @@ struct TranscriptCodeBlock: View {
                     hasCopied = NSPasteboard.general.setString(text, forType: .string)
                 }
                 .buttonStyle(ThemePlainButtonStyle(horizontalPadding: 4, verticalPadding: 2))
-                .font(.caption)
+                .font(ThemeFont.caption)
                 .help("Copy code")
                 .accessibilityLabel("Copy code")
             }
@@ -36,9 +36,9 @@ struct TranscriptCodeBlock: View {
                     .padding(12)
             }
         }
-        .background(ThemePalette.raisedSurface, in: RoundedRectangle(cornerRadius: 10))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(ThemePalette.hairline, lineWidth: 1))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .background(ThemePalette.raisedSurface, in: RoundedRectangle(.panel))
+        .overlay(RoundedRectangle(.panel).stroke(ThemePalette.hairline, lineWidth: 1))
+        .clipShape(RoundedRectangle(.panel))
         .onChange(of: text) { _, _ in hasCopied = false }
     }
 }

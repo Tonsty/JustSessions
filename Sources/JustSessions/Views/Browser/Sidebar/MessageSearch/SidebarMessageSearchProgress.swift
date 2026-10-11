@@ -13,7 +13,7 @@ struct SidebarMessageSearchProgress: View {
                     .monospacedDigit()
                     .lineLimit(1)
             }
-            .font(.system(size: 11))
+            .font(ThemeFont.detail)
             .foregroundStyle(ThemePalette.secondaryText)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 18)

@@ -14,7 +14,7 @@ struct HelpPopoverButton: View {
             isShowingExplanation.toggle()
         } label: {
             Image(systemName: "questionmark.circle")
-                .font(.system(size: 13))
+                .font(ThemeFont.body)
                 .foregroundStyle(ThemePalette.secondaryText)
                 .frame(width: 22, height: 22)
         }
@@ -25,9 +25,9 @@ struct HelpPopoverButton: View {
         .popover(isPresented: $isShowingExplanation, arrowEdge: .bottom) {
             VStack(alignment: .leading, spacing: 8) {
                 Text(title)
-                    .font(.subheadline.weight(.medium))
+                    .font(ThemeFont.heading)
                 Text(explanation)
-                    .font(.callout)
+                    .font(ThemeFont.callout)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .foregroundStyle(ThemePalette.ink)

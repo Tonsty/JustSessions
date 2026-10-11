@@ -12,9 +12,9 @@ struct AboutSettingsSection: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("About JustSessions")
-                        .font(.subheadline.weight(.medium))
+                        .font(ThemeFont.heading)
                     Text(verbatim: environment.summary)
-                        .font(.caption)
+                        .font(ThemeFont.caption)
                         .foregroundStyle(ThemePalette.secondaryText)
                         .textSelection(.enabled)
                 }

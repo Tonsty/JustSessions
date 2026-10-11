@@ -10,14 +10,14 @@ struct SidebarSSHHostMoreActionsMenu: View {
             SidebarSSHHostMenuItems(actions: actions)
         } label: {
             Image(systemName: "ellipsis")
-                .font(.system(size: 10, weight: .bold))
+                .font(ThemeFont.glyph(.control, weight: .bold))
                 .foregroundStyle(ThemePalette.secondaryText)
                 .frame(width: 16, height: 16)
                 .contentShape(Rectangle())
         }
         .menuStyle(.button)
         .menuIndicator(.hidden)
-        .buttonStyle(ThemePlainButtonStyle(cornerRadius: 4))
+        .buttonStyle(ThemePlainButtonStyle(cornerRadius: .small))
         .fixedSize()
         .help("More actions")
         .accessibilityLabel("More actions for \(host.displayName)")

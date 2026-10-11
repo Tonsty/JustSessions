@@ -8,12 +8,12 @@ struct SidebarSelectionActionBar: View {
     var body: some View {
         HStack(spacing: 8) {
             Text("\(selectedCount) selected")
-                .font(.system(size: 12, weight: .medium))
+                .font(ThemeFont.callout.weight(.medium))
             Spacer(minLength: 4)
             Button(role: .destructive, action: onDelete) {
                 Label("Delete…", systemImage: "trash")
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(QuietBorderedButtonStyle())
             .controlSize(.small)
         }
         .padding(.horizontal, 18)

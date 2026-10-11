@@ -48,13 +48,11 @@ struct AddRemoteHostSheet: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Add SSH host").font(.title3.weight(.semibold))
-            Text("Browse and resume sessions on another machine.")
-                .font(.callout)
-                .foregroundStyle(ThemePalette.secondaryText)
-                .fixedSize(horizontal: false, vertical: true)
-
+        ThemeSheetLayout(
+            title: Text("Add SSH host"),
+            intro: Text("Browse and resume sessions on another machine."),
+            width: ThemeSheetMetrics.compactWidth
+        ) {
             VStack(alignment: .leading, spacing: 6) {
                 TextField("SSH alias or user@hostname", text: $proposedHost)
                     .textFieldStyle(ThemedTextFieldStyle())
@@ -72,30 +70,26 @@ struct AddRemoteHostSheet: View {
             DisclosureGroup("Setup requirements") {
                 setupRequirements
             }
-            .font(.callout)
+            .font(ThemeFont.callout)
             .foregroundStyle(ThemePalette.secondaryText)
-
-            HStack(spacing: 8) {
-                if let hostBeingChecked {
-                    ProgressView().controlSize(.small)
-                    Text("Connecting to \(hostBeingChecked)…")
-                        .font(.callout)
-                        .foregroundStyle(ThemePalette.secondaryText)
-                }
-                Spacer()
-                Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction)
-                if let failedConnection = failedConnectionToHostToAdd {
-                    Button("Add anyway") { add(failedConnection.host) }
-                }
-                Button(addButtonTitle, action: checkAndAddHost)
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(hostToAdd == nil || hostBeingChecked != nil)
+        } footer: {
+            if let hostBeingChecked {
+                ProgressView().controlSize(.small)
+                Text("Connecting to \(hostBeingChecked)…")
+                    .font(ThemeFont.callout)
+                    .foregroundStyle(ThemePalette.secondaryText)
             }
+            Spacer()
+            Button("Cancel") { dismiss() }
+                .keyboardShortcut(.cancelAction)
+            if let failedConnection = failedConnectionToHostToAdd {
+                Button("Add anyway") { add(failedConnection.host) }
+            }
+            Button(addButtonTitle, action: checkAndAddHost)
+                .buttonStyle(ThemeProminentButtonStyle())
+                .keyboardShortcut(.defaultAction)
+                .disabled(hostToAdd == nil || hostBeingChecked != nil)
         }
-        .padding(20)
-        .frame(width: 480)
-        .background(ThemePalette.contentSurface)
         .task(id: input.validDestination) { await readWhereTheHostConnects() }
         .onDisappear { connectionCheck?.cancel() }
     }

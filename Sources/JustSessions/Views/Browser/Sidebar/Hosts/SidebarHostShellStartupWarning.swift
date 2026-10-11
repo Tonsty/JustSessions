@@ -16,7 +16,7 @@ struct SidebarHostShellStartupWarning: View {
                 .frame(width: 14, height: 20)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(ThemePressButtonStyle())
         .help(message)
         .accessibilityLabel(message)
     }

@@ -13,7 +13,7 @@ struct SidebarEmptyHostNote: View {
                 Text(resourceWithChosenLocale(localizedText)).foregroundStyle(ThemePalette.secondaryText)
             }
         }
-        .font(.system(size: 12))
+        .font(ThemeFont.callout)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.horizontal, 18)
         .padding(.vertical, 4)

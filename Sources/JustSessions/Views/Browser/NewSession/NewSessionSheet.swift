@@ -98,14 +98,11 @@ struct NewSessionSheet: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            VStack(alignment: .leading, spacing: 5) {
-                Text("New session")
-                    .font(.title2.weight(.semibold))
-                Text("Start a native CLI or a plain terminal in a project folder.")
-                    .foregroundStyle(ThemePalette.secondaryText)
-            }
-
+        ThemeSheetLayout(
+            title: Text("New session"),
+            intro: Text("Start a native CLI or a plain terminal in a project folder."),
+            width: ThemeSheetMetrics.regularWidth
+        ) {
             // The host comes first: it decides which tools can run and which recent projects are offered.
             if hosts.count > 1 {
                 Picker("Host", selection: hostSelection) {
@@ -140,26 +137,21 @@ struct NewSessionSheet: View {
             }
 
             projectFolderSection
-
-            HStack(spacing: 8) {
-                if isStarting && selectedHost != .thisMac {
-                    ProgressView().controlSize(.small)
-                    Text("Checking the folder on \(selectedHost.displayName)…")
-                        .font(.callout)
-                        .foregroundStyle(ThemePalette.secondaryText)
-                }
-                Spacer()
-                Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction)
-                Button(startingKind == .plainTerminal ? "Open terminal" : "Start session", action: start)
-                    .buttonStyle(ProviderProminentButtonStyle(tint: startingKind.emphasisTintColor))
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(trimmedProjectPath.isEmpty || isStarting || isEditingShownStartCommand)
+        } footer: {
+            if isStarting && selectedHost != .thisMac {
+                ProgressView().controlSize(.small)
+                Text("Checking the folder on \(selectedHost.displayName)…")
+                    .font(ThemeFont.callout)
+                    .foregroundStyle(ThemePalette.secondaryText)
             }
+            Spacer()
+            Button("Cancel") { dismiss() }
+                .keyboardShortcut(.cancelAction)
+            Button(startingKind == .plainTerminal ? "Open terminal" : "Start session", action: start)
+                .buttonStyle(ProviderProminentButtonStyle(tint: startingKind.emphasisTintColor))
+                .keyboardShortcut(.defaultAction)
+                .disabled(trimmedProjectPath.isEmpty || isStarting || isEditingShownStartCommand)
         }
-        .padding(24)
-        .frame(width: 520)
-        .background(ThemePalette.contentSurface)
         .alert(startingKind == .plainTerminal ? "Could not open terminal" : "Could not start session", isPresented: Binding(isPresenting: $errorMessage)) {
             Button("OK") { errorMessage = nil }
         } message: {
@@ -173,7 +165,7 @@ struct NewSessionSheet: View {
     private var projectFolderSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(selectedHost == .thisMac ? "Project folder" : "Project folder on \(selectedHost.displayName)")
-                .font(.subheadline.weight(.medium))
+                .font(ThemeFont.fieldLabel)
             HStack(spacing: 8) {
                 TextField(
                     selectedHost == .thisMac ? "Choose or enter a folder" : "Path on the host, such as ~/code/app",

@@ -32,11 +32,11 @@ struct SidebarSessionRowLayout<Title: View, Detail: View, Trailing: View>: View 
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 8) {
                 provider.iconImage(size: 10)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(ThemeFont.glyph(.control, weight: .medium))
                     .foregroundStyle(provider.tintColor)
                     .frame(width: SidebarSessionRowMetrics.iconWidth)
                 title
-                    .font(.system(size: 12, weight: isSelected ? .medium : .regular))
+                    .font(ThemeFont.callout.weight(isSelected ? .medium : .regular))
                     .lineLimit(1)
                     .truncationMode(.tail)
                 Spacer(minLength: 6)
