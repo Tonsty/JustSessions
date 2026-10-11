@@ -17,7 +17,7 @@ struct NotificationSettingsSection: View {
                 )
                 .accessibilityIdentifier("settings.help.notifications")
             }
-            Toggle("Needs my input, such as a permission prompt (not Codex)", isOn: Binding(
+            Toggle("Needs my input, such as a permission prompt", isOn: Binding(
                 get: { settingsStore.preferences.notifiesWhenInputNeeded },
                 set: { settingsStore.setNotifiesWhenInputNeeded($0) }
             ))

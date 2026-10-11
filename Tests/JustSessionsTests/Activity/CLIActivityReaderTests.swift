@@ -17,6 +17,56 @@ struct CLIActivityReaderTests {
         #expect(CLIActivityReader.codexActivity(turnState: .inTurn(startedAt: cliStartedAt - 5), cliStartedAt: nil) == .working)
     }
 
+    @Test func aCodexTurnWaitsOnYouOnlyWhileItIsThisCLIsTurn() {
+        let cliStartedAt = Date(timeIntervalSince1970: 1_790_000_000)
+        func activity(_ turnState: CodexTurnState?) -> CLIActivity? {
+            CLIActivityReader.codexActivity(turnState: turnState, cliStartedAt: cliStartedAt, isWaitingOnYou: true)
+        }
+
+        #expect(activity(.inTurn(startedAt: cliStartedAt + 5)) == .needsInput(reason: nil))
+        // The background server may still hold the thread of an earlier CLI that ended while it waited.
+        #expect(activity(.inTurn(startedAt: cliStartedAt - 5)) == .idle)
+        #expect(activity(.betweenTurns) == .idle)
+        #expect(activity(nil) == nil)
+    }
+
+    @Test func readsCodexWaitsFromItsBackgroundServer() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("cx-\(UUID().uuidString.prefix(8))")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let server = try FakeCodexAppServer(
+            socketPath: directory.appendingPathComponent("server.sock").path,
+            linkedFrom: directory.appendingPathComponent(".codex")
+        )
+        defer { server.stop() }
+        let cliProcessID = getpid()
+        let cliStartedAt = try #require(RunningProcessInfo.startDate(of: cliProcessID))
+        let inTurnFile = directory.appendingPathComponent("in-turn.jsonl")
+        try CodexRolloutLines.write([CodexRolloutLines.turnStarted(at: cliStartedAt + 1)], to: inTurnFile)
+        let finishedFile = directory.appendingPathComponent("finished.jsonl")
+        try CodexRolloutLines.write([CodexRolloutLines.turnStarted(at: cliStartedAt + 1), CodexRolloutLines.turnCompleted()], to: finishedFile)
+        server.setStatus(FakeCodexAppServer.waitingOnApproval, ofThread: "waiting")
+        server.setStatus(FakeCodexAppServer.working, ofThread: "working")
+        server.setStatus(FakeCodexAppServer.waitingOnApproval, ofThread: "ended")
+        let reader = CLIActivityReader(
+            claudeRegistry: ClaudeLiveSessionRegistry(configurationDirectory: directory),
+            codexTurnTracker: CodexRolloutTurnTracker(),
+            liveSessionReporting: nil,
+            codexWaitReader: CodexAppServerWaitReader(codexDirectory: directory.appendingPathComponent(".codex"), clientVersion: "test")
+        )
+
+        let activities = reader.activities(for: [
+            CLIActivityProbe(provider: .codex, processID: cliProcessID, sessionFile: inTurnFile, sessionID: "waiting"),
+            CLIActivityProbe(provider: .codex, processID: cliProcessID, sessionFile: inTurnFile, sessionID: "working"),
+            CLIActivityProbe(provider: .codex, processID: cliProcessID, sessionFile: inTurnFile, sessionID: "not loaded"),
+            CLIActivityProbe(provider: .codex, processID: cliProcessID, sessionFile: inTurnFile),
+            CLIActivityProbe(provider: .codex, processID: cliProcessID, sessionFile: finishedFile, sessionID: "ended"),
+        ])
+
+        #expect(activities == [.needsInput(reason: nil), .working, .working, .working, .idle])
+        #expect(server.methods.filter { $0 == "thread/read" }.count == 3)
+    }
+
     @Test func anAntigravityTurnWaitsOnYouWhileAStepAwaitsApproval() {
         let cliStartedAt = Date(timeIntervalSince1970: 1_790_000_000)
         func activity(_ turnState: AntigravityTurnState?) -> CLIActivity? {

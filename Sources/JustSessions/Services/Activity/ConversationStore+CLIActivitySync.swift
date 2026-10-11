@@ -31,13 +31,19 @@ extension ConversationStore {
         }
 
         let probes = probedTabs.map(\.probe) + detachedSessions.map {
-            CLIActivityProbe(provider: $0.conversation.provider, processID: $0.paneProcessID ?? 0, sessionFile: $0.conversation.sourceFile)
+            CLIActivityProbe(
+                provider: $0.conversation.provider,
+                processID: $0.paneProcessID ?? 0,
+                sessionFile: $0.conversation.sourceFile,
+                sessionID: $0.conversation.sessionID
+            )
         }
         let paneProcessIDs = detachedSessions.map(\.paneProcessID)
         let reader = CLIActivityReader(
             claudeRegistry: claudeRegistry,
             codexTurnTracker: codexTurnTracker,
-            liveSessionReporting: liveSessionReporting
+            liveSessionReporting: liveSessionReporting,
+            codexWaitReader: codexWaitReader
         )
         let (activities, endedPanes) = await Task.detached(priority: .utility) {
             (

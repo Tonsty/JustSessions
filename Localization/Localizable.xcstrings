@@ -3165,12 +3165,12 @@
         }
       }
     },
-    "Needs my input, such as a permission prompt (not Codex)": {
+    "Needs my input, such as a permission prompt": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "需要我的输入，例如权限确认（Codex 除外）"
+            "value": "需要我的输入，例如权限确认"
           }
         }
       }
