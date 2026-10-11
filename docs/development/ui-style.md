@@ -74,7 +74,7 @@ Draw rounded shapes with `RoundedRectangle(_ radius: ThemeCornerRadius)`. It alw
 | `small` | 4 | Keycaps, inline code chips, small heading buttons, a segment inside a track |
 | `control` | 6 | Text and search fields, sidebar rows, segmented tracks, tab group labels, compact buttons |
 | `card` | 8 | Buttons, tables, framed lists, the terminal preview |
-| `panel` | 10 | Code blocks, images, your messages in a transcript, Settings cards |
+| `panel` | 10 | Code blocks, images, your messages in a transcript, Settings cards, the track holding a split across projects' two tabs |
 
 A shape nested inside another uses the next smaller radius, so the corners stay concentric. A handle or bar with fully rounded ends is a `Capsule()`, and a round icon button is a `Circle()`.
 
