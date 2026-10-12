@@ -11,12 +11,12 @@ struct SessionMessageIndexSearchableTextTests {
         let cache: SessionMessageTextCache
         let conversation: Conversation
 
-        init(provider: ConversationProvider = .codex, lines: [String]) throws {
+        init(provider: ConversationProvider = .codex, host: SessionHost = .thisMac, lines: [String]) throws {
             directory = try makeTemporaryDirectory()
             cache = SessionMessageTextCache(directory: directory.appendingPathComponent("Cache"))
             let file = directory.appendingPathComponent("session.jsonl")
             try SampleTranscriptLines.fileContents(lines).write(to: file)
-            conversation = .fixture(provider: provider, sourceFile: file)
+            conversation = .fixture(provider: provider, sourceFile: file, host: host)
         }
 
         var fingerprint: SessionMessageTextFingerprint { SessionMessageTextFingerprint(conversation) }
@@ -85,6 +85,18 @@ struct SessionMessageIndexSearchableTextTests {
             try await expectCleanReadText(await session.searchableText(), of: session)
             #expect(try session.savedResumeState() == nil)
             try session.append(line)
+        }
+    }
+
+    /// A mirrored session's file is replaced at every copy, so a resume state would only cost a hash at each change.
+    @Test func aCodexSessionOnAnSSHHostNeverKeepsAResumeState() async throws {
+        let session = try Session(host: .ssh("devbox"), lines: [Self.assistant("First")])
+        defer { session.remove() }
+
+        for number in 0..<3 {
+            try await expectCleanReadText(await session.searchableText(), of: session)
+            #expect(try session.savedResumeState() == nil)
+            try session.append(Self.assistant("Appended \(number)"))
         }
     }
 
