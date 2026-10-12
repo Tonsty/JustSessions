@@ -17,6 +17,8 @@ final class TerminalSession: ObservableObject, Identifiable {
     /// What draws the tab's terminal, chosen when the tab opens; see `TerminalEngineStore`.
     let engine: TerminalEngine
     let terminalView: any TabTerminalView
+    /// The tab's find bar, which searches its terminal; see `TerminalFindShortcuts` for when ⌘F opens it.
+    let findState: TerminalFindState
     /// The session id a new Claude Code tab was started with (`--session-id`), when the CLI accepts one.
     let preassignedSessionID: String?
     /// For a Branch tab, the session it forked. The CLI runs a new session, so this one is never the tab's own.
@@ -41,6 +43,8 @@ final class TerminalSession: ObservableObject, Identifiable {
     var onProcessFinished: (() -> Void)?
     /// Opens what ⌘-clicking a link in the tab's terminal points to.
     var linkOpener: TerminalLinkOpener
+    /// For a tab on an SSH host: copies files dropped on it to the host before typing their paths there.
+    let sshFileDrop: TerminalSSHFileDrop?
 
     /// A tab reopened at launch for a session whose CLI no longer runs starts it only once shown, the way a browser
     /// loads a restored tab once you select it. Until then it runs nothing.
@@ -116,11 +120,18 @@ final class TerminalSession: ObservableObject, Identifiable {
         self.preassignedSessionID = preassignedSessionID
         self.branchedFromSessionID = branchedFromSessionID
         self.isWaitingToBeShown = startsOnceShown
-        self.terminalView = engine.makeTabTerminalView(frame: NSRect(x: 0, y: 0, width: 900, height: 600))
+        let terminalView = engine.makeTabTerminalView(frame: NSRect(x: 0, y: 0, width: 900, height: 600))
+        self.terminalView = terminalView
+        self.findState = TerminalFindState(finder: terminalView)
         self.processObserver = TerminalProcessObserver()
         self.linkOpener = TerminalLinkOpener(host: host, workingDirectory: projectPath)
+        self.sshFileDrop = host.sshDestination.map { TerminalSSHFileDrop(host: $0) }
         terminalView.sendsShiftReturnAsCSIu = host == .thisMac && tmuxSessionName != nil
-        terminalView.acceptsDroppedFiles = host == .thisMac
+        terminalView.acceptsDroppedFiles = true
+        if let sshFileDrop {
+            terminalView.copyDroppedFilesToHost = { [weak self] fileURLs in self?.copyDroppedFilesToHost(fileURLs) ?? false }
+            sshFileDrop.typePaths = { [weak self] hostPaths in self?.typeCopiedPaths(hostPaths) }
+        }
         terminalView.onOpenLink = { [weak self] link in self?.linkOpener.open(link) }
         terminalView.connectProcessObserver(processObserver)
         processObserver.session = self
@@ -162,7 +173,19 @@ final class TerminalSession: ObservableObject, Identifiable {
         terminalTitle = title
     }
 
+    /// A tab whose CLI has ended, or that waits to be shown, takes no files.
+    private func copyDroppedFilesToHost(_ fileURLs: [URL]) -> Bool {
+        guard isRunning, !isClosed, let sshFileDrop else { return false }
+        return sshFileDrop.take(fileURLs)
+    }
+
+    private func typeCopiedPaths(_ hostPaths: [String]) {
+        guard isRunning, !isClosed else { return }
+        terminalView.typeDroppedPaths(hostPaths)
+    }
+
     private func cliEnded(exitCode: Int32?) {
+        sshFileDrop?.cancel()
         self.exitCode = exitCode
         hasExited = true
         cliActivity = nil
@@ -196,10 +219,11 @@ final class TerminalSession: ObservableObject, Identifiable {
     /// Hangs up on the tab's process with SIGHUP, as closing a terminal window does. An interactive shell ignores the
     /// SIGTERM of the terminal's `terminate()`, which also leaves the terminal open, so a plain terminal's shell would
     /// otherwise outlive its tab. A tmux client detaches on SIGHUP and leaves its CLI running, or ends the session of a
-    /// failed CLI it still shows.
+    /// failed CLI it still shows. A copy of files dropped on the tab to its SSH host stops.
     func close() {
         guard !isClosed else { return }
         isClosed = true
+        sshFileDrop?.cancel()
         guard hasStarted && !hasProcessExited else { return }
         let processID = self.processID
         // kill(0) or kill(-1) would signal the app itself or every process of the user.

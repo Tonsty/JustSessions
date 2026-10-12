@@ -18,4 +18,13 @@ struct WaitingForYouTests {
         #expect(!WaitingForYou.includes(activity: .working, hasUnseenFinishedTurn: true))
         #expect(!WaitingForYou.includes(activity: .working, hasUnseenFinishedTurn: false))
     }
+
+    @Test func tellsWhyACLIWaitsOnYou() {
+        #expect(WaitingForYou.reason(activity: .needsInput(reason: "input needed"), hasUnseenFinishedTurn: true)
+            == .needsInput(reason: "input needed"))
+        #expect(WaitingForYou.reason(activity: .idle, hasUnseenFinishedTurn: true) == .finishedTurn)
+        #expect(WaitingForYou.reason(activity: nil, hasUnseenFinishedTurn: true) == .finishedTurn)
+        #expect(WaitingForYou.reason(activity: .idle, hasUnseenFinishedTurn: false) == nil)
+        #expect(WaitingForYou.reason(activity: .working, hasUnseenFinishedTurn: true) == nil)
+    }
 }

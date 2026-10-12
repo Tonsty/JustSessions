@@ -4,11 +4,16 @@ import Foundation
 /// not seen. One at work, or done with a turn you saw, does not.
 enum WaitingForYou {
     static func includes(activity: CLIActivity?, hasUnseenFinishedTurn: Bool) -> Bool {
+        reason(activity: activity, hasUnseenFinishedTurn: hasUnseenFinishedTurn) != nil
+    }
+
+    /// Why the CLI waits on you; nil when it does not.
+    static func reason(activity: CLIActivity?, hasUnseenFinishedTurn: Bool) -> SessionAttentionReason? {
         switch activity {
-        case .needsInput: true
-        case .working: false
+        case .needsInput(let reason): .needsInput(reason: reason)
+        case .working: nil
         // A CLI that tells nothing for a moment still finished the turn it was marked for.
-        case .idle, nil: hasUnseenFinishedTurn
+        case .idle, nil: hasUnseenFinishedTurn ? .finishedTurn : nil
         }
     }
 }

@@ -122,7 +122,7 @@ Enforced by `UISheetContractTests`.
 
 Surfaces are flat. Only something that floats casts a shadow, through `.themeShadow(_:)`:
 
-- `.floating` for a tab's hover card or a dragged row.
+- `.floating` for a tab's hover card, a dragged row, or a terminal's find bar.
 - `.raisedSegment` for the selected segment in a track.
 
 Animate with `ThemeMotion`:

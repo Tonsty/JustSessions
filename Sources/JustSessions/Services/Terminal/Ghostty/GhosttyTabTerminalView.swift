@@ -23,13 +23,15 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     var onOpenLink: ((String) -> Void)?
     /// The link Ghostty last reported under the pointer, which it does only while ⌘ is held; see `link(under:)`.
     var hoveredLink: String?
-    /// Files dropped on the terminal type their paths into it; see `SelectableTerminalView.acceptsDroppedFiles`.
+    /// The terminal takes files dropped on it; see `GhosttyTabTerminalView+FileDrop`.
     var acceptsDroppedFiles = false {
         didSet {
             guard acceptsDroppedFiles != oldValue else { return }
             if acceptsDroppedFiles { registerForDraggedTypes([.fileURL]) } else { unregisterDraggedTypes() }
         }
     }
+    /// See `TabTerminalView.copyDroppedFilesToHost`.
+    var copyDroppedFilesToHost: ((_ fileURLs: [URL]) -> Bool)?
     private(set) var marginColor = NSColor.textBackgroundColor
     /// The width a SwiftTerm terminal keeps free for its scroller, which Ghostty doesn't draw, so text lines up the
     /// same in both.

@@ -1,0 +1,69 @@
+import SwiftUI
+
+/// A session waiting for you, on two lines: its CLI's icon and title, then why it waits, its project, and for how
+/// long, with the status mark its sidebar row shows.
+struct NotificationBellRow: View {
+    let entry: NotificationBellEntry
+    let onShow: () -> Void
+
+    static let height: CGFloat = 42
+
+    var body: some View {
+        Button(action: onShow) {
+            HStack(spacing: 8) {
+                entry.provider.iconImage(size: 10)
+                    .foregroundStyle(entry.provider.tintColor)
+                    .font(ThemeFont.glyph(.control, weight: .medium))
+                    .frame(width: 14)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: entry.sessionTitle)
+                        .font(ThemeFont.callout)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    details
+                }
+                Spacer(minLength: 6)
+                SessionStatusIndicator(status: status)
+            }
+            .padding(.horizontal, 8)
+            .frame(height: Self.height)
+            .contentShape(Rectangle())
+            .sidebarRowHighlight(isSelected: false)
+        }
+        .buttonStyle(ThemePlainButtonStyle(showsHover: false))
+        .help(Text("Show \(entry.sessionTitle)"))
+        .accessibilityLabel(Text(verbatim: "\(entry.sessionTitle), ") + Text(reason) + Text(verbatim: ", \(entry.projectName)"))
+    }
+
+    /// The project gives way first, so why the session waits and for how long stay readable.
+    private var details: some View {
+        HStack(spacing: 4) {
+            Text(reason)
+                .fixedSize()
+            Text(verbatim: "·")
+            Text(verbatim: entry.projectName)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            if let waitingSince = entry.waitingSince {
+                Text(verbatim: "·")
+                SessionAgeLabel(lastActivity: waitingSince)
+            }
+        }
+        .font(ThemeFont.detail)
+        .foregroundStyle(ThemePalette.secondaryText)
+    }
+
+    private var reason: LocalizedStringKey {
+        switch entry.reason {
+        case .needsInput: "Needs your input"
+        case .finishedTurn: "Finished its turn"
+        }
+    }
+
+    private var status: SessionRunStatus {
+        switch entry.reason {
+        case .needsInput(let reason): .running(.needsInput(reason: reason))
+        case .finishedTurn: .finishedUnseen
+        }
+    }
+}

@@ -62,6 +62,8 @@
 	<string>%lld subagent sessions stay on disk.</string>
 	<key>%lld tool calls</key>
 	<string>%lld tool calls</string>
+	<key>%lld+ matches</key>
+	<string>%lld+ matches</string>
 	<key>**Open tabs** lists every tab with what its CLI is doing. ⌘1 to ⌘8 go to a tab by its position, and ⌘9 to the last.</key>
 	<string>**Open tabs** lists every tab with what its CLI is doing. ⌘1 to ⌘8 go to a tab by its position, and ⌘9 to the last.</string>
 	<key>**Resume** continues this conversation in its CLI, in its original folder. Double-clicking the session in the sidebar does the same.</key>
@@ -220,6 +222,8 @@
 	<string>Can't check</string>
 	<key>Cancel</key>
 	<string>Cancel</string>
+	<key>Cancel copying</key>
+	<string>Cancel copying</string>
 	<key>Cancel deletion</key>
 	<string>Cancel deletion</string>
 	<key>Changes the chosen theme's colors, in its light or dark version. Your changes stay with the theme when you choose another one. Text is made readable on your colors, so the text color can come out darker or lighter than you chose. Terminals that match the app theme take its background.</key>
@@ -252,8 +256,8 @@
 	<string>Claude Code, Antigravity, and Pi sessions move to the Trash; Codex, Kiro CLI, and OpenCode sessions are permanently deleted.</string>
 	<key>Claude Code, Antigravity, and Pi sessions on this Mac move to the Trash. Codex, Kiro CLI, and OpenCode sessions and all sessions on SSH hosts are permanently deleted.</key>
 	<string>Claude Code, Antigravity, and Pi sessions on this Mac move to the Trash. Codex, Kiro CLI, and OpenCode sessions and all sessions on SSH hosts are permanently deleted.</string>
-	<key>Claude Code, Codex, Antigravity, Pi, and OpenCode on this Mac notify you when they finish a turn or need your input, unless you are looking at their tab. Choose which in General.</key>
-	<string>Claude Code, Codex, Antigravity, Pi, and OpenCode on this Mac notify you when they finish a turn or need your input, unless you are looking at their tab. Choose which in General.</string>
+	<key>Claude Code, Codex, Antigravity, Pi, and OpenCode on this Mac notify you when they finish a turn or need your input, unless you are looking at their tab. Choose which in General. The bell at the top of the sidebar always lists the sessions waiting for you.</key>
+	<string>Claude Code, Codex, Antigravity, Pi, and OpenCode on this Mac notify you when they finish a turn or need your input, unless you are looking at their tab. Choose which in General. The bell at the top of the sidebar always lists the sessions waiting for you.</string>
 	<key>Clear filters</key>
 	<string>Clear filters</string>
 	<key>Clear the selection, or close search</key>
@@ -268,6 +272,8 @@
 	<string>Click a session to read its conversation; no CLI starts. **Open in new window** gives it a window of its own.</string>
 	<key>Click the project's name to collapse its tabs. A collapsed group still shows when a CLI is waiting on you.</key>
 	<string>Click the project's name to collapse its tabs. A collapsed group still shows when a CLI is waiting on you.</string>
+	<key>Close</key>
+	<string>Close</string>
 	<key>Close %@</key>
 	<string>Close %@</string>
 	<key>Close Left View</key>
@@ -290,6 +296,8 @@
 	<string>Close and delete session…</string>
 	<key>Close find</key>
 	<string>Close find</string>
+	<key>Close find, while its field has the keyboard</key>
+	<string>Close find, while its field has the keyboard</string>
 	<key>Close left view</key>
 	<string>Close left view</string>
 	<key>Close right view</key>
@@ -366,8 +374,12 @@
 	<string>Copy the selection. Hold ⇧ while dragging to select text.</string>
 	<key>Copying %@ sessions (%lld of %lld)…</key>
 	<string>Copying %@ sessions (%lld of %lld)…</string>
+	<key>Copying dropped files to %@</key>
+	<string>Copying dropped files to %@</string>
 	<key>Copying sessions…</key>
 	<string>Copying sessions…</string>
+	<key>Copying to %@…</key>
+	<string>Copying to %@…</string>
 	<key>Could not change launch at login: %@</key>
 	<string>Could not change launch at login: %@</string>
 	<key>Could not copy conversation</key>
@@ -380,6 +392,8 @@
 	<string>Could not read this session</string>
 	<key>Could not start session</key>
 	<string>Could not start session</string>
+	<key>Couldn't copy to %@</key>
+	<string>Couldn't copy to %@</string>
 	<key>Couldn't find iTerm2's default profile. A dynamic profile can't be imported.</key>
 	<string>Couldn't find iTerm2's default profile. A dynamic profile can't be imported.</string>
 	<key>Create folder and add</key>
@@ -474,10 +488,16 @@
 	<string>Find in conversation</string>
 	<key>Find in conversation (⌘F)</key>
 	<string>Find in conversation (⌘F)</string>
+	<key>Find in terminal</key>
+	<string>Find in terminal</string>
 	<key>Find in the conversation</key>
 	<string>Find in the conversation</string>
+	<key>Find in the terminal. In a tab linked to a session, find in its conversation in a reading window.</key>
+	<string>Find in the terminal. In a tab linked to a session, find in its conversation in a reading window.</string>
 	<key>Find in this conversation</key>
 	<string>Find in this conversation</string>
+	<key>Finished its turn</key>
+	<string>Finished its turn</string>
 	<key>Finishes its turn</key>
 	<string>Finishes its turn</string>
 	<key>First message</key>
@@ -658,6 +678,8 @@
 	<string>Name</string>
 	<key>Needs my input, such as a permission prompt</key>
 	<string>Needs my input, such as a permission prompt</string>
+	<key>Needs your input</key>
+	<string>Needs your input</string>
 	<key>Nerd Font icons</key>
 	<string>Nerd Font icons</string>
 	<key>New</key>
@@ -682,6 +704,10 @@
 	<string>New terminal</string>
 	<key>New window</key>
 	<string>New window</string>
+	<key>Newer match</key>
+	<string>Newer match</string>
+	<key>Newer match (⇧⌘G or ⇧Return)</key>
+	<string>Newer match (⇧⌘G or ⇧Return)</string>
 	<key>Next</key>
 	<string>Next</string>
 	<key>Next Tab</key>
@@ -734,6 +760,10 @@
 	<string>Notify me when a session</string>
 	<key>OK</key>
 	<string>OK</string>
+	<key>Older match</key>
+	<string>Older match</string>
+	<key>Older match (⌘G or Return)</key>
+	<string>Older match (⌘G or Return)</string>
 	<key>On an SSH host, check that SSH works, or click **Connect…** on its heading, then check rsync and the CLI there. A host at a local address also needs **Local Network** in Permissions.</key>
 	<string>On an SSH host, check that SSH works, or click **Connect…** on its heading, then check rsync and the CLI there. A host at a local address also needs **Local Network** in Permissions.</string>
 	<key>Once Claude Code, Codex, or another supported CLI saves a conversation, it shows up here, grouped by project.</key>
@@ -1050,6 +1080,8 @@
 	<string>Start something new</string>
 	<key>Startup</key>
 	<string>Startup</string>
+	<key>Stop copying; nothing is typed</key>
+	<string>Stop copying; nothing is typed</string>
 	<key>Stop deleting after the current session; the rest stay listed</key>
 	<string>Stop deleting after the current session; the rest stay listed</string>
 	<key>Stopping deletion</key>

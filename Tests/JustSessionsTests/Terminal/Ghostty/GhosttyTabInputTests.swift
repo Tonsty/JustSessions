@@ -224,7 +224,7 @@ struct GhosttyTabInputTests {
         fixture.view.onFocus = { focusRequests += 1 }
         fixture.window.makeFirstResponder(nil)
         let paths = ["/tmp/My Folder/截图 1.png", "/tmp/it's (1).txt"]
-        let drop = FileDrop(paths: paths)
+        let drop = FileDragOntoTerminal(paths: paths)
 
         #expect(fixture.view.draggingEntered(drop) == .copy)
         #expect(fixture.view.performDragOperation(drop))
@@ -240,7 +240,7 @@ struct GhosttyTabInputTests {
         let fixture = try GhosttyTabFixture()
         defer { fixture.tearDown() }
         fixture.view.acceptsDroppedFiles = true
-        let drop = FileDrop(paths: [])
+        let drop = FileDragOntoTerminal(paths: [])
 
         #expect(fixture.view.draggingEntered(drop) == [])
         #expect(!fixture.view.performDragOperation(drop))
@@ -250,7 +250,7 @@ struct GhosttyTabInputTests {
     @Test func aDropBeforeGhosttyCanTakeItIsRefused() {
         let view = GhosttyTabTerminalView(frame: NSRect(x: 0, y: 0, width: 600, height: 400))
         view.acceptsDroppedFiles = true
-        let drop = FileDrop(paths: ["/tmp/dropped.txt"])
+        let drop = FileDragOntoTerminal(paths: ["/tmp/dropped.txt"])
 
         #expect(view.draggingEntered(drop) == .copy)
         #expect(!view.performDragOperation(drop))
@@ -281,41 +281,4 @@ struct GhosttyTabInputTests {
             window: window
         )
     }
-}
-
-/// A drag of files onto the terminal, on a pasteboard of its own, which goes with it.
-private final class FileDrop: NSObject, NSDraggingInfo {
-    let draggingPasteboard: NSPasteboard
-
-    @MainActor init(paths: [String]) {
-        let pasteboard = NSPasteboard.withUniqueName()
-        pasteboard.clearContents()
-        pasteboard.writeObjects(paths.map { URL(fileURLWithPath: $0) as NSURL })
-        draggingPasteboard = pasteboard
-    }
-
-    deinit {
-        draggingPasteboard.releaseGlobally()
-    }
-
-    var draggingDestinationWindow: NSWindow? { nil }
-    var draggingSourceOperationMask: NSDragOperation { .copy }
-    var draggingLocation: NSPoint { .zero }
-    var draggedImageLocation: NSPoint { .zero }
-    var draggedImage: NSImage? { nil }
-    var draggingSource: Any? { nil }
-    var draggingSequenceNumber: Int { 1 }
-    func slideDraggedImage(to screenPoint: NSPoint) {}
-    var draggingFormation: NSDraggingFormation = .default
-    var animatesToDestination = false
-    var numberOfValidItemsForDrop = 0
-    func enumerateDraggingItems(
-        options enumOpts: NSDraggingItemEnumerationOptions = [],
-        for view: NSView?,
-        classes classArray: [AnyClass],
-        searchOptions: [NSPasteboard.ReadingOptionKey: Any] = [:],
-        using block: (NSDraggingItem, Int, UnsafeMutablePointer<ObjCBool>) -> Void
-    ) {}
-    var springLoadingHighlight: NSSpringLoadingHighlight { .none }
-    func resetSpringLoading() {}
 }

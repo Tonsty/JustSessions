@@ -1,5 +1,41 @@
 [
   {
+    "version": "1.2.6",
+    "publishedOn": "2026-10-11",
+    "title": {
+      "en": "Notification bell and terminal find",
+      "zh-Hans": "通知铃铛与终端查找"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "A bell in the sidebar lists sessions on this Mac waiting for you; click one to open it.",
+            "zh-Hans": "侧栏的铃铛会列出这台 Mac 上等你处理的会话，点击即可打开。"
+          },
+          {
+            "en": "⌘F finds text in a terminal; in a session's tab, it searches the conversation in a reading window.",
+            "zh-Hans": "按 ⌘F 可在终端中查找；在会话的标签页中，会在阅读窗口里查找对话。"
+          },
+          {
+            "en": "Drop files on an SSH tab to copy them to the host and type their paths; folders aren't copied.",
+            "zh-Hans": "把文件拖到 SSH 标签页上，会先复制到主机再输入路径；文件夹不会复制。"
+          }
+        ]
+      },
+      {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "The app uses less CPU while a CLI is working.",
+            "zh-Hans": "CLI 工作时，应用占用的 CPU 更少。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.5",
     "publishedOn": "2026-10-11",
     "title": {

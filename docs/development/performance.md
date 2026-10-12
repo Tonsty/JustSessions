@@ -83,7 +83,7 @@ Each hidden Ghostty tab added about 0.3% of a core, mostly off the main thread. 
 
 **Memory, in MB:** the medians of three runs. The runs differed by at most 2.3 MB per tab, and for SwiftTerm by under 0.5 MB.
 
-| Measure | Ghostty | SwiftTerm, shipped 500 lines | SwiftTerm, 10,000 lines |
+| Measure | Ghostty | SwiftTerm, 500 lines | SwiftTerm, 10,000 lines, shipped |
 | --- | --- | --- | --- |
 | Footprint before any tab | 59.8 | 59.9 | 60.0 |
 | Footprint with 10 idle tabs | 212.5 | 82.6 | 83.4 |
@@ -99,7 +99,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 - **For SwiftTerm, the footprint is the cost.** Its resident figure also counts memory the allocator freed and kept.
 - **One run per process.** In a process that had already run the same case, the footprint counted 0–22 MB per full SwiftTerm tab with 10,000 lines instead of 30: memory the process freed and then reused wasn't counted again.
 
-**Scrollback differs by engine.** A Ghostty tab keeps far more scrollback than a SwiftTerm tab by default: 46,341 rows here, against SwiftTerm's 500 lines. Full, it holds about 55 MB, against well under 1 MB for SwiftTerm's 500 lines, or 30 MB for 10,000. The app sets no limit for Ghostty, so Ghostty's default `scrollback-limit` applies. Upstream documents it as 10,000,000 bytes, so how Ghostty counts it against these 55 MB is unconfirmed.
+**Scrollback differs by engine.** A Ghostty tab keeps far more scrollback than SwiftTerm does by default: 46,341 rows here, against SwiftTerm's 500 lines. Full, it holds about 55 MB, against well under 1 MB for SwiftTerm's 500 lines, or 30 MB for 10,000. A SwiftTerm tab keeps 10,000 lines (`SelectableTerminalView.scrollbackLineCount`), so terminal Find reaches that far back. Only the main screen keeps scrollback, so a CLI in tmux, which draws on the alternate screen, adds none. The app sets no limit for Ghostty, so Ghostty's default `scrollback-limit` applies. Upstream documents it as 10,000,000 bytes, so how Ghostty counts it against these 55 MB is unconfirmed.
 
 **Profile:** one 5-second `sample` of the repaint for each engine.
 - **SwiftTerm:** the main thread was busy in 721 of 3,675 samples, 20%. Parsing the output (`feed`) took 12 of them, and Core Animation's commit, drawing the view, 693. No other thread did measurable work. The drawing went to:
@@ -130,7 +130,8 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 17 | [SSH connections during a remote refresh](#17-ssh-connections-during-a-remote-refresh) | Changed, not measured live: issue #64 |
 | 18 | [Workspace windows repeated discovery and message indexing](#18-workspace-windows-repeated-discovery-and-message-indexing) | Done: issue #57 |
 | 19 | [The working spinner re-rendered the window 30 times a second](#19-the-working-spinner-re-rendered-the-window-30-times-a-second) | Done: idle render loop PR |
-| 20 | [Every sidebar row hosted its hover menus](#20-every-sidebar-row-hosted-its-hover-menus) | Done: hover menus PR |
+| 20 | [The notification bell's list on each sidebar redraw](#20-the-notification-bells-list-on-each-sidebar-redraw) | Measured, no change: issue #176 |
+| 21 | [Every sidebar row hosted its hover menus](#21-every-sidebar-row-hosted-its-hover-menus) | Done: hover menus PR |
 
 ### 1. Timestamp parsing
 
@@ -436,7 +437,25 @@ Traces recorded with `xcrun xctrace record --template 'Time Profiler' --instrume
 
 **Limits:** the remaining 3–4% is Ghostty frame delivery and periodic syncs, not SwiftUI. The hosting view still re-renders whole on every state change it observes, and a tab switch and a right-click still stall in accessibility walks of it; those are separate items.
 
-### 20. Every sidebar row hosted its hover menus
+### 20. The notification bell's list on each sidebar redraw
+
+**Question (issue #176):** the bell in the sidebar header observes the store, so it works out its list on every store change, and the activity sync now also times each wait. Does that slow the sidebar?
+
+**Measured:** `SidebarInteractionMeasurements`, release build, Apple M4 Max, macOS 27.0.1. The bell's branch and its base, `f156493`, ran the populate, filter, store-change, and preview scenarios alternately, twice each; every figure is a median of three. Another session's builds kept the load average between 4 and 6.
+
+| Turn, 2,000 sessions | Base, two runs | Bell, two runs |
+| --- | --- | --- |
+| A store change, projects collapsed | 6.8, 7.8 ms | 6.7, 7.1 ms |
+| A store change, every project expanded | 28.1, 30.3 ms | 33.0, 30.9 ms |
+| Listing the sessions (replace and first render) | 38.0, 39.6 ms | 39.2, 35.5 ms |
+| Click to preview | 37.5, 40.5 ms | 40.7, 41.2 ms |
+
+A first pass ran the whole suite on the base, then on the bell, minutes apart: populate and preview at 2,000 sessions took 26 and 22 ms on the base and 46 and 40 ms on the bell. Run alternately, both sides took 42–46 ms and 37–41 ms, so that gap was the machine's load changing between the passes.
+
+The list costs one look at each window's tabs and at this window's CLIs in tmux with no tab, never at the sessions, and the store publishes the wait times only when a wait starts or ends (`WaitingForYouStartTimesSyncTests`).
+
+**Conclusion:** no measurable change.
+### 21. Every sidebar row hosted its hover menus
 
 **Evidence:** every tab switch stalled the main thread for about 270 ms, a microhang on every click in the Hangs instrument. In a Time Profiler trace of main at f156493 (after item 19), 5 tabs open, 20 tab clicks a second apart delivered as real mouse events: 20 hangs of 252–287 ms, 7,000 ms of the 26 s inside `NSHostingView.layout`, about 350 ms per click. Inside those, `AppKitPopUpAdaptor` accounted for 2,400 ms and `ViewGraphFeatureBuffer` 1,350, with `_CFBundleCopyLocalizedString` and `CUICatalog` under them: the ⋯ and + menus of every project row, and the ⋯ of every session row. Each row kept them in the view tree at zero opacity, for the pointer to find, and each `Menu` is an `NSPopUpButton` underneath; the hosted browser with 50 projects held 49 pop-up buttons among 283 AppKit views. A tab switch changes `selectedTerminalID`, every row observing the store re-evaluates, and every pop-up button's localized title and image are resolved and its view re-registered with accessibility, whether or not anything in the row changed. The focus-responder walk the baseline named (`AccessibilityNode.updateFocusResponder`) is real but small: ~100 samples in 26 s, 5 ms per switch, visiting every SwiftUI responder node once with a protocol-conformance lookup each; the hidden tabs' terminals are 4 of those samples.
 

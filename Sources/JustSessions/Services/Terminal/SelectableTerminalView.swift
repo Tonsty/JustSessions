@@ -20,14 +20,15 @@ final class SelectableTerminalView: LocalProcessTerminalView {
     var makeContextMenu: ((_ linkUnderPointer: String?) -> NSMenu)?
     /// See `TabTerminalView.onOpenLink`.
     var onOpenLink: ((String) -> Void)?
-    /// Files dropped on the terminal type their paths into it; see `SelectableTerminalView+FileDrop`. Only a tab whose
-    /// CLI runs on this Mac turns it on, since a CLI on an SSH host can't open this Mac's files.
+    /// The terminal takes files dropped on it; see `SelectableTerminalView+FileDrop`.
     var acceptsDroppedFiles = false {
         didSet {
             guard acceptsDroppedFiles != oldValue else { return }
             if acceptsDroppedFiles { registerForDraggedTypes([.fileURL]) } else { unregisterDraggedTypes() }
         }
     }
+    /// See `TabTerminalView.copyDroppedFilesToHost`.
+    var copyDroppedFilesToHost: ((_ fileURLs: [URL]) -> Bool)?
 
     private var appearancePreferences = TerminalAppearancePreferences()
     private var theme = ResolvedAppTheme(.justSessions)
@@ -92,13 +93,20 @@ final class SelectableTerminalView: LocalProcessTerminalView {
 
     init(frame: CGRect, appearanceStore: TerminalAppearanceStore, themeStore: AppThemeStore) {
         super.init(frame: frame)
+        getTerminal().changeScrollback(Self.scrollbackLineCount)
         observeAppearance(in: appearanceStore, themeStore: themeStore)
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
+        getTerminal().changeScrollback(Self.scrollbackLineCount)
         observeAppearance(in: .shared, themeStore: .shared)
     }
+
+    /// The lines kept above the screen, which scrolling and find reach, in place of SwiftTerm's 500. Full, they hold
+    /// about 30 MB, as measured in `docs/development/performance.md`. Only the main screen keeps any, so a CLI in tmux,
+    /// which draws on the alternate screen, costs none of it.
+    static let scrollbackLineCount = 10_000
 
     override func viewDidChangeEffectiveAppearance() {
         super.viewDidChangeEffectiveAppearance()
