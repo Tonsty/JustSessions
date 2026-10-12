@@ -197,9 +197,7 @@ struct ConversationSidebarView: View {
         .onChange(of: listedProjectIDs) { _, newListedProjectIDs in
             projectSelection.keepOnly(newListedProjectIDs)
         }
-        .onChange(of: hiddenShownSession, initial: true) { _, hiddenShownSession in
-            reveal(hiddenShownSession)
-        }
+        .modifier(HiddenShownSessionReveal(hiddenShownSession: { hiddenShownSession }, reveal: reveal))
         .task(id: store.isDeletingSeveralSessions) {
             guard store.isDeletingSeveralSessions else {
                 isDeletionProgressBarShown = false

@@ -47,8 +47,9 @@ struct ConversationBrowserView: View {
     }
 
     var body: some View {
+        // Nothing in this body reads the selected tab, or anything else a tab switch changes: what does is read in the
+        // modifiers and small views below, so a switch redraws them and not the sidebar's every row.
         let filteredProjection = filteredProjection
-        let navigation = navigation(listedConversationIDs: filteredProjection.listedConversationIDs)
 
         ResizableSidebarLayout(isSidebarHidden: isSidebarHidden) {
             ConversationSidebarView(
@@ -112,13 +113,16 @@ struct ConversationBrowserView: View {
         .onChange(of: sessionSelection.onlySelectedConversationID) { _, conversationID in
             if conversationID != transcriptMatchReveal?.conversationID { transcriptMatchReveal = nil }
         }
-        .titleBarControls(isSidebarHidden: $isSidebarHidden, navigation: navigation)
+        .modifier(WorkspaceNavigationControls(
+            store: store,
+            history: $navigationHistory,
+            sessionSelection: $sessionSelection,
+            isSidebarHidden: $isSidebarHidden,
+            listedConversationIDs: filteredProjection.listedConversationIDs,
+            isEnabled: workspaceTabCommandsEnabled
+        ))
         .focusedSceneValue(\.isSidebarHidden, $isSidebarHidden)
-        .focusedSceneValue(\.workspaceNavigation, navigation)
-        .onChange(of: shownLocation, initial: true) { previous, location in
-            recordShownLocation(location, after: previous)
-        }
-        .background(TextZoomTargetReporter(target: store.selectedTerminalID == nil ? .conversation : .terminals))
+        .background(SelectedTabTextZoomTarget(store: store))
         .sheet(item: $newSessionSheetHost) { host in
             let startableProjects = startableProjects
             NewSessionSheet(
@@ -141,26 +145,11 @@ struct ConversationBrowserView: View {
         }
         .dismissesOnClickOutside(item: $newSessionSheetHost)
         .showsAppWideSheets($appWideSheet, onCheckForUpdates: { updateManager.checkForUpdates() })
-        .focusedSceneValue(\.workspaceTabActions, WorkspaceTabActions(
-            tabCount: store.terminalSessions.count,
-            hasSelectedTab: store.selectedTerminal != nil,
-            isSplitShown: store.shownSplit != nil,
+        .modifier(WorkspaceTabActionsValue(
+            store: store,
             isEnabled: workspaceTabCommandsEnabled,
             newSession: { newSessionSheetHost = defaultNewSessionHost },
-            closeSelectedTab: { requestClosingTerminal(store.selectedTerminalID) },
-            selectAdjacentTab: { store.selectAdjacentTerminal(movingForward: $0) },
-            selectTab: { store.selectTerminal(shortcutNumber: $0) },
-            separateShownSplit: { if let shownSplit = store.shownSplit { store.separateSplit(shownSplit.id) } },
-            closeShownSplitView: { side in
-                // The same close request as ⌘W, for the view on that side.
-                guard let shownSplit = store.shownSplit, let sides = store.sides(of: shownSplit) else { return }
-                requestClosingTerminal(sides.tabID(on: side))
-            },
-            reverseShownSplit: { if let shownSplit = store.shownSplit { store.reverseSplit(shownSplit.id) } }
-        ))
-        .background(WorkspaceTabCycleShortcuts(
-            isEnabled: workspaceTabCommandsEnabled && !store.terminalSessions.isEmpty,
-            onSelectAdjacentTab: { store.selectAdjacentTerminal(movingForward: $0) }
+            requestClosingTab: { requestClosingTerminal($0) }
         ))
         .modifier(TerminalTabCloseConfirmation(
             store: store,
@@ -174,7 +163,7 @@ struct ConversationBrowserView: View {
             tour: onboardingTour,
             tipsStore: .shared,
             listsProjectWithSessions: filteredProjection.projects.contains { !$0.conversations.isEmpty },
-            readSession: store.selectedTerminalID == nil ? focusedConversation : nil,
+            focusedConversation: focusedConversation,
             isSidebarShown: !isSidebarHidden,
             isReadyForTips: workspaceTabCommandsEnabled,
             onStartTour: { isSidebarHidden = false }
@@ -250,5 +239,51 @@ struct ConversationBrowserView: View {
         }
         if let focusedConversation, focusedConversation.host == host { return focusedConversation.projectPath }
         return startableProjects.first { $0.host == host }?.location.path ?? ""
+    }
+}
+
+/// Text zoom goes to the terminals while a tab shows, and otherwise to the conversation. Read in this view's body, so a
+/// tab switch redraws only it rather than the browser.
+private struct SelectedTabTextZoomTarget: View {
+    let store: ConversationStore
+
+    var body: some View {
+        TextZoomTargetReporter(target: store.selectedTerminalID == nil ? .conversation : .terminals)
+    }
+}
+
+/// The tab commands, which follow the selected tab and the open tabs, and ⌃Tab's shortcuts. Read in this modifier's body,
+/// so a tab switch redraws only it rather than the browser.
+private struct WorkspaceTabActionsValue: ViewModifier {
+    let store: ConversationStore
+    /// No sheet, alert, or dialog is up.
+    let isEnabled: Bool
+    let newSession: () -> Void
+    /// Asks to close a tab, as its × does.
+    let requestClosingTab: (UUID?) -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .focusedSceneValue(\.workspaceTabActions, WorkspaceTabActions(
+                tabCount: store.terminalSessions.count,
+                hasSelectedTab: store.selectedTerminal != nil,
+                isSplitShown: store.shownSplit != nil,
+                isEnabled: isEnabled,
+                newSession: newSession,
+                closeSelectedTab: { requestClosingTab(store.selectedTerminalID) },
+                selectAdjacentTab: { store.selectAdjacentTerminal(movingForward: $0) },
+                selectTab: { store.selectTerminal(shortcutNumber: $0) },
+                separateShownSplit: { if let shownSplit = store.shownSplit { store.separateSplit(shownSplit.id) } },
+                closeShownSplitView: { side in
+                    // The same close request as ⌘W, for the view on that side.
+                    guard let shownSplit = store.shownSplit, let sides = store.sides(of: shownSplit) else { return }
+                    requestClosingTab(sides.tabID(on: side))
+                },
+                reverseShownSplit: { if let shownSplit = store.shownSplit { store.reverseSplit(shownSplit.id) } }
+            ))
+            .background(WorkspaceTabCycleShortcuts(
+                isEnabled: isEnabled && !store.terminalSessions.isEmpty,
+                onSelectAdjacentTab: { store.selectAdjacentTerminal(movingForward: $0) }
+            ))
     }
 }

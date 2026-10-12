@@ -8,8 +8,8 @@ struct OnboardingTipsPresenter: ViewModifier {
     @ObservedObject var tour: OnboardingTour
     let tipsStore: OnboardingTipsStore
     let listsProjectWithSessions: Bool
-    /// The session whose conversation shows; nil while a tab, or nothing, shows instead.
-    let readSession: Conversation?
+    /// The one session selected in the sidebar, whose conversation shows unless a tab is selected.
+    let focusedConversation: Conversation?
     let isSidebarShown: Bool
     /// No sheet, alert, or dialog is up, so a tip that starts now shows right away.
     let isReadyForTips: Bool
@@ -44,6 +44,12 @@ struct OnboardingTipsPresenter: ViewModifier {
         case .refreshed?, .failed?: true
         case .refreshing?, nil: false
         }
+    }
+
+    /// The session whose conversation shows; nil while a tab, or nothing, shows instead. Worked out here rather than by
+    /// the browser, so a tab switch redraws this modifier and not the browser.
+    private var readSession: Conversation? {
+        store.selectedTerminalID == nil ? focusedConversation : nil
     }
 
     private var selectedTabCanKeepRunning: Bool {
