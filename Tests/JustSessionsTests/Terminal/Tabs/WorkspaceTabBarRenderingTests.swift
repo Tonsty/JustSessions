@@ -38,8 +38,7 @@ struct WorkspaceTabBarRenderingTests {
         _ = try await shownFixture.capture(named: "tab-bar-split-across-projects-shown-\(schemeName)")
 
         // The split of one project's tabs shows; the split across projects sits between the groups, inactive, so its
-        // underline is in sight under both its tabs. The first bar stays up until the end: going away, it would clear
-        // the spans the bars report for the store.
+        // underline is in sight under both its tabs.
         store.selectTerminal(secondApp.id)
         let fixture = makeFixture(store: store, colorScheme: colorScheme)
         let bitmap = try await fixture.capture(named: "tab-bar-split-across-projects-\(schemeName)")
