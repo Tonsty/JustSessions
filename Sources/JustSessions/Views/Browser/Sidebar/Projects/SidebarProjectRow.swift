@@ -106,6 +106,10 @@ struct SidebarProjectRow: View {
                 .foregroundStyle(ThemePalette.secondaryText)
                 .opacity(hovered ? 0 : 1)
             ProjectHoverActions<EmptyView>.placeholder
+        }
+        // Over the room the placeholder keeps rather than in the stack, so the menus never take part in the row's
+        // layout: on macOS 26 they are a point wider than on macOS 15 and would otherwise shift the row.
+        .overlay(alignment: .trailing) {
             if hovered {
                 ProjectHoverActions(
                     store: store,

@@ -66,7 +66,9 @@ struct SidebarHoverMenusTests {
         check("open tabs heading") { openTabsHeading(store: store, hovered: $0) }
     }
 
-    /// The placeholder a row lays out instead of its menus takes the same room, so nothing moves under the pointer.
+    /// The placeholder a row lays out instead of its menus takes their room, give or take the point by which macOS
+    /// versions draw them differently: 40 points wide here and 41 on the release workflow's macOS 26 runner. The menus
+    /// lie over the placeholder rather than beside it, so that point moves nothing; `hoveringChangesNoRowsSize` checks.
     @Test func thePlaceholderTakesTheMenusRoom() throws {
         _ = NSApplication.shared
         let store = ConversationStore(adapters: [], startsBackgroundPolling: false)
@@ -78,7 +80,8 @@ struct SidebarHoverMenusTests {
         ) { EmptyView() })
         let placeholder = NSHostingView(rootView: ProjectHoverActions<EmptyView>.placeholder)
 
-        #expect(placeholder.fittingSize == menus.fittingSize, "placeholder \(placeholder.fittingSize) vs menus \(menus.fittingSize)")
+        #expect(abs(placeholder.fittingSize.width - menus.fittingSize.width) <= 2, "placeholder \(placeholder.fittingSize) vs menus \(menus.fittingSize)")
+        #expect(abs(placeholder.fittingSize.height - menus.fittingSize.height) <= 2, "placeholder \(placeholder.fittingSize) vs menus \(menus.fittingSize)")
     }
 
     // MARK: - Rows under test
