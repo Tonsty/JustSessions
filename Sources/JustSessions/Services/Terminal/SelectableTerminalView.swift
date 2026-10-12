@@ -29,6 +29,7 @@ final class SelectableTerminalView: LocalProcessTerminalView {
     }
     /// See `TabTerminalView.copyDroppedFilesToHost`.
     var copyDroppedFilesToHost: ((_ fileURLs: [URL]) -> Bool)?
+    let imagePaste = TerminalImagePaste()
     /// ⌘A's selection of the CLI's prompt; see `SelectableTerminalView+PromptSelection`.
     lazy var promptSelection = TerminalPromptSelection(terminal: self)
 
@@ -146,9 +147,11 @@ final class SelectableTerminalView: LocalProcessTerminalView {
         super.copy(sender)
     }
 
-    /// The menus' Paste replaces ⌘A's selected prompt, if any.
+    /// The menus' Paste replaces ⌘A's selected prompt, if any. With only an image on the clipboard, SwiftTerm's own
+    /// paste sends an empty one, as a CLI on this Mac needs it; see `TerminalImagePaste`.
     override func paste(_ sender: Any) {
         promptSelection.deleteSelectedPromptForPaste()
+        if imagePaste.handleClipboardImage() == .sendNothing { return }
         super.paste(sender)
     }
 

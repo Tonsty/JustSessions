@@ -9,6 +9,8 @@ final class TerminalSSHFileDropCopy {
         let url: URL
         /// For the progress of all the files; the copy itself reads the size of the file it opens.
         let byteCount: Int64
+        /// An image pasted on the tab, saved for this copy (`TerminalPastedImageFile`), which removes it once it ends.
+        var isPastedImage = false
     }
 
     let id = UUID()
@@ -22,11 +24,14 @@ final class TerminalSSHFileDropCopy {
     private var totalByteCount: Int64
     private var copiedByteCountOfFinishedFiles: Int64 = 0
     private var copiedByteCountOfCurrentFile: Int64 = 0
+    /// The pasted images among this copy's files, those still queued included.
+    private var pastedImageURLs: [URL]
 
     init(files: [File]) {
         queuedFiles = files
         fileCount = files.count
         totalByteCount = files.reduce(0) { $0 + $1.byteCount }
+        pastedImageURLs = files.filter(\.isPastedImage).map(\.url)
     }
 
     var currentFileNumber: Int { hostPaths.count + 1 }
@@ -41,6 +46,13 @@ final class TerminalSSHFileDropCopy {
         queuedFiles += files
         fileCount += files.count
         totalByteCount += files.reduce(0) { $0 + $1.byteCount }
+        pastedImageURLs += files.filter(\.isPastedImage).map(\.url)
+    }
+
+    /// Removes the pasted images saved for this copy, once it has ended.
+    func removePastedImages() {
+        pastedImageURLs.forEach(TerminalPastedImageFile.remove)
+        pastedImageURLs = []
     }
 
     func nextFile() -> File? {

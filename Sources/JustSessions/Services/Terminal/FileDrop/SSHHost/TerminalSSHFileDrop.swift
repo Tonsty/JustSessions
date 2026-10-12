@@ -2,8 +2,9 @@ import Foundation
 
 /// Files dropped on a tab whose CLI runs on an SSH host. The host can't open this Mac's files, so each is copied there
 /// first, one at a time over one shared connection, and the host's paths are typed once every file is there, as a drop
-/// on a tab on this Mac types its own; see `RemoteDroppedFileCopier`. Files dropped while a copy runs join it. A drop
-/// with a folder is refused. A failure, Cancel, or the tab's CLI ending types nothing.
+/// on a tab on this Mac types its own; see `RemoteDroppedFileCopier`. An image pasted on the tab is copied the same way
+/// (`TerminalImagePaste`). Files dropped or pasted while a copy runs join it. A drop with a folder is refused. A
+/// failure, Cancel, or the tab's CLI ending types nothing.
 @MainActor
 final class TerminalSSHFileDrop: ObservableObject {
     /// A copy shows only once it has taken this long, so a screenshot's copy doesn't flash past.
@@ -17,6 +18,8 @@ final class TerminalSSHFileDrop: ObservableObject {
 
     /// Copies each file over `ssh`; a test replaces it with one that runs a local shell.
     var copier = RemoteDroppedFileCopier()
+    /// Where a pasted image is saved for its copy; a test replaces it.
+    var pastedImagesFolder = TerminalPastedImageFile.defaultParentFolder
     /// The connection one copy's files share, as a refresh's commands do; a test replaces it with none.
     var connectionSharing: @Sendable (_ host: String) -> SSHConnectionSharing? = { host in
         SSHConnectionSharing.startRefresh(to: host)
@@ -42,16 +45,24 @@ final class TerminalSSHFileDrop: ObservableObject {
             }
             return false
         }
-        let files = fileURLs.map { TerminalSSHFileDropCopy.File(url: $0, byteCount: Self.byteCount(of: $0)) }
-        if let copy {
-            copy.add(files)
-        } else {
-            status = nil
-            let copy = TerminalSSHFileDropCopy(files: files)
-            self.copy = copy
-            Task { await run(copy) }
-        }
+        startOrJoinCopy(of: fileURLs.map { TerminalSSHFileDropCopy.File(url: $0, byteCount: Self.byteCount(of: $0)) })
         return true
+    }
+
+    /// Takes an image pasted on the tab, saved for the copy and removed once the copy ends. An image that can't be
+    /// saved says why while no copy runs.
+    func take(_ image: TerminalClipboardImage) {
+        let fileURL: URL
+        do {
+            fileURL = try TerminalPastedImageFile.write(image, in: pastedImagesFolder)
+        } catch {
+            if copy == nil {
+                status = .failed(explanation: "The pasted image couldn't be saved on this Mac to copy it to \(host).")
+            }
+            return
+        }
+        let byteCount = Int64(image.data.count)
+        startOrJoinCopy(of: [TerminalSSHFileDropCopy.File(url: fileURL, byteCount: byteCount, isPastedImage: true)])
     }
 
     /// Stops the copy and types nothing. The host removes the file that was arriving.
@@ -67,7 +78,20 @@ final class TerminalSSHFileDrop: ObservableObject {
         status = nil
     }
 
+    private func startOrJoinCopy(of files: [TerminalSSHFileDropCopy.File]) {
+        if let copy {
+            copy.add(files)
+        } else {
+            status = nil
+            let copy = TerminalSSHFileDropCopy(files: files)
+            self.copy = copy
+            Task { await run(copy) }
+        }
+    }
+
     private func run(_ copy: TerminalSSHFileDropCopy) async {
+        // However the copy ends; `copyToHost` returns only once `ssh` has stopped reading the file.
+        defer { copy.removePastedImages() }
         let host = self.host
         let connectionSharing = self.connectionSharing
         let sharing = await Task.detached(priority: .userInitiated) { connectionSharing(host) }.value

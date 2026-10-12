@@ -46,6 +46,9 @@ protocol TabTerminalView: NSView, TerminalTextFinding {
     /// Takes the files dropped on a tab whose CLI runs on an SSH host, which copies them there before typing the host's
     /// paths, and returns whether it took them; see `TerminalSSHFileDrop`. Without it, a drop types the files' paths.
     var copyDroppedFilesToHost: ((_ fileURLs: [URL]) -> Bool)? { get set }
+    /// What the menus' Paste and ⌘V do with only an image on the clipboard; a tab on an SSH host sets its
+    /// `copyToHost`.
+    var imagePaste: TerminalImagePaste { get }
     /// Types each path, backslash-escaped, as its own paste, as a drop does; see `TerminalFileDropPaste`. Returns
     /// whether every path went in.
     @discardableResult

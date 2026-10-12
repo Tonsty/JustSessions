@@ -1,12 +1,12 @@
 import Testing
 @testable import JustSessions
 
-struct TerminalPageKeyModeScannerTests {
+struct TerminalOutputModeScannerTests {
     // MARK: Alternate screen
 
     @Test(arguments: [1049, 1047, 47])
     func eachAlternateScreenModeSwitchesToItAndBack(mode: Int) {
-        var scanner = TerminalPageKeyModeScanner()
+        var scanner = TerminalOutputModeScanner()
         #expect(!scanner.isOnAlternateScreen)
 
         scanner.scan(bytes("text\u{1B}[?\(mode)hmore"))
@@ -17,7 +17,7 @@ struct TerminalPageKeyModeScannerTests {
     }
 
     @Test func aSequenceSplitAcrossReadsCounts() {
-        var scanner = TerminalPageKeyModeScanner()
+        var scanner = TerminalOutputModeScanner()
         for part in ["\u{1B}", "[", "?10", "49", "h"] { scanner.scan(bytes(part)) }
         #expect(scanner.isOnAlternateScreen)
 
@@ -26,13 +26,13 @@ struct TerminalPageKeyModeScannerTests {
     }
 
     @Test func aModeAmongOthersCounts() {
-        var scanner = TerminalPageKeyModeScanner()
+        var scanner = TerminalOutputModeScanner()
         scanner.scan(bytes("\u{1B}[?25;1049h"))
         #expect(scanner.isOnAlternateScreen)
     }
 
     @Test func aResetGoesBackToTheMainScreen() {
-        var scanner = TerminalPageKeyModeScanner()
+        var scanner = TerminalOutputModeScanner()
         scanner.scan(bytes("\u{1B}[?1049h"))
         scanner.scan(bytes("\u{1B}"))
         scanner.scan(bytes("c"))
@@ -40,7 +40,7 @@ struct TerminalPageKeyModeScannerTests {
     }
 
     @Test func otherModesAndSequencesLeaveTheScreen() {
-        var scanner = TerminalPageKeyModeScanner()
+        var scanner = TerminalOutputModeScanner()
         scanner.scan(bytes("\u{1B}[?1049h"))
         let others = [
             "\u{1B}[?25l", "\u{1B}[?2004l", "\u{1B}[1049l", "\u{1B}[?10490l", "\u{1B}[?1049n", "c", "\u{1B}[c",
@@ -55,7 +55,7 @@ struct TerminalPageKeyModeScannerTests {
     // MARK: Kitty keyboard flags
 
     @Test func pushingFlagsTurnsTheProtocolOnAndPoppingThemTurnsItOff() {
-        var scanner = TerminalPageKeyModeScanner()
+        var scanner = TerminalOutputModeScanner()
         #expect(!scanner.hasKittyKeyboardFlags)
 
         scanner.scan(bytes("\u{1B}[>1u"))
@@ -67,7 +67,7 @@ struct TerminalPageKeyModeScannerTests {
 
     /// Each pop goes back to the flags before the push it undoes.
     @Test func popsUndoPushesInTurn() {
-        var scanner = TerminalPageKeyModeScanner()
+        var scanner = TerminalOutputModeScanner()
         scanner.scan(bytes("\u{1B}[>1u\u{1B}[>0u"))
         #expect(!scanner.hasKittyKeyboardFlags)
 
@@ -83,7 +83,7 @@ struct TerminalPageKeyModeScannerTests {
 
     /// As in Ghostty: `CSI > u` pushes no flags, and a pop of eight or more clears them all, however many were pushed.
     @Test func theStackFollowsGhosttys() {
-        var scanner = TerminalPageKeyModeScanner()
+        var scanner = TerminalOutputModeScanner()
         scanner.scan(bytes("\u{1B}[>1u\u{1B}[>u"))
         #expect(!scanner.hasKittyKeyboardFlags)
 
@@ -95,7 +95,7 @@ struct TerminalPageKeyModeScannerTests {
     }
 
     @Test func settingFlagsReplacesAddsOrRemovesThem() {
-        var scanner = TerminalPageKeyModeScanner()
+        var scanner = TerminalOutputModeScanner()
         scanner.scan(bytes("\u{1B}[=1u"))
         #expect(scanner.hasKittyKeyboardFlags)
 
@@ -114,22 +114,22 @@ struct TerminalPageKeyModeScannerTests {
 
     /// As in Ghostty's parser, a `;` at the end adds no parameter: `CSI > 1 ; u` pushes 1, and `CSI = 1 ; u` sets 1.
     @Test func aSeparatorAtTheEndAddsNoParameter() {
-        var pushing = TerminalPageKeyModeScanner()
+        var pushing = TerminalOutputModeScanner()
         pushing.scan(bytes("\u{1B}[>1;u"))
         #expect(pushing.hasKittyKeyboardFlags)
 
-        var setting = TerminalPageKeyModeScanner()
+        var setting = TerminalOutputModeScanner()
         setting.scan(bytes("\u{1B}[=1;u"))
         #expect(setting.hasKittyKeyboardFlags)
 
-        var popping = TerminalPageKeyModeScanner()
+        var popping = TerminalOutputModeScanner()
         popping.scan(bytes("\u{1B}[>1u\u{1B}[>1u\u{1B}[<2;u"))
         #expect(!popping.hasKittyKeyboardFlags)
     }
 
     /// Ghostty ignores flags above five bits and a set mode other than 1, 2, or 3.
     @Test func sequencesGhosttyRejectsChangeNothing() {
-        var scanner = TerminalPageKeyModeScanner()
+        var scanner = TerminalOutputModeScanner()
         scanner.scan(bytes("\u{1B}[>33u\u{1B}[=33u\u{1B}[=1;4u\u{1B}[=1;0u"))
         #expect(!scanner.hasKittyKeyboardFlags)
 
@@ -139,7 +139,7 @@ struct TerminalPageKeyModeScannerTests {
 
     /// Each screen keeps its own flags, as in Ghostty and SwiftTerm.
     @Test func eachScreenKeepsItsOwnFlags() {
-        var scanner = TerminalPageKeyModeScanner()
+        var scanner = TerminalOutputModeScanner()
         scanner.scan(bytes("\u{1B}[>1u\u{1B}[?1049h"))
         #expect(!scanner.hasKittyKeyboardFlags)
 
@@ -154,7 +154,7 @@ struct TerminalPageKeyModeScannerTests {
     }
 
     @Test func aResetClearsBothScreensFlags() {
-        var scanner = TerminalPageKeyModeScanner()
+        var scanner = TerminalOutputModeScanner()
         scanner.scan(bytes("\u{1B}[>1u\u{1B}[?1049h\u{1B}[>1u\u{1B}c"))
         #expect(!scanner.hasKittyKeyboardFlags)
 
@@ -163,7 +163,7 @@ struct TerminalPageKeyModeScannerTests {
     }
 
     @Test func aKittySequenceSplitAcrossReadsCounts() {
-        var scanner = TerminalPageKeyModeScanner()
+        var scanner = TerminalOutputModeScanner()
         for part in ["\u{1B}", "[", ">", "1", "u"] { scanner.scan(bytes(part)) }
         #expect(scanner.hasKittyKeyboardFlags)
 
@@ -173,10 +173,54 @@ struct TerminalPageKeyModeScannerTests {
 
     /// Other `u` sequences, a flags query, and modifyOtherKeys leave the flags as they are.
     @Test func otherSequencesLeaveTheFlags() {
-        var scanner = TerminalPageKeyModeScanner()
+        var scanner = TerminalOutputModeScanner()
         for other in ["\u{1B}[u", "\u{1B}[1u", "\u{1B}[?u", "\u{1B}[?1u", "\u{1B}[>4;1m", "\u{1B}[>1c", ">1u", "\u{1B}>1u"] {
             scanner.scan(bytes(other))
             #expect(!scanner.hasKittyKeyboardFlags, "\(Array(other.utf8))")
+        }
+    }
+
+    // MARK: Bracketed paste
+
+    @Test func bracketedPasteTurnsOnAndOff() {
+        var scanner = TerminalOutputModeScanner()
+        #expect(!scanner.isBracketedPasteOn)
+
+        scanner.scan(bytes("prompt\u{1B}[?2004h"))
+        #expect(scanner.isBracketedPasteOn)
+        #expect(!scanner.isOnAlternateScreen)
+
+        scanner.scan(bytes("\u{1B}[?2004l"))
+        #expect(!scanner.isBracketedPasteOn)
+    }
+
+    @Test func bracketedPasteAmongOtherModesOrSplitAcrossReadsCounts() {
+        var scanner = TerminalOutputModeScanner()
+        scanner.scan(bytes("\u{1B}[?1049;2004h"))
+        #expect(scanner.isBracketedPasteOn)
+        #expect(scanner.isOnAlternateScreen)
+
+        for part in ["\u{1B}[?20", "04", "l"] { scanner.scan(bytes(part)) }
+        #expect(!scanner.isBracketedPasteOn)
+        #expect(scanner.isOnAlternateScreen)
+    }
+
+    /// The mode belongs to the terminal, not to a screen.
+    @Test func bracketedPasteStaysOnAcrossScreensUntilAReset() {
+        var scanner = TerminalOutputModeScanner()
+        scanner.scan(bytes("\u{1B}[?2004h\u{1B}[?1049h\u{1B}[?1049l"))
+        #expect(scanner.isBracketedPasteOn)
+
+        scanner.scan(bytes("\u{1B}c"))
+        #expect(!scanner.isBracketedPasteOn)
+    }
+
+    @Test func otherSequencesLeaveBracketedPaste() {
+        var scanner = TerminalOutputModeScanner()
+        scanner.scan(bytes("\u{1B}[?2004h"))
+        for other in ["\u{1B}[2004l", "\u{1B}[?20040l", "\u{1B}[?2004n", "\u{1B}[>2004l", "\u{1B}[?1049l"] {
+            scanner.scan(bytes(other))
+            #expect(scanner.isBracketedPasteOn, "\(Array(other.utf8))")
         }
     }
 
