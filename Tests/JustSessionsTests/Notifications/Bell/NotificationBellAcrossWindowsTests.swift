@@ -17,11 +17,14 @@ struct NotificationBellAcrossWindowsTests {
         #expect(sandbox.first.notificationBellEntries.map(\.reason) == [.needsInput(reason: "input needed")])
         #expect(sandbox.second.notificationBellEntries.map(\.source) == [tab.attentionSource])
 
+        let firstWindowBell = StoreChangeCounter(sandbox.first) { _ = $0.notificationBellEntries }
         let firstWindowChanges = StoreChangeCounter(sandbox.first)
-        defer { firstWindowChanges.cancel() }
+        defer { firstWindowBell.cancel(); firstWindowChanges.cancel() }
         sandbox.second.selectTerminal(tab.id)
-        // The first window's bell looks again, as nothing else in that window changed.
-        #expect(firstWindowChanges.count > 0)
+        // The first window's bell looks again, as it reads which terminals the second window shows, while nothing else
+        // in the first window changes, so its sidebar does not redraw.
+        #expect(firstWindowBell.count > 0)
+        #expect(firstWindowChanges.count == 0)
         #expect(sandbox.first.notificationBellEntries.isEmpty)
         #expect(sandbox.second.notificationBellEntries.isEmpty)
 

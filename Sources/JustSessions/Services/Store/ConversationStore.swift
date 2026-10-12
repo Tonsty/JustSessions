@@ -65,16 +65,12 @@ final class ConversationStore {
         didSet {
             selectedTerminal?.startNowThatItIsShown()
             markTerminalsOnScreenSeen()
-            terminalsOnScreenChangedForNotificationBells()
         }
     }
     /// Pairs of tabs linked side by side, as in Chrome's split view, any number of them, with a tab in at most one.
     /// A split outlives the selection; both its terminals show only while one of them is selected, see `shownSplit`.
     private(set) var terminalSplits: [TerminalSplit] = [] {
-        didSet {
-            markTerminalsOnScreenSeen()
-            terminalsOnScreenChangedForNotificationBells()
-        }
+        didSet { markTerminalsOnScreenSeen() }
     }
     /// Every conversation queued in the running deletion, of one session or several. It changes only when a
     /// deletion starts, when sessions join it, and when it ends; `deletionProgress` follows the sessions in between.

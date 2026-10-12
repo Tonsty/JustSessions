@@ -600,7 +600,7 @@ Apple M4 Pro, macOS 26.6.1, release builds, the session's own CLI working throug
 | `TerminalTabGroupSection`, `TerminalTab` | 8 each | 5 each |
 | `WorkspaceDetailView` | 2 | 1 |
 
-A tab's own state, such as its CLI's activity or whether its CLI ended, lives on the tab, which is still an `ObservableObject`; views reading tabs through the store follow it through `tabStateRevision`, which every open tab's own change bumps. A tab sets a property only when its value changes, so this adds nothing to a switch. The store's two sidebar caches are not observed, as views write them while reading them.
+A tab's own state, such as its CLI's activity or whether its CLI ended, lives on the tab, which is still an `ObservableObject`; views reading tabs through the store follow it through `tabStateRevision`, which every open tab's own change bumps. Selecting a tab sets no tab property to a value it already had, so this adds nothing to a switch. Other windows' notification bells read this window's terminals on screen directly, so a switch no longer bumps the other windows' revision, which redrew their browser and sidebar whenever one of this window's tabs waited for you. The store's two sidebar caches are not observed, as views write them while reading them.
 
 With an accessibility client (`/tmp/perf-switch.sh`, which presses the tabs through accessibility), main took a median of 99 and 96 ms per click's longest stall and 144 and 138 ms of main-thread time; this change, 66 and 67 ms and 112 ms. At rest with the CLIs working, the main thread was busy 2.9% of 20 s on main and 1.9% with this change. The same 13 clicks and shortcuts (tabs, ⌘1–⌘3, ⌘[ and ⌘], ⌘⇧[ and ⌘⇧], ⌃Tab) left the same tab selected after each in both builds.
 
