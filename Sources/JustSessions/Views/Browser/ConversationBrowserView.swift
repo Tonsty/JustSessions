@@ -11,7 +11,7 @@ struct ConversationBrowserView: View {
     let onRequestDeletion: (SessionDeletionRequest) -> Void
 
     @State var sessionSelection = SessionMultiSelection()
-    /// What this window showed, for Back and Forward; see `ConversationBrowserView+Navigation`.
+    /// What this window showed, for Back and Forward; see `WorkspaceNavigationControls`.
     @State var navigationHistory = WorkspaceNavigationHistory()
     @State private var messageSearch = SidebarMessageSearch()
     /// The match a click on a session row found in messages opens the reader at.
