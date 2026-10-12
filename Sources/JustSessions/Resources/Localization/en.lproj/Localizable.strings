@@ -438,6 +438,8 @@
 	<string>Don't show tips</string>
 	<key>Done</key>
 	<string>Done</string>
+	<key>Drag a session or tab onto the terminal: to a side for split view, to the middle to show it alone.</key>
+	<string>Drag a session or tab onto the terminal: to a side for split view, to the middle to show it alone.</string>
 	<key>Drag a tab out of the tab bar to give it its own window.</key>
 	<string>Drag a tab out of the tab bar to give it its own window.</string>
 	<key>Drop files from Finder onto a terminal on this Mac to paste their paths.</key>
