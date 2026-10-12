@@ -10,6 +10,9 @@ final class TerminalSession: ObservableObject, Identifiable {
     let projectPath: String
     /// The machine the tab's CLI runs on.
     let host: SessionHost
+    /// The project's key, found once as a session's is: on this Mac it resolves symlinks on disk, and every project row
+    /// reads every tab's key each time the sidebar draws.
+    let projectDirectoryKey: String
     /// Nil for a plain terminal.
     let action: ConversationAction?
     @Published private(set) var displayTitle: String
@@ -70,9 +73,6 @@ final class TerminalSession: ObservableObject, Identifiable {
     var cliProcessID: Int32 {
         tmuxSessionName == nil ? processID : tmuxPaneProcessID ?? 0
     }
-    var projectDirectoryKey: String {
-        ProjectLocation(host: host, path: projectPath).key
-    }
     var isPlainTerminal: Bool { provider == nil }
     /// The tmux session on this Mac still showing the tab's failed CLI, whose pane tmux keeps while the tab's client is
     /// attached. Nil once the client has gone, and for any other tab.
@@ -112,6 +112,7 @@ final class TerminalSession: ObservableObject, Identifiable {
         self.provider = provider
         self.projectPath = projectPath
         self.host = host
+        projectDirectoryKey = ProjectLocation(host: host, path: projectPath).key
         self.sessionIDsKnownAtLaunch = sessionIDsKnownAtLaunch
         self.tmuxSessionName = tmuxSessionName
         self.action = action
