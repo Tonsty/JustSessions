@@ -3,8 +3,8 @@ import Testing
 @testable import JustSessions
 
 /// A tab dropped on a side of the terminals shows there in a split view, selected: beside the selected tab in a new
-/// split, or in place of the shown split's tab on that side. Only one tab in no split, other than the selected one, can
-/// drop there.
+/// split, or in place of the shown split's tab on that side. Dropped in the middle, it shows on its own, selected. Only
+/// one tab in no split, other than the selected one, can drop there.
 @MainActor
 struct TerminalSplitDropStoreTests {
     @Test func aTabDroppedOnTheRightShowsBesideTheSelectedTabOnTheRight() throws {
@@ -76,6 +76,26 @@ struct TerminalSplitDropStoreTests {
         expectSplitRules(store)
     }
 
+    @Test func aTabDroppedOnTheWholeAreaShowsOnItsOwnWithTheShownTabStillOpen() throws {
+        let (store, cleanUp) = try makeStore()
+        defer { cleanUp() }
+        let first = open(store, makeTab())
+        let second = open(store, makeTab())
+        store.selectTerminal(second.id)
+
+        store.showDroppedTab(first.id, at: .wholeArea)
+
+        #expect(store.selectedTerminalID == first.id)
+        #expect(ids(store) == [first.id, second.id])
+        #expect(store.terminalSplits.isEmpty)
+
+        store.showDroppedTab(second.id, at: .split(.left))
+        let split = try #require(store.shownSplit)
+        #expect(store.sides(of: split) == TerminalSplit.Sides(left: second.id, right: first.id))
+        #expect(store.selectedTerminalID == second.id)
+        expectSplitRules(store)
+    }
+
     @Test func onlyOneTabInNoSplitBesidesTheSelectedOneDrops() throws {
         let (store, cleanUp) = try makeStore()
         defer { cleanUp() }
@@ -87,15 +107,16 @@ struct TerminalSplitDropStoreTests {
         store.splitSelectedTerminal(with: second.id)
         store.selectTerminal(third.id)
 
-        #expect(store.canShowDroppedTabsInSplit([fourth.id]))
+        #expect(store.canShowDroppedTabs([fourth.id]))
         // The selected tab itself, a split's tab, and a split's two tabs together.
-        #expect(!store.canShowDroppedTabsInSplit([third.id]))
-        #expect(!store.canShowDroppedTabsInSplit([first.id]))
-        #expect(!store.canShowDroppedTabsInSplit([first.id, second.id]))
+        #expect(!store.canShowDroppedTabs([third.id]))
+        #expect(!store.canShowDroppedTabs([first.id]))
+        #expect(!store.canShowDroppedTabs([first.id, second.id]))
 
         let orderBefore = ids(store)
         let splitsBefore = store.terminalSplits
         store.showDroppedTabInSplit(first.id, on: .left)
+        store.showDroppedTab(first.id, at: .wholeArea)
         #expect(ids(store) == orderBefore)
         #expect(store.terminalSplits == splitsBefore)
         #expect(store.selectedTerminalID == third.id)
@@ -108,7 +129,7 @@ struct TerminalSplitDropStoreTests {
         _ = open(store, makeTab())
         store.selectTerminal(nil)
 
-        #expect(!store.canShowDroppedTabsInSplit([first.id]))
+        #expect(!store.canShowDroppedTabs([first.id]))
     }
 
     // MARK: - Helpers

@@ -2,8 +2,8 @@ import SwiftUI
 
 /// Shows where a tab or session dragged over the window's terminals would show once let go, as Claude Code shows where
 /// a session dragged into its window lands: the pane it would take, a half of a new split or a pane of the shown split,
-/// or, with no tab shown to split with, the whole area, tinted and outlined, with its title in the middle. It moves to
-/// the other side as the pointer crosses over, and lets every click through.
+/// or the whole area, for one shown on its own, tinted and outlined, with its title in the middle. It moves as the
+/// pointer does, and lets every click through.
 struct TerminalSplitDropHighlight: View {
     let store: ConversationStore
     /// The terminals, from their own top-leading corner.

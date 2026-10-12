@@ -2,7 +2,7 @@ import SwiftUI
 
 extension View {
     /// Reports where the window's terminals show, and the left pane's share of the split shown there, to
-    /// `TabDragBetweenWindows`, so a tab dragged over them finds the side of a split view it would show on.
+    /// `TabDragBetweenWindows`, so a tab dragged over them finds where it would show.
     func reportsTerminalSplitDropArea(in store: ConversationStore, shownSplitFraction: CGFloat?) -> some View {
         let splitDropTargets = TabDragBetweenWindows.shared.splitDropTargets
         return onGeometryChange(for: CGRect.self) { proxy in

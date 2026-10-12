@@ -8,11 +8,12 @@ import SwiftUI
 /// window in front. A window's only tabs carry their window from the start, and the window closes once another window
 /// takes them. Their terminals and CLIs carry on throughout; see `ConversationStore+TabsBetweenWindows`.
 ///
-/// A tab dragged over a window's terminals, its own window's or another's, shows in a split view there once let go,
-/// as a session dragged into Claude Code's window does: the window highlights the side the tab would take, see
-/// `TerminalSplitDropTargets`, while the window carrying the tab, if any, hides. Dragged down from its own tab bar, a
-/// tab that can show beside the selected one stays in its window while over the terminals, and a window carries it
-/// only once it leaves them; any other tab, such as the selected one, leaves the window as soon as it leaves the bar.
+/// A tab dragged over a window's terminals, its own window's or another's, shows there once let go, as a session
+/// dragged into Claude Code's window does: in a split view on the side it was let go on, or on its own in the middle.
+/// The window highlights where the tab would show, see `TerminalSplitDropTargets`, while the window carrying the tab,
+/// if any, hides. Dragged down from its own tab bar, a tab that can show there stays in its window while over the
+/// terminals, and a window carries it only once it leaves them; any other tab, such as the selected one, leaves the
+/// window as soon as it leaves the bar.
 ///
 /// The tab bar a drag starts in follows it until the pointer leaves the bar; see `TerminalTabGroupSection`. From then
 /// on the drag follows the pointer here, since the view the drag started on goes away with the tab. Back over its bar
@@ -47,9 +48,9 @@ final class TabDragBetweenWindows: ObservableObject {
         case carried
         /// In this window's tab bar.
         case inTabBar(ConversationStore)
-        /// Over this window's terminals, which show the tabs in a split view on this side once let go. The tabs are
-        /// still in the window they started in, until a window carries them, and then in the carrier, hidden.
-        case overTerminals(ConversationStore, TerminalSplit.Side)
+        /// Over this window's terminals, which show the tabs at this place once let go. The tabs are still in the
+        /// window they started in, until a window carries them, and then in the carrier, hidden.
+        case overTerminals(ConversationStore, TerminalDropPlace)
     }
 
     private struct Drag {
@@ -61,7 +62,7 @@ final class TabDragBetweenWindows: ObservableObject {
         let tabIDs: [UUID]
         /// The tab the pointer took hold of, which shows once dropped.
         let grabbedTabID: UUID
-        /// The grabbed tab's title, which the side of the terminals it would show on names.
+        /// The grabbed tab's title, which the terminals name where it would show.
         let grabbedTabTitle: String
         let grab: TabDragGrab
         /// The size of a window opened to carry the tabs: the size of the one they left.
@@ -161,13 +162,13 @@ final class TabDragBetweenWindows: ObservableObject {
     // MARK: - Following the pointer
 
     /// Whether the tab bar the drag started in still holds the tabs. Once the pointer leaves the bar, the window's
-    /// terminals take a tab that can show in a split there, or else a window opens to carry the tabs.
+    /// terminals take a tab that can show there, or else a window opens to carry the tabs.
     private func followDragInStartingBar() -> Bool {
         guard let drag, let window = drag.registry.window(of: drag.startingStore),
               !TabBarBand(windowFrame: window.frame).holdsTab(at: drag.pointer) else { return true }
         let startingWorkspace = Workspace(store: drag.startingStore, window: window)
-        if let side = splitDropSide(in: startingWorkspace, at: drag.pointer) {
-            showSplitDrop(on: side, in: startingWorkspace)
+        if let place = terminalDropPlace(in: startingWorkspace, at: drag.pointer) {
+            showTerminalDrop(at: place, in: startingWorkspace)
             startFollowingPointer()
             return false
         }
@@ -226,17 +227,16 @@ final class TabDragBetweenWindows: ObservableObject {
         }
     }
 
-    /// Over another window's tab bar, the tabs join it; over a window's terminals that can show them in a split, the
-    /// carrier hides while that window highlights the side they would take; anywhere else, the carrier follows the
-    /// pointer, in sight.
+    /// Over another window's tab bar, the tabs join it; over a window's terminals that can show them, the carrier hides
+    /// while that window highlights where they would show; anywhere else, the carrier follows the pointer, in sight.
     private func followCarriedTabs(to pointer: CGPoint) {
         guard let drag else { return }
         let workspace = workspace(at: pointer, besides: drag.carrier?.window)
         if let workspace, TabBarBand(windowFrame: workspace.window.frame).takesTab(at: pointer) {
             splitDropTargets.show(nil)
             moveTabs(intoTabBarOf: workspace, at: pointer)
-        } else if let workspace, let side = splitDropSide(in: workspace, at: pointer) {
-            showSplitDrop(on: side, in: workspace)
+        } else if let workspace, let place = terminalDropPlace(in: workspace, at: pointer) {
+            showTerminalDrop(at: place, in: workspace)
         } else {
             splitDropTargets.show(nil)
             self.drag?.stage = .carried
@@ -266,8 +266,8 @@ final class TabDragBetweenWindows: ObservableObject {
             splitDropTargets.show(nil)
             // The bar's drag picks the tabs up again at the pointer's next move.
             self.drag?.stage = .inStartingBar
-        } else if let side = splitDropSide(in: workspace, at: pointer) {
-            showSplitDrop(on: side, in: workspace)
+        } else if let place = terminalDropPlace(in: workspace, at: pointer) {
+            showTerminalDrop(at: place, in: workspace)
         } else {
             splitDropTargets.show(nil)
             _ = openCarrier()
@@ -380,35 +380,35 @@ final class TabDragBetweenWindows: ObservableObject {
         followCarriedTabs(to: pointer)
     }
 
-    // MARK: - Dropping into a split view
+    // MARK: - Dropping onto the terminals
 
-    /// The side of the workspace's terminals the dragged tabs would show on in a split view, let go at `pointer`.
-    private func splitDropSide(in workspace: Workspace, at pointer: CGPoint) -> TerminalSplit.Side? {
-        guard let drag, workspace.store.canShowDroppedTabsInSplit(drag.tabIDs) else { return nil }
-        return splitDropTargets.side(at: pointer, in: workspace.store, windowFrame: workspace.window.frame)
+    /// Where on the workspace's terminals the dragged tabs would show, let go at `pointer`.
+    private func terminalDropPlace(in workspace: Workspace, at pointer: CGPoint) -> TerminalDropPlace? {
+        guard let drag, workspace.store.canShowDroppedTabs(drag.tabIDs) else { return nil }
+        return splitDropTargets.place(at: pointer, in: workspace.store, windowFrame: workspace.window.frame)
     }
 
-    /// Highlights the side of the workspace's terminals the tabs would show on, hiding the window carrying them, if any.
-    private func showSplitDrop(on side: TerminalSplit.Side, in workspace: Workspace) {
+    /// Highlights where on the workspace's terminals the tabs would show, hiding the window carrying them, if any.
+    private func showTerminalDrop(at place: TerminalDropPlace, in workspace: Workspace) {
         guard let drag else { return }
         let isNewTarget: Bool
         if case .overTerminals(let store, _) = drag.stage { isNewTarget = store !== workspace.store } else { isNewTarget = true }
-        self.drag?.stage = .overTerminals(workspace.store, side)
+        self.drag?.stage = .overTerminals(workspace.store, place)
         drag.carrier?.window.alphaValue = 0
         if isNewTarget { workspace.window.orderFront(nil) }
         splitDropTargets.show(TerminalSplitDropTargets.Target(
             storeID: ObjectIdentifier(workspace.store),
-            place: .split(side),
+            place: place,
             title: drag.grabbedTabTitle
         ))
     }
 
-    /// Shows the dragged tab in a split view on `side` of the store's window, selected, the window in front. A tab in a
+    /// Shows the dragged tab at `place` on the store's window's terminals, selected, the window in front. A tab in a
     /// carrier comes into the window first, at the end of its group, and the carrier closes once empty. Should the
     /// window no longer take it, as when its selected tab closed meanwhile, the tab stays where it was.
-    private func dropTabsInSplit(on side: TerminalSplit.Side, in store: ConversationStore) {
+    private func dropTabsOnTerminals(at place: TerminalDropPlace, in store: ConversationStore) {
         guard let drag else { return }
-        guard store.canShowDroppedTabsInSplit(drag.tabIDs) else {
+        guard store.canShowDroppedTabs(drag.tabIDs) else {
             leaveTabsOffTerminals()
             return
         }
@@ -426,7 +426,7 @@ final class TabDragBetweenWindows: ObservableObject {
             store.bringInTabsFromAnotherWindow(tabs, at: placement, selecting: pivotTabID)
             if carrier.store.terminalSessions.isEmpty { carrier.window.close() }
         }
-        store.showDroppedTabInSplit(drag.grabbedTabID, on: side)
+        store.showDroppedTab(drag.grabbedTabID, at: place)
         drag.registry.window(of: store)?.makeKeyAndOrderFront(nil)
         endDrag()
     }
@@ -502,13 +502,13 @@ final class TabDragBetweenWindows: ObservableObject {
     }
 
     /// Leaves the tabs where they are: in the tab bar holding them, at the place they were drawn, or in the carrier,
-    /// which closes once empty; or, over a window's terminals, shows them in a split view there. Either way, their
-    /// window comes to the front.
+    /// which closes once empty; or, over a window's terminals, shows them there. Either way, their window comes to the
+    /// front.
     private func dropTabs() {
         guard let drag else { return }
         switch drag.stage {
-        case .overTerminals(let store, let side):
-            dropTabsInSplit(on: side, in: store)
+        case .overTerminals(let store, let place):
+            dropTabsOnTerminals(at: place, in: store)
             return
         case .inStartingBar, .waitingForCarrier:
             break
