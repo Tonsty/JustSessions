@@ -8,6 +8,8 @@ struct SidebarProjectSection: View {
     /// The host's projects as listed, for a drag of this one among them.
     let hostProjectRows: () -> [SidebarPinDrag.Row]
     let isExpanded: Bool
+    /// How many sessions that are not pinned are listed before "Show N more"; nil lists them all.
+    let sessionLimit: Int?
     /// The project whose row and first session the onboarding tour points at.
     let isOnboardingTourProject: Bool
     let projectSelection: ProjectMultiSelection
@@ -20,6 +22,8 @@ struct SidebarProjectSection: View {
     let onToggleSubagents: (Conversation) -> Void
     let messageMatches: [String: SessionMessageMatch]
     let onToggleExpansion: () -> Void
+    /// Lists more of the project's sessions, given how many are hidden.
+    let onShowMoreSessions: (Int) -> Void
     let onClickProject: () -> Void
     let onNewSession: (ConversationProvider) -> Void
     let onClickConversation: (Conversation) -> Void
@@ -40,16 +44,19 @@ struct SidebarProjectSection: View {
 
     /// The project row, then its sessions while it is expanded, as separate views: the sidebar's lazy list then
     /// builds only the rows in sight, even for a project with hundreds of sessions. Pinned sessions come first, then
-    /// new sessions, then the rest.
+    /// new sessions, then the rest up to `sessionLimit`, then "Show N more" while some are left.
     var body: some View {
         let pendingNewSessionTerminals = isExpanded ? self.pendingNewSessionTerminals : [:]
-        let rows = isExpanded
-            ? ProjectSessionRow.ordered(
+        let listedRows = isExpanded
+            ? ListedProjectSessionRows(
                 conversations: project.conversations,
                 pendingNewSessions: project.pendingNewSessions.filter { pendingNewSessionTerminals[$0.id] != nil },
-                pinnedItems: store.pinnedItems
+                pinnedItems: store.pinnedItems,
+                sessionLimit: sessionLimit
             )
-            : []
+            : nil
+        let rows = listedRows?.rows ?? []
+        let hiddenSessionCount = listedRows?.hiddenSessionCount ?? 0
 
         projectRow
 
@@ -66,7 +73,7 @@ struct SidebarProjectSection: View {
             }
             ForEach(rows) { row in
                 let isFirstRow = row.id == rows.first?.id
-                let isLastRow = row.id == rows.last?.id
+                let isLastRow = hiddenSessionCount == 0 && row.id == rows.last?.id
                 switch row {
                 case .pendingNewSession(let pendingNewSession):
                     if let terminal = pendingNewSessionTerminals[pendingNewSession.id] {
@@ -82,6 +89,13 @@ struct SidebarProjectSection: View {
                 case .conversation(let conversation):
                     conversationRows(conversation, rowID: row.id, among: rows, isFirstRow: isFirstRow, isLastRow: isLastRow)
                 }
+            }
+            if hiddenSessionCount > 0 {
+                SidebarShowMoreSessionsRow(
+                    sessionCount: ProjectSessionRowLimits.sessionsShownByShowMore(hiddenSessionCount: hiddenSessionCount),
+                    onShowMore: { onShowMoreSessions(hiddenSessionCount) }
+                )
+                .sidebarIndentGuide(isFirstRow: rows.isEmpty, isLastRow: true)
             }
         }
     }

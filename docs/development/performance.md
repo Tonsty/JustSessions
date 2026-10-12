@@ -133,6 +133,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 20 | [The notification bell's list on each sidebar redraw](#20-the-notification-bells-list-on-each-sidebar-redraw) | Measured, no change: issue #176 |
 | 21 | [Every sidebar row hosted its hover menus](#21-every-sidebar-row-hosted-its-hover-menus) | Done: #199 |
 | 22 | [The first right-click built the window's accessibility tree](#22-the-first-right-click-built-the-windows-accessibility-tree) | Measured, no change |
+| 23 | [Show N more under each project](#23-show-n-more-under-each-project) | Measured, no change |
 
 ### 1. Timestamp parsing
 
@@ -501,6 +502,24 @@ Measured on main a5eb0d9, the app relaunched before each recording, right-clicks
 **Change:** none. Presenting the nine SwiftUI context menus as `NSMenu`s built in AppKit and popped from the view under the pointer, as the terminal's menu is, would keep AppKit from asking the window for its tree. It means writing about a dozen SwiftUI menu-content views again as AppKit builders, and the ⋯ hover menus with them so that no menu exists twice; for one stall of about 140 ms per launch, the risk of the two drifting apart was judged not worth it.
 
 **Limits:** `NSHostingView.accessibilityChildren` still runs in the first right-click's stack. After it, tab switches cost 69–89 ms for the remainder of these recordings, about 25 s each, instead of 42–58 ms (item 21); how long the tree stays in a longer session was not measured. An accessibility client is expected to build the tree as well, as the driver did here; VoiceOver and other clients were not tested. How much updating the tree costs depends on how many views re-evaluate on a change, which is the store-wide observation question.
+
+### 23. Show N more under each project
+
+**Question:** an expanded project now lists 10 sessions before **Show N more** (SBL-49), and the sidebar looks up the session the window shows on every redraw to keep its row listed. Does that slow the sidebar?
+
+**Measured:** `SidebarInteractionMeasurements`, release build, Apple M4 Max, macOS 27.0.1. The branch and its base, `b9f72d9`, ran the populate, filter, selection, and store-change scenarios alternately, twice each, after one warm-up run each; every figure is a median of three. Other sessions' builds kept the load average between 9 and 15.
+
+| Turn, 2,000 sessions | Base, two runs | Show N more, two runs |
+| --- | --- | --- |
+| Listing the sessions (replace and first render) | 20.6, 15.5 ms | 15.4, 15.8 ms |
+| Recency filter, All to Recent | 14.0, 13.2 ms | 15.2, 12.5 ms |
+| Shift-click the last row | 38.2, 37.7 ms | 37.5, 37.0 ms |
+| A store change, projects collapsed | 7.3, 6.8 ms | 6.2, 6.0 ms |
+| A store change, every project expanded by a search | 7.5, 9.4 ms | 7.2, 6.9 ms |
+
+These scenarios expand projects with a search, which lists every match, so they measure the lookup on each redraw rather than a shorter list. The lookup is one dictionary read for the shown session, one pass over the listed projects, and one over its project's sessions.
+
+**Conclusion:** no measurable change.
 
 ## How to profile
 

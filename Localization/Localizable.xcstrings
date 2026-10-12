@@ -5549,6 +5549,26 @@
         }
       }
     },
+    "Show %lld more": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再显示 %lld 个"
+          }
+        }
+      }
+    },
+    "Show %lld more sessions": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再显示 %lld 个会话"
+          }
+        }
+      }
+    },
     "Show %lld subagent sessions": {
       "localizations": {
         "en": {

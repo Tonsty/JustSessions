@@ -1048,6 +1048,10 @@
 	<string>显示</string>
 	<key>Show %@</key>
 	<string>显示 %@</string>
+	<key>Show %lld more</key>
+	<string>再显示 %lld 个</string>
+	<key>Show %lld more sessions</key>
+	<string>再显示 %lld 个会话</string>
 	<key>Show %lld subagent sessions</key>
 	<string>显示 %lld 个子代理会话</string>
 	<key>Show Sidebar</key>

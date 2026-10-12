@@ -26,6 +26,8 @@ struct ConversationSidebarView: View {
     @SceneStorage("sidebarContentMode") private var contentMode: SidebarContentMode = .projects
     @SceneStorage("sidebarOpenTabSearch") private var openTabSearchText = ""
     @State var projectExpansion = ProjectExpansion()
+    /// How many sessions each expanded project lists before "Show N more".
+    @State var sessionRowLimits = ProjectSessionRowLimits()
     /// Whether sessions offer a chevron that lists their subagents' sessions, set in Settings → General.
     @AppStorage(SidebarSubagentRows.showsSubagentsUserDefaultsKey) var showsSubagents = false
     /// Sessions start with their subagents' sessions hidden; each shows them once you expand it.
@@ -72,12 +74,13 @@ struct ConversationSidebarView: View {
         Set(visibleProjectIDs)
     }
 
-    /// Session rows in the order they appear in the sidebar, used for Shift-click ranges.
+    /// Session rows in the order they appear in the sidebar, used for Shift-click ranges, which leave out the rows
+    /// hidden below a project's "Show N more".
     private var visibleConversationIDs: [String] {
         hostSections
             .flatMap(\.projects)
             .filter(isExpanded)
-            .flatMap { $0.conversations.map(\.id) }
+            .flatMap { listedSessionRows(of: $0).conversationIDs }
     }
 
     private var listedConversationIDs: Set<String> {
@@ -192,6 +195,9 @@ struct ConversationSidebarView: View {
         }
         .onChange(of: listedProjectIDs) { _, newListedProjectIDs in
             projectSelection.keepOnly(newListedProjectIDs)
+        }
+        .onChange(of: hiddenShownSession, initial: true) { _, hiddenShownSession in
+            reveal(hiddenShownSession)
         }
         .task(id: store.isDeletingSeveralSessions) {
             guard store.isDeletingSeveralSessions else {
@@ -312,7 +318,7 @@ struct ConversationSidebarView: View {
             projectSelection.toggle(project.id)
         } else {
             projectSelection.selectOnly(project.id)
-            projectExpansion.toggle(project.id)
+            toggleExpansion(of: project.id)
         }
     }
 

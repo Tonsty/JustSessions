@@ -42,6 +42,7 @@ extension ConversationSidebarView {
                                 pinDragging: pinDragging,
                                 hostProjectRows: { section.projects.map(SidebarPinDrag.Row.project) },
                                 isExpanded: isExpanded(project),
+                                sessionLimit: sessionLimit(for: project),
                                 isOnboardingTourProject: project.id == onboardingTourProjectID,
                                 projectSelection: projectSelection,
                                 sessionSelection: sessionSelection,
@@ -50,7 +51,10 @@ extension ConversationSidebarView {
                                 subagentRows: subagentRows,
                                 onToggleSubagents: { subagentRows.toggle($0.id) },
                                 messageMatches: messageMatches,
-                                onToggleExpansion: { projectExpansion.toggle(project.id) },
+                                onToggleExpansion: { toggleExpansion(of: project.id) },
+                                onShowMoreSessions: { hiddenSessionCount in
+                                    sessionRowLimits.showMore(inProject: project.id, hiddenSessionCount: hiddenSessionCount)
+                                },
                                 onClickProject: { handleProjectClick(project) },
                                 onNewSession: { provider in
                                     store.launchNewSessionFromProject(provider: provider, projectPath: project.projectPath)
