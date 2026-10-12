@@ -25,7 +25,7 @@
 | ID | Requirement | Origin | Related tests |
 | --- | --- | --- | --- |
 | SBF-40 | Projects and sessions can be pinned. Pins keep the order you put them in: a new pin goes last and activity never moves one. Unpinned items stay sorted by activity. | `d5c9dfc`, `dce90de` | `PinnedOrderTests`, `PinnedItemsTests` |
-| SBF-41 | A pinned project drags among its host's pinned projects, a pinned session among its project's. Dragging an unpinned one up among them pins it there. A line shows the drop place, the dragged row fades, and a drop lands beside a pinned neighbor in sight so pins hidden by a filter keep their place. | `dce90de` | `SidebarPinDragTests`, `PinnedOrderInSidebarTests` |
+| SBF-41 | A pinned project drags among its host's pinned projects, a pinned session among its project's. Dragging an unpinned one up among them pins it there. A line shows the drop place, the dragged row fades, and a drop lands beside a pinned neighbor in sight so pins hidden by a filter keep their place. Off the list to either side, the line and the row's ghost hide and a drop lands nowhere; over the terminals, a session drops there instead (SPL-15). | `dce90de`, `dc4e62d` | `SidebarPinDragTests`, `PinnedOrderInSidebarTests` |
 | SBF-42 | Under a project, rows go pinned sessions, then new sessions still waiting for their CLI, then the rest by last activity. | `fa39b76` | `ProjectSessionRowTests` |
 | SBF-43 | A project can be given a display name, kept per project and shown everywhere the project is named. Saving an empty name or the folder name clears it. | `3aabdb2` | `ProjectDisplayNamesTests` |
 
