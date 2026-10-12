@@ -21,6 +21,9 @@ struct SidebarOpenTabGroupHeading: View {
     let menuItems: TabGroupMenuItems
 
     @State private var isHovered = false
+    /// Holds the pointer-over state for a test; nil follows `onHover` as in use.
+    var isHoveredForTests: Bool? = nil
+    private var hovered: Bool { isHoveredForTests ?? isHovered }
 
     static let height: CGFloat = 24
 
@@ -67,25 +70,28 @@ struct SidebarOpenTabGroupHeading: View {
                 .padding(.trailing, 10)
         }
         .font(ThemeFont.detail.weight(.semibold))
-        .background(SidebarRowBackground(isSelected: false, isHovered: isHovered))
+        .background(SidebarRowBackground(isSelected: false, isHovered: hovered))
         .onHover { isHovered = $0 }
         .contextMenu { menuItems }
     }
 
-    /// The tab count gives way to the ⋯ and + menus while the pointer is over the heading. Both keep their room while
-    /// hidden, so nothing in the heading moves as the pointer passes over it.
+    /// The tab count gives way to the ⋯ and + menus while the pointer is over the heading. The menus are in the view
+    /// tree only then, see `SidebarProjectRow`; their room is kept while they are not, so nothing in the heading
+    /// moves as the pointer passes over it.
     private var tabCountOrHoverActions: some View {
         ZStack(alignment: .trailing) {
             Text(verbatim: "\(tabCount)")
                 .monospacedDigit()
                 .foregroundStyle(ThemePalette.tertiaryText)
-                .opacity(isHovered ? 0 : 1)
-            ProjectHoverActions(store: store, location: location, projectDisplayName: projectName, onNewSession: onNewSession) {
-                menuItems
+                .opacity(hovered ? 0 : 1)
+            ProjectHoverActions<EmptyView>.placeholder
+                .font(ThemeFont.body)
+            if hovered {
+                ProjectHoverActions(store: store, location: location, projectDisplayName: projectName, onNewSession: onNewSession) {
+                    menuItems
+                }
+                .font(ThemeFont.body)
             }
-            .font(ThemeFont.body)
-            .opacity(isHovered ? 1 : 0)
-            .allowsHitTesting(isHovered)
         }
     }
 }

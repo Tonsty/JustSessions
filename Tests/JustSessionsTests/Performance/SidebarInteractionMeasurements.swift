@@ -152,6 +152,17 @@ final class SidebarPerfHarness {
     private let window: NSWindow
     private let hostingView: NSHostingView<AnyView>
 
+    /// The AppKit views under the hosted browser, for a test to count what SwiftUI mounted.
+    var hostedViews: [NSView] {
+        var views: [NSView] = []
+        func collect(_ view: NSView) {
+            views.append(view)
+            view.subviews.forEach(collect)
+        }
+        collect(hostingView)
+        return views
+    }
+
     init(sessionCount: Int) async throws {
         let sandbox = try DeletionSandbox()
         self.sandbox = sandbox

@@ -131,6 +131,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 18 | [Workspace windows repeated discovery and message indexing](#18-workspace-windows-repeated-discovery-and-message-indexing) | Done: issue #57 |
 | 19 | [The working spinner re-rendered the window 30 times a second](#19-the-working-spinner-re-rendered-the-window-30-times-a-second) | Done: idle render loop PR |
 | 20 | [The notification bell's list on each sidebar redraw](#20-the-notification-bells-list-on-each-sidebar-redraw) | Measured, no change: issue #176 |
+| 21 | [Every sidebar row hosted its hover menus](#21-every-sidebar-row-hosted-its-hover-menus) | Done: hover menus PR |
 
 ### 1. Timestamp parsing
 
@@ -454,6 +455,24 @@ A first pass ran the whole suite on the base, then on the bell, minutes apart: p
 The list costs one look at each window's tabs and at this window's CLIs in tmux with no tab, never at the sessions, and the store publishes the wait times only when a wait starts or ends (`WaitingForYouStartTimesSyncTests`).
 
 **Conclusion:** no measurable change.
+### 21. Every sidebar row hosted its hover menus
+
+**Evidence:** every tab switch stalled the main thread for about 270 ms, a microhang on every click in the Hangs instrument. In a Time Profiler trace of main at f156493 (after item 19), 5 tabs open, 20 tab clicks a second apart delivered as real mouse events: 20 hangs of 252–287 ms, 7,000 ms of the 26 s inside `NSHostingView.layout`, about 350 ms per click. Inside those, `AppKitPopUpAdaptor` accounted for 2,400 ms and `ViewGraphFeatureBuffer` 1,350, with `_CFBundleCopyLocalizedString` and `CUICatalog` under them: the ⋯ and + menus of every project row, and the ⋯ of every session row. Each row kept them in the view tree at zero opacity, for the pointer to find, and each `Menu` is an `NSPopUpButton` underneath; the hosted browser with 50 projects held 49 pop-up buttons among 283 AppKit views. A tab switch changes `selectedTerminalID`, every row observing the store re-evaluates, and every pop-up button's localized title and image are resolved and its view re-registered with accessibility, whether or not anything in the row changed. The focus-responder walk the baseline named (`AccessibilityNode.updateFocusResponder`) is real but small: ~100 samples in 26 s, 5 ms per switch, visiting every SwiftUI responder node once with a protocol-conformance lookup each; the hidden tabs' terminals are 4 of those samples.
+
+Traces recorded with `xcrun xctrace record --template 'Time Profiler' --instrument Hangs --attach <pid> --time-limit 26s`, the clicks posted by a small accessibility driver (`/tmp/axdrive click 20 1`, tab buttons in rotation, CGEvents at their centers). Apple M4 Pro, macOS 26.6.1, Xcode 27.0, release builds, this session's CLI working throughout.
+
+| Build | Main thread busy | Inside `NSHostingView.layout` | Hangs ≥ 100 ms | Focus walk samples |
+| --- | ---: | ---: | ---: | ---: |
+| f156493, run 1 | 34.4% | 26.9% | 20 (259–285 ms) | 103 |
+| f156493, run 2 | 34.7% | 27.9% | 20 (270–287 ms) | 112 |
+| f156493, run 3 | 34.9% | 28.1% | 20 (271–287 ms) | 111 |
+| After, run 1 | 13.1% | 7.8% | 0 | 156 |
+| After, run 2 | 12.4% | 8.0% | 0 | 48 |
+| After, run 3 | 12.7% | 8.1% | 0 | 56 |
+
+**Change:** a row puts its menus in the view tree only while the pointer is over it: `SidebarProjectRow` (⋯ and +), `SidebarSessionRow` and `SidebarSubagentRow` (⋯, in an overlay that never took room), and `SidebarOpenTabGroupHeading` (⋯ and +). The count each trades with stays in the layout, faded out, beside a placeholder of the menus' size, so hovering moves nothing; `SidebarHoverMenusTests` checks each row type's size with and without the pointer and the placeholder's, hosts every row type and checks it carries no pop-up button at rest, and hosts the 300-session browser harness and checks it holds only its header's filter (one pop-up). The host heading is left as it was: one heading per SSH host, not one per row, with its menus mounted and faded. The right-click menus are unchanged; `.contextMenu` adds no view until it opens.
+
+**Limits:** a click still costs about 100 ms of SwiftUI update, most of it `ViewGraph.updateOutputs` and `ScrollViewCommitMutation` re-evaluating the sidebar's rows because they observe the whole store; that is a later item's question. The focus walk's cost is SwiftUI's per node, not the app's, and was left as measured; the 156 samples in the first after run include the driving script's own accessibility reads when it starts, against 48 and 56 in the other two and 103–112 before. A row's menus appear on hover as before. At rest they are no longer in the view tree, so VoiceOver and Full Keyboard Access no longer reach the ⋯ and + as separate controls there; the same actions remain in the row's right-click menu, which is what a keyboard user opened anyway, but this was not checked with VoiceOver running.
 
 ## How to profile
 

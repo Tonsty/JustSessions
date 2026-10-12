@@ -18,6 +18,9 @@ struct SidebarSessionRow: View {
     let onRequestDeletion: (SessionDeletionRequest) -> Void
 
     @State private var isHovered = false
+    /// Holds the pointer-over state for a test; nil follows `onHover` as in use.
+    var isHoveredForTests: Bool? = nil
+    private var hovered: Bool { isHoveredForTests ?? isHovered }
 
     private func statusDescription(of source: SessionRowStatusSource) -> String {
         switch source {
@@ -71,15 +74,16 @@ struct SidebarSessionRow: View {
         .accessibilityValue(Text(verbatim: messageMatch?.snippet.text ?? ""))
         // Over the button rather than in it, so a click on the ⋯ opens its menu instead of selecting the session.
         .overlay(alignment: .trailing) {
-            SidebarRowMoreActionsMenu(accessibilityLabel: "More actions for \(title)") {
-                menuItems
+            // In the view tree only while the pointer is over the row; see `SidebarProjectRow`.
+            if hovered {
+                SidebarRowMoreActionsMenu(accessibilityLabel: "More actions for \(title)") {
+                    menuItems
+                }
+                .padding(.trailing, SidebarSessionRowMetrics.trailingPadding)
             }
-            .padding(.trailing, SidebarSessionRowMetrics.trailingPadding)
-            .opacity(isHovered ? 1 : 0)
-            .allowsHitTesting(isHovered)
         }
         .background(
-            SidebarRowBackground(isSelected: isHighlighted, isHovered: isHovered, selectionProvider: conversation.provider)
+            SidebarRowBackground(isSelected: isHighlighted, isHovered: hovered, selectionProvider: conversation.provider)
         )
         .onHover { isHovered = $0 }
         .contextMenu { menuItems }
@@ -109,7 +113,7 @@ struct SidebarSessionRow: View {
     private func statusOrMoreActionsRoom(_ source: SessionRowStatusSource?, description: String?) -> some View {
         ZStack(alignment: .trailing) {
             statusIndicator(source, description: description)
-                .opacity(isHovered ? 0 : 1)
+                .opacity(hovered ? 0 : 1)
             SidebarRowMoreActionsLabel()
                 .hidden()
         }

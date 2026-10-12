@@ -11,6 +11,9 @@ struct SidebarSubagentRow: View {
     let onToggleSubagents: () -> Void
 
     @State private var isHovered = false
+    /// Holds the pointer-over state for a test; nil follows `onHover` as in use.
+    var isHoveredForTests: Bool? = nil
+    private var hovered: Bool { isHoveredForTests ?? isHovered }
 
     var body: some View {
         let conversation = row.conversation
@@ -24,7 +27,7 @@ struct SidebarSubagentRow: View {
             } trailing: {
                 ZStack(alignment: .trailing) {
                     SessionAgeLabel(lastActivity: conversation.updatedAt)
-                        .opacity(isHovered ? 0 : 1)
+                        .opacity(hovered ? 0 : 1)
                     SidebarRowMoreActionsLabel()
                         .hidden()
                 }
@@ -45,15 +48,16 @@ struct SidebarSubagentRow: View {
             }
         }
         .overlay(alignment: .trailing) {
-            SidebarRowMoreActionsMenu(accessibilityLabel: "More actions for \(title)") {
-                menuItems
+            // In the view tree only while the pointer is over the row; see `SidebarProjectRow`.
+            if hovered {
+                SidebarRowMoreActionsMenu(accessibilityLabel: "More actions for \(title)") {
+                    menuItems
+                }
+                .padding(.trailing, SidebarSessionRowMetrics.trailingPadding)
             }
-            .padding(.trailing, SidebarSessionRowMetrics.trailingPadding)
-            .opacity(isHovered ? 1 : 0)
-            .allowsHitTesting(isHovered)
         }
         .background(
-            SidebarRowBackground(isSelected: isSelected, isHovered: isHovered, selectionProvider: conversation.provider)
+            SidebarRowBackground(isSelected: isSelected, isHovered: hovered, selectionProvider: conversation.provider)
         )
         .onHover { isHovered = $0 }
         .contextMenu { menuItems }
