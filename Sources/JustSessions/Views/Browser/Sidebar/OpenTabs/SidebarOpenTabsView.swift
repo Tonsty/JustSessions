@@ -11,6 +11,7 @@ struct SidebarOpenTabsView: View {
     let onSelectTab: (UUID) -> Void
     let onRenameConversation: (Conversation) -> Void
     let onCloseTab: (UUID) -> Void
+    let onDeleteConversation: (Conversation) -> Void
     /// Closes a group's tabs, asking once for them all.
     let onCloseTabGroup: ([UUID], _ projectName: String) -> Void
     let onNewSession: () -> Void
@@ -79,7 +80,10 @@ struct SidebarOpenTabsView: View {
                                 splitSide: store.split(containing: tab.id).flatMap { store.sides(of: $0)?.side(of: tab.id) },
                                 isSelected: store.selectedTerminalID == tab.id,
                                 onSelect: { onSelectTab(tab.id) },
-                                menuItems: TerminalTabMenuItems(store: store, tab: tab, onRename: onRenameConversation, onCloseTab: onCloseTab)
+                                menuItems: TerminalTabMenuItems(
+                                    store: store, tab: tab, onRename: onRenameConversation, onCloseTab: onCloseTab,
+                                    onDelete: onDeleteConversation
+                                )
                             )
                         }
                     }

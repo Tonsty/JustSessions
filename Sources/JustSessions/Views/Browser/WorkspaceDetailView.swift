@@ -40,6 +40,7 @@ struct WorkspaceDetailView: View {
                     onRenameConversation: onRename,
                     onNewSession: onNewSession,
                     onCloseTerminal: onCloseTerminal,
+                    onDeleteConversation: onDelete,
                     onCloseTabGroup: onCloseTabGroup
                 )
                 // Above the area below it, which sits in the title bar's safe area too, since the bar is shorter than
@@ -75,7 +76,7 @@ struct WorkspaceDetailView: View {
                             onFocus: { store.selectTerminal(session.id) },
                             makeContextMenu: { linkUnderPointer in
                                 TerminalContextMenu(
-                                    store: store, tab: session, onRename: onRename, onCloseTab: onCloseTerminal,
+                                    store: store, tab: session, onRename: onRename, onCloseTab: onCloseTerminal, onDelete: onDelete,
                                     linkUnderPointer: linkUnderPointer
                                 ).makeMenu()
                             }

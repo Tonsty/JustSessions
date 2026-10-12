@@ -19,7 +19,7 @@ struct TerminalContextMenuItemsTests {
             "Rename", "—",
             "Copy conversation", "Export conversation", "Copy session ID", "Reveal session file in Finder", "—",
             "Add tab to new split view", "—",
-            "Close Tab…",
+            "Close Tab…", "Close and end session", "Close and delete session…",
         ])
     }
 
@@ -64,9 +64,23 @@ struct TerminalContextMenuItemsTests {
             "Copy", "Paste", "Select All", "—",
             "Rename", "—",
             "Add tab to new split view", "—",
-            "Close Tab…",
+            "Close Tab…", "Close and end session",
         ])
         #expect(try !TerminalContextMenuFixture.item("Rename", in: menu).isEnabled)
+    }
+
+    /// Once its CLI has ended, closing the tab stops nothing and asks nothing, so there is no session to end; the
+    /// session can still be deleted.
+    @Test(arguments: TerminalEngine.allCases)
+    func aTabWhoseCLIEndedOffersNoCloseAndEndSession(engine: TerminalEngine) throws {
+        let fixture = try TerminalContextMenuFixture()
+        defer { fixture.tearDown() }
+        let tab = fixture.openTab(engine: engine, conversation: .fixture())
+        tab.processFinished(exitCode: 0)
+
+        let titles = TerminalContextMenuFixture.titles(of: fixture.menu(for: tab))
+
+        #expect(titles.suffix(2) == ["Close Tab…", "Close and delete session…"])
     }
 
     @Test(arguments: TerminalEngine.allCases)
@@ -141,7 +155,7 @@ struct TerminalContextMenuItemsTests {
             "重命名", "—",
             "复制对话", "导出对话", "复制会话 ID", "在 Finder 中显示会话文件", "—",
             "向新拆分视图添加标签页", "—",
-            "关闭标签…",
+            "关闭标签…", "关闭并结束会话", "关闭并删除会话…",
         ])
     }
 }

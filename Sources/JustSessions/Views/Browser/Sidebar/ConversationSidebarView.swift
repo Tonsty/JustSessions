@@ -128,6 +128,7 @@ struct ConversationSidebarView: View {
                     onSelectTab: selectTab,
                     onRenameConversation: onRenameConversation,
                     onCloseTab: onCloseTerminal,
+                    onDeleteConversation: { onRequestDeletion(.conversation($0)) },
                     onCloseTabGroup: onCloseTabGroup,
                     onNewSession: onNewSession
                 )

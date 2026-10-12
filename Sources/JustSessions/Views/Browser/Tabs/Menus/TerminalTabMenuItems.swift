@@ -11,6 +11,8 @@ struct TerminalTabMenuItems: View {
     let onRename: (Conversation) -> Void
     /// Asks what to do with a tab's CLI, as its × does; also for the split entries that close one of its views.
     let onCloseTab: (UUID) -> Void
+    /// Asks to delete the tab's session, as its row's Close and delete session… does.
+    let onDelete: (Conversation) -> Void
 
     var body: some View {
         if !tab.isPlainTerminal {
@@ -23,6 +25,7 @@ struct TerminalTabMenuItems: View {
         Button(tab.isPlainTerminal ? "Close terminal…" : "Close Tab…", systemImage: "xmark", role: .destructive) {
             onCloseTab(tab.id)
         }
+        closingWithSessionItems
     }
 
     /// A new session's tab can't be renamed or shared until it is linked to the session its CLI writes.
@@ -42,6 +45,22 @@ struct TerminalTabMenuItems: View {
                     SessionLocationActions.revealSessionFile(conversation)
                 }
             }
+        }
+    }
+
+    /// Close and end session stops the CLI without asking, as End session does from the session's row: choosing it is
+    /// already deliberate, and the session can be resumed. Deleting still asks first.
+    @ViewBuilder private var closingWithSessionItems: some View {
+        if tab.closingNeed.hasRunningCLI {
+            Button("Close and end session", systemImage: "stop.circle", role: .destructive) {
+                store.closeTerminalEndingSession(tab.id)
+            }
+        }
+        if let conversation = tab.conversation {
+            Button("Close and delete session…", systemImage: "trash", role: .destructive) {
+                onDelete(conversation)
+            }
+            .disabled(store.isDeletionPending(for: conversation))
         }
     }
 }

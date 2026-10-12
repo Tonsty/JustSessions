@@ -1648,6 +1648,16 @@
         }
       }
     },
+    "Close and end session": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭并结束会话"
+          }
+        }
+      }
+    },
     "Close find": {
       "localizations": {
         "zh-Hans": {

@@ -14,6 +14,14 @@ enum TabClosingNeed: Equatable, Sendable {
     /// A CLI that stops with its tab.
     case cliStopsWithTab
 
+    /// Whether a CLI runs now, in tmux or with the tab, so Close and end session in the tab's menu has one to stop.
+    var hasRunningCLI: Bool {
+        switch self {
+        case .canKeepCLIRunning, .cliStopsWithTab: true
+        case .nothingStarted, .alreadyEnded, .plainTerminal: false
+        }
+    }
+
     init(isWaitingToBeShown: Bool, closingStopsNothing: Bool, canKeepCLIRunningAfterClose: Bool, isPlainTerminal: Bool) {
         if isWaitingToBeShown {
             self = .nothingStarted

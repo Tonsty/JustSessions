@@ -20,6 +20,35 @@ struct TerminalContextMenuActionTests {
         #expect(fixture.tabsAskedToClose == [tab.id])
     }
 
+    /// Close and end session closes the tab at once, without the close request's question.
+    @Test(arguments: TerminalEngine.allCases)
+    func closeAndEndSessionClosesTheTabWithoutAsking(engine: TerminalEngine) throws {
+        let fixture = try TerminalContextMenuFixture()
+        defer { fixture.tearDown() }
+        let other = fixture.openTab(engine: engine, title: "Other")
+        let tab = fixture.openTab(engine: engine, conversation: .fixture())
+
+        try TerminalContextMenuFixture.choose(TerminalContextMenuFixture.item("Close and end session", in: fixture.menu(for: tab)))
+
+        #expect(fixture.store.terminalSessions.map(\.id) == [other.id])
+        #expect(fixture.tabsAskedToClose.isEmpty)
+    }
+
+    /// Close and delete session… asks the window to delete the tab's session, whose dialog confirms first; the tab
+    /// stays open until then.
+    @Test(arguments: TerminalEngine.allCases)
+    func closeAndDeleteSessionAsksTheWindowToDeleteTheTabsSession(engine: TerminalEngine) throws {
+        let fixture = try TerminalContextMenuFixture()
+        defer { fixture.tearDown() }
+        let conversation = Conversation.fixture()
+        let tab = fixture.openTab(engine: engine, conversation: conversation)
+
+        try TerminalContextMenuFixture.choose(TerminalContextMenuFixture.item("Close and delete session…", in: fixture.menu(for: tab)))
+
+        #expect(fixture.conversationsAskedToDelete.map(\.id) == [conversation.id])
+        #expect(fixture.store.terminalSessions.map(\.id) == [tab.id])
+    }
+
     @Test(arguments: TerminalEngine.allCases)
     func choosingAnotherTabOpensItInANewSplitWithThisOne(engine: TerminalEngine) throws {
         let fixture = try TerminalContextMenuFixture()

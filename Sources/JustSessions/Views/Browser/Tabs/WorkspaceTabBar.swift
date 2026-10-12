@@ -23,6 +23,8 @@ struct WorkspaceTabBar: View {
     /// Opens the New session sheet, as ⌘N does.
     let onNewSession: () -> Void
     let onCloseTerminal: (UUID) -> Void
+    /// Asks to delete a tab's session.
+    let onDeleteConversation: (Conversation) -> Void
     /// Closes a group's tabs, asking once for them all.
     let onCloseTabGroup: ([UUID], _ projectName: String) -> Void
     @State private var collapsedProjectKeys: Set<String> = []
@@ -78,7 +80,8 @@ struct WorkspaceTabBar: View {
                                     onDragChanged: { dragGroup(group.projectDirectoryKey, by: $0, among: groupKeys) },
                                     onDragEnded: dropDraggedGroup,
                                     onRenameConversation: onRenameConversation,
-                                    onCloseTab: onCloseTerminal
+                                    onCloseTab: onCloseTerminal,
+                                    onDeleteConversation: onDeleteConversation
                                 )
                             } else {
                                 TerminalTabGroupSection(
@@ -94,6 +97,7 @@ struct WorkspaceTabBar: View {
                                     onLabelDragEnded: dropDraggedGroup,
                                     onRenameConversation: onRenameConversation,
                                     onCloseTab: onCloseTerminal,
+                                    onDeleteConversation: onDeleteConversation,
                                     onCloseTabs: onCloseTabGroup
                                 )
                             }

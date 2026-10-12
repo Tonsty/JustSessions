@@ -294,6 +294,8 @@
 	<string>Close and delete session</string>
 	<key>Close and delete session…</key>
 	<string>Close and delete session…</string>
+	<key>Close and end session</key>
+	<string>Close and end session</string>
 	<key>Close find</key>
 	<string>Close find</string>
 	<key>Close find, while its field has the keyboard</key>

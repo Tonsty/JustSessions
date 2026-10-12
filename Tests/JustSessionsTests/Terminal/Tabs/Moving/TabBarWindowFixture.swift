@@ -53,6 +53,7 @@ final class TabBarWindowFixture {
                 onRenameConversation: { _ in },
                 onNewSession: {},
                 onCloseTerminal: { [weak self] in self?.closeRequests.append($0) },
+                onDeleteConversation: { _ in },
                 onCloseTabGroup: { _, _ in }
             )
             .frame(width: Self.barSize.width, height: Self.barSize.height)
