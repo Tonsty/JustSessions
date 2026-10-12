@@ -22,10 +22,6 @@
           {
             "en": "Drag a tab or session to the middle of the terminals to show it alone; the sides still split.",
             "zh-Hans": "把标签页或会话拖到终端区域中间可单独显示；拖到两侧仍会分屏。"
-          },
-          {
-            "en": "Switching tabs is faster when the sidebar lists many projects.",
-            "zh-Hans": "侧栏项目较多时，切换标签页更快。"
           }
         ]
       }
