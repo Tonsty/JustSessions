@@ -3,7 +3,7 @@ import SwiftUI
 /// A project's ⋯ menu and + new session menu, which show while the pointer is over its row in Projects or its group's
 /// heading in Open tabs. A row mounts them only then, and `placeholder` keeps their room otherwise.
 struct ProjectHoverActions<MenuItems: View>: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let location: ProjectLocation
     let projectDisplayName: String
     let onNewSession: (ConversationProvider) -> Void

@@ -4,7 +4,7 @@ import SwiftUI
 /// so the path is typed and looked up on the host. When the host reports the folder missing, the sheet offers to
 /// create it there, so a typo is never created without a second look.
 struct AddProjectOnSSHHostSheet: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let host: SessionHost
     /// Called with the project's key once it is listed.
     let onAdded: (String) -> Void

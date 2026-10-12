@@ -7,7 +7,7 @@ import SwiftUI
 /// its terminal. Dragging either tab moves the whole split among the groups, which the tab bar moves, or on between
 /// windows, see `TabDragBetweenWindows`.
 struct TerminalSplitAcrossProjectsSection: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     @ObservedObject private var tabDragBetweenWindows = TabDragBetweenWindows.shared
     @Environment(\.tabHoverCards) private var hoverCards
     let split: TerminalSplit

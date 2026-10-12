@@ -248,7 +248,7 @@ private final class StoreAlertScenario {
 
 /// The main window's alert and deletion dialog, as ContentView applies them.
 private struct StoreAlertHost: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     @State var deletionRequest: SessionDeletionRequest?
 
     var body: some View {

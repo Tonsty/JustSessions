@@ -5,7 +5,7 @@ import SwiftUI
 /// is. End session doesn't ask first: choosing it from the row's menu is already deliberate, and the session can be
 /// resumed. Closing the tab alone, which can keep the CLI running, is left to the tab and Open tabs.
 struct SingleSessionContextMenu: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let conversation: Conversation
     let onRename: () -> Void
     let onDelete: () -> Void

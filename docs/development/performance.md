@@ -135,7 +135,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 22 | [The first right-click built the window's accessibility tree](#22-the-first-right-click-built-the-windows-accessibility-tree) | Measured, no change |
 | 23 | [Show N more under each project](#23-show-n-more-under-each-project) | Measured, no change |
 | 24 | [A growing Codex session's search text was read in full on every change](#24-a-growing-codex-sessions-search-text-was-read-in-full-on-every-change) | Done: issue #56 |
-| 25 | [What a tab switch still costs](#25-what-a-tab-switch-still-costs) | Partly done |
+| 25 | [What a tab switch still costs](#25-what-a-tab-switch-still-costs) | Done: #218 and this change |
 
 ### 1. Timestamp parsing
 
@@ -579,12 +579,32 @@ Apple M4 Pro, macOS 26.6.1, release builds, the session's own CLI working throug
 | --- | --- | --- |
 | Main 5949e7bc | 63 ms (44–68), 65 ms (58–69) | 96, 98 ms |
 | Without the tab bar's scroll to the selected tab (experiment) | 65 ms (50–69), 66 ms (58–71) | 98, 102 ms |
-| Tab project keys found once (this change) | 60 ms (56–65), 62 ms (48–66) | 92, 94 ms |
+| Tab project keys found once (#218) | 60 ms (56–65), 62 ms (48–66) | 92, 94 ms |
+| Without the sidebar at all (experiment, the most there is to gain) | 32 ms (31–34), 33 ms (31–35) | 60, 58 ms |
+| `@Observable` store alone | no change: the sidebar redrew as before (body counts below) | — |
+| `@Observable`, and the selection read only where it shows (this change) | 38 ms (31–44), 37 ms (32–45) | 68, 70 ms |
 
 - **The tab bar's scroll:** `ScrollViewCommitMutation` held about 18 ms of each click, under the tab bar's `scrollTo` of the selected tab. Without the scroll that time moved into the ordinary update and the click cost the same, so the scroll was only where an update already due ran; it was left as is.
 - **Project keys:** each project row's activity summary read every tab's `projectDirectoryKey`, which resolved symlinks on disk each time, 2–3 ms per click. A tab's folder and host never change, so the key is now found once when the tab opens, as a session's is; the activity summary and the key no longer show in the trace.
 
-**Limits:** these runs had 3 tabs, against 5 in item 21. A symlink changed while a tab is open no longer changes its project until the tab reopens, as for sessions, which keep the key found when they were listed.
+- **The sidebar:** with the sidebar replaced by an empty view, a click cost about half as much, so about half of each switch was the sidebar redrawing. Counting body runs per click (a log line at the start of 19 views' bodies, 20 clicks; `/tmp/perf-6/bodycount.py` and `bodies.sh`), every switch ran `ConversationBrowserView`'s body twice and with it the whole sidebar: about 140 project-section and 70 project-row bodies for some 35 projects, as each section takes closures, which SwiftUI cannot compare. `ConversationStore` was an `ObservableObject`, so any change redrew every view observing it, but making it `@Observable` alone changed none of these counts: the browser's body itself read the selected tab, for Back and Forward, text zoom, the tab commands, and the onboarding tips, and recording the switch in the Back and Forward history changed its state a second time. The sidebar's body read it to keep the shown session's row listed.
+
+**Change:** `ConversationStore` is `@Observable`, so a view redraws only when a property it read changes, and each read of the selection moved into a small modifier or view of its own: `WorkspaceNavigationControls` (Back and Forward, which now keeps the history), `SelectedTabTextZoomTarget`, `WorkspaceTabActionsValue` (the tab commands and ⌃Tab), `OnboardingTipsPresenter`, and `HiddenShownSessionReveal`. A switch now redraws only those, the tab bar's groups and tabs, the open tabs list, the rows of the sessions with tabs, and the detail view:
+
+| Body runs per click | Before | After |
+| --- | ---: | ---: |
+| `ConversationBrowserView`, `ConversationSidebarView` | 2 each | 0 |
+| `SidebarProjectSection` | 140 | 0 |
+| `SidebarProjectRow` | 70 | 0 |
+| `SidebarSessionRow`, the rows of sessions with tabs | 6 | 3 |
+| `TerminalTabGroupSection`, `TerminalTab` | 8 each | 5 each |
+| `WorkspaceDetailView` | 2 | 1 |
+
+A tab's own state, such as its CLI's activity or whether its CLI ended, lives on the tab, which is still an `ObservableObject`; views reading tabs through the store follow it through `tabStateRevision`, which every open tab's own change bumps. Selecting a tab sets no tab property to a value it already had, so this adds nothing to a switch. Other windows' notification bells read this window's terminals on screen directly, so a switch no longer bumps the other windows' revision, which redrew their browser and sidebar whenever one of this window's tabs waited for you. The store's two sidebar caches are not observed, as views write them while reading them.
+
+With an accessibility client (`/tmp/perf-switch.sh`, which presses the tabs through accessibility), main took a median of 99 and 96 ms per click's longest stall and 144 and 138 ms of main-thread time; this change, 66 and 67 ms and 112 ms. At rest with the CLIs working, the main thread was busy 2.9% of 20 s on main and 1.9% with this change. The same 13 clicks and shortcuts (tabs, ⌘1–⌘3, ⌘[ and ⌘], ⌘⇧[ and ⌘⇧], ⌃Tab) left the same tab selected after each in both builds.
+
+**Limits:** these runs had 3 tabs, against 5 in item 21; the sidebar's share grows with the projects it lists. What is left of a switch is mostly SwiftUI updating the tab bar, the open tabs list, and the terminal area. A symlink changed while a tab is open no longer changes its project until the tab reopens, as for sessions, which keep the key found when they were listed. A view that read a tab's state through something other than the store's tabs, and was redrawn before only because some other property of the store changed at the same time, would now miss the change; the tests and the checks above found none. Showing a session's conversation and going Back from it was not checked by hand: every listed session had a running tab.
 
 ## How to profile
 

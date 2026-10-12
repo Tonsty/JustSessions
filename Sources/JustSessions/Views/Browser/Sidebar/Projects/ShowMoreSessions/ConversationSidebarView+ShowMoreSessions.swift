@@ -65,3 +65,17 @@ extension ConversationSidebarView {
         return conversation?.isSubagent == true ? nil : conversation
     }
 }
+
+/// Lists the shown session's row when it is hidden below "Show N more". The session the window shows changes with every
+/// tab switch, so it is worked out in this modifier's body: a switch then redraws only this, rather than the sidebar
+/// and every project in it.
+struct HiddenShownSessionReveal: ViewModifier {
+    let hiddenShownSession: () -> ConversationSidebarView.HiddenShownSession?
+    let reveal: (ConversationSidebarView.HiddenShownSession?) -> Void
+
+    func body(content: Content) -> some View {
+        content.onChange(of: hiddenShownSession(), initial: true) { _, hiddenShownSession in
+            reveal(hiddenShownSession)
+        }
+    }
+}

@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Right-click menu for a sidebar row that is part of a multi-selection.
 struct SelectedSessionsContextMenu: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let selectedConversations: [Conversation]
     let onDelete: () -> Void
 

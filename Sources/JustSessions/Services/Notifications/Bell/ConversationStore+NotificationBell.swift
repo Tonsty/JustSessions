@@ -37,13 +37,6 @@ extension ConversationStore {
         windowRegistry.showSession(wantingAttention: entry.source, reattachingIn: self)
     }
 
-    /// Other windows' bells leave out this window's tabs on screen, so they look again when other terminals come on
-    /// screen here while one of this window's tabs waits on you.
-    func terminalsOnScreenChangedForNotificationBells() {
-        guard terminalSessions.contains(where: \.isWaitingForYou) else { return }
-        windowRegistry.tabsChanged(in: self)
-    }
-
     /// Nil unless the tab's CLI runs and waits on you.
     private func notificationBellEntry(for tab: TerminalSession) -> NotificationBellEntry? {
         guard tab.isRunning, let provider = tab.provider, let reason = WaitingForYou.reason(

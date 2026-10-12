@@ -1,4 +1,3 @@
-import Combine
 import Testing
 @testable import JustSessions
 
@@ -11,16 +10,14 @@ struct SidebarStoreObservationTests {
         let first = Conversation.fixture()
         let other = Conversation.fixture()
         store.replaceConversations(on: .thisMac, with: [first, other])
-        var publications = 0
-        let subscription = store.$conversations.dropFirst().sink { _ in publications += 1 }
-        var selections = 0
-        let selectionSubscription = store.$selectedTerminalID.dropFirst().sink { _ in selections += 1 }
+        let publications = StoreChangeCounter(store) { _ = $0.conversations }
+        let selections = StoreChangeCounter(store) { _ = $0.selectedTerminalID }
+        defer { publications.cancel(); selections.cancel() }
         store.selectTerminal(nil)
-        #expect(selections == 0)
+        #expect(selections.count == 0)
         store.replaceConversations(on: .thisMac, with: [first, other])
-        #expect(publications == 0)
+        #expect(publications.count == 0)
         store.replaceConversations(on: .thisMac, with: [first.withSuggestedTitle("Changed"), other])
-        #expect(publications == 1)
-        withExtendedLifetime((subscription, selectionSubscription)) {}
+        #expect(publications.count == 1)
     }
 }

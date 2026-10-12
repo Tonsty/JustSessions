@@ -107,7 +107,7 @@ struct SidebarInteractionMeasurements {
         perfReport(label, "total (median of 3)", median.total)
         perfReport(label, "longest main-thread gap (20 ms heartbeat)", median.longestGap)
         perfReport(label, "summed stall beyond heartbeat", median.stalled)
-        perfReport(label, "store objectWillChange events", median.storeChanges)
+        perfReport(label, "store changes observed", median.storeChanges)
         for (name, value) in median.extras { perfReport(label, name, value) }
         perfReport(label, "all 3 totals", runs.map { perfMilliseconds($0.total) }.joined(separator: ", "))
         #expect(runs.count == 3) // Record-only: the numbers above are the result.
@@ -263,9 +263,8 @@ final class SidebarPerfHarness {
     }
 
     func measure(_ scenario: SidebarPerfScenario) async throws -> SidebarInteractionMetrics {
-        var storeChanges = 0
-        let objectWillChange = store.objectWillChange.sink { _ in storeChanges += 1 }
-        defer { objectWillChange.cancel() }
+        let storeChangeCounter = StoreChangeCounter(store)
+        defer { storeChangeCounter.cancel() }
         let heartbeat = MainThreadPerfHeartbeat()
         heartbeat.start()
         let clock = ContinuousClock()
@@ -277,7 +276,7 @@ final class SidebarPerfHarness {
             total: total,
             longestGap: heartbeat.longestGap,
             stalled: heartbeat.stalledTime,
-            storeChanges: storeChanges,
+            storeChanges: storeChangeCounter.count,
             extras: extras
         )
     }
@@ -494,7 +493,7 @@ final class SidebarPerfControls: ObservableObject {
 /// ConversationBrowserView's layout and wiring without its Sparkle updater, which would check for updates inside
 /// the test process. The projects are filtered exactly as ConversationBrowserView filters them.
 private struct SidebarPerfBrowserHarness: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     @ObservedObject var controls: SidebarPerfControls
 
     var body: some View {

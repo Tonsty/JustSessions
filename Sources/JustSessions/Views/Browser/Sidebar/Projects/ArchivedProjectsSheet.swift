@@ -3,7 +3,7 @@ import SwiftUI
 /// Lists one host's archived projects so they can come back. Archiving only hides a project from the sidebar: its
 /// folder, session files, names, and pins all stay, and restoring it lists them again.
 struct ArchivedProjectsSheet: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let host: SessionHost
     @Environment(\.dismiss) private var dismiss
 

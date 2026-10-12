@@ -6,7 +6,7 @@ import SwiftUI
 /// tab of a split in its project's group. Rows, headings, and the space around them offer the menus of the tab bar's
 /// tabs, group labels, and space. A row drags onto the terminals as its tab would from the tab bar.
 struct SidebarOpenTabsView: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let searchText: String
     let onSelectTab: (UUID) -> Void
     /// Called once a tab dragged onto the terminals shows there.

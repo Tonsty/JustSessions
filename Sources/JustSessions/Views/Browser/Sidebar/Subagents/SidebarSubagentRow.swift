@@ -3,7 +3,7 @@ import SwiftUI
 /// A session a subagent ran in, under the session that started it. Clicking it reads it in the preview; it is never
 /// resumed, renamed, pinned, or deleted on its own. The age gives way to a ⋯ while the pointer is over the row.
 struct SidebarSubagentRow: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let row: SidebarSubagentRows.Row
     let isSelected: Bool
     let isExpanded: Bool

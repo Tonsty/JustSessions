@@ -8,7 +8,7 @@ import SwiftUI
 /// is its group label's in the tab bar: what a project row's offers for the folder, leaving out what arranges projects
 /// in the sidebar, then collapsing groups and closing the group's tabs.
 struct SidebarOpenTabGroupHeading: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let projectName: String
     let location: ProjectLocation
     let color: ThemeColor

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SidebarProjectSection: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let project: ProjectConversationGroup
     let parentLabel: String?
     let pinDragging: SidebarPinDragging

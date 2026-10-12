@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Project selection and disclosure have separate controls so expanding a project preserves a multi-selection.
 struct SidebarProjectRow: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let project: ProjectConversationGroup
     let parentLabel: String?
     let isExpanded: Bool

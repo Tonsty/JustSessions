@@ -110,14 +110,13 @@ struct BulkSessionDeletionTests {
         store.deleteConversations(onDevbox + onBuildbox)
         #expect(store.deletionProgress.totalCount == 5)
         #expect(store.deletionProgress.completedCount == 0)
-        var storeChangeCount = 0
-        let storeChanges = store.objectWillChange.sink { _ in storeChangeCount += 1 }
+        let storeChanges = StoreChangeCounter(store)
         defer { storeChanges.cancel() }
         try await expectEventually { hosts.totalAttempts == 2 }
 
         #expect(store.deletionProgress.completedCount == 3)
         #expect(store.deletionProgress.totalCount == 5)
-        #expect(storeChangeCount == 0)
+        #expect(storeChanges.count == 0)
         hosts.releaseHeldAttempt()
         try await expectEventually { !store.isDeletingSessions }
 
@@ -201,15 +200,14 @@ struct BulkSessionDeletionTests {
             store.rename(conversation, to: "Custom \(conversation.suggestedTitle)")
             store.setPinned(true, conversation: conversation)
         }
-        var storeChangeCount = 0
-        let storeChanges = store.objectWillChange.sink { _ in storeChangeCount += 1 }
+        let storeChanges = StoreChangeCounter(store)
         defer { storeChanges.cancel() }
 
         store.deleteConversations(deleted)
         try await expectEventually { !store.isDeletingSessions }
 
         // One change to start, a few per group of deleted sessions, and one to end; not about three per session.
-        #expect(storeChangeCount <= 20)
+        #expect(storeChanges.count <= 20)
         #expect(store.conversations.count == 1_850)
         #expect(!deleted.contains { sandbox.fileExists(for: $0) })
         #expect(store.titleAliases.customTitlesByConversationID == [kept.id: "Custom Session 1999"])

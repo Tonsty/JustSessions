@@ -6,7 +6,7 @@ import SwiftUI
 /// windows, see `TabDragBetweenWindows`, which also draws tabs dragged in from another window among the group's. The
 /// label drags the whole group, which the tab bar moves.
 struct TerminalTabGroupSection: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     @ObservedObject private var tabDragBetweenWindows = TabDragBetweenWindows.shared
     @Environment(\.tabHoverCards) private var hoverCards
     let group: TerminalTabGroup<TerminalSession>

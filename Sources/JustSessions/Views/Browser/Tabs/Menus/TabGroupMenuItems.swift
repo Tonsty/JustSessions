@@ -4,7 +4,7 @@ import SwiftUI
 /// offers for its folder, starting with New session, whose tab opens at the end of the group; collapsing the group or
 /// every group; then closing the group's tabs.
 struct TabGroupMenuItems: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let projectKey: String
     let projectDisplayName: String
     let isCollapsed: Bool

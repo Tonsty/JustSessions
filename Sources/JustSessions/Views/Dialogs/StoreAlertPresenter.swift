@@ -3,7 +3,7 @@ import SwiftUI
 /// Shows the store's alert: its title and message, OK, and Try Again when the alert offers it. Each button, and
 /// the alert's own closing, dismisses only the alert it belongs to, so a newer one set meanwhile still shows.
 private struct StoreAlertPresenter: ViewModifier {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
 
     func body(content: Content) -> some View {
         let shownAlert = store.alert

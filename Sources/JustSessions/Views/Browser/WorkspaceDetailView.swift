@@ -13,7 +13,7 @@ import SwiftUI
 /// `TerminalSplitDropHighlight`.
 /// The tab bar runs up into the title bar beside the window buttons; with no tabs open, the title bar stays clear.
 struct WorkspaceDetailView: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let sessionSelection: SessionMultiSelection
     var transcriptMatchReveal: TranscriptMatchReveal? = nil
     let isSidebarHidden: Bool

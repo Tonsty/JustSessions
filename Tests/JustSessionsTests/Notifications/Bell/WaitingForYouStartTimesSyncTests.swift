@@ -32,12 +32,11 @@ struct WaitingForYouStartTimesSyncTests {
         try FileManager.default.createDirectory(at: registry.sessionsDirectory, withIntermediateDirectories: true)
         try #"{"sessionId":"\#(conversation.sessionID)","status":"waiting","waitingFor":"input needed"}"#
             .write(to: registry.sessionsDirectory.appendingPathComponent("\(cli.processIdentifier).json"), atomically: true, encoding: .utf8)
-        var publications = 0
-        let subscription = store.$waitingForYouStartTimes.dropFirst().sink { _ in publications += 1 }
-        defer { subscription.cancel() }
+        let publications = StoreChangeCounter(store) { _ = $0.waitingForYouStartTimes }
+        defer { publications.cancel() }
 
         await store.synchronizeCLIActivity(claudeRegistry: registry)
-        #expect(publications == 1)
+        #expect(publications.count == 1)
         let entry = try #require(store.notificationBellEntries.first)
         #expect(entry.source == .detachedTmux(conversationID: conversation.id))
         #expect(entry.reason == .needsInput(reason: "input needed"))
@@ -45,7 +44,7 @@ struct WaitingForYouStartTimesSyncTests {
 
         await store.synchronizeCLIActivity(claudeRegistry: registry)
         await store.synchronizeCLIActivity(claudeRegistry: registry)
-        #expect(publications == 1)
+        #expect(publications.count == 1)
         #expect(store.notificationBellEntries.first?.waitingSince == entry.waitingSince)
     }
 }

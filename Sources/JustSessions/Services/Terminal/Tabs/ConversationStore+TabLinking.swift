@@ -12,7 +12,7 @@ extension ConversationStore {
         // Sidebar rows look up open terminals through the store, which does not see a tab's own changes; other
         // windows' rows look up this window's.
         persistOpenTabs()
-        objectWillChange.send()
+        noteTabStateChanged()
         windowRegistry.tabsChanged(in: self)
     }
 }
