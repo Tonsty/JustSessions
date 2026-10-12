@@ -69,19 +69,21 @@ struct GhosttyAppearanceConfiguration {
         }
     }
 
-    /// Keys Ghostty would otherwise send differently from a SwiftTerm terminal. No app menu uses them.
-    /// - Command-Left and Option-Left send Esc b, and Command-Right and Option-Right Esc f, which move a shell's cursor
-    ///   a word back or forward. Ghostty would send them with modifiers, as `CSI 1;9 D` and `CSI 1;3 D`.
-    /// - Command-Delete, Command-Up, and Command-Down send nothing, since SwiftTerm handles none of the commands macOS
-    ///   gives them. Ghostty would send DEL, and `CSI 1;9 A` and `CSI 1;9 B`.
+    /// Keys Ghostty would otherwise send differently from a SwiftTerm terminal.
+    /// - Command-Left, Command-Right, Command-Delete, and Command-Z send `TerminalEditingKey`'s control keys. Ghostty
+    ///   would send the arrows with Command, as `CSI 1;9 D`, and DEL for Command-Delete. The view takes a key bound here
+    ///   before the app's menus, so Edit → Undo doesn't take Command-Z.
+    /// - Option-Left sends Esc b, and Option-Right Esc f, which move a shell's cursor a word back or forward. Ghostty
+    ///   would send them with Option, as `CSI 1;3 D`.
+    /// - Command-Up and Command-Down send nothing, since SwiftTerm handles neither of the commands macOS gives them.
+    ///   Ghostty would send `CSI 1;9 A` and `CSI 1;9 B`.
     /// Page Up and Page Down stay unbound: SwiftTerm scrolls with them on the main screen but sends them to the program
     /// on the alternate screen, and a Ghostty binding would take them on both.
-    private static let swiftTermKeybinds = [
-        "super+arrow_left=esc:b",
-        "super+arrow_right=esc:f",
+    private static let swiftTermKeybinds = TerminalEditingKey.allCases.map { editingKey in
+        "\(editingKey.ghosttyTrigger)=\(GhosttyTabTerminalView.textAction(typing: editingKey.controlCharacter))"
+    } + [
         "alt+arrow_left=esc:b",
         "alt+arrow_right=esc:f",
-        "super+backspace=ignore",
         "super+arrow_up=ignore",
         "super+arrow_down=ignore",
     ]
