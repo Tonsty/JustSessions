@@ -11,9 +11,11 @@ struct TranscriptToolCallsView: View {
         DisclosureGroup(isExpanded: $isExpanded) {
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(Array(summaries.enumerated()), id: \.offset) { segmentIndex, summary in
-                    TranscriptSearchableText(source: AttributedString(summary), segmentIndex: segmentIndex, fontSize: 12, isMonospaced: true, isSecondary: true)
-                        .font(ThemeFont.callout.monospaced())
-                        .textSelection(.enabled)
+                    // ThemeFont.callout's size, in monospace.
+                    TranscriptTextBlock(
+                        source: AttributedString(summary), segmentIndex: segmentIndex,
+                        style: TranscriptTextStyle(fontSize: 12, isMonospaced: true, lineSpacing: 0, tone: .secondary), copyRole: .line
+                    )
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }

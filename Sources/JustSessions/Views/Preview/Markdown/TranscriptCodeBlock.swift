@@ -28,10 +28,10 @@ struct TranscriptCodeBlock: View {
             .padding(.vertical, 8)
             ThemeDivider()
             ScrollView(.horizontal) {
-                TranscriptSearchableText(source: AttributedString(text), segmentIndex: segmentIndex, fontSize: fontSize - 1, isMonospaced: true, lineSpacing: 3)
-                    .font(.system(size: fontSize - 1, design: .monospaced))
-                    .lineSpacing(3)
-                    .textSelection(.enabled)
+                TranscriptTextBlock(
+                    source: AttributedString(text), segmentIndex: segmentIndex,
+                    style: TranscriptTextStyle(fontSize: fontSize - 1, isMonospaced: true, lineSpacing: 3)
+                )
                     .fixedSize(horizontal: true, vertical: true)
                     .padding(12)
             }
