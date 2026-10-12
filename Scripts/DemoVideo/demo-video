@@ -1,0 +1,53 @@
+#!/bin/zsh
+# demo-video <command>: records and edits the homepage demo video. docs/development/demo-video.md has the workflow.
+set -e
+source ${0:A:h}/settings.sh
+tools=$DEMO_VIDEO_TOOLS
+
+edit_step() { (cd $tools/editing && $DEMO_WORK/.venv/bin/python -m "$@") }
+
+setup_step() {
+  case $1 in
+    app) $tools/environment/build_demo_app.sh && $tools/recording/build_recording_tools.sh ;;
+    home) (cd $tools/fixtures && python3 local_sessions.py > /dev/null && python3 cli_configs.py) ;;
+    remote) $tools/environment/remote/setup_remote_host.sh ;;
+    editing) $tools/editing/setup_editing.sh ;;
+    sessions) $tools/fixtures/other_cli_sessions.sh ;;
+    *) echo "unknown setup step: $1"; exit 1 ;;
+  esac
+}
+
+case $1 in
+  setup)
+    if [[ -n $2 ]]; then setup_step $2; else for step in app home remote editing sessions; do setup_step $step; done; fi ;;
+  services) $tools/environment/services.sh $2 ;;
+  reset) $tools/recording/reset_demo.sh ;;
+  record)
+    if [[ $2 == all ]]; then $tools/recording/record_all_takes.sh; else $tools/recording/record_take.sh $2; fi ;;
+  clicks) edit_step analysis.find_click_positions ;;
+  voiceover) shift; edit_step voiceover.make_voiceover "$@" ;;
+  render) $tools/editing/make_video.sh ;;
+  stills) shift; edit_step render.preview_stills "$@" ;;
+  poster) edit_step render.poster_frame $2 ${3:A} ;;
+  window-still) edit_step delivery.window_still $2 ${3:A} ;;
+  web) $tools/editing/delivery/web_encode.sh ${2:A} ;;
+  teardown) $tools/environment/teardown.sh ;;
+  *)
+    cat <<USAGE
+usage: demo-video <command>
+
+  setup [app|home|remote|editing|sessions]   prepare this Mac and the VM; no step runs all five
+  services start|stop|status                 the canned model server and the loopback forward
+  reset                                      put the app and every sample session back to the start
+  record <take>|all                          record one take from recording/takes, or all five in order
+  clicks                                     find the pointer at every click in the takes
+  voiceover [voice] [speed] [line ids]       speak editing/voiceover/lines.json with Kokoro
+  render                                     build the master in \$DEMO_WORK/output
+  stills <seconds>...                        render single frames to check framing
+  poster <seconds> <output.jpg>              a frame without its caption, for the homepage poster
+  window-still <seconds> <output.jpg>        the app window alone at full resolution, for the social card
+  web <output.mp4>                           the homepage's smaller encode of the master
+  teardown                                   undo setup on this Mac and the VM; keeps \$DEMO_WORK
+USAGE
+    [[ -z $1 || $1 == help ]] || exit 1 ;;
+esac

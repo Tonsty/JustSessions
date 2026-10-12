@@ -1,0 +1,13 @@
+[
+  {"do": "activate"},
+  {"do": "wait", "seconds": 0.8},
+  {"do": "mark", "text": "select-codex-tab"},
+  {"do": "click", "find": "prompt, Split settings page", "role": "AXButton", "speed": 0.6},
+  {"do": "wait", "seconds": 1.4},
+  {"do": "mark", "text": "right-click-claude-tab"},
+  {"do": "rightclick", "find": "prompt, Fix flaky checkout test", "role": "AXButton", "speed": 0.6},
+  {"do": "wait", "seconds": 0.8},
+  {"do": "mark", "text": "new-split"},
+  {"do": "click", "find": "New split view with current tab", "scope": "app", "role": "AXMenuItem", "speed": 0.5},
+  {"do": "wait", "seconds": 3.4}
+]

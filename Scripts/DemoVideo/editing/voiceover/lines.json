@@ -1,0 +1,18 @@
+[
+  {"id": "s0-title", "text": "All your coding agents, in one native Mac app."},
+  {"id": "s1-sidebar", "text": "Every session, grouped by project."},
+  {"id": "s1-resume", "text": "Read any conversation, then resume it in its real CLI."},
+  {"id": "s1-codex", "text": "Codex."},
+  {"id": "s1-opencode", "text": "OpenCode.", "say": "Open Code."},
+  {"id": "s1-pi", "text": "Pi."},
+  {"id": "s2-search", "text": "Search every message."},
+  {"id": "s2-resume", "text": "Then jump right back in."},
+  {"id": "s3-tabs", "text": "Tabs, like a browser."},
+  {"id": "s3-split", "text": "Two agents, side by side."},
+  {"id": "s4-window", "text": "Drag a tab out, and it's a new window. Nothing restarts."},
+  {"id": "s5-ssh", "text": "Your servers too. SSH sessions sit right next to local ones."},
+  {"id": "s5-job", "text": "Start a long job."},
+  {"id": "s5-close", "text": "Close the tab, and it keeps running on the server."},
+  {"id": "s5-back", "text": "Click, and you're back."},
+  {"id": "s6-end", "text": "No account. No import. Nothing extra. Just sessions."}
+]

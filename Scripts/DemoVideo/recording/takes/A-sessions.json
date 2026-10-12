@@ -1,0 +1,20 @@
+[
+  {"do": "activate"},
+  {"do": "move", "x": 900, "y": 640, "speed": 0.1},
+  {"do": "wait", "seconds": 1.2},
+  {"do": "mark", "text": "click-claude-row"},
+  {"do": "click", "find": "Fix flaky checkout test, Claude Code", "role": "AXButton", "anchor": "left", "dx": 70, "speed": 0.75},
+  {"do": "wait", "seconds": 2.4},
+  {"do": "mark", "text": "click-resume"},
+  {"do": "click", "find": "Resume", "role": "AXButton", "speed": 0.7},
+  {"do": "wait", "seconds": 3.2},
+  {"do": "mark", "text": "resume-codex"},
+  {"do": "doubleclick", "find": "Split settings page, Codex", "role": "AXButton", "anchor": "left", "dx": 70, "speed": 0.6},
+  {"do": "wait", "seconds": 2.6},
+  {"do": "mark", "text": "resume-opencode"},
+  {"do": "doubleclick", "find": "E2E tests for sign-in, OpenCode", "role": "AXButton", "anchor": "left", "dx": 70, "speed": 0.45},
+  {"do": "wait", "seconds": 2.6},
+  {"do": "mark", "text": "resume-pi"},
+  {"do": "doubleclick", "find": "README install steps, Pi", "role": "AXButton", "anchor": "left", "dx": 70, "speed": 0.45},
+  {"do": "wait", "seconds": 2.8}
+]

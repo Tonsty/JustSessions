@@ -21,7 +21,7 @@ Idle time is cut, and some segments play faster, at 1.15× to 3.2×. Camera move
 - **Sound effects:** synthesized.
 - **Loudness:** the mix is mastered to -16 LUFS.
 
-The editing project and raw takes live outside the repository, in an ignored `dist/` folder. Only the finished video and poster are published.
+The scripts that record and edit it are in `Scripts/DemoVideo/`; see [Demo video](../../docs/development/demo-video.md). Raw takes and renders stay in the ignored `dist/demo-video/`. Only the finished video and poster are published.
 
 ## Chapters
 

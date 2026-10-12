@@ -1,0 +1,17 @@
+[
+  {"do": "activate"},
+  {"do": "wait", "seconds": 0.8},
+  {"do": "mark", "text": "open-search"},
+  {"do": "click", "find": "Search projects and sessions", "role": "AXButton", "speed": 0.7},
+  {"do": "wait", "seconds": 0.5},
+  {"do": "type", "text": "429", "cps": 7},
+  {"do": "wait", "seconds": 1.8},
+  {"do": "mark", "text": "click-match"},
+  {"do": "click", "find": "Rate-limit uploads, Claude Code", "role": "AXButton", "dy": 12, "speed": 0.6},
+  {"do": "wait", "seconds": 2.8},
+  {"do": "mark", "text": "click-resume"},
+  {"do": "click", "find": "Resume", "role": "AXButton", "speed": 0.7},
+  {"do": "wait", "seconds": 3.4},
+  {"do": "click", "find": "Close search", "role": "AXButton", "speed": 0.5},
+  {"do": "wait", "seconds": 1.0}
+]

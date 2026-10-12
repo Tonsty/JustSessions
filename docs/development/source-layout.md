@@ -64,6 +64,7 @@ Application paths below are relative to `Sources/JustSessions/`. Tests live in `
 - `Scripts/Release/`: release checks, such as opening the packaged app without the build machine's resource bundles.
 - `Scripts/Version/`: the version a local build shows, read from `git describe`.
 - `Scripts/Tmux/`: pinned source builds, license collection, and relocated runtime verification for app packaging and CI.
+- `Scripts/DemoVideo/`: the homepage demo video: the isolated demo app and its sample sessions, the scripted takes and their recorder, and the edit. See [Demo video](demo-video.md).
 - `Services/Tmux/`: tmux session names, and keeping a CLI running after its tab closes, on any host.
 - `Services/Tmux/ThisMac/`: this Mac's own tmux server, its version check, finding each tab's CLI process, and keeping a failed CLI's output and exit status in its tab.
 - `Services/Terminal/`: active pseudo-terminal sessions and process lifecycle. `TabTerminalView` is what a tab asks of its terminal, whichever engine draws it.
