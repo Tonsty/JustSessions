@@ -2348,6 +2348,16 @@
         }
       }
     },
+    "Delete back to the start of the line": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除到这一行的开头"
+          }
+        }
+      }
+    },
     "Delete session": {
       "localizations": {
         "zh-Hans": {
@@ -5833,6 +5843,16 @@
         }
       }
     },
+    "Start or end of the line you're typing": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移到正在输入的这一行的开头或结尾"
+          }
+        }
+      }
+    },
     "Start session": {
       "localizations": {
         "zh-Hans": {
@@ -6589,6 +6609,16 @@
         }
       }
     },
+    "Undo your last edit to the line, in Claude Code and shells": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Claude Code 和 shell 中撤销对这一行的上一次编辑"
+          }
+        }
+      }
+    },
     "Unknown error": {
       "localizations": {
         "zh-Hans": {
@@ -6978,36 +7008,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "⌘ 单击可多选会话，一次全部继续或删除。"
-          }
-        }
-      }
-    },
-    "Start or end of the line you're typing": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "移到正在输入的这一行的开头或结尾"
-          }
-        }
-      }
-    },
-    "Delete back to the start of the line": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "删除到这一行的开头"
-          }
-        }
-      }
-    },
-    "Undo your last edit to the line": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "撤销对这一行的上一次编辑"
           }
         }
       }

@@ -1254,8 +1254,8 @@
 	<string>**分支** 从副本开新会话，原会话保持不变。</string>
 	<key>Two tabs side by side</key>
 	<string>两个标签页并排显示</string>
-	<key>Undo your last edit to the line</key>
-	<string>撤销对这一行的上一次编辑</string>
+	<key>Undo your last edit to the line, in Claude Code and shells</key>
+	<string>在 Claude Code 和 shell 中撤销对这一行的上一次编辑</string>
 	<key>Unknown error</key>
 	<string>未知错误</string>
 	<key>Unpin project</key>

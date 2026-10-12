@@ -1232,8 +1232,8 @@
 	<string>Try another direction without touching the original: **Branch** a session.</string>
 	<key>Two tabs side by side</key>
 	<string>Two tabs side by side</string>
-	<key>Undo your last edit to the line</key>
-	<string>Undo your last edit to the line</string>
+	<key>Undo your last edit to the line, in Claude Code and shells</key>
+	<string>Undo your last edit to the line, in Claude Code and shells</string>
 	<key>Unknown error</key>
 	<string>Unknown error</string>
 	<key>Unpin project</key>
