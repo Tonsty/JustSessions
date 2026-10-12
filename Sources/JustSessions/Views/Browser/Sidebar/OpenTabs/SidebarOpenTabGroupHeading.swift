@@ -86,6 +86,9 @@ struct SidebarOpenTabGroupHeading: View {
                 .opacity(hovered ? 0 : 1)
             ProjectHoverActions<EmptyView>.placeholder
                 .font(ThemeFont.body)
+        }
+        // Over the placeholder's room, so the menus never take part in the layout; see `SidebarProjectRow`.
+        .overlay(alignment: .trailing) {
             if hovered {
                 ProjectHoverActions(store: store, location: location, projectDisplayName: projectName, onNewSession: onNewSession) {
                     menuItems
