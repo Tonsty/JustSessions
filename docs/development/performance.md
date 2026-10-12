@@ -134,6 +134,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 21 | [Every sidebar row hosted its hover menus](#21-every-sidebar-row-hosted-its-hover-menus) | Done: #199 |
 | 22 | [The first right-click built the window's accessibility tree](#22-the-first-right-click-built-the-windows-accessibility-tree) | Measured, no change |
 | 23 | [Show N more under each project](#23-show-n-more-under-each-project) | Measured, no change |
+| 24 | [A growing Codex session's search text was read in full on every change](#24-a-growing-codex-sessions-search-text-was-read-in-full-on-every-change) | Done: issue #56 |
 
 ### 1. Timestamp parsing
 
@@ -536,6 +537,37 @@ These scenarios expand projects with a search, which lists every match, so they 
 
 **Conclusion:** no measurable change.
 
+### 24. A growing Codex session's search text was read in full on every change
+
+**Evidence (issue #56):** a changed session misses the search-text cache, and `SessionMessageTextReader` read it from its first page to its last, then rewrote its cache file. A live Codex session changes with every record the CLI writes. A first attempt (`3e2cace`, branch `issue-56-incremental-search-text`) wasn't merged: it hashed every byte twice, replaced the page reader with a slower one, and resumed at the start of a final page that, at 5,000 entries and 64 MiB, was usually the whole session.
+
+**Change:** a Codex session read again after a change saves its text with a resume state: the file's device and inode, how many bytes the text came from, a SHA-256 of those bytes, and the final page's first record, its byte offset, and how many entries came before it. When the file has only grown, `CodexSessionTextResumer` reads from the final page's start to the end into memory once, hashes the bytes before it in 1 MiB chunks, checks the saved digest, and parses only the final page onwards with the same `TranscriptPageReader` and `TranscriptRecordDecoder.pageEntries` as a full read. Every byte is read once, so the digest and the parsed records describe the same bytes while the CLI writes. Any other change, such as an amended earlier record, a same-size rewrite, truncation, or a replaced file, or more than 64 MiB from the final page's start, reads the session in full.
+
+- **Pages:** Codex search pages are now 256 entries, 4,096 records, and 8 MiB, so the final page is small. Full and resumed reads use the same limits, so tool calls merge into the same entries either way. Other providers keep 5,000 entries, 50,000 records, and 64 MiB: the smaller pages made reading a 10,000-message OpenCode session 312–317 → 340–355 ms (`OpenCodeTranscriptPagingMeasurements`).
+- **When state is kept:** a session's first read keeps none, so indexing many sessions costs no hashing. The state is kept only if the file is unchanged, modification time included, from before the read to after the hash.
+- **Cache:** the cache file starts with a small header, so a stale, other-version, or other-session file is turned down without decoding its text. The format went to version 2, so every session is read once more after the update.
+
+`IncrementalMessageSearchMeasurements` (`JUSTSESSIONS_PERF=1 swift test -c release --filter IncrementalMessageSearchMeasurements`) runs the baseline and the new path in the same build, alternating, on two copies of each log. The baseline is `main` before the change: a full read on every change, in 5,000-entry pages, saved in the first cache format. Each operation runs three times per process. The table shows the median of three processes' medians, wall time in ms, baseline → resumable. CPU time was within 2% of wall time.
+
+| Operation | 10 MiB | 100 MiB | 500 MiB | Realistic, 27 MiB |
+| --- | --- | --- | --- | --- |
+| Cold extraction | 14.2 → 14.4 | 138 → 139 | 699 → 718 | 300 → 297 |
+| Unchanged hit | 0.1 → 0.1 | 0.4 → 0.4 | 1.9 → 1.9 | 5.3 → 5.3 |
+| First change: full read, then the hash | 14.2 → 18.8 | 137 → 179 | 702 → 905 | 301 → 307 |
+| One-record append | 14.4 → 7.1 | 137 → 44 | 688 → 199 | 298 → 36 |
+| 10 consecutive appends, total | 144 → 70 | 1,373 → 444 | 6,818 → 1,988 | 2,983 → 365 |
+| Earlier amendment plus growth, rebuilt | 14.7 → 22.9 | 137 → 217 | 671 → 1,050 | 301 → 321 |
+
+For a one-record append, source bytes read went from 21.0 to 10.5, 210 to 105, 1,049 to 525, and 56.7 to 28.4 MB. The baseline reads every byte twice, once to index the lines and once to decode them; a resumed read hashes or parses each byte once. Records decoded went from 2,715 to 550, 27,096 to 1,129, 135,327 to 1,172, and 10,727 to 629. Memory during a resumed append rose by up to 4.4 MiB, the tail held in memory, against at most 1.6 MiB. The cache file is still rewritten in full each time; the header adds 130–340 bytes. An unchanged hit reads no source bytes and writes nothing in either path.
+
+The synthetic logs are the first attempt's: one message, then groups of one message and 128 hidden 3.9 KB events. The realistic log is generated in the shape of a real 27 MiB rollout: 28.3 MB, 10,722 records, mostly tool calls, their outputs, and events, about 2.6 KiB a record. Its search has 1,587 entries, against 1,583 in the larger pages, which merged more tool calls. Each run of the new path was checked against a clean full read: entry IDs, segments, and the first match of seven queries, with Chinese, accents, emoji, and Markdown bold.
+
+**Limits of the result:**
+- **Measurement:** generated logs, Codex only, one Mac with a warm page cache: Apple M4 Pro (12 cores), 24 GB, macOS 26.6.1, Swift 6.4. The machine wasn't isolated; the load average was 3–8 from other work. One 500 MiB cold run took 851 → 1,064 ms with I/O waits; the medians leave it out.
+- **The hash limits the gain:** at 100 and 500 MiB, a resumed append is mostly hashing the saved bytes at about 3.4 GB/s. It is 3.1x and 3.5x faster, not in proportion to the appended record. At 10 MiB it is 2.0–2.2x.
+- **Costs:** the first change after a session's first read pays a full hash on top of the full read: about 2% on the realistic log, and about 30% on the synthetic logs, which have little to parse. An amendment pays for the failed resume and the rebuild's hash: about 7% and 57%. Codex appends; it doesn't amend.
+- **Smaller pages:** pages of 128 entries, 2,048 records, and 4 MiB made realistic appends 36 → 24 ms, but cold extraction at 100 MiB 5% slower, so they weren't taken.
+
 ## How to profile
 
 Attach to a running copy, so you keep your windows and sessions. Record in chunks, so you can analyze finished chunks while still using the app:
@@ -554,6 +586,7 @@ Or open the trace in Instruments. Keep these points in mind:
 - **Test with an accessibility client running.** Many users run Raycast or a window manager, and SwiftUI's accessibility work only happens while one is connected.
 - **Measurement suites:** the suites in `Tests/JustSessionsTests/Performance/` record only with `JUSTSESSIONS_PERF=1`; see their doc comments.
   - `MessageSearchReadingMeasurements`: reading generated sessions with images for message search, decoding the images and leaving them undecoded.
+  - `IncrementalMessageSearchMeasurements`: a growing Codex session's search text, read in full on every change against resumed, for 10, 100, and 500 MiB logs and a realistic 27 MiB one.
   - `SharedWorkspaceReadMeasurements`: isolated and app-shared message indexing and full discovery with one, two, and four workspace consumers.
   - `SidebarInteractionMeasurements`: sidebar interactions.
   - `TerminalVisibilityMeasurements`: hidden terminals.
