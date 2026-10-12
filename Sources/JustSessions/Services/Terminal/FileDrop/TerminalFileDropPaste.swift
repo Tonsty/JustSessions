@@ -28,8 +28,8 @@ enum TerminalFileDropPaste {
     }
 
     /// `CSI 200 ~` and `CSI 201 ~`, which SwiftTerm's own paste sends around the text.
-    private static let bracketedPasteStart: [UInt8] = Array("\u{1B}[200~".utf8)
-    private static let bracketedPasteEnd: [UInt8] = Array("\u{1B}[201~".utf8)
+    static let bracketedPasteStart: [UInt8] = Array("\u{1B}[200~".utf8)
+    static let bracketedPasteEnd: [UInt8] = Array("\u{1B}[201~".utf8)
     private static let asciiCharactersTypedAsIs = CharacterSet(
         charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/._-+,:@%"
     )

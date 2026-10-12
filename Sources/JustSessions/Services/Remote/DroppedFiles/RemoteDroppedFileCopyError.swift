@@ -28,9 +28,9 @@ enum RemoteDroppedFileCopyError: LocalizedError, Equatable {
         case .couldNotWrite(let host, let fileName):
             "\(fileName) couldn't be written on \(host). Its disk may be full."
         case .incomplete(let host, let fileName):
-            "Only part of \(fileName) reached \(host). Drop it again."
+            "Only part of \(fileName) reached \(host). Drop or paste it again."
         case .stalled(let host):
-            "\(host) stopped taking the file. Check the connection, then drop it again."
+            "\(host) stopped taking the file. Check the connection, then drop or paste it again."
         case .failed(let host, let output):
             "Copying to \(host) failed: \(output)"
         }

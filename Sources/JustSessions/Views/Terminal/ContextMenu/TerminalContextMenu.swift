@@ -32,7 +32,7 @@ struct TerminalContextMenu {
     }
 
     /// Copy needs a selection, the terminal's or ⌘A's of the CLI's prompt (`TerminalPromptSelection`). Paste needs text
-    /// on the clipboard, the only kind SwiftTerm pastes. Select All selects all of the terminal.
+    /// or an image on the clipboard; see `TerminalImagePaste`. Select All selects all of the terminal.
     private var textEditingItems: [NSMenuItem] {
         let terminalView = tab.terminalView
         let hasSelection = terminalView.selectionActive || terminalView.promptSelection.isActive
@@ -44,6 +44,7 @@ struct TerminalContextMenu {
                 title: localized("Paste"),
                 systemImage: "doc.on.clipboard",
                 isEnabled: NSPasteboard.general.availableType(from: [.string]) != nil
+                    || terminalView.imagePaste.clipboardHoldsOnlyAnImage
             ) {
                 terminalView.paste(terminalView)
             },

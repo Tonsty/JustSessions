@@ -34,6 +34,8 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     }
     /// See `TabTerminalView.copyDroppedFilesToHost`.
     var copyDroppedFilesToHost: ((_ fileURLs: [URL]) -> Bool)?
+    /// See `GhosttyTabTerminalView+ImagePaste`.
+    let imagePaste = TerminalImagePaste()
     /// ⌘A's selection of the CLI's prompt; see `GhosttyTabTerminalView+PromptSelection`.
     lazy var promptSelection = TerminalPromptSelection(terminal: self)
     private(set) var marginColor = NSColor.textBackgroundColor
@@ -71,8 +73,9 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     /// The report owed after a background query that Ghostty has been handed but not answered yet; see
     /// `sendToProcess(_:)`.
     private var themeReportAfterBackgroundAnswer: String?
-    /// The screen and keyboard modes the process's output last set, for Page Up and Page Down.
-    private var pageKeyModeScanner = TerminalPageKeyModeScanner()
+    /// The screen, keyboard, and paste modes the process's output last set, for Page Up and Page Down and for an
+    /// image pasted on a tab on this Mac.
+    private var outputModeScanner = TerminalOutputModeScanner()
 
     override convenience init(frame: NSRect) {
         self.init(frame: frame, appearanceStore: .shared, themeStore: .shared)
@@ -183,7 +186,7 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
             sendAsTyped(ShiftReturnKey.csiUSequence)
             return
         }
-        if let pageKey = PageKey(event), !hasMarkedText(), !pageKeyModeScanner.hasKittyKeyboardFlags {
+        if let pageKey = PageKey(event), !hasMarkedText(), !outputModeScanner.hasKittyKeyboardFlags {
             pressPageKey(pageKey)
             return
         }
@@ -195,7 +198,7 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     /// Ghostty would always send it, with Shift when held. Under the kitty protocol a SwiftTerm tab sends the key,
     /// encoded under it, on either screen, so then this tab leaves the key to Ghostty, which also sends it encoded.
     private func pressPageKey(_ pageKey: PageKey) {
-        if pageKeyModeScanner.isOnAlternateScreen {
+        if outputModeScanner.isOnAlternateScreen {
             sendAsTyped(pageKey.sequence)
         } else {
             performBindingAction(pageKey.scrollAction)
@@ -252,7 +255,7 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
             // The query was in this output. Every report from one call is the same, so any of them can be the owed one.
             themeReportAfterBackgroundAnswer = themeReports.popLast()
         }
-        pageKeyModeScanner.scan(bytes)
+        outputModeScanner.scan(bytes)
         inMemorySession.receive(Data(bytes))
         outputBackpressure.outputPassedToGhostty(byteCount: bytes.count)
         themeReports.forEach(sendTerminalReport)
@@ -262,7 +265,10 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     var reportsThemeAfterNextBackgroundQuery: Bool { themeReporting.reportsAfterNextBackgroundQuery }
 
     /// The process's output last switched to the alternate screen, where a full-screen program draws.
-    var isOnAlternateScreen: Bool { pageKeyModeScanner.isOnAlternateScreen }
+    var isOnAlternateScreen: Bool { outputModeScanner.isOnAlternateScreen }
+
+    /// The process's output last turned bracketed paste on, so the process can tell a paste from typing.
+    var isBracketedPasteOn: Bool { outputModeScanner.isBracketedPasteOn }
 
     func reportThemeAfterNextBackgroundQuery() {
         themeReporting.reportAfterNextBackgroundQuery()

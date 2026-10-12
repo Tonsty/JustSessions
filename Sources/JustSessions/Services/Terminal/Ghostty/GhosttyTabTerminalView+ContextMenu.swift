@@ -38,9 +38,11 @@ extension GhosttyTabTerminalView {
     }
 
     /// The menu's Paste, through the Edit menu's action, which `AppTerminalView` keeps to its own module. It replaces
-    /// a selected prompt, as the Edit menu's does; see `TerminalPromptSelection`.
+    /// a selected prompt, as the Edit menu's does; see `TerminalPromptSelection`. An image on the clipboard is pasted
+    /// as ⌘V pastes it; see `GhosttyTabTerminalView+ImagePaste`.
     func paste(_ sender: Any) {
         promptSelection.deleteSelectedPromptForPaste()
+        guard !pastesClipboardImage() else { return }
         NSApp.sendAction(#selector(NSText.paste(_:)), to: self, from: sender)
     }
 }

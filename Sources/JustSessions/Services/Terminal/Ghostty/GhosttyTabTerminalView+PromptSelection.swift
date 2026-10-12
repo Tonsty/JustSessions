@@ -2,10 +2,14 @@ import AppKit
 import GhosttyTerminal
 
 /// See `TerminalPromptSelection`. Ghostty has no keybinding for ⌘A (see `GhosttyAppearanceConfiguration`), so ⌘A
-/// reaches the terminal in `performKeyEquivalent`, before the Edit menu's Select All.
+/// reaches the terminal in `performKeyEquivalent`, before the Edit menu's Select All. So does ⌘V, before the Edit
+/// menu's Paste, for an image on the clipboard; see `GhosttyTabTerminalView+ImagePaste`.
 extension GhosttyTabTerminalView: PromptSelectableTerminal {
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
         if window?.firstResponder === self, PromptSelectionKeyAction.isSelectAll(event), promptSelection.selectPrompt() {
+            return true
+        }
+        if window?.firstResponder === self, TerminalImagePaste.isPasteKey(event), pastesClipboardImage() {
             return true
         }
         return super.performKeyEquivalent(with: event)

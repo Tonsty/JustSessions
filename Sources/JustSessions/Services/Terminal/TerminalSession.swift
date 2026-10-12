@@ -132,6 +132,7 @@ final class TerminalSession: ObservableObject, Identifiable {
         terminalView.acceptsDroppedFiles = true
         if let sshFileDrop {
             terminalView.copyDroppedFilesToHost = { [weak self] fileURLs in self?.copyDroppedFilesToHost(fileURLs) ?? false }
+            terminalView.imagePaste.copyToHost = { [weak self] image in self?.copyPastedImageToHost(image) }
             sshFileDrop.typePaths = { [weak self] hostPaths in self?.typeCopiedPaths(hostPaths) }
         }
         terminalView.onOpenLink = { [weak self] link in self?.linkOpener.open(link) }
@@ -179,6 +180,12 @@ final class TerminalSession: ObservableObject, Identifiable {
     private func copyDroppedFilesToHost(_ fileURLs: [URL]) -> Bool {
         guard isRunning, !isClosed, let sshFileDrop else { return false }
         return sshFileDrop.take(fileURLs)
+    }
+
+    /// Nor a pasted image, which it would copy to the host.
+    private func copyPastedImageToHost(_ image: TerminalClipboardImage) {
+        guard isRunning, !isClosed, let sshFileDrop else { return }
+        sshFileDrop.take(image)
     }
 
     private func typeCopiedPaths(_ hostPaths: [String]) {
