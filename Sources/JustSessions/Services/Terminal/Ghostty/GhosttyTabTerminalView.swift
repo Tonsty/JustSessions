@@ -23,6 +23,8 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     var onOpenLink: ((String) -> Void)?
     /// The link Ghostty last reported under the pointer, which it does only while ⌘ is held; see `link(under:)`.
     var hoveredLink: String?
+    /// The link a CLI broke over rows under a ⌘-click being released, until the click opens it; see `mouseUp(with:)`.
+    var pendingHardWrappedLink: HardWrappedLink?
     /// The terminal takes files dropped on it; see `GhosttyTabTerminalView+FileDrop`.
     var acceptsDroppedFiles = false {
         didSet {
@@ -55,6 +57,9 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     private weak var processObserver: TerminalProcessObserver?
     /// The grid Ghostty last laid the text out at, which the pseudo-terminal reports to the process.
     private(set) var viewport: InMemoryTerminalViewport?
+    /// The same grid with its cells' size, as Ghostty last reported it to the view; see
+    /// `GhosttyTabTerminalView+HardWrappedLinks`.
+    var gridMetrics: TerminalGridMetrics?
     private var appearancePreferences = TerminalAppearancePreferences()
     private var theme = ResolvedAppTheme(.justSessions)
     private var appearanceSubscription: AnyCancellable?
@@ -154,8 +159,16 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     }
 
     /// The pointer's moves and the left button go to Ghostty so that a ⌘-click finds links as in a SwiftTerm tab; see
-    /// `eventFindingLinks(_:)`.
-    override func mouseUp(with event: NSEvent) { super.mouseUp(with: eventFindingLinks(event)) }
+    /// `eventFindingLinks(_:)`. Ghostty reports the link it found from within the release, and a link a CLI broke over
+    /// rows opens whole; see `GhosttyTabTerminalView+HardWrappedLinks`.
+    override func mouseUp(with event: NSEvent) {
+        pendingHardWrappedLink = event.modifierFlags.contains(.command) ? hardWrappedLink(under: event) : nil
+        super.mouseUp(with: eventFindingLinks(event))
+        if let pendingHardWrappedLink {
+            self.pendingHardWrappedLink = nil
+            onOpenLink?(pendingHardWrappedLink.text)
+        }
+    }
     override func mouseMoved(with event: NSEvent) { super.mouseMoved(with: eventFindingLinks(event)) }
     override func mouseDragged(with event: NSEvent) { super.mouseDragged(with: eventFindingLinks(event)) }
 
@@ -242,6 +255,9 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     }
 
     var reportsThemeAfterNextBackgroundQuery: Bool { themeReporting.reportsAfterNextBackgroundQuery }
+
+    /// The process's output last switched to the alternate screen, where a full-screen program draws.
+    var isOnAlternateScreen: Bool { pageKeyModeScanner.isOnAlternateScreen }
 
     func reportThemeAfterNextBackgroundQuery() {
         themeReporting.reportAfterNextBackgroundQuery()
