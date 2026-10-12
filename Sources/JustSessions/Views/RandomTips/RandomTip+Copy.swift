@@ -19,6 +19,8 @@ extension RandomTip {
             "Browse and resume sessions on other machines with **Add SSH host…**."
         case .splitView:
             "Put two tabs side by side: right-click a tab for split view."
+        case .dragIntoSplitView:
+            "Drag a session or tab onto the terminal: to a side for split view, to the middle to show it alone."
         case .selectSeveralSessions:
             "⌘-click to select several sessions, then resume or delete them together."
         case .branch:

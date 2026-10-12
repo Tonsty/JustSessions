@@ -9,6 +9,7 @@ enum RandomTip: String, CaseIterable {
     case unseenTurn
     case sshHosts
     case splitView
+    case dragIntoSplitView
     case selectSeveralSessions
     case branch
     case waitingForYouFilter

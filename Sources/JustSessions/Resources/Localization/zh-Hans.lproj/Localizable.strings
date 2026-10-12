@@ -448,6 +448,8 @@
 	<string>不再显示提示</string>
 	<key>Done</key>
 	<string>完成</string>
+	<key>Drag a session or tab onto the terminal: to a side for split view, to the middle to show it alone.</key>
+	<string>把会话或标签页拖到终端上：拖到一侧就是拆分视图，拖到中间就单独显示。</string>
 	<key>Drag a tab out of the tab bar to give it its own window.</key>
 	<string>把标签页拖出标签栏，就能放进单独的窗口。</string>
 	<key>Drop files from Finder onto a terminal on this Mac to paste their paths.</key>
