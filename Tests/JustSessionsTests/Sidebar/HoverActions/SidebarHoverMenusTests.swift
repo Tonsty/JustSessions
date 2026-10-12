@@ -29,11 +29,12 @@ struct SidebarHoverMenusTests {
         let (store, cleanUp) = try makeStore()
         defer { cleanUp() }
         let conversation = Conversation.fixture(sessionID: "hover-menus")
+        // Forced to rest, so where the pointer happens to be cannot mount a menu mid-test.
         let window = try await host(VStack(spacing: 2) {
-            projectRow(store: store, conversation: conversation, hovered: nil)
-            sessionRow(store: store, conversation: conversation, hovered: nil)
-            subagentRow(store: store, conversation: conversation, hovered: nil)
-            openTabsHeading(store: store, hovered: nil)
+            projectRow(store: store, conversation: conversation, hovered: false)
+            sessionRow(store: store, conversation: conversation, hovered: false)
+            subagentRow(store: store, conversation: conversation, hovered: false)
+            openTabsHeading(store: store, hovered: false)
         })
         defer { window.close() }
 
