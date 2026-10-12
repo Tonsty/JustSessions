@@ -244,6 +244,50 @@ struct CodexSessionTextResumerTests {
         #expect(read.text.entries.flatMap(\.segments) == ["Original", "Grown"])
     }
 
+    /// Where pages end decides which tool calls merge, so text read with other page limits is read again in full.
+    @Test func textReadWithOtherPageLimitsIsReadInFull() async throws {
+        let session = try Session((0..<12).map { $0.isMultiple(of: 2) ? Self.toolCall("patch \($0)") : Self.event() })
+        defer { session.remove() }
+        let saved = try await savedRead(of: session, limits: Self.smallPages)
+
+        try session.append(lines: [Self.assistant("Appended")])
+        try await expectCleanReadText(
+            session, resuming: saved, limits: SessionMessageTextReader.codexWholeSessionLimits, resumes: false
+        )
+    }
+
+    /// A full read keeps a resume state only for the bytes it read: any change to the file after it was indexed, even
+    /// one of the same size, keeps none, as the text may come from other bytes than those hashed.
+    @Test func aFullReadKeepsNoStateWhenTheFileChangedAfterItWasIndexed() async throws {
+        let session = try Session([Self.assistant("Original")])
+        defer { session.remove() }
+        func indexedFingerprint() throws -> TranscriptFileFingerprint {
+            let handle = try FileHandle(forReadingFrom: session.file)
+            defer { try? handle.close() }
+            return try TranscriptFileFingerprint(handle: handle)
+        }
+        func state(indexedAs fingerprint: TranscriptFileFingerprint) throws -> SessionMessageTextResumeState? {
+            try CodexSessionTextResumer.state(
+                of: session.file, indexedAs: fingerprint, finalPageRecord: 0, finalPageByteOffset: 0, committedEntryCount: 0,
+                limits: Self.smallPages
+            )
+        }
+
+        #expect(try state(indexedAs: try indexedFingerprint()) != nil)
+
+        let beforeAppend = try indexedFingerprint()
+        try session.append(lines: [Self.assistant("Appended")])
+        #expect(try state(indexedAs: beforeAppend) == nil)
+
+        let beforeAmendment = try indexedFingerprint()
+        // Past the file system's timestamp granularity, so the amendment's modification time differs.
+        try await Task.sleep(for: .milliseconds(20))
+        let original = try Data(contentsOf: session.file)
+        try session.rewrite(Data(original.map { $0 == UInt8(ascii: "O") ? UInt8(ascii: "Q") : $0 }))
+        #expect(try Data(contentsOf: session.file).count == original.count)
+        #expect(try state(indexedAs: beforeAmendment) == nil)
+    }
+
     @Test func aReadOfAnotherProviderNeitherResumesNorKeepsAState() async throws {
         let directory = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }

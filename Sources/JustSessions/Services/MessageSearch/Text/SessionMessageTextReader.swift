@@ -78,7 +78,7 @@ enum SessionMessageTextReader {
                 let state = try CodexSessionTextResumer.state(
                     of: conversation.sourceFile, indexedAs: index.fingerprint, finalPageRecord: finalPageRecord,
                     finalPageByteOffset: finalPageRecord < index.lineStarts.count ? index.lineStarts[finalPageRecord] : index.byteCount,
-                    committedEntryCount: committedEntryCount
+                    committedEntryCount: committedEntryCount, limits: limits
                 )
                 return SessionMessageTextRead(
                     text: text, resumeState: state, resumed: false, decodedRecordCount: decodedRecordCount,

@@ -55,7 +55,8 @@ struct SessionMessageTextCacheTests {
     private func resumeState(committedEntryCount: Int = 1, digestByteCount: Int = 32) -> SessionMessageTextResumeState {
         SessionMessageTextResumeState(
             device: 1, inode: 2, byteCount: 9, digest: Data(count: digestByteCount), finalPageRecord: 1, finalPageByteOffset: 9,
-            committedEntryCount: committedEntryCount
+            committedEntryCount: committedEntryCount,
+            pageLimits: SessionMessageTextResumeState.pageLimits(of: SessionMessageTextReader.codexWholeSessionLimits)
         )
     }
 

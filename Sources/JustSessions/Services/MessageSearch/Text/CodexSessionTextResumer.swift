@@ -18,6 +18,14 @@ struct SessionMessageTextResumeState: Sendable, Codable, Equatable {
     let finalPageByteOffset: UInt64
     /// How many of the text's entries come from records before `finalPageRecord`.
     let committedEntryCount: Int
+    /// The page limits the text was read with. Where pages end decides which tool calls merge into one entry, so text
+    /// read with other limits is never resumed from, even if they changed without a new cache format.
+    let pageLimits: [Int]
+
+    static func pageLimits(of limits: TranscriptPageLimits) -> [Int] {
+        [limits.targetEntryCount, limits.maximumRecordCount, limits.targetByteCount, limits.maximumRecordByteCount,
+         limits.maximumTextLength]
+    }
 
     /// Whether this state could have been saved with `text`; a saved file that fails this is read in full again.
     func isConsistent(with text: SessionMessageText) -> Bool {
@@ -50,7 +58,8 @@ enum CodexSessionTextResumer {
         let fingerprint = try TranscriptFileFingerprint(handle: handle)
         let byteCount = fingerprint.byteCount
         let resumeOffset = state.finalPageByteOffset
-        guard fingerprint.device == state.device, fingerprint.inode == state.inode, byteCount > state.byteCount,
+        guard state.pageLimits == SessionMessageTextResumeState.pageLimits(of: limits),
+              fingerprint.device == state.device, fingerprint.inode == state.inode, byteCount > state.byteCount,
               resumeOffset <= state.byteCount, byteCount - resumeOffset <= maximumResumedByteCount else { return nil }
 
         let descriptor = handle.fileDescriptor
@@ -97,7 +106,7 @@ enum CodexSessionTextResumer {
             device: fingerprint.device, inode: fingerprint.inode, byteCount: byteCount, digest: Data(hasher.finalize()),
             finalPageRecord: finalPageRecord,
             finalPageByteOffset: resumeOffset + UInt64(recordStarts[finalPageRecord - firstRecord]),
-            committedEntryCount: committedEntryCount
+            committedEntryCount: committedEntryCount, pageLimits: state.pageLimits
         )
         return SessionMessageTextRead(
             text: SessionMessageText(entries: entries), resumeState: resumeState, resumed: true,
@@ -110,7 +119,7 @@ enum CodexSessionTextResumer {
     /// the next change reads it in full again.
     static func state(
         of file: URL, indexedAs indexFingerprint: TranscriptFileFingerprint, finalPageRecord: Int, finalPageByteOffset: UInt64,
-        committedEntryCount: Int
+        committedEntryCount: Int, limits: TranscriptPageLimits
     ) throws -> SessionMessageTextResumeState? {
         guard let handle = try? FileHandle(forReadingFrom: file) else { return nil }
         defer { try? handle.close() }
@@ -124,7 +133,7 @@ enum CodexSessionTextResumer {
         return SessionMessageTextResumeState(
             device: indexFingerprint.device, inode: indexFingerprint.inode, byteCount: indexFingerprint.byteCount,
             digest: Data(hasher.finalize()), finalPageRecord: finalPageRecord, finalPageByteOffset: finalPageByteOffset,
-            committedEntryCount: committedEntryCount
+            committedEntryCount: committedEntryCount, pageLimits: SessionMessageTextResumeState.pageLimits(of: limits)
         )
     }
 
