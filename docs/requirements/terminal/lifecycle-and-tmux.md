@@ -22,6 +22,7 @@
 | TMX-23 | A CLI that fails at once keeps what it printed in its tab (`remain-on-exit failed`, without tmux's "Pane is dead" line), and the ended bar shows the CLI's own exit status, never tmux's or the raw wait status. | `b2747b3` | `ThisMacTmuxFailedCLITests` |
 | TMX-24 | An ended tab stays open showing how it ended. Resuming its session starts it again in that tab, keeping its place, split, and selection; a dead tmux session is ended first. Branch still opens its own tab. | `cd21fc3`, `b2747b3` | `RunningCLISelectionTests` |
 | TMX-25 | A session's open tab menu offers **Close terminal…** with the same Keep running / End session choice as the tab's ×. | `5b35d08` | Manual |
+| TMX-26 | A session's tab menu, in the tab bar, Open tabs, or its terminal, follows **Close Tab…** with **Close and end session** while its CLI runs, in tmux or with the tab, and **Close and delete session…** once the tab is linked to its session. Close and end session stops the CLI without asking, as End session does from the session's row; Close and delete session… opens the deletion dialog (DEL-12). | `2cbbbbc` | `TerminalContextMenuItemsTests`, `TerminalContextMenuActionTests`, `ThisMacTmuxCloseAndEndSessionTests` |
 
 ## Reopening tabs
 
