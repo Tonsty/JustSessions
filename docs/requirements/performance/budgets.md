@@ -50,7 +50,7 @@ Measurement suites live in `Tests/JustSessionsTests/Performance/` and record onl
 | PERF-68 | An OpenCode page reads only its own messages; the index reads ids only. At 10,000 messages the latest page takes about 2.2 ms and five more pages about 13 ms. | `d1de1d6` | `OpenCodeTranscriptPagingMeasurements` |
 | PERF-69 | Unchanged transcript indexes are reused and extended for appended lines instead of rebuilt. | `b48e8af`, `6f9363f` | `TranscriptIncrementalIndexTests` |
 | PERF-70 | Message search indexes in the background, most recent first, reads each session once until it changes, and drops its text from memory a minute after the last search. | `1bb0b55` | `SessionMessageIndexerTests` |
-| PERF-71 | A grown Codex session's search text resumes from its saved final page after a SHA-256 check of every byte it was read from; any other change reads it in full. A one-record append to a 27 MiB rollout takes about 36 ms instead of 300, and to a 500 MiB log about 200 instead of 690. Cold reads and cache hits stay as they were; a session's first read keeps no resume state. | `8c85eea4` | `CodexSessionTextResumerTests`, `IncrementalMessageSearchMeasurements` |
+| PERF-71 | A grown Codex session's search text resumes from its saved final page after a SHA-256 check of every byte it was read from; any other change reads it in full. A one-record append to a 27 MiB rollout takes about 36 ms instead of 300, and to a 500 MiB log about 200 instead of 690. Cold reads and cache hits stay as they were; a session's first read keeps no resume state. | `b0d40a5f` | `CodexSessionTextResumerTests`, `IncrementalMessageSearchMeasurements` |
 
 ## Terminals
 
