@@ -414,6 +414,8 @@
 	<string>Delete 1 session</string>
 	<key>Delete all deletable sessions (%lld)…</key>
 	<string>Delete all deletable sessions (%lld)…</string>
+	<key>Delete back to the start of the line</key>
+	<string>Delete back to the start of the line</string>
 	<key>Delete session</key>
 	<string>Delete session</string>
 	<key>Delete sessions?</key>
@@ -1080,6 +1082,8 @@
 	<string>Start a session in any installed CLI, or open a plain terminal, in a project folder. ⌘N does the same.</string>
 	<key>Start command</key>
 	<string>Start command</string>
+	<key>Start or end of the line you're typing</key>
+	<string>Start or end of the line you're typing</string>
 	<key>Start session</key>
 	<string>Start session</string>
 	<key>Start something new</key>
@@ -1228,6 +1232,8 @@
 	<string>Try another direction without touching the original: **Branch** a session.</string>
 	<key>Two tabs side by side</key>
 	<string>Two tabs side by side</string>
+	<key>Undo your last edit to the line</key>
+	<string>Undo your last edit to the line</string>
 	<key>Unknown error</key>
 	<string>Unknown error</string>
 	<key>Unpin project</key>

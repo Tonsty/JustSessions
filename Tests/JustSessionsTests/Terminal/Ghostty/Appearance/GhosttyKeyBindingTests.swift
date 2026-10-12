@@ -7,9 +7,9 @@ import Testing
 @MainActor
 @Suite(.serialized)
 struct GhosttyKeyBindingTests {
-    /// What a SwiftTerm terminal sends for each key with the US layout, outside the kitty keyboard protocol: its
-    /// `keyDown`, then the commands macOS's standard key bindings give `doCommand(by:)`. Option-Delete, Home, and End
-    /// already send the same in Ghostty, and are here to keep it that way.
+    /// What a SwiftTerm terminal sends for each key with the US layout, outside the kitty keyboard protocol:
+    /// `TerminalEditingKey`'s control keys, then its `keyDown`, then the commands macOS's standard key bindings give
+    /// `doCommand(by:)`. Option-Delete, Home, and End already send the same in Ghostty, and are here to keep it that way.
     @Test func keysSendWhatSwiftTermSends() async throws {
         let stores = try IsolatedAppearanceStores()
         defer { stores.remove() }
@@ -18,13 +18,13 @@ struct GhosttyKeyBindingTests {
         let escape = "\u{1B}"
 
         for (key, swiftTermBytes) in [
-            (USKey.commandLeft, escape + "b"),
-            (.commandRight, escape + "f"),
+            (USKey.commandLeft, "\u{01}"),
+            (.commandRight, "\u{05}"),
+            (.commandDelete, "\u{15}"),
+            (.commandZ, "\u{1F}"),
             (.optionLeft, escape + "b"),
             (.optionRight, escape + "f"),
-            // SwiftTerm handles none of `deleteToBeginningOfLine:`, `moveToBeginningOfDocument:`, and
-            // `moveToEndOfDocument:`.
-            (.commandDelete, ""),
+            // SwiftTerm handles neither `moveToBeginningOfDocument:` nor `moveToEndOfDocument:`.
             (.commandUp, ""),
             (.commandDown, ""),
             (.optionDelete, escape + "\u{7F}"),
@@ -36,7 +36,7 @@ struct GhosttyKeyBindingTests {
     }
 
     /// The app's menus' shortcuts: Ghostty, whose own shortcuts would close the terminal on Command-W and open a tab on
-    /// Command-T, leaves each to the menu.
+    /// Command-T, leaves each to the menu. Command-Z is a line editing key the terminal takes; see `TerminalEditingKey`.
     @Test func theAppsMenuShortcutsReachTheMenu() throws {
         let stores = try IsolatedAppearanceStores()
         defer { stores.remove() }
@@ -60,7 +60,6 @@ struct GhosttyKeyBindingTests {
             USKey(description: "Command-B", keyCode: 11, characters: "b", modifierFlags: command),
             USKey(description: "Command-,", keyCode: 43, characters: ",", modifierFlags: command),
             // The Edit menu
-            USKey(description: "Command-Z", keyCode: 6, characters: "z", modifierFlags: command),
             USKey(description: "Shift-Command-Z", keyCode: 6, characters: "Z", modifierFlags: [.command, .shift]),
             USKey(description: "Command-X", keyCode: 7, characters: "x", modifierFlags: command),
             USKey(description: "Command-C", keyCode: 8, characters: "c", modifierFlags: command),
@@ -96,6 +95,7 @@ extension USKey {
     static let commandUp = USKey(description: "Command-Up", keyCode: 126, characters: functionKey(NSUpArrowFunctionKey), modifierFlags: arrow.union(.command))
     static let commandDown = USKey(description: "Command-Down", keyCode: 125, characters: functionKey(NSDownArrowFunctionKey), modifierFlags: arrow.union(.command))
     static let commandDelete = USKey(description: "Command-Delete", keyCode: 51, characters: "\u{7F}", modifierFlags: .command)
+    static let commandZ = USKey(description: "Command-Z", keyCode: 6, characters: "z", modifierFlags: .command)
     static let optionDelete = USKey(description: "Option-Delete", keyCode: 51, characters: "\u{7F}", modifierFlags: .option)
     static let home = USKey(description: "Home", keyCode: 115, characters: functionKey(NSHomeFunctionKey), modifierFlags: .function)
     static let end = USKey(description: "End", keyCode: 119, characters: functionKey(NSEndFunctionKey), modifierFlags: .function)

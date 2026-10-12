@@ -3,8 +3,9 @@ import SwiftUI
 extension HelpKeyboardShortcutGroup {
     /// Every shortcut JustSessions adds. The Back and Forward, tab, sidebar, text size, and Settings shortcuts are menu
     /// commands (`WorkspaceNavigationCommands`, `WorkspaceTabCommands`, `SidebarToggleCommands`, `TextZoomCommands`,
-    /// `AppWideSheetCommands`); Control-Tab is `WorkspaceTabCycleShortcuts`, ⌘= is `ZoomInEqualsKey`, and Find is
-    /// `TranscriptSearchKeyboardShortcuts` in the conversation and `TerminalFindShortcuts` in a tab.
+    /// `AppWideSheetCommands`); Control-Tab is `WorkspaceTabCycleShortcuts`, ⌘= is `ZoomInEqualsKey`, Find is
+    /// `TranscriptSearchKeyboardShortcuts` in the conversation and `TerminalFindShortcuts` in a tab, and the terminal's
+    /// line editing keys are `TerminalEditingKey`.
     static var all: [HelpKeyboardShortcutGroup] {
         [
             HelpKeyboardShortcutGroup(title: "Tabs and windows", shortcuts: [
@@ -38,6 +39,9 @@ extension HelpKeyboardShortcutGroup {
             ]),
             HelpKeyboardShortcutGroup(title: "Terminal", shortcuts: [
                 HelpKeyboardShortcut(keys: "⌘C", action: "Copy the selection. Hold ⇧ while dragging to select text."),
+                HelpKeyboardShortcut(keys: "⌘←", "⌘→", action: "Start or end of the line you're typing"),
+                HelpKeyboardShortcut(keys: "⌘⌫", action: "Delete back to the start of the line"),
+                HelpKeyboardShortcut(keys: "⌘Z", action: "Undo your last edit to the line"),
                 HelpKeyboardShortcut(
                     keys: "⌘F",
                     action: "Find in the terminal. In a tab linked to a session, find in its conversation in a reading window."

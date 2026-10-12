@@ -424,6 +424,8 @@
 	<string>删除 1 个会话</string>
 	<key>Delete all deletable sessions (%lld)…</key>
 	<string>删除所有可删除的会话（%lld）…</string>
+	<key>Delete back to the start of the line</key>
+	<string>删除到这一行的开头</string>
 	<key>Delete session</key>
 	<string>删除会话</string>
 	<key>Delete sessions?</key>
@@ -1100,6 +1102,8 @@
 	<string>在项目文件夹中用任一已安装的 CLI 开始会话，或打开普通终端。⌘N 也可以。</string>
 	<key>Start command</key>
 	<string>启动命令</string>
+	<key>Start or end of the line you're typing</key>
+	<string>移到正在输入的这一行的开头或结尾</string>
 	<key>Start session</key>
 	<string>开始会话</string>
 	<key>Start something new</key>
@@ -1250,6 +1254,8 @@
 	<string>**分支** 从副本开新会话，原会话保持不变。</string>
 	<key>Two tabs side by side</key>
 	<string>两个标签页并排显示</string>
+	<key>Undo your last edit to the line</key>
+	<string>撤销对这一行的上一次编辑</string>
 	<key>Unknown error</key>
 	<string>未知错误</string>
 	<key>Unpin project</key>
