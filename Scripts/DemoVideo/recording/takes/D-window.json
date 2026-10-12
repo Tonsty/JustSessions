@@ -1,0 +1,28 @@
+[
+  {
+    "do": "activate"
+  },
+  {
+    "do": "wait",
+    "seconds": 0.8
+  },
+  {
+    "do": "mark",
+    "text": "drag-tab-out"
+  },
+  {
+    "do": "drag",
+    "find": "prompt, README install steps",
+    "role": "AXButton",
+    "speed": 0.6,
+    "to": {
+      "x": 979,
+      "y": 428
+    },
+    "dragSpeed": 1.2
+  },
+  {
+    "do": "wait",
+    "seconds": 3.0
+  }
+]

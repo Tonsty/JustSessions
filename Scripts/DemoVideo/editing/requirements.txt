@@ -1,0 +1,6 @@
+# The edit's Python packages, the versions the October 2026 video was made with. setup_editing.sh installs them.
+kokoro-onnx==0.6.1
+onnxruntime==1.31.0
+soundfile==0.14.0
+numpy==2.5.4
+pillow==12.3.0

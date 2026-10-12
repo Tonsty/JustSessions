@@ -23,6 +23,7 @@
 | [UI style](development/ui-style.md) | Theme colors, type scale, corner radii, button and sheet rules, and the contract tests that enforce them. |
 | [Interface localization](development/localization.md) | String Catalog, language discovery, adding translations, and automated checks. |
 | [Website development](development/website.md) | Static Pages builds, app colors, metadata, sitemap, previews, and publishing. |
+| [Demo video](development/demo-video.md) | Recording and editing the homepage's narrated demo from an isolated copy of the app. |
 | [Branding](../Branding/README.md) | Icon sources, brand colors, and asset generation. |
 | [Screenshot provenance](images/README.md) | Real interface captures, sample data, and their limits. |
 
