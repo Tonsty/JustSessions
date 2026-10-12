@@ -296,6 +296,8 @@
 	<string>关闭并删除会话</string>
 	<key>Close and delete session…</key>
 	<string>关闭并删除会话…</string>
+	<key>Close and end session</key>
+	<string>关闭并结束会话</string>
 	<key>Close find</key>
 	<string>关闭查找</string>
 	<key>Close find, while its field has the keyboard</key>

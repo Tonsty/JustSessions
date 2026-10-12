@@ -21,6 +21,7 @@ struct TerminalTabGroupSection: View {
     let onLabelDragEnded: () -> Void
     let onRenameConversation: (Conversation) -> Void
     let onCloseTab: (UUID) -> Void
+    let onDeleteConversation: (Conversation) -> Void
     /// Closes the group's tabs, asking once for them all; see `TabGroupCloseConfirmation`.
     let onCloseTabs: ([UUID], _ projectName: String) -> Void
 
@@ -79,7 +80,10 @@ struct TerminalTabGroupSection: View {
                     isSplitPartnerHovered: hoveredTabID.map { split?.partner(of: session.id) == $0 } ?? false,
                     showsLeadingSeparator: tabBefore(session.id, in: tabIDsInSight).map { showsSeparator(between: $0, and: session.id) } ?? false,
                     groupColor: color,
-                    menuItems: TerminalTabMenuItems(store: store, tab: session, onRename: onRenameConversation, onCloseTab: onCloseTab),
+                    menuItems: TerminalTabMenuItems(
+                        store: store, tab: session, onRename: onRenameConversation, onCloseTab: onCloseTab,
+                        onDelete: onDeleteConversation
+                    ),
                     onHoverChange: { trackHover(of: session.id, isHovering: $0) },
                     onSelect: { store.selectTerminal(session.id) },
                     onClose: { onCloseTab(session.id) }

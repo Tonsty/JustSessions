@@ -20,6 +20,7 @@ struct TerminalSplitAcrossProjectsSection: View {
     let onDragEnded: () -> Void
     let onRenameConversation: (Conversation) -> Void
     let onCloseTab: (UUID) -> Void
+    let onDeleteConversation: (Conversation) -> Void
 
     @State private var hoveredTabID: UUID?
 
@@ -50,7 +51,10 @@ struct TerminalSplitAcrossProjectsSection: View {
                     isSplitPartnerHovered: hoveredTabID.map { split.partner(of: session.id) == $0 } ?? false,
                     showsLeadingSeparator: false,
                     groupColor: color,
-                    menuItems: TerminalTabMenuItems(store: store, tab: session, onRename: onRenameConversation, onCloseTab: onCloseTab),
+                    menuItems: TerminalTabMenuItems(
+                        store: store, tab: session, onRename: onRenameConversation, onCloseTab: onCloseTab,
+                        onDelete: onDeleteConversation
+                    ),
                     onHoverChange: { trackHover(of: session.id, isHovering: $0) },
                     onSelect: { store.selectTerminal(session.id) },
                     onClose: { onCloseTab(session.id) }

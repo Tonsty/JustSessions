@@ -31,4 +31,15 @@ extension ConversationStore {
         // Every window lists the host's tmux sessions until its next refresh, not just the one that ended them.
         for store in windowStores { store.tmuxSessionNamesByHost[host]?.subtract(endedTmuxNames) }
     }
+
+    /// Close and end session, from a tab's menu: closes the tab and stops its CLI without asking, as End session does
+    /// from the session's row. A new session's tab not yet linked to its session stops only its own CLI.
+    func closeTerminalEndingSession(_ id: UUID) {
+        guard let tab = terminalSessions.first(where: { $0.id == id }) else { return }
+        if let conversation = tab.conversation {
+            endSession(conversation)
+        } else {
+            closeTerminal(id, endingTmuxSession: true)
+        }
+    }
 }

@@ -11,6 +11,7 @@ final class TerminalContextMenuFixture {
     private let isolatedUserDefaults: IsolatedUserDefaults
     private(set) var renamedConversations: [Conversation] = []
     private(set) var tabsAskedToClose: [UUID] = []
+    private(set) var conversationsAskedToDelete: [Conversation] = []
     private var windows: [NSWindow] = []
 
     init() throws {
@@ -67,6 +68,7 @@ final class TerminalContextMenuFixture {
             tab: tab,
             onRename: { [weak self] in self?.renamedConversations.append($0) },
             onCloseTab: { [weak self] in self?.tabsAskedToClose.append($0) },
+            onDelete: { [weak self] in self?.conversationsAskedToDelete.append($0) },
             linkUnderPointer: linkUnderPointer,
             language: AppInterfaceLanguage(identifier: language),
             editorStore: editorStore

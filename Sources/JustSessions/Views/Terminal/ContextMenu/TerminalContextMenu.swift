@@ -12,6 +12,8 @@ struct TerminalContextMenu {
     let onRename: (Conversation) -> Void
     /// Asks what to do with the tab's CLI, as the tab's × does.
     let onCloseTab: (UUID) -> Void
+    /// Asks to delete the tab's session, as its row's Close and delete session… does.
+    let onDelete: (Conversation) -> Void
     /// The link the right-click landed on, as the terminal would hand it over for a ⌘-click; see `linkItems`.
     var linkUnderPointer: String? = nil
     /// The language chosen in Settings when nil.
@@ -51,10 +53,8 @@ struct TerminalContextMenu {
 
     /// As the tab's menu in the tab bar has them.
     private var tabItems: [NSMenuItem] {
-        let closeTitle = tab.isPlainTerminal ? localized("Close terminal…") : localized("Close Tab…")
-        let closeItem = ActionMenuItem(title: closeTitle, systemImage: "xmark") { onCloseTab(tab.id) }
-        if tab.isPlainTerminal { return splitItems + [closeItem] }
-        return conversationItems + splitItems + [closeItem]
+        if tab.isPlainTerminal { return splitItems + closingItems }
+        return conversationItems + splitItems + closingItems
     }
 
     func localized(_ value: String.LocalizationValue) -> String {

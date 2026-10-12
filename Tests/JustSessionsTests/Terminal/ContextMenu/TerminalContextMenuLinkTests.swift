@@ -8,7 +8,8 @@ import Testing
 @Suite(.serialized)
 struct TerminalContextMenuLinkTests {
     private static let textAndTabItems = [
-        "Copy", "Paste", "Select All", "—", "Rename", "—", "Add tab to new split view", "—", "Close Tab…",
+        "Copy", "Paste", "Select All", "—", "Rename", "—", "Add tab to new split view", "—",
+        "Close Tab…", "Close and end session",
     ]
 
     @Test func offAnyLinkTheMenuIsUnchanged() throws {
