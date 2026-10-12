@@ -16,14 +16,12 @@ struct TranscriptMarkdownView: View {
     var body: some View {
         Group {
             if let paragraph = singleParagraph {
-                TranscriptSearchableText(source: TranscriptReadingTypography.inlineText(paragraph, fontSize: fontSize), fontSize: fontSize)
-                    .textSelection(.enabled)
+                TranscriptTextBlock(source: paragraph, style: TranscriptTextStyle(fontSize: fontSize))
             } else {
                 structuredBlocks
             }
         }
         .font(.system(size: fontSize))
-        .lineSpacing(4)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
@@ -46,7 +44,7 @@ struct TranscriptMarkdownView: View {
                             .foregroundStyle(ThemePalette.secondaryText)
                             .frame(minWidth: 18, alignment: .trailing)
                     }
-                    blockContent(block.content, segmentIndex: segmentStarts[block.id] ?? 0)
+                    blockContent(block, segmentIndex: segmentStarts[block.id] ?? 0)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding(.leading, CGFloat(max(0, block.listDepth - 1)) * 20)
@@ -55,15 +53,14 @@ struct TranscriptMarkdownView: View {
     }
 
     @ViewBuilder
-    private func blockContent(_ content: TranscriptMarkdownBlock.Content, segmentIndex: Int) -> some View {
-        switch content {
+    private func blockContent(_ block: TranscriptMarkdownBlock, segmentIndex: Int) -> some View {
+        switch block.content {
         case .text(let text, let headingLevel):
-            TranscriptSearchableText(
-                source: TranscriptReadingTypography.inlineText(text, fontSize: fontSize), segmentIndex: segmentIndex,
-                fontSize: headingLevel.map(headingFontSize) ?? fontSize, isSemibold: headingLevel != nil
+            TranscriptTextBlock(
+                source: text, segmentIndex: segmentIndex,
+                style: TranscriptTextStyle(fontSize: headingLevel.map(headingFontSize) ?? fontSize, isSemibold: headingLevel != nil),
+                copyRole: copyRole(of: block)
             )
-                .font(headingLevel.map { .system(size: headingFontSize($0), weight: .semibold) } ?? .system(size: fontSize))
-                .textSelection(.enabled)
         case .code(let text, let language):
             TranscriptCodeBlock(text: text, language: language, segmentIndex: segmentIndex)
         case .table(let table):
@@ -71,6 +68,14 @@ struct TranscriptMarkdownView: View {
         case .divider:
             ThemeDivider().padding(.vertical, 4)
         }
+    }
+
+    /// A list item copies with its marker, indented by its depth; a later paragraph of the item, without a marker, lines
+    /// up under the first.
+    private func copyRole(of block: TranscriptMarkdownBlock) -> TranscriptTextCopyRole {
+        guard block.listDepth > 0 else { return .paragraph }
+        let indentation = String(repeating: "  ", count: block.listDepth - 1)
+        return .listItem(marker: indentation + (block.listMarker ?? " "))
     }
 
     private func headingFontSize(_ level: Int) -> CGFloat {

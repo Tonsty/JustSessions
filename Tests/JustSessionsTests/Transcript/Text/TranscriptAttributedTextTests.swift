@@ -3,16 +3,16 @@ import Testing
 @testable import JustSessions
 
 @MainActor
-struct TranscriptSearchAttributedTextTests {
+struct TranscriptAttributedTextTests {
     private static let source = try! AttributedString(
-        markdown: "😀 cafe\u{301} **bold** then `code` and bold",
+        markdown: "😀 cafe\u{301} **bold** then `code` and bold, [a link](https://example.com)",
         options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
     )
 
     private static func make(ranges: [NSRange] = [], selectedRange: NSRange? = nil) -> NSAttributedString {
-        TranscriptSearchAttributedText.make(
+        TranscriptAttributedText.make(
             source: source, font: .systemFont(ofSize: 13), lineSpacing: 4,
-            foreground: .black, highlight: .systemYellow, selectedForeground: .white,
+            foreground: .black, link: .systemBlue, highlight: .systemYellow, selectedForeground: .white,
             ranges: ranges, selectedRange: selectedRange
         )
     }
@@ -33,6 +33,11 @@ struct TranscriptSearchAttributedTextTests {
         #expect(boldFontRange == boldRange)
         #expect(codeFont.isFixedPitch)
         #expect(codeFontRange == codeRange)
+        let linkRange = string.range(of: "a link")
+        var linkColorRange = NSRange()
+        #expect(text.attribute(.link, at: linkRange.location, effectiveRange: nil) as? URL == URL(string: "https://example.com"))
+        #expect(text.attribute(.foregroundColor, at: linkRange.location, effectiveRange: &linkColorRange) as? NSColor == .systemBlue)
+        #expect(linkColorRange == linkRange)
     }
 
     /// Every match gets a background, and the selected one also gets its own text color.

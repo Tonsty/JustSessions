@@ -35,7 +35,7 @@ extension TranscriptScrollView {
 
     func prefetchIfNeeded(in viewport: TranscriptPagingViewport? = nil) {
         guard isActive, let paging, !paging.isLoading, paging.errorMessage == nil, !searchState.isPresented,
-              !positionController.isRestoring, restoredPagingRevision == paging.revision,
+              !textSelection.isTracking, !positionController.isRestoring, restoredPagingRevision == paging.revision,
               let viewport = viewport ?? positionController.pagingViewport else { return }
         switch viewport.prefetchDirection(hasEarlier: paging.hasEarlier, hasLater: paging.hasLater, retainedPageCount: paging.pages.count) {
         case .earlier: loadEarlierPage()

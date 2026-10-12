@@ -130,7 +130,7 @@ final class TranscriptScrollViewFixture {
     }
 
     func expectedPositionForSelectedSearchMatch(in scrollView: NSScrollView, entryIndex: Int) -> TranscriptReadingPosition? {
-        guard let textView = descendants(ofType: TranscriptSearchTextView.self, in: hostingView)
+        guard let textView = descendants(ofType: TranscriptTextView.self, in: hostingView)
             .first(where: { $0.selectedSearchRange != nil }),
               let range = textView.selectedSearchRange, let textContainer = textView.textContainer,
               let layoutManager = textView.layoutManager,

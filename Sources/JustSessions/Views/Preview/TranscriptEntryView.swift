@@ -21,9 +21,7 @@ struct TranscriptEntryView: View {
     private var entryContent: some View {
         switch entry.content {
         case .userMessage(let text):
-            TranscriptSearchableText(source: AttributedString(text), fontSize: fontSize)
-                .textSelection(.enabled)
-                .lineSpacing(4)
+            TranscriptTextBlock(source: AttributedString(text), style: TranscriptTextStyle(fontSize: fontSize))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
@@ -33,9 +31,8 @@ struct TranscriptEntryView: View {
         case .toolCalls(let summaries):
             TranscriptToolCallsView(summaries: summaries)
         case .note(let text):
-            TranscriptSearchableText(source: AttributedString(text), fontSize: 12, isSecondary: true)
-                .font(ThemeFont.caption)
-                .foregroundStyle(ThemePalette.tertiaryText)
+            // ThemeFont.caption's size.
+            TranscriptTextBlock(source: AttributedString(text), style: TranscriptTextStyle(fontSize: 10, lineSpacing: 0, tone: .tertiary))
                 .frame(maxWidth: .infinity)
         case .userImage(let image), .toolResultImage(let image):
             TranscriptImageView(image: image)

@@ -11,13 +11,12 @@ struct TranscriptMarkdownTableView: View {
                 ForEach(Array(table.rows.enumerated()), id: \.element.id) { rowIndex, row in
                     GridRow {
                         ForEach(Array(row.cells.enumerated()), id: \.offset) { cellIndex, cell in
-                            TranscriptSearchableText(
-                                source: TranscriptReadingTypography.inlineText(cell, fontSize: fontSize),
+                            TranscriptTextBlock(
+                                source: cell,
                                 segmentIndex: segmentIndex + table.rows.prefix(rowIndex).reduce(0) { $0 + $1.cells.count } + cellIndex,
-                                fontSize: fontSize, isSemibold: row.isHeader
+                                style: TranscriptTextStyle(fontSize: fontSize, isSemibold: row.isHeader),
+                                copyRole: .tableCell(row: rowIndex)
                             )
-                                .fontWeight(row.isHeader ? .semibold : .regular)
-                                .textSelection(.enabled)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 9)
                                 .frame(maxWidth: 260, alignment: .leading)
