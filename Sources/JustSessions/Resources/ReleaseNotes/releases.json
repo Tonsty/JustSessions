@@ -1,5 +1,50 @@
 [
   {
+    "version": "1.2.7",
+    "publishedOn": "2026-10-12",
+    "title": {
+      "en": "Drag tabs into a split",
+      "zh-Hans": "拖动标签页分屏"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "Drag a tab or a sidebar session onto the terminals to open it in a split view.",
+            "zh-Hans": "把标签页或侧栏中的会话拖到终端区域，即可分屏打开。"
+          },
+          {
+            "en": "⌘←/⌘→ go to line start or end, ⌘⌫ deletes to line start, and ⌘Z undoes in Claude Code and shells.",
+            "zh-Hans": "⌘←/⌘→ 跳到行首或行尾，⌘⌫ 删除到行首；⌘Z 在 Claude Code 和 shell 中撤销。"
+          },
+          {
+            "en": "Select and copy text across messages, code, and tables when reading a conversation.",
+            "zh-Hans": "阅读对话时，可跨消息、代码和表格选择并复制文字。"
+          }
+        ]
+      },
+      {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "Switching tabs no longer stalls when the sidebar lists many projects.",
+            "zh-Hans": "侧栏项目较多时，切换标签页不再卡顿。"
+          }
+        ]
+      },
+      {
+        "kind": "fixed",
+        "items": [
+          {
+            "en": "⌘-click opens the whole link, even when a CLI wraps it onto the next row.",
+            "zh-Hans": "CLI 把链接折到下一行时，⌘-点击也能打开完整链接。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.6",
     "publishedOn": "2026-10-11",
     "title": {
