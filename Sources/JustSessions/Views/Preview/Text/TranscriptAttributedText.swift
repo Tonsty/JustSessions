@@ -1,10 +1,27 @@
 import AppKit
-import SwiftUI
 
-enum TranscriptSearchAttributedText {
+/// Everything one transcript text view draws: its text, how it is set, and Find's matches in it. Equal contents leave
+/// the view alone, so the text is converted for AppKit only when one of these changes.
+struct TranscriptTextContent: Equatable {
+    let source: AttributedString
+    let style: TranscriptTextStyle
+    let colors: TranscriptTextColors
+    var matchRanges: [NSRange] = []
+    var selectedMatchRange: NSRange?
+
+    func attributedString() -> NSAttributedString {
+        TranscriptAttributedText.make(
+            source: source, font: style.font, lineSpacing: style.lineSpacing,
+            foreground: colors.foreground(for: style.tone), link: colors.link, highlight: colors.matchHighlight,
+            selectedForeground: colors.selectedMatchForeground, ranges: matchRanges, selectedRange: selectedMatchRange
+        )
+    }
+}
+
+enum TranscriptAttributedText {
     static func make(
         source: AttributedString, font: NSFont, lineSpacing: CGFloat,
-        foreground: NSColor, highlight: NSColor, selectedForeground: NSColor,
+        foreground: NSColor, link linkColor: NSColor, highlight: NSColor, selectedForeground: NSColor,
         ranges: [NSRange], selectedRange: NSRange?
     ) -> NSAttributedString {
         let paragraphStyle = NSMutableParagraphStyle()
@@ -22,7 +39,10 @@ enum TranscriptSearchAttributedText {
                 if intent.contains(.strikethrough) { text.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: range) }
             }
             text.addAttribute(.font, value: runFont, range: range)
-            if let link = run.link { text.addAttribute(.link, value: link, range: range) }
+            if let link = run.link {
+                // Colored here as well as by the text view's link attributes, which a view drawn offscreen leaves out.
+                text.addAttributes([.link: link, .foregroundColor: linkColor], range: range)
+            }
         }
         for range in ranges {
             let isSelected = range == selectedRange
@@ -30,10 +50,5 @@ enum TranscriptSearchAttributedText {
             if isSelected { text.addAttribute(.foregroundColor, value: selectedForeground, range: range) }
         }
         return text
-    }
-
-    static func color(_ themeColor: ThemeColor, in environment: EnvironmentValues) -> NSColor {
-        let resolved = themeColor.resolve(in: environment)
-        return NSColor(srgbRed: CGFloat(resolved.red), green: CGFloat(resolved.green), blue: CGFloat(resolved.blue), alpha: CGFloat(resolved.opacity))
     }
 }

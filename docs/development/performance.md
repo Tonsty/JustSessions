@@ -115,7 +115,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 2 | [Transcript text searches only during Find](#2-transcript-text-searches-only-during-find) | Done: #46 |
 | 3 | [Fast `AttributedString` to `String` conversion](#3-fast-attributedstring-to-string-conversion) | Done: #46 |
 | 4 | [One position marker view per transcript entry](#4-one-position-marker-view-per-transcript-entry) | Done: issue #53 |
-| 5 | [Text selection on very long blocks](#5-text-selection-on-very-long-blocks) | Measured, no change: issue #54 |
+| 5 | [Text selection on very long blocks](#5-text-selection-on-very-long-blocks) | Done: selection across blocks PR |
 | 6 | [Terminal drawing](#6-terminal-drawing) | Done for Ghostty, the engine you can choose in Settings: libghostty PR. SwiftTerm's Metal drawing measured and not turned on: issue #52 |
 | 7 | [The search context changes on every transcript update](#7-the-search-context-changes-on-every-transcript-update) | Done: scrolling PR |
 | 8 | [Scrolling re-rendered every transcript entry](#8-scrolling-re-rendered-every-transcript-entry) | Done: scrolling PR |
@@ -150,6 +150,8 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 **Evidence:** `TranscriptSearchableText` copied its whole text into a `String` and searched it on every body evaluation, even with no query. It also read the whole environment with `@Environment(\.self)`, so any environment change re-ran it ([objc.io](https://talk.objc.io/episodes/S01E409-environment-preference-updates)).
 
 **Change:** without a query, the body returns plain `Text` straight away. Only the view that draws highlighted matches reads the whole environment, which it needs to resolve theme colors.
+
+Since [item 5](#5-text-selection-on-very-long-blocks), every block is an AppKit text view and none reads the whole environment: the reader resolves its text colors once from the theme and color scheme, and a block converts its text for AppKit only when its text, style, colors, or matches change.
 
 ### 3. Fast `AttributedString` to `String` conversion
 
@@ -214,7 +216,20 @@ Every selectable block is a `SelectionTextField` in a host view. Of the window's
 
 **Measured (issue #54):** moving `.textSelection(.enabled)` from each Markdown block, code block, and table cell to the message root was tested with `JUSTSESSIONS_PERF=1 swift test -c release --filter TranscriptInteractionMeasurements`. The unchanged baseline was run three times; the prototype once before it was rejected. SwiftUI propagated selection to every `Text` leaf, including labels and list markers, instead of making one surface. The paired `SelectionTextField` and host count rose from 420 to 660 with 240 entries, and from 1,120 to 1,760 with 640. At 640 entries with accessibility off, the median scroll step regressed from 16.5–16.9 ms to 34.4 ms in the single prototype run.
 
-**Conclusion:** keep the current per-block selection. It preserves native selection, links, code-copy controls, table scrolling, and accessibility without the measured regression. One native selection surface for the mixed message hierarchy would require a custom `NSTextView`/TextKit renderer; that wider product and design decision was not taken here.
+**Conclusion at the time:** keep the per-block selection. One native selection surface for the mixed message hierarchy would require a custom `NSTextView`/TextKit renderer.
+
+**Change:** a selection now runs across blocks and messages (RDR-47), so every text block is a `TranscriptTextView`, an `NSTextView` on a TextKit 1 stack it assembles itself, and `TranscriptTextSelectionCoordinator` follows a drag across them. Each block is now a `TranscriptTextView` in an `AppKitPlatformViewHost`, and the window holds one more AppKit view per block: 420 more with 240 entries. The text view caches its measured size per width and lays out again only when placed at a width its lines don't fit. Lines are padded to the height SwiftUI gave them, so document heights are unchanged.
+
+`TranscriptInteractionMeasurements`, release build, base `b9f72d9` and the branch run alternately, three runs each, medians. Load average was 5–8 throughout, from other sessions on the machine, so the scroll steps are slower than in item 4 on both sides:
+
+| Entries and accessibility | AppKit views | Scroll p50 / p95 / worst | 200 hit tests | Open Find | Close Find |
+| --- | --- | --- | --- | --- | --- |
+| 240, off | 1,300 → 1,720 | 11.0 / 11.6 / 11.9 → 10.8 / 11.8 / 12.0 ms | 487 → 397 ms | 53.2 → 33.8 ms | 24.8 → 22.3 ms |
+| 240, on | 1,300 → 1,720 | 10.8 / 11.4 / 12.5 → 10.2 / 10.9 / 12.1 ms | 493 → 397 ms | 55.6 → 48.2 ms | 25.1 → 19.4 ms |
+| 640, off | 3,400 → 4,520 | 30.4 / 34.2 / 39.2 → 31.3 / 34.9 / 35.3 ms | 1,295 → 1,092 ms | 96.6 → 96.1 ms | 63.3 → 60.7 ms |
+| 640, on | 3,400 → 4,520 | 29.8 / 32.1 / 33.0 → 29.6 / 31.5 / 32.7 ms | 1,325 → 1,057 ms | 144 → 130 ms | 71.7 → 61.1 ms |
+
+Scrolling is within run-to-run noise, hit testing is 15–20% faster, and Find is no slower. Document heights matched exactly: 29,576 and 78,876 points. Dragging across a single very long block, the case cmux reported, was not measured.
 
 ### 6. Terminal drawing
 

@@ -16,6 +16,10 @@ struct TranscriptScrollView: View {
     @State var indexedTranscript: TranscriptContent?
     @State var indexedQuery = ""
     @AppStorage(TranscriptReadingWidth.userDefaultsKey) private var readingWidth = TranscriptReadingWidth.readable
+    /// The selection across the reader's text blocks.
+    @State var textSelection = TranscriptTextSelectionCoordinator()
+    @Environment(\.appTheme) private var appTheme
+    @Environment(\.colorScheme) private var colorScheme
     private let initialPosition: TranscriptReadingPosition
 
     init(
@@ -63,6 +67,8 @@ struct TranscriptScrollView: View {
                     .background(ThemePalette.contentSurface)
                 }
                 .environment(\.transcriptReadingFontSize, TranscriptReadingTextSize.clamped(readingFontSize))
+                .environment(\.transcriptTextColors, TranscriptTextColors(theme: appTheme, isDark: colorScheme == .dark))
+                .environment(\.transcriptTextSelection, textSelection)
                 .environment(\.transcriptSearchContext, TranscriptSearchContext(
                     query: searchState.isPresented ? searchState.query : "",
                     selectedMatch: searchState.isSearching ? nil : searchState.selectedMatch,
@@ -86,6 +92,7 @@ struct TranscriptScrollView: View {
                 .onChange(of: readingWidth) { positionController.restoreRecordedPosition() }
                 .onChange(of: paging?.revision) { restorePagedPosition(using: scrollProxy) }
                 .onReceive(positionController.viewportUpdates) { prefetchIfNeeded(in: $0) }
+                .onReceive(textSelection.trackingEnded) { prefetchIfNeeded() }
                 .onAppear { positionController.tracksTranscriptBottom = paging?.hasLater != true }
                 .onReceive(positionController.entrySeekingRequests) { index in
                     scrollProxy.scrollTo(index, anchor: .top)

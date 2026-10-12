@@ -117,6 +117,8 @@ Application paths below are relative to `Sources/JustSessions/`. Tests live in `
 - `Views/Preview/MissingFolder/`: the note under a session's header when its project folder is gone from this Mac.
 - `Views/Preview/OtherWindow/`: the note under a session's header while a tab in another window runs it, whose **Show** brings that window forward and **Move Here** moves the tab to this window.
 - `Views/Preview/Markdown/`: formatted prose, horizontally scrolling code and tables, and code copying.
+- `Views/Preview/Text/`: the AppKit text view every block of transcript text is drawn in, with its style, colors, and Find's highlights.
+- `Views/Preview/Selection/`: one selection per reader across its text blocks and messages: dragging, Shift-click, Select All, and copying in reading order.
 - `Views/Preview/Reading/` and `ReadingPosition/`: text size, reading width, first/latest-message controls, and reading-position restoration.
 - `Views/Preview/ReadingWindow/`: one independent, read-only window per host-qualified session.
 - `Models/Transcript/Search/`, `Services/Transcript/Search/`, and `Views/Preview/Search/`: temporary per-reader text matching, keyboard shortcuts, highlights, and navigation to occurrences in the displayed transcript.
