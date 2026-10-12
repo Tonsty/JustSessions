@@ -6981,6 +6981,36 @@
           }
         }
       }
+    },
+    "Start or end of the line you're typing": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移到正在输入的这一行的开头或结尾"
+          }
+        }
+      }
+    },
+    "Delete back to the start of the line": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除到这一行的开头"
+          }
+        }
+      }
+    },
+    "Undo your last edit to the line": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销对这一行的上一次编辑"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

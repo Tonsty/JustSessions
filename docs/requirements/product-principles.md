@@ -22,7 +22,7 @@ These hold everywhere in the app. A feature that breaks one needs an explicit de
 
 | ID | Requirement | Origin | Related tests |
 | --- | --- | --- | --- |
-| PRD-20 | Keys a CLI uses (Escape, arrows, ⌘⌫, Control-B, and the like) are never bound as window-level shortcuts. New actions go into menus, context menus, and buttons; app shortcuts use Command, which never reaches a CLI. | `ca9e282`, project decision of 24 September 2026 | Manual |
+| PRD-20 | Keys a CLI uses (Escape, arrows, ⌘⌫, Control-B, and the like) are never bound as window-level shortcuts. New actions go into menus, context menus, and buttons; app shortcuts use Command, which never reaches a CLI, except ⌘←, ⌘→, ⌘⌫, and ⌘Z, which a terminal sends as line editing keys (TRM-66). | `ca9e282`, project decision of 24 September 2026, `80b9c00` | Manual |
 | PRD-21 | Every piece of app text reads at 4.5:1 or better on the surface it sits on, in every theme, including selected rows and hovered labels. | `16246c3`, `ab06a47` | `AppThemeReadabilityTests`, `ThemeSurfaceRenderingTests` |
 | PRD-22 | Views use the theme palette's text colors and themed button styles, never the system's secondary or tertiary text styles or unthemed controls. Buttons give the same press feedback throughout the app. | `16246c3`, `0acde62`, `39ee03b` | `ThemeTextColorContractTests` |
 | PRD-23 | A click on the window around a sheet, alert, or confirmation dialog closes it as Cancel would. The title bar, where the tab bar sits, counts as outside. File panels keep the system behavior. | `44433ed`, `24dc09a` | `DismissesOnClickOutsideTests`, `SheetClickOutsideMonitorTests` |
