@@ -31,13 +31,16 @@ extension GhosttyTabTerminalView {
 
     var selectionActive: Bool { terminalSurface?.hasSelection() == true }
 
-    /// The menu's Copy, as the Edit menu's: Ghostty puts the selection on the general pasteboard.
+    /// The menu's Copy, as the Edit menu's: Ghostty puts the selection on the general pasteboard, or the tab puts the
+    /// selected prompt there; see `GhosttyTabTerminalView+PromptSelection`.
     func copy(_ sender: Any) {
-        super.copy(sender)
+        copy(sender as Any?)
     }
 
-    /// The menu's Paste, through the Edit menu's action, which `AppTerminalView` keeps to its own module.
+    /// The menu's Paste, through the Edit menu's action, which `AppTerminalView` keeps to its own module. It replaces
+    /// a selected prompt, as the Edit menu's does; see `TerminalPromptSelection`.
     func paste(_ sender: Any) {
+        promptSelection.deleteSelectedPromptForPaste()
         NSApp.sendAction(#selector(NSText.paste(_:)), to: self, from: sender)
     }
 }

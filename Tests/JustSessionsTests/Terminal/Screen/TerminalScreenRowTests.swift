@@ -17,6 +17,17 @@ struct TerminalScreenRowTests {
         #expect(TerminalScreenRow("⚠️ ok").textWidth == 5)
     }
 
+    /// A prompt's text in a row starts at the cell its CLI keeps for it, after a marker such as `❯`.
+    @Test func textFromAColumnSkipsWhatComesBefore() {
+        let row = TerminalScreenRow("❯ 你好 kiwi   ")
+
+        #expect(row.text(fromColumn: 2) == ("你好 kiwi", 9))
+        #expect(row.text(fromColumn: 20) == ("", 0))
+        #expect(row.character(atColumn: 3) == "你")
+        #expect(TerminalScreenRow("  kiwi").isBlank(beforeColumn: 2))
+        #expect(!row.isBlank(beforeColumn: 2))
+    }
+
     @Test func wordsSkipIndentation() {
         let row = TerminalScreenRow("  first middle last ")
 

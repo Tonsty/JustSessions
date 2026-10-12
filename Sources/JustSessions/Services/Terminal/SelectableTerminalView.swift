@@ -29,6 +29,8 @@ final class SelectableTerminalView: LocalProcessTerminalView {
     }
     /// See `TabTerminalView.copyDroppedFilesToHost`.
     var copyDroppedFilesToHost: ((_ fileURLs: [URL]) -> Bool)?
+    /// ⌘A's selection of the CLI's prompt; see `SelectableTerminalView+PromptSelection`.
+    lazy var promptSelection = TerminalPromptSelection(terminal: self)
 
     private var appearancePreferences = TerminalAppearancePreferences()
     private var theme = ResolvedAppTheme(.justSessions)
@@ -45,6 +47,7 @@ final class SelectableTerminalView: LocalProcessTerminalView {
     func setWorkspaceActive(_ isActive: Bool) {
         guard outputCoalescer.isActive != isActive else { return }
         outputCoalescer.isActive = isActive
+        if !isActive { promptSelection.cancel() }
         // AppKit can also omit drawing and cursor subviews while this tab is invisible.
         isHidden = !isActive
         if isActive { needsDisplay = true }
@@ -57,6 +60,7 @@ final class SelectableTerminalView: LocalProcessTerminalView {
         let themeReports = themeReporting.reports(answering: bytes, isDark: appliedPalette?.isDark ?? false)
         feed(byteArray: bytes)
         themeReports.forEach(sendTerminalReport)
+        promptSelection.terminalOutputArrived()
     }
 
     /// Goes out as SwiftTerm's own replies do: unlike typing, it leaves the scroll position and selection alone.
@@ -79,6 +83,7 @@ final class SelectableTerminalView: LocalProcessTerminalView {
     override func setFrameSize(_ newSize: NSSize) {
         // Interpret queued output at the dimensions it arrived under before resizing the terminal grid.
         outputCoalescer.flush()
+        if newSize != frame.size { promptSelection.cancel() }
         super.setFrameSize(newSize)
     }
 
@@ -133,6 +138,18 @@ final class SelectableTerminalView: LocalProcessTerminalView {
     /// own version would hand any of them to `NSWorkspace` as a URL, which opens no path and any scheme.
     override func requestOpenLink(source: TerminalView, link: String, params: [String: String]) {
         onOpenLink?(link)
+    }
+
+    /// The menus' Copy copies ⌘A's selected prompt, if any; see `TerminalPromptSelection`.
+    override func copy(_ sender: Any) {
+        guard !promptSelection.copySelectedPrompt() else { return }
+        super.copy(sender)
+    }
+
+    /// The menus' Paste replaces ⌘A's selected prompt, if any.
+    override func paste(_ sender: Any) {
+        promptSelection.deleteSelectedPromptForPaste()
+        super.paste(sender)
     }
 
     /// SwiftTerm's `keyDown` hands Return here; while an input method composes text, Return belongs to it.

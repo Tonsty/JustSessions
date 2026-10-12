@@ -34,6 +34,34 @@ struct TerminalScreenRow {
         characters.indices.first { startColumns[$0] <= column && column < startColumns[$0] + cellCounts[$0] }
     }
 
+    /// The character whose cells hold `column`.
+    func character(atColumn column: Int) -> Character? {
+        characterIndex(atColumn: column).map { characters[$0] }
+    }
+
+    /// The first character that isn't blank.
+    var firstTextCharacter: Character? { firstTextIndex.map { characters[$0] } }
+
+    /// The cell the character at `index` starts at.
+    func startColumn(ofCharacterAt index: Int) -> Int {
+        startColumns[index]
+    }
+
+    /// The row's text from the character that starts at `column` or after it, without the blanks that end the row,
+    /// and the cells that text takes.
+    func text(fromColumn column: Int) -> (text: String, cellCount: Int) {
+        guard let firstIndex = characters.indices.first(where: { startColumns[$0] >= column }),
+              let lastTextIndex, lastTextIndex >= firstIndex
+        else { return ("", 0) }
+        let cellCount = startColumns[lastTextIndex] + cellCounts[lastTextIndex] - startColumns[firstIndex]
+        return (String(characters[firstIndex...lastTextIndex]), cellCount)
+    }
+
+    /// Whether the cells before `column` are all blank.
+    func isBlank(beforeColumn column: Int) -> Bool {
+        characters.indices.allSatisfy { startColumns[$0] >= column || Self.isBlank(characters[$0]) }
+    }
+
     /// The word holding the character at `index`; nil when that character is blank.
     func wordRange(around index: Int) -> Range<Int>? {
         guard characters.indices.contains(index), !Self.isBlank(characters[index]) else { return nil }

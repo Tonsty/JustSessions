@@ -29,6 +29,8 @@ protocol TabTerminalView: NSView, TerminalTextFinding {
     func link(under event: NSEvent) -> String?
     /// Whether text is selected, which the menu's Copy needs.
     var selectionActive: Bool { get }
+    /// ⌘A's selection of the CLI's prompt, which the menu's Copy also copies and its Paste replaces.
+    var promptSelection: TerminalPromptSelection { get }
     /// The menu's Copy and Paste. Select All is `NSResponder`'s `selectAll(_:)`, which both engines implement.
     func copy(_ sender: Any)
     func paste(_ sender: Any)

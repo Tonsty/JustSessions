@@ -127,6 +127,7 @@ final class TerminalSession: ObservableObject, Identifiable {
         self.linkOpener = TerminalLinkOpener(host: host, workingDirectory: projectPath)
         self.sshFileDrop = host.sshDestination.map { TerminalSSHFileDrop(host: $0) }
         terminalView.sendsShiftReturnAsCSIu = host == .thisMac && tmuxSessionName != nil
+        terminalView.promptSelection.layout = provider.flatMap(CLIPromptLayout.init(provider:))
         terminalView.acceptsDroppedFiles = true
         if let sshFileDrop {
             terminalView.copyDroppedFilesToHost = { [weak self] fileURLs in self?.copyDroppedFilesToHost(fileURLs) ?? false }

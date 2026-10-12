@@ -1002,6 +1002,8 @@
 	<string>Select a range</string>
 	<key>Select several sessions or projects</key>
 	<string>Select several sessions or projects</string>
+	<key>Select the text in a CLI's prompt, to copy, delete, or replace it. Again, select all of the terminal.</key>
+	<string>Select the text in a CLI's prompt, to copy, delete, or replace it. Again, select all of the terminal.</string>
 	<key>Send Feedback</key>
 	<string>Send Feedback</string>
 	<key>Send feedback ↗</key>
