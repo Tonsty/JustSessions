@@ -2,43 +2,45 @@ import Foundation
 
 /// A session or open tab dragged from the sidebar onto the terminals and let go there shows as a tab dragged from the
 /// tab bar does: in a split view on the side it was let go on, beside the selected tab or in place of the shown split's
-/// pane there. A session with no tab open resumes in a new tab to do so. While no tab is selected, it shows filling the
-/// terminals instead: the session resumes, or its tab is selected, as a double-click on it does.
+/// pane there, or, let go in the middle, on its own in place of the shown tab. A session with no tab open resumes in a
+/// new tab to do so. While no tab is selected, it shows filling the terminals wherever it is let go.
 extension ConversationStore {
-    /// Where the row would show, let go over the terminals on `side`; nil when it can't show here: a tab that is the
-    /// selected one or in a split, or a session another window's tab runs, or one that can't be resumed.
-    func dropPlace(for row: SidebarDraggedRow, onSide side: TerminalSplit.Side) -> TerminalDropPlace? {
+    /// Where the row would show, let go over the terminals where a tab would show at `pointedPlace`; nil when it can't
+    /// show here: a tab that is the selected one or in a split, or a session another window's tab runs, or one that
+    /// can't be resumed.
+    func dropPlace(for row: SidebarDraggedRow, at pointedPlace: TerminalDropPlace) -> TerminalDropPlace? {
         switch row {
         case .openTab(let tabID):
             guard terminalSessions.contains(where: { $0.id == tabID }) else { return nil }
-            return dropPlace(forTab: tabID, onSide: side)
+            return dropPlace(forTab: tabID, at: pointedPlace)
         case .session(let conversation):
-            if let tab = openTab(of: conversation) { return dropPlace(forTab: tab.id, onSide: side) }
+            if let tab = openTab(of: conversation) { return dropPlace(forTab: tab.id, at: pointedPlace) }
             guard canLaunch(conversation, action: .resume), runningTerminalInAnotherWindow(for: conversation) == nil else {
                 return nil
             }
-            return selectedTerminalID == nil ? .wholeArea : .split(side)
+            return selectedTerminalID == nil ? .wholeArea : pointedPlace
         }
     }
 
-    /// Shows the row where it was let go over the terminals, on `side`, unless it can no longer show there.
-    func showDroppedRow(_ row: SidebarDraggedRow, onSide side: TerminalSplit.Side) {
-        guard let place = dropPlace(for: row, onSide: side) else { return }
+    /// Shows the row where it was let go over the terminals, at `pointedPlace`, unless it can no longer show there.
+    func showDroppedRow(_ row: SidebarDraggedRow, at pointedPlace: TerminalDropPlace) {
+        guard let place = dropPlace(for: row, at: pointedPlace) else { return }
         switch (row, place) {
         case (.openTab(let tabID), .wholeArea):
             selectTerminal(tabID)
         case (.openTab(let tabID), .split(let side)):
             showDroppedTabInSplit(tabID, on: side)
         case (.session(let conversation), .wholeArea):
+            // As a double-click on it does: it resumes, in its own tab if one is open here.
             launch(conversation, action: .resume)
         case (.session(let conversation), .split(let side)):
             showDroppedSessionInSplit(conversation, on: side)
         }
     }
 
-    private func dropPlace(forTab tabID: UUID, onSide side: TerminalSplit.Side) -> TerminalDropPlace? {
+    private func dropPlace(forTab tabID: UUID, at pointedPlace: TerminalDropPlace) -> TerminalDropPlace? {
         guard selectedTerminalID != nil else { return .wholeArea }
-        return canShowDroppedTabsInSplit([tabID]) ? .split(side) : nil
+        return canShowDroppedTabs([tabID]) ? pointedPlace : nil
     }
 
     /// The session's tab in this window: the one running its CLI, or else one whose CLI ended.

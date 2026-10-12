@@ -1,26 +1,36 @@
 import CoreGraphics
 
-/// Where a window's terminals show, as a tab dragged over them finds the side of a split view it would show on, as a
-/// session dragged into Claude Code's window or a tab dragged to the side of Chrome's: with no split shown, the half
-/// under the pointer is the side the tab takes beside the shown tab, in a split that starts even; with a split shown,
-/// the pane under the pointer is the one the tab takes the place of, the resize area between the panes parting them.
+/// Where a window's terminals show, as a tab dragged over them finds where it would show, as a session dragged into
+/// Claude Code's window or a tab dragged to the side of Chrome's: with no split shown, the third along either edge
+/// under the pointer is the side the tab takes beside the shown tab, in a split that starts even, and the middle third
+/// shows the tab on its own, full width; with a split shown, the pane under the pointer is the one the tab takes the
+/// place of, the resize area between the panes parting them.
 struct TerminalSplitDropArea: Equatable {
+    /// With no split shown, the share of the width along each edge that splits; the rest, in the middle, does not.
+    static let splitEdgeShare: CGFloat = 1.0 / 3
+
     /// In the window, from its top-leading corner.
     var frameInWindow: CGRect
     /// The shown split's left pane share of the panes' width, or nil while no split shows.
     var shownSplitFraction: CGFloat?
 
-    /// The side a tab let go at `pointer`, in screen coordinates, shows on, over the area's window, whose frame on
-    /// screen is `windowFrame`; nil outside the area.
-    func side(atScreenPoint pointer: CGPoint, windowFrame: CGRect) -> TerminalSplit.Side? {
-        side(at: CGPoint(x: pointer.x - windowFrame.minX, y: windowFrame.maxY - pointer.y))
+    /// Where a tab let go at `pointer`, in screen coordinates, shows, over the area's window, whose frame on screen is
+    /// `windowFrame`; nil outside the area.
+    func place(atScreenPoint pointer: CGPoint, windowFrame: CGRect) -> TerminalDropPlace? {
+        place(at: CGPoint(x: pointer.x - windowFrame.minX, y: windowFrame.maxY - pointer.y))
     }
 
-    /// The side a tab let go at `point`, in the window from its top-leading corner, shows on; nil outside the area.
-    func side(at point: CGPoint) -> TerminalSplit.Side? {
+    /// Where a tab let go at `point`, in the window from its top-leading corner, shows; nil outside the area.
+    func place(at point: CGPoint) -> TerminalDropPlace? {
         guard frameInWindow.contains(point) else { return nil }
+        guard shownSplitFraction != nil else {
+            let edgeWidth = frameInWindow.width * Self.splitEdgeShare
+            if point.x < frameInWindow.minX + edgeWidth { return .split(.left) }
+            if point.x >= frameInWindow.maxX - edgeWidth { return .split(.right) }
+            return .wholeArea
+        }
         let boundary = frameInWindow.minX + paneFrames.resizeArea.midX
-        return point.x < boundary ? .left : .right
+        return .split(point.x < boundary ? .left : .right)
     }
 
     /// Where the tab dropped at `place` shows, in the area's coordinates: that side's half of a new, even split, or

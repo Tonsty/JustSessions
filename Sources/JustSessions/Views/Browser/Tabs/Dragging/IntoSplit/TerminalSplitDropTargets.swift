@@ -30,13 +30,13 @@ final class TerminalSplitDropTargets: ObservableObject {
         shownSplitFractionsByStore[ObjectIdentifier(store)] = fraction
     }
 
-    /// The side of a split view under `pointer`, in screen coordinates, over the store's window, whose frame is
-    /// `windowFrame`; nil off its terminals.
-    func side(at pointer: CGPoint, in store: ConversationStore, windowFrame: CGRect) -> TerminalSplit.Side? {
+    /// Where a tab let go at `pointer`, in screen coordinates, over the store's window, whose frame is `windowFrame`,
+    /// would show; nil off its terminals.
+    func place(at pointer: CGPoint, in store: ConversationStore, windowFrame: CGRect) -> TerminalDropPlace? {
         let storeID = ObjectIdentifier(store)
         guard let terminalFrame = terminalFramesByStore[storeID] else { return nil }
         let area = TerminalSplitDropArea(frameInWindow: terminalFrame, shownSplitFraction: shownSplitFractionsByStore[storeID])
-        return area.side(atScreenPoint: pointer, windowFrame: windowFrame)
+        return area.place(atScreenPoint: pointer, windowFrame: windowFrame)
     }
 
     /// Highlights the target in its window, or nothing for nil.
