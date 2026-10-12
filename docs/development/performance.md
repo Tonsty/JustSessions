@@ -129,9 +129,10 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 16 | [Typing beside flooding terminals](#16-typing-beside-flooding-terminals) | Measured, no change: issue #58 |
 | 17 | [SSH connections during a remote refresh](#17-ssh-connections-during-a-remote-refresh) | Changed, not measured live: issue #64 |
 | 18 | [Workspace windows repeated discovery and message indexing](#18-workspace-windows-repeated-discovery-and-message-indexing) | Done: issue #57 |
-| 19 | [The working spinner re-rendered the window 30 times a second](#19-the-working-spinner-re-rendered-the-window-30-times-a-second) | Done: idle render loop PR |
+| 19 | [The working spinner re-rendered the window 30 times a second](#19-the-working-spinner-re-rendered-the-window-30-times-a-second) | Done: #180 |
 | 20 | [The notification bell's list on each sidebar redraw](#20-the-notification-bells-list-on-each-sidebar-redraw) | Measured, no change: issue #176 |
-| 21 | [Every sidebar row hosted its hover menus](#21-every-sidebar-row-hosted-its-hover-menus) | Done: hover menus PR |
+| 21 | [Every sidebar row hosted its hover menus](#21-every-sidebar-row-hosted-its-hover-menus) | Done: #199 |
+| 22 | [The first right-click built the window's accessibility tree](#22-the-first-right-click-built-the-windows-accessibility-tree) | Measured, no change |
 
 ### 1. Timestamp parsing
 
@@ -461,18 +462,45 @@ The list costs one look at each window's tabs and at this window's CLIs in tmux 
 
 Traces recorded with `xcrun xctrace record --template 'Time Profiler' --instrument Hangs --attach <pid> --time-limit 26s`, the clicks posted by a small accessibility driver (`/tmp/axdrive click 20 1`, tab buttons in rotation, CGEvents at their centers). Apple M4 Pro, macOS 26.6.1, Xcode 27.0, release builds, this session's CLI working throughout.
 
-| Build | Main thread busy | Inside `NSHostingView.layout` | Hangs ≥ 100 ms | Focus walk samples |
-| --- | ---: | ---: | ---: | ---: |
-| f156493, run 1 | 34.4% | 26.9% | 20 (259–285 ms) | 103 |
-| f156493, run 2 | 34.7% | 27.9% | 20 (270–287 ms) | 112 |
-| f156493, run 3 | 34.9% | 28.1% | 20 (271–287 ms) | 111 |
-| After, run 1 | 13.1% | 7.8% | 0 | 156 |
-| After, run 2 | 12.4% | 8.0% | 0 | 48 |
-| After, run 3 | 12.7% | 8.1% | 0 | 56 |
+A stall is a stretch of main-thread samples no more than 2 ms apart: Time Profiler records the main thread only while it runs, so the stretch is time it could not take input. The Hangs instrument reports only stalls of about 250 ms or more, which is why an earlier version of this table counted no hangs after the change; the column below is the longest stall per click, from `/tmp/perf-perclick.py <timeprofile.xml>`.
+
+| Build | Main thread busy | Inside `NSHostingView.layout` | Longest stall per click: median (range), clicks ≥ 100 ms | Focus walk samples |
+| --- | ---: | ---: | --- | ---: |
+| f156493, run 1 | 34.4% | 26.9% | 270 ms (259–287), 20 of 20 | 103 |
+| f156493, run 2 | 34.7% | 27.9% | 277 ms (267–286), 20 of 20 | 112 |
+| f156493, run 3 | 34.9% | 28.1% | 278 ms (128–287), 20 of 20 | 111 |
+| After, run 1 | 13.1% | 7.8% | 87 ms (79–97), 0 of 19 | 156 |
+| After, run 2 | 12.4% | 8.0% | 85 ms (74–106), 1 of 20 | 48 |
+| After, run 3 | 12.7% | 8.1% | 88 ms (66–107), 1 of 20 | 56 |
+
+The driver above reads the app's accessibility tree to find the tabs, as VoiceOver or another accessibility client would, and SwiftUI then keeps that tree up to date on every change. On main a5eb0d9, with this change merged, the same 20 clicks posted at fixed points with no accessibility calls (`/tmp/axdrive clickat`, app relaunched first) stall far less:
+
+| Main a5eb0d9 | Longest stall per click: median (range), clicks ≥ 100 ms |
+| --- | --- |
+| No accessibility client, run 1 | 51 ms (43–58), 0 of 19 |
+| No accessibility client, run 2 | 49 ms (42–53), 0 of 18 |
+| Driver reading the tree, run 1 | 90 ms (84–116), 4 of 19 |
+| Driver reading the tree, run 2 | 91 ms (84–111), 5 of 20 |
 
 **Change:** a row puts its menus in the view tree only while the pointer is over it: `SidebarProjectRow` (⋯ and +), `SidebarSessionRow` and `SidebarSubagentRow` (⋯, in an overlay that never took room), and `SidebarOpenTabGroupHeading` (⋯ and +). The count each trades with stays in the layout, faded out, beside a placeholder of the menus' size, so hovering moves nothing; `SidebarHoverMenusTests` checks each row type's size with and without the pointer and the placeholder's, hosts every row type and checks it carries no pop-up button at rest, and hosts the 300-session browser harness and checks it holds only its header's filter (one pop-up). The host heading is left as it was: one heading per SSH host, not one per row, with its menus mounted and faded. The right-click menus are unchanged; `.contextMenu` adds no view until it opens.
 
-**Limits:** a click still costs about 100 ms of SwiftUI update, most of it `ViewGraph.updateOutputs` and `ScrollViewCommitMutation` re-evaluating the sidebar's rows because they observe the whole store; that is a later item's question. The focus walk's cost is SwiftUI's per node, not the app's, and was left as measured; the 156 samples in the first after run include the driving script's own accessibility reads when it starts, against 48 and 56 in the other two and 103–112 before. A row's menus appear on hover as before. At rest they are no longer in the view tree, so VoiceOver and Full Keyboard Access no longer reach the ⋯ and + as separate controls there; the same actions remain in the row's right-click menu, which is what a keyboard user opened anyway, but this was not checked with VoiceOver running.
+**Limits:** a click still costs 42–58 ms with no accessibility tree and 66–116 ms once there is one, built by an accessibility client or by the first right-click (item 22): most of it `ViewGraph.updateOutputs` and `ScrollViewCommitMutation` re-evaluating the sidebar's rows because they observe the whole store, with the tree updated alongside; that is a later item's question. The focus walk's cost is SwiftUI's per node, not the app's, and was left as measured; the 156 samples in the first after run include the driving script's own accessibility reads when it starts, against 48 and 56 in the other two and 103–112 before. A row's menus appear on hover as before. At rest they are no longer in the view tree, so VoiceOver and Full Keyboard Access no longer reach the ⋯ and + as separate controls there; the same actions remain in the row's right-click menu, which is what a keyboard user opened anyway, but this was not checked with VoiceOver running.
+
+### 22. The first right-click built the window's accessibility tree
+
+**Evidence:** in v1.2.4 a right-click on a tab or sidebar row hung the main thread for 1.09 s. Presenting the context menu, AppKit asks the window-wide `NSHostingView` for its `accessibilityChildren`, which builds SwiftUI's accessibility tree for the whole window: every sidebar row with its pop-up buttons, and the tab bar, while item 19's loop kept the graph busy. After items 19 and 21 the same path costs one stall, on the first right-click after launch; in its 157 samples, 106 are inside `NSHostingView.accessibilityChildren` and `AccessibilityNode` under `NSContextMenuImpl.presentPopup`. The tree it builds then stays, and SwiftUI updates it with every change, so tab switches afterwards cost what they cost under an accessibility client.
+
+Measured on main a5eb0d9, the app relaunched before each recording, right-clicks and clicks posted as mouse events at fixed points (`/tmp/axdrive rightclick` and `clickat`), each menu dismissed by a click beside it. `/tmp/perf-rightclick.sh` right-clicks a tab and a sidebar row in turn; `/tmp/perf-mixed.sh` switches tabs and right-clicks a row after each switch. Stalls from `/tmp/perf-perclick.py` and `/tmp/perf-stalls.py <timeprofile.xml> 2 presentPopup`; traces under `/tmp/perf-3/`. Apple M4 Pro, macOS 26.6.1, Xcode 27.0, release build.
+
+| Recording | First right-click after launch | Later right-clicks | Tab switches after the first right-click |
+| --- | --- | --- | --- |
+| Right-clicks only; driver reads the window's frame (`before-cold-1`) | 145 ms, then 45 ms as the menu opens | first on a row 51–54 ms; then 33 ms or less | — |
+| Right-clicks and tab switches; driver reads the window's frame (`before-mixed-1`) | 137 ms, then 61 ms | 38 ms or less | 75–95 ms |
+| Right-clicks and tab switches; no accessibility calls (`noax-mixed-1`) | 138 ms, then 64 ms | 20 ms or less | 69–89 ms |
+
+**Change:** none. Presenting the nine SwiftUI context menus as `NSMenu`s built in AppKit and popped from the view under the pointer, as the terminal's menu is, would keep AppKit from asking the window for its tree. It means writing about a dozen SwiftUI menu-content views again as AppKit builders, and the ⋯ hover menus with them so that no menu exists twice; for one stall of about 140 ms per launch, the risk of the two drifting apart was judged not worth it.
+
+**Limits:** `NSHostingView.accessibilityChildren` still runs in the first right-click's stack. After it, tab switches cost 69–89 ms for the rest of the session instead of 42–58 ms (item 21). An accessibility client, such as VoiceOver or an app that reads other apps' windows, builds the tree as well. How much updating the tree costs depends on how many views re-evaluate on a change, which is the store-wide observation question.
 
 ## How to profile
 
