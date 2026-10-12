@@ -135,6 +135,7 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
 | 22 | [The first right-click built the window's accessibility tree](#22-the-first-right-click-built-the-windows-accessibility-tree) | Measured, no change |
 | 23 | [Show N more under each project](#23-show-n-more-under-each-project) | Measured, no change |
 | 24 | [A growing Codex session's search text was read in full on every change](#24-a-growing-codex-sessions-search-text-was-read-in-full-on-every-change) | Done: issue #56 |
+| 25 | [What a tab switch still costs](#25-what-a-tab-switch-still-costs) | Partly done |
 
 ### 1. Timestamp parsing
 
@@ -567,6 +568,23 @@ The synthetic logs are the first attempt's: one message, then groups of one mess
 - **The hash limits the gain:** at 100 and 500 MiB, a resumed append is mostly hashing the saved bytes at about 3.4 GB/s. It is 3.1x and 3.5x faster, not in proportion to the appended record. At 10 MiB it is 2.0–2.2x.
 - **Costs:** the first change after a session's first read pays a full hash on top of the full read: about 2% on the realistic log, and about 30% on the synthetic logs, which have little to parse. An amendment pays for the failed resume and the rebuild's hash: about 7% and 57%. Codex appends; it doesn't amend.
 - **Smaller pages:** pages of 128 entries, 2,048 records, and 4 MiB made realistic appends 36 → 24 ms, but cold extraction at 100 MiB 5% slower, so they weren't taken.
+
+### 25. What a tab switch still costs
+
+**Evidence:** after items 19–21, a tab switch with no accessibility client still stalls the main thread for about 60 ms. Main 5949e7bc, 3 tabs open, measured as in item 21 with no accessibility calls: the app relaunched before each run, 20 clicks a second apart posted at the tabs' centers (`/tmp/axdrive clickat`), each click's main-thread time counted from 50 ms before its first stall to 700 ms after (`/tmp/perf-6/clickcost.py`). Each click took 96–98 ms of main-thread time, and its longest stall was 63–65 ms (medians of two runs). Nearly all of it is SwiftUI's graph update, spread thin: about 15 ms of view bodies, 5 ms of preferences, 5 ms comparing environment values, 3 ms looking up localized strings again for the text that re-renders, and the rest AttributeGraph's bookkeeping for each view it invalidates. No one view stands out; what costs is how many views a switch invalidates.
+
+Apple M4 Pro, macOS 26.6.1, release builds, the session's own CLI working throughout; medians of two runs of 18–19 detected clicks each.
+
+| Build | Longest stall per click: median (range), runs 1 and 2 | Main-thread time per click: median |
+| --- | --- | --- |
+| Main 5949e7bc | 63 ms (44–68), 65 ms (58–69) | 96, 98 ms |
+| Without the tab bar's scroll to the selected tab (experiment) | 65 ms (50–69), 66 ms (58–71) | 98, 102 ms |
+| Tab project keys found once (this change) | 60 ms (56–65), 62 ms (48–66) | 92, 94 ms |
+
+- **The tab bar's scroll:** `ScrollViewCommitMutation` held about 18 ms of each click, under the tab bar's `scrollTo` of the selected tab. Without the scroll that time moved into the ordinary update and the click cost the same, so the scroll was only where an update already due ran; it was left as is.
+- **Project keys:** each project row's activity summary read every tab's `projectDirectoryKey`, which resolved symlinks on disk each time, 2–3 ms per click. A tab's folder and host never change, so the key is now found once when the tab opens, as a session's is; the activity summary and the key no longer show in the trace.
+
+**Limits:** these runs had 3 tabs, against 5 in item 21. A symlink changed while a tab is open no longer changes its project until the tab reopens, as for sessions, which keep the key found when they were listed.
 
 ## How to profile
 
