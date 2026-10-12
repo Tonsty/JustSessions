@@ -44,6 +44,14 @@ class MetadataConsistencyTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "Structured app screenshot is missing"):
             validate_site(self.website_directory)
 
+    def test_structured_demo_video_not_shown_on_page_is_rejected(self):
+        homepage_content = (self.website_directory / "index.html").read_text()
+        structured_match = re.search(r'<script type="application/ld\+json">(.*?)</script>', homepage_content, re.DOTALL)
+        demo_video = json.loads(structured_match.group(1))["video"]
+        self.update_structured_data("video", {**demo_video, "contentUrl": "https://yangzichao.github.io/JustSessions/assets/old-demo.mp4"})
+        with self.assertRaisesRegex(AssertionError, "Structured demo video is missing"):
+            validate_site(self.website_directory)
+
     def test_social_image_alt_text_disagreement_is_rejected(self):
         homepage_path = self.website_directory / "index.html"
         homepage_path.write_text(re.sub(

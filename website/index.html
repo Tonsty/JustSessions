@@ -29,8 +29,8 @@
   <link rel="stylesheet" href="./styles/site-footer.css">
   <link rel="stylesheet" href="./styles/hero.css">
   <link rel="stylesheet" href="./styles/providers.css">
-  <link rel="stylesheet" href="./styles/screenshot-gallery.css">
-  <script type="module" src="./scripts/screenshot-gallery.js"></script>
+  <link rel="stylesheet" href="./styles/demo-video.css">
+  <script type="module" src="./scripts/demo-video/demo-video.js"></script>
   <script type="module" src="./scripts/traffic/traffic-monitor.js"></script>
   <link rel="stylesheet" href="./styles/details.css">
   <link rel="stylesheet" href="./styles/responsive.css">
@@ -42,13 +42,16 @@
       "name": "JustSessions",
       "url": "https://yangzichao.github.io/JustSessions/",
       "image": "https://yangzichao.github.io/JustSessions/assets/social-preview.png",
-      "screenshot": [
-        "https://yangzichao.github.io/JustSessions/assets/multi-agent-sessions.jpg",
-        "https://yangzichao.github.io/JustSessions/assets/session-reader.jpg",
-        "https://yangzichao.github.io/JustSessions/assets/ssh-sessions.jpg",
-        "https://yangzichao.github.io/JustSessions/assets/tmux-persistence.jpg",
-        "https://yangzichao.github.io/JustSessions/assets/tabs-split.jpg"
-      ],
+      "screenshot": ["https://yangzichao.github.io/JustSessions/assets/justsessions-demo.jpg"],
+      "video": {
+        "@type": "VideoObject",
+        "name": "JustSessions in 53 seconds",
+        "description": "Sessions grouped by project, resuming a conversation in its CLI, search, tabs and split view, a tab dragged into a new window, and an SSH session that keeps running after its tab closes.",
+        "thumbnailUrl": "https://yangzichao.github.io/JustSessions/assets/justsessions-demo.jpg",
+        "contentUrl": "https://yangzichao.github.io/JustSessions/assets/justsessions-demo.mp4",
+        "uploadDate": "2026-10-11",
+        "duration": "PT53S"
+      },
       "description": "Manage Claude Code, Codex and other agent sessions in a lightweight Mac app. Keep your CLI workflow, with native tabs, split view, SSH and bundled tmux.",
       "operatingSystem": "macOS 14 or later (Apple Silicon)",
       "applicationCategory": "DeveloperApplication",
@@ -78,124 +81,56 @@
     <section class="hero page-width" aria-labelledby="hero-title">
       <h1 id="hero-title">Nothing extra. <span class="hero-title-line">Just sessions.</span></h1>
       <p class="hero-description">Multiple agents, all your sessions in one place. Your familiar command line, with native tabs.</p>
-      <section class="screenshot-gallery" id="screenshots" aria-label="JustSessions features" aria-roledescription="carousel" data-screenshot-gallery>
-        <div class="gallery-stage">
-          <div class="gallery-track" tabindex="0" aria-label="Screenshots. Use the left and right arrow keys to browse." data-gallery-track>
-            <figure class="gallery-slide" id="terminal" role="group" aria-roledescription="slide" aria-label="1 of 5: Your CLIs">
-              <figcaption class="gallery-caption">
-                <h2>Multiple agents. One project.</h2>
-                <ul class="provider-list" role="list" aria-label="Supported coding agents">
-                  <li class="provider-item provider-claude">
-                    <svg class="provider-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/></svg>
-                    <span>Claude Code</span>
-                  </li>
-                  <li class="provider-item provider-codex">
-                    <svg class="provider-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="m6.5 9 3 3-3 3m6 .5h4"/></svg>
-                    <span>Codex CLI</span>
-                  </li>
-                  <li class="provider-item provider-antigravity">
-                    <svg class="provider-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 1.5c1.4 7.2 3.3 9.1 10.5 10.5-7.2 1.4-9.1 3.3-10.5 10.5C10.6 15.3 8.7 13.4 1.5 12 8.7 10.6 10.6 8.7 12 1.5Z"/></svg>
-                    <span>Antigravity CLI</span>
-                  </li>
-                  <li class="provider-item provider-kiro">
-                    <svg class="provider-icon" width="22" height="22" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M2.5 14.5v-8C2.5 3.5 5 1 8 1s5.5 2.5 5.5 5.5v8l-2.75-2L8 14.5l-2.75-2Z M5 7.375a1 1.375 0 1 0 2 0 1 1.375 0 1 0-2 0 M9 7.375a1 1.375 0 1 0 2 0 1 1.375 0 1 0-2 0"/></svg>
-                    <span>Kiro CLI</span>
-                  </li>
-                  <li class="provider-item provider-opencode">
-                    <svg class="provider-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6.5 6-5 6 5 6m11-12 5 6-5 6M14.5 3l-5 18"/></svg>
-                    <span>OpenCode</span>
-                  </li>
-                  <li class="provider-item provider-pi">
-                    <svg class="provider-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3.5 7.5C5 6 6 6 8 6h12M8 6v14m9-14v11c0 2 1 3 3 3"/></svg>
-                    <span>Pi</span>
-                  </li>
-                </ul>
-              </figcaption>
-              <a class="gallery-image" href="./assets/multi-agent-sessions.mp4" aria-label="View the multi-agent session demo at full size">
-                <video src="./assets/multi-agent-sessions.mp4" poster="./assets/multi-agent-sessions.jpg" width="1600" height="960" autoplay loop muted playsinline preload="metadata" data-gallery-video aria-label="Switch between real Claude Code, Codex, and OpenCode CLIs. The Projects sidebar groups five sessions under orbit-web: two Claude Code sessions, Codex, OpenCode, and Pi.">
-                  <img src="./assets/multi-agent-sessions.jpg" width="1600" height="960" alt="Five agent sessions under orbit-web: two Claude Code sessions, Codex, OpenCode, and Pi.">
-                </video>
-              </a>
-            </figure>
-            <figure class="gallery-slide" id="reading" role="group" aria-roledescription="slide" aria-label="2 of 5: Session management" data-gallery-duration="12000">
-              <figcaption class="gallery-caption">
-                <h2>New. Resume. Delete.</h2>
-                <ul class="gallery-feature-list">
-                  <li>Start with any agent</li>
-                  <li>Read, then resume</li>
-                  <li>Delete saved sessions</li>
-                </ul>
-              </figcaption>
-              <a class="gallery-image" href="./assets/session-reader.mp4" aria-label="View the session management demo at full size">
-                <video src="./assets/session-reader.mp4" poster="./assets/session-reader.jpg" width="1600" height="960" loop muted playsinline preload="metadata" data-gallery-video aria-label="Create a Claude Code session, read and resume a saved conversation in the CLI, then delete an old session into the macOS Trash.">
-                  <img src="./assets/session-reader.jpg" width="1600" height="960" alt="The New session dialog with agent choices, over the project and its saved conversations.">
-                </video>
-              </a>
-            </figure>
-            <figure class="gallery-slide" id="remote" role="group" aria-roledescription="slide" aria-label="3 of 5: SSH sessions">
-              <figcaption class="gallery-caption">
-                <h2>Work on any host.</h2>
-                <ul class="gallery-feature-list">
-                  <li>Local + SSH sessions</li>
-                  <li>Projects in one sidebar</li>
-                  <li>Resume remotely</li>
-                </ul>
-              </figcaption>
-              <a class="gallery-image" href="./assets/ssh-sessions.mp4" aria-label="View the SSH sessions demo at full size">
-                <video src="./assets/ssh-sessions.mp4" poster="./assets/ssh-sessions.jpg" width="1600" height="960" loop muted playsinline preload="metadata" data-gallery-video aria-label="Read sample Claude Code and Codex conversations under dev-desktop, switch to a local Claude Code CLI, and return to the remote host in the same sidebar.">
-                  <img src="./assets/ssh-sessions.jpg" width="1600" height="960" alt="The dev-desktop host and its sessions beside a remote conversation in JustSessions.">
-                </video>
-                  <img class="gallery-annotation" src="./assets/ssh-host-highlight.svg" width="2400" height="1440" loading="lazy" decoding="async" alt="" aria-hidden="true">
-              </a>
-            </figure>
-            <figure class="gallery-slide" id="persistence" role="group" aria-roledescription="slide" aria-label="4 of 5: tmux persistence" data-gallery-duration="12000">
-              <figcaption class="gallery-caption">
-                <h2>Close a tab. Keep the work.</h2>
-                <ul class="gallery-feature-list">
-                  <li>Close → <strong>Keep running</strong></li>
-                  <li>Quit the app. CLI stays alive.</li>
-                  <li>Click to reattach</li>
-                </ul>
-              </figcaption>
-              <a class="gallery-image" href="./assets/tmux-persistence.mp4" aria-label="View the tmux persistence demo at full size">
-                <video src="./assets/tmux-persistence.mp4" poster="./assets/tmux-persistence.jpg" width="1600" height="960" loop muted playsinline preload="metadata" data-gallery-video aria-label="A local file-indexing task advances in Claude Code. Close its tab, choose Keep running, then click the session to reattach and see that its progress has continued.">
-                  <img src="./assets/tmux-persistence.jpg" width="1600" height="960" alt="Keep running in the close-tab dialog over a Claude Code terminal running a local file-indexing task.">
-                </video>
-              </a>
-            </figure>
-            <figure class="gallery-slide" id="split" role="group" aria-roledescription="slide" aria-label="5 of 5: Tabs and split view">
-              <figcaption class="gallery-caption">
-                <h2>Tabs like Chrome. Split view.</h2>
-                <ul class="gallery-feature-list">
-                  <li>Create and switch tabs</li>
-                  <li>Automatically reopen tabs on launch</li>
-                  <li>Agent + shell, side by side</li>
-                </ul>
-              </figcaption>
-              <a class="gallery-image" href="./assets/tabs-split.mp4" aria-label="View the tabs and split view demo at full size">
-                <video src="./assets/tabs-split.mp4" poster="./assets/tabs-split.jpg" width="1600" height="960" loop muted playsinline preload="metadata" data-gallery-video aria-label="Switch among six tabs in the vertical Open tabs list, then use the tab menu to split Claude Code beside a project shell showing Git diff.">
-                  <img src="./assets/tabs-split.jpg" width="1600" height="960" alt="Six open tabs: two Claude Code sessions, Codex, OpenCode, Pi, and a shell. Claude Code and the shell share a split view.">
-                </video>
-              </a>
-            </figure>
-          </div>
+      <div class="demo-video" data-demo-video>
+        <div class="demo-video-stage">
+          <video src="./assets/justsessions-demo.mp4" poster="./assets/justsessions-demo.jpg" width="1920" height="1080" controls playsinline preload="metadata" data-demo-video-player aria-label="JustSessions demo with narration and captions: sessions grouped by project, resuming a conversation in its CLI, Codex, OpenCode, and Pi, search, tabs and split view, dragging a tab into a new window, and an SSH session that keeps running after its tab closes."></video>
+          <button class="demo-video-play" type="button" aria-label="Play the 53-second demo with sound" hidden data-demo-video-play>
+            <span class="demo-video-play-label">
+              <svg class="demo-video-play-icon" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M5 3.2v11.6c0 .6.6.9 1.1.6l9.2-5.8c.5-.3.5-.9 0-1.2L6.1 2.6C5.6 2.3 5 2.6 5 3.2Z"/></svg>
+              Watch the demo
+              <span class="demo-video-length">0:53</span>
+            </span>
+          </button>
         </div>
-        <div class="gallery-controls" hidden data-gallery-controls>
-          <button class="gallery-arrow" type="button" aria-label="Previous screenshot" data-gallery-previous><span aria-hidden="true">←</span></button>
-          <div class="gallery-pagination" role="group" aria-label="Screenshot progress">
-            <button type="button" aria-controls="terminal" aria-current="true" aria-label="Your CLIs screenshot" data-gallery-page><span data-gallery-progress-fill aria-hidden="true"></span></button>
-            <button type="button" aria-controls="reading" aria-label="Session management screenshot" data-gallery-page><span data-gallery-progress-fill aria-hidden="true"></span></button>
-            <button type="button" aria-controls="remote" aria-label="SSH sessions screenshot" data-gallery-page><span data-gallery-progress-fill aria-hidden="true"></span></button>
-            <button type="button" aria-controls="persistence" aria-label="tmux persistence screenshot" data-gallery-page><span data-gallery-progress-fill aria-hidden="true"></span></button>
-            <button type="button" aria-controls="split" aria-label="Tabs and split view screenshot" data-gallery-page><span data-gallery-progress-fill aria-hidden="true"></span></button>
-          </div>
-          <button class="gallery-arrow" type="button" aria-label="Next screenshot" data-gallery-next><span aria-hidden="true">→</span></button>
-          <button class="gallery-rotation" type="button" aria-label="Pause automatic slideshow" data-gallery-rotation><span aria-hidden="true">Ⅱ</span></button>
-        </div>
-        <p class="visually-hidden" aria-live="off" aria-atomic="true" data-gallery-status>1 of 5: Your CLIs</p>
-      </section>
+        <ol class="demo-chapters" aria-label="Demo chapters" hidden data-demo-chapters>
+          <li><button class="demo-chapter" type="button" aria-label="Play from Sessions" data-demo-chapter data-start="3" data-end="9.5">Sessions<span class="demo-chapter-track" aria-hidden="true"><span class="demo-chapter-fill" data-demo-chapter-fill></span></span></button></li>
+          <li><button class="demo-chapter" type="button" aria-label="Play from Agents" data-demo-chapter data-start="9.5" data-end="15.8">Agents<span class="demo-chapter-track" aria-hidden="true"><span class="demo-chapter-fill" data-demo-chapter-fill></span></span></button></li>
+          <li><button class="demo-chapter" type="button" aria-label="Play from Search" data-demo-chapter data-start="15.8" data-end="22.29">Search<span class="demo-chapter-track" aria-hidden="true"><span class="demo-chapter-fill" data-demo-chapter-fill></span></span></button></li>
+          <li><button class="demo-chapter" type="button" aria-label="Play from Tabs &amp; split" data-demo-chapter data-start="22.29" data-end="28.05">Tabs &amp; split<span class="demo-chapter-track" aria-hidden="true"><span class="demo-chapter-fill" data-demo-chapter-fill></span></span></button></li>
+          <li><button class="demo-chapter" type="button" aria-label="Play from New window" data-demo-chapter data-start="28.05" data-end="32.88">New window<span class="demo-chapter-track" aria-hidden="true"><span class="demo-chapter-fill" data-demo-chapter-fill></span></span></button></li>
+          <li><button class="demo-chapter" type="button" aria-label="Play from SSH" data-demo-chapter data-start="32.88" data-end="47.23">SSH<span class="demo-chapter-track" aria-hidden="true"><span class="demo-chapter-fill" data-demo-chapter-fill></span></span></button></li>
+        </ol>
+      </div>
     </section>
-
+    <section class="agents page-width" aria-labelledby="agents-title">
+      <h2 class="agents-title" id="agents-title">Works with your CLIs</h2>
+      <ul class="provider-list" role="list" aria-label="Supported coding agents">
+        <li class="provider-item provider-claude">
+          <svg class="provider-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/></svg>
+          <span>Claude Code</span>
+        </li>
+        <li class="provider-item provider-codex">
+          <svg class="provider-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="m6.5 9 3 3-3 3m6 .5h4"/></svg>
+          <span>Codex CLI</span>
+        </li>
+        <li class="provider-item provider-antigravity">
+          <svg class="provider-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 1.5c1.4 7.2 3.3 9.1 10.5 10.5-7.2 1.4-9.1 3.3-10.5 10.5C10.6 15.3 8.7 13.4 1.5 12 8.7 10.6 10.6 8.7 12 1.5Z"/></svg>
+          <span>Antigravity CLI</span>
+        </li>
+        <li class="provider-item provider-kiro">
+          <svg class="provider-icon" width="22" height="22" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M2.5 14.5v-8C2.5 3.5 5 1 8 1s5.5 2.5 5.5 5.5v8l-2.75-2L8 14.5l-2.75-2Z M5 7.375a1 1.375 0 1 0 2 0 1 1.375 0 1 0-2 0 M9 7.375a1 1.375 0 1 0 2 0 1 1.375 0 1 0-2 0"/></svg>
+          <span>Kiro CLI</span>
+        </li>
+        <li class="provider-item provider-opencode">
+          <svg class="provider-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6.5 6-5 6 5 6m11-12 5 6-5 6M14.5 3l-5 18"/></svg>
+          <span>OpenCode</span>
+        </li>
+        <li class="provider-item provider-pi">
+          <svg class="provider-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3.5 7.5C5 6 6 6 8 6h12M8 6v14m9-14v11c0 2 1 3 3 3"/></svg>
+          <span>Pi</span>
+        </li>
+      </ul>
+    </section>
     <section class="questions page-width" id="questions" aria-labelledby="questions-title">
       <h2 class="visually-hidden" id="questions-title">FAQ</h2>
       <div class="question-list">

@@ -11,7 +11,7 @@ Refreshed on October 10, 2026 from the current native interface at revision `e80
 | [tmux-keep-running.jpg](tmux-keep-running.jpg) | A running file-indexing task after closing its tab with **Keep running** and reattaching through the sidebar. |
 | [tmux-close-choice.jpg](tmux-close-choice.jpg) | The actual close-tab dialog, including **Don't ask again**, Keep running, End session, and Cancel. |
 
-Full windows are captured at 2400 × 1440 pixels. The close-tab dialog is 520 × 540. These stills are native captures; the homepage uses [five operation demos](../../website/media/README.md) and matching posters. The Slack/social card is rendered from the refreshed native-terminal capture.
+Full windows are captured at 2400 × 1440 pixels. The close-tab dialog is 520 × 540. These stills are native captures; the homepage uses a [narrated demo video](../../website/media/README.md). The Slack/social card is rendered from the refreshed native-terminal capture.
 
 The project names, SSH hosts, and saved messages are examples. Remote history is fixture data, with no live SSH connection demonstrated. Claude Code 2.1.296, Codex 0.162.0-alpha.17.2, and OpenCode 1.18.35 are installed CLIs. Capture profiles are isolated from the user's credentials. Published footage shows local help, sample history, and local shell commands; it does not show a model response or performance benchmark. The indexing task hashes 500 disposable files. The split-view shell shows an actual uncommitted change in a sample Git repository.
 

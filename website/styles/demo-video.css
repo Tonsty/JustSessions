@@ -1,0 +1,80 @@
+/* The narrated demo is the homepage's main visual: a poster with one play button, then the native controls. */
+/* Its width leaves the title, the video, and its chapters inside the first screen of a laptop window. */
+.demo-video { width: min(100%, 1120px, max(560px, calc((100svh - 300px) * 16 / 9))); margin-inline: auto; }
+.demo-video-stage {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 14px;
+  /* The video's own background, so loading and letterboxing never flash white. */
+  background: #14161c;
+  box-shadow: 0 24px 60px rgb(21 23 28 / 16%), 0 2px 6px var(--shadow);
+}
+.demo-video-stage video { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+.demo-video-play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: linear-gradient(to bottom, rgb(20 22 28 / 0%) 35%, rgb(20 22 28 / 32%));
+  font: inherit;
+  cursor: pointer;
+}
+.demo-video-play[hidden] { display: none; }
+.demo-video-play-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 62px;
+  padding: 10px 26px 10px 11px;
+  border-radius: 999px;
+  background: var(--ink);
+  box-shadow: 0 10px 30px rgb(21 23 28 / 32%);
+  color: var(--ink-foreground);
+  font-size: 19px;
+  font-weight: 650;
+  transition: transform .18s, background-color .18s;
+}
+/* The triangle sits slightly right of center so it looks centered in its circle. */
+.demo-video-play-icon { box-sizing: content-box; padding: 11px 10px 11px 12px; border-radius: 50%; background: var(--ink-foreground); color: var(--ink); }
+.demo-video-length { color: rgb(255 255 255 / 62%); font-weight: 500; font-variant-numeric: tabular-nums; }
+.demo-video-play:hover .demo-video-play-label { transform: scale(1.04); background: var(--button-hover); }
+.demo-video-play:focus-visible { outline: none; }
+.demo-video-play:focus-visible .demo-video-play-label { box-shadow: 0 0 0 3px var(--ink-foreground), 0 0 0 6px var(--ink); }
+
+.demo-chapters { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; margin: 14px 0 0; padding: 0; list-style: none; }
+.demo-chapters[hidden] { display: none; }
+.demo-chapter {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: 100%;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+  transition: color .18s;
+}
+.demo-chapter:hover, .demo-chapter[aria-current] { color: var(--ink); }
+.demo-chapter:focus-visible { outline: 3px solid var(--ink); outline-offset: 4px; border-radius: 4px; }
+/* The track sits above its label, next to the video it measures. */
+.demo-chapter-track { order: -1; display: block; height: 4px; overflow: hidden; border-radius: 2px; background: rgb(21 23 28 / 12%); }
+.demo-chapter-fill { display: block; height: 100%; background: var(--ink); transform: scaleX(0); transform-origin: left; }
+
+@media (max-width: 650px) {
+  .demo-video-stage { border-radius: 10px; }
+  .demo-video-play-label { gap: 10px; min-height: 48px; padding: 7px 18px 7px 7px; font-size: 16px; }
+  .demo-video-play-icon { width: 15px; height: 15px; padding: 9px 8px 9px 10px; }
+  .demo-chapters { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; }
+  .demo-chapter { gap: 7px; font-size: 14px; }
+}

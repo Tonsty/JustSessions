@@ -54,6 +54,10 @@ def validate_metadata(documents, website_directory: Path):
     screenshots = structured_data["screenshot"]
     assert isinstance(screenshots, list) and screenshots, "Structured app needs screenshots"
     assert all(screenshot in published_assets for screenshot in screenshots), "Structured app screenshot is missing or has a stale cache version"
+    demo_video = structured_data["video"]
+    assert demo_video["@type"] == "VideoObject"
+    assert demo_video["contentUrl"] in published_assets, "Structured demo video is missing or has a stale cache version"
+    assert demo_video["thumbnailUrl"] in published_assets, "Structured demo poster is missing or has a stale cache version"
     assert structured_data["offers"]["price"] == "0"
     assert structured_data["downloadUrl"] in homepage.references
     assert structured_data["softwareHelp"]["url"] == WEBSITE_URL + "guide.html"
