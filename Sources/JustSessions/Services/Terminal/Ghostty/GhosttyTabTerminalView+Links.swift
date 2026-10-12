@@ -6,7 +6,12 @@ import GhosttyTerminal
 /// found, which opens no relative path, and would open no OSC 8 hyperlink at all.
 extension GhosttyTabTerminalView: TerminalSurfaceOpenURLDelegate {
     func terminalDidRequestOpenURL(_ url: String, kind: TerminalOpenURLKind) {
-        onOpenLink?(url)
+        guard let pendingHardWrappedLink else {
+            onOpenLink?(url)
+            return
+        }
+        self.pendingHardWrappedLink = nil
+        onOpenLink?(pendingHardWrappedLink.resolved(engineLink: url))
     }
 
     /// While a program takes the mouse, as tmux does in every CLI tab on this Mac, Ghostty looks for links only with
@@ -26,12 +31,18 @@ extension GhosttyTabTerminalView: TerminalSurfaceOpenURLDelegate {
         return shiftedEvent
     }
 
-    /// The link a ⌘-click where `event` happened would hand over; see `SelectableTerminalView.link(under:)`. Ghostty
-    /// looks for links only while ⌘ is held, so the pointer moves to the same place with ⌘ for Ghostty to report the
-    /// link, then moves there again with the keys really held, which clears the link's underline. Ghostty skips the
-    /// look when the pointer stays in the cell it last looked in, so the pointer first leaves the terminal, as it does
-    /// when it leaves the view.
+    /// The link a ⌘-click where `event` happened would hand over; see `SelectableTerminalView.link(under:)`.
     func link(under event: NSEvent) -> String? {
+        let ghosttyLink = ghosttyLink(under: event)
+        guard let hardWrappedLink = hardWrappedLink(under: event) else { return ghosttyLink }
+        return hardWrappedLink.resolved(engineLink: ghosttyLink)
+    }
+
+    /// The link Ghostty finds where `event` happened. Ghostty looks for links only while ⌘ is held, so the pointer
+    /// moves to the same place with ⌘ for Ghostty to report the link, then moves there again with the keys really
+    /// held, which clears the link's underline. Ghostty skips the look when the pointer stays in the cell it last
+    /// looked in, so the pointer first leaves the terminal, as it does when it leaves the view.
+    private func ghosttyLink(under event: NSEvent) -> String? {
         guard let terminalSurface, bounds.contains(convert(event.locationInWindow, from: nil)),
               let commandMove = pointerMove(like: event, modifierFlags: .command),
               let restoringMove = pointerMove(like: event, modifierFlags: event.modifierFlags)

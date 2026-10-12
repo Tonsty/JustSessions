@@ -22,7 +22,8 @@ protocol TabTerminalView: NSView, TerminalTextFinding {
     /// `TerminalContextMenu`.
     var makeContextMenu: ((_ linkUnderPointer: String?) -> NSMenu)? { get set }
     /// Called with the link ⌘-clicked in the terminal: an OSC 8 hyperlink's target, or the URL or path the engine found
-    /// under the pointer. Nothing opens without it; see `TerminalLinkOpener`.
+    /// under the pointer, all of it when a CLI broke it over rows (`HardWrappedLink`). Nothing opens without it; see
+    /// `TerminalLinkOpener`.
     var onOpenLink: ((String) -> Void)? { get set }
     /// The link a ⌘-click where `event` happened would hand to `onOpenLink`; nil outside the terminal's text.
     func link(under event: NSEvent) -> String?

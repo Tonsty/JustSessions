@@ -6,7 +6,25 @@ import Testing
 enum TerminalClick {
     /// Moves the pointer over `column` of the terminal's first row, then presses and releases the left button there.
     static func click(_ view: NSView, column: Int, modifierFlags: NSEvent.ModifierFlags) throws {
-        let location = firstRowLocation(in: view, column: column)
+        try click(view, at: firstRowLocation(in: view, column: column), modifierFlags: modifierFlags)
+    }
+
+    /// Clicks the middle of a cell of a terminal whose cells are `grid.cellSize` points big.
+    static func click(
+        _ view: NSView, column: Int, row: Int, in grid: TerminalTestGrid, modifierFlags: NSEvent.ModifierFlags
+    ) throws {
+        try click(view, at: grid.location(ofColumn: column, row: row, in: view), modifierFlags: modifierFlags)
+    }
+
+    /// Moves the pointer over the middle of a cell of a terminal whose cells are `grid.cellSize` points big, as
+    /// before a right-click there, and returns the right-click's press.
+    static func rightClick(_ view: NSView, column: Int, row: Int, in grid: TerminalTestGrid) throws -> NSEvent {
+        let location = grid.location(ofColumn: column, row: row, in: view)
+        view.mouseMoved(with: try event(.mouseMoved, at: location, in: view, modifierFlags: []))
+        return try event(.rightMouseDown, at: location, in: view, modifierFlags: [])
+    }
+
+    private static func click(_ view: NSView, at location: CGPoint, modifierFlags: NSEvent.ModifierFlags) throws {
         view.mouseMoved(with: try event(.mouseMoved, at: location, in: view, modifierFlags: modifierFlags))
         view.mouseDown(with: try event(.leftMouseDown, at: location, in: view, modifierFlags: modifierFlags))
         view.mouseUp(with: try event(.leftMouseUp, at: location, in: view, modifierFlags: modifierFlags))
