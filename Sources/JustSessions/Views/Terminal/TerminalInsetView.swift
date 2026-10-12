@@ -16,6 +16,8 @@ final class TerminalInsetView: NSView {
     var isShown = true {
         didSet { applyWorkspaceActivity() }
     }
+    /// Set while the terminal is owed the keyboard but isn't in a window yet; see `takeKeyboard()`.
+    var takesKeyboardInWindow = false
     /// Cancelled when the view goes away, so no `deinit` is needed.
     private var windowObservations: Set<AnyCancellable> = []
 
@@ -40,6 +42,19 @@ final class TerminalInsetView: NSView {
             }
         }
         applyWorkspaceActivity()
+        if takesKeyboardInWindow, window != nil, terminalView.superview === self { takeKeyboard() }
+    }
+
+    /// Puts the keyboard in the terminal, or, while the terminal isn't in a window yet, as soon as this view brings it
+    /// into one. SwiftUI can add a new tab's view to its window after the turn of the main queue that selected the tab
+    /// gives it the keyboard on, when the app is busy.
+    func takeKeyboard() {
+        if let window = terminalView.window {
+            takesKeyboardInWindow = false
+            window.makeFirstResponder(terminalView)
+        } else {
+            takesKeyboardInWindow = terminalView.superview === self
+        }
     }
 
     private func applyWorkspaceActivity() {
