@@ -1,5 +1,37 @@
 [
   {
+    "version": "1.2.9",
+    "publishedOn": "2026-10-12",
+    "title": {
+      "en": "Select only the prompt with ⌘A",
+      "zh-Hans": "用 ⌘A 只选中输入框"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "⌘A in a CLI's tab, except Kiro CLI, selects only its prompt, to copy, delete, or replace.",
+            "zh-Hans": "在 CLI 标签页中（Kiro CLI 除外），⌘A 只选中输入框文字，可复制、删除或替换。"
+          }
+        ]
+      },
+      {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "Drag a tab or session to the middle of the terminals to show it alone; the sides still split.",
+            "zh-Hans": "把标签页或会话拖到终端区域中间可单独显示；拖到两侧仍会分屏。"
+          },
+          {
+            "en": "Switching tabs is faster when the sidebar lists many projects.",
+            "zh-Hans": "侧栏项目较多时，切换标签页更快。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.8",
     "publishedOn": "2026-10-12",
     "title": {
