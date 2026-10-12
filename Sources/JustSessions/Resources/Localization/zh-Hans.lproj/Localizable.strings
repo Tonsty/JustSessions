@@ -1018,6 +1018,8 @@
 	<string>选择一个范围</string>
 	<key>Select several sessions or projects</key>
 	<string>选择多个会话或项目</string>
+	<key>Select the text in a CLI's prompt, to copy, delete, or replace it. Again, select all of the terminal.</key>
+	<string>选中 CLI 输入框里的文字，以便复制、删除或替换。再按一次，全选整个终端。</string>
 	<key>Send Feedback</key>
 	<string>发送反馈</string>
 	<key>Send feedback ↗</key>

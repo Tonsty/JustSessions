@@ -34,6 +34,8 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     }
     /// See `TabTerminalView.copyDroppedFilesToHost`.
     var copyDroppedFilesToHost: ((_ fileURLs: [URL]) -> Bool)?
+    /// ⌘A's selection of the CLI's prompt; see `GhosttyTabTerminalView+PromptSelection`.
+    lazy var promptSelection = TerminalPromptSelection(terminal: self)
     private(set) var marginColor = NSColor.textBackgroundColor
     /// The width a SwiftTerm terminal keeps free for its scroller, which Ghostty doesn't draw, so text lines up the
     /// same in both.
@@ -60,11 +62,11 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     /// The same grid with its cells' size, as Ghostty last reported it to the view; see
     /// `GhosttyTabTerminalView+HardWrappedLinks`.
     var gridMetrics: TerminalGridMetrics?
-    private var appearancePreferences = TerminalAppearancePreferences()
+    private(set) var appearancePreferences = TerminalAppearancePreferences()
     private var theme = ResolvedAppTheme(.justSessions)
     private var appearanceSubscription: AnyCancellable?
     /// The colors the terminal last took on, so a theme report goes out only when they change.
-    private var appliedPalette: TerminalPalette?
+    private(set) var appliedPalette: TerminalPalette?
     private var themeReporting = TerminalThemeReporting()
     /// The report owed after a background query that Ghostty has been handed but not answered yet; see
     /// `sendToProcess(_:)`.
@@ -111,6 +113,7 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
 
     func setWorkspaceActive(_ isActive: Bool) {
         outputCoalescer.isActive = isActive
+        if !isActive { promptSelection.cancel() }
         setSurfaceVisible(isActive)
     }
 
@@ -149,6 +152,7 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     override func setFrameSize(_ newSize: NSSize) {
         // Output that arrived at the old size is parsed at it before Ghostty lays the text out again.
         outputCoalescer.flush()
+        if newSize != frame.size { promptSelection.cancel() }
         super.setFrameSize(newSize)
     }
 
@@ -200,7 +204,7 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
 
     /// Sends a key's bytes as Ghostty sends the keys it encodes, from its IO thread, so they keep their place among
     /// the keys typed before them that Ghostty has not sent yet. Like a typed key, this scrolls to the bottom.
-    private func sendAsTyped(_ keyBytes: String) {
+    func sendAsTyped(_ keyBytes: String) {
         performBindingAction(Self.textAction(typing: keyBytes))
     }
 
@@ -252,6 +256,7 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
         inMemorySession.receive(Data(bytes))
         outputBackpressure.outputPassedToGhostty(byteCount: bytes.count)
         themeReports.forEach(sendTerminalReport)
+        promptSelection.terminalOutputArrived()
     }
 
     var reportsThemeAfterNextBackgroundQuery: Bool { themeReporting.reportsAfterNextBackgroundQuery }

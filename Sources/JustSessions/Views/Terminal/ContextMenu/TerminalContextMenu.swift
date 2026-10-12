@@ -31,11 +31,13 @@ struct TerminalContextMenu {
         return menu
     }
 
-    /// Copy needs a selection. Paste needs text on the clipboard, the only kind SwiftTerm pastes.
+    /// Copy needs a selection, the terminal's or ⌘A's of the CLI's prompt (`TerminalPromptSelection`). Paste needs text
+    /// on the clipboard, the only kind SwiftTerm pastes. Select All selects all of the terminal.
     private var textEditingItems: [NSMenuItem] {
         let terminalView = tab.terminalView
+        let hasSelection = terminalView.selectionActive || terminalView.promptSelection.isActive
         return [
-            ActionMenuItem(title: localized("Copy"), systemImage: "doc.on.doc", isEnabled: terminalView.selectionActive) {
+            ActionMenuItem(title: localized("Copy"), systemImage: "doc.on.doc", isEnabled: hasSelection) {
                 terminalView.copy(terminalView)
             },
             ActionMenuItem(
@@ -46,6 +48,7 @@ struct TerminalContextMenu {
                 terminalView.paste(terminalView)
             },
             ActionMenuItem(title: localized("Select All"), systemImage: "selection.pin.in.out") {
+                terminalView.promptSelection.cancel()
                 terminalView.selectAll(terminalView)
             },
         ]
