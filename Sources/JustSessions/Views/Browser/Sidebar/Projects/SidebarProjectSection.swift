@@ -28,6 +28,8 @@ struct SidebarProjectSection: View {
     let onNewSession: (ConversationProvider) -> Void
     let onClickConversation: (Conversation) -> Void
     let onSelectPendingNewSession: (UUID) -> Void
+    /// Called once a session or a new session's tab dragged onto the terminals shows there.
+    let onDroppedRowIntoTerminals: () -> Void
     let onRenameConversation: (Conversation) -> Void
     let onRenameProject: () -> Void
     let onRemoveSelectedProjects: () -> Void
@@ -85,6 +87,13 @@ struct SidebarProjectSection: View {
                         )
                         .sidebarIndentGuide(isFirstRow: isFirstRow, isLastRow: isLastRow)
                         .reportsSidebarRowFrame(row.id, inProject: project.id, to: pinDragging.rowFrames)
+                        .sidebarRowDragIntoSplit(
+                            .openTab(terminal.id),
+                            titled: terminal.displayTitle,
+                            in: store,
+                            fadesWhileDragged: true,
+                            onDropped: onDroppedRowIntoTerminals
+                        )
                     }
                 case .conversation(let conversation):
                     conversationRows(conversation, rowID: row.id, among: rows, isFirstRow: isFirstRow, isLastRow: isLastRow)
@@ -121,7 +130,7 @@ struct SidebarProjectSection: View {
         .reportsSidebarRowFrame(projectRowID, inProject: project.id, to: pinDragging.rowFrames)
         .sidebarPinDragSource(
             isDragged: pinDragging.isDragging(projectRowID),
-            translation: pinDragging.drag?.translation ?? 0,
+            ghostOffset: pinDragging.ghostOffset(of: projectRowID),
             landingLineOffset: pinDragging.landingLineOffset(fromTopOf: projectRowID),
             landingLineLeadingInset: landingLineLeadingInset,
             onChanged: { pinDragging.onDrag(projectRowID, projectScope, hostProjectRows, $0) },
@@ -137,7 +146,8 @@ struct SidebarProjectSection: View {
         }
     }
 
-    /// A session's row, which drags among the project's sessions, then its subagents' rows while they show.
+    /// A session's row, which drags among the project's sessions and onto the terminals, then its subagents' rows while
+    /// they show.
     @ViewBuilder
     private func conversationRows(
         _ conversation: Conversation,
@@ -168,7 +178,7 @@ struct SidebarProjectSection: View {
         .reportsSidebarRowFrame(rowID, inProject: project.id, to: pinDragging.rowFrames)
         .sidebarPinDragSource(
             isDragged: pinDragging.isDragging(rowID),
-            translation: pinDragging.drag?.translation ?? 0,
+            ghostOffset: pinDragging.ghostOffset(of: rowID),
             landingLineOffset: pinDragging.landingLineOffset(fromTopOf: rowID),
             landingLineLeadingInset: landingLineLeadingInset,
             onChanged: { pinDragging.onDrag(rowID, sessionScope, { sessionRows(rows) }, $0) },
@@ -184,6 +194,12 @@ struct SidebarProjectSection: View {
                 EmptyView()
             }
         }
+        .sidebarRowDragIntoSplit(
+            .session(conversation),
+            titled: store.title(for: conversation),
+            in: store,
+            onDropped: onDroppedRowIntoTerminals
+        )
 
         ForEach(rowsUnder) { row in
             SidebarSubagentRow(

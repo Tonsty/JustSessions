@@ -4,11 +4,13 @@ import SwiftUI
 /// that collapses it. It stays mounted beside the project list to retain its scroll position and collapsed groups.
 /// Each tab of a split across projects lists under its own project, marked with its side of the split, as is each
 /// tab of a split in its project's group. Rows, headings, and the space around them offer the menus of the tab bar's
-/// tabs, group labels, and space.
+/// tabs, group labels, and space. A row drags onto the terminals as its tab would from the tab bar.
 struct SidebarOpenTabsView: View {
     @ObservedObject var store: ConversationStore
     let searchText: String
     let onSelectTab: (UUID) -> Void
+    /// Called once a tab dragged onto the terminals shows there.
+    let onDroppedTabIntoTerminals: () -> Void
     let onRenameConversation: (Conversation) -> Void
     let onCloseTab: (UUID) -> Void
     let onDeleteConversation: (Conversation) -> Void
@@ -84,6 +86,13 @@ struct SidebarOpenTabsView: View {
                                     store: store, tab: tab, onRename: onRenameConversation, onCloseTab: onCloseTab,
                                     onDelete: onDeleteConversation
                                 )
+                            )
+                            .sidebarRowDragIntoSplit(
+                                .openTab(tab.id),
+                                titled: tab.displayTitle,
+                                in: store,
+                                fadesWhileDragged: true,
+                                onDropped: onDroppedTabIntoTerminals
                             )
                         }
                     }

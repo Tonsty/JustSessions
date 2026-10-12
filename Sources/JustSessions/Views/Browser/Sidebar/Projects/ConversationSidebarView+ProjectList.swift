@@ -61,6 +61,7 @@ extension ConversationSidebarView {
                                 },
                                 onClickConversation: handleConversationClick,
                                 onSelectPendingNewSession: selectTab,
+                                onDroppedRowIntoTerminals: clearSelectionForDroppedRow,
                                 onRenameConversation: onRenameConversation,
                                 onRenameProject: { onRenameProject(project) },
                                 onRemoveSelectedProjects: removeSelectedProjects,

@@ -9,7 +9,8 @@ import SwiftUI
 /// hold the CLI's input and status. A click in the pane whose tab is not selected, or on its toolbar, selects that tab,
 /// bringing it the keyboard, and a click in the pane still reaches its terminal, so scrolling and selecting text work
 /// there too. Every split's tabs keep their terminals' sizes while another tab shows, so coming back resizes no
-/// terminal.
+/// terminal. A tab dragged over the terminals lights up the pane it would take in a split; see
+/// `TerminalSplitDropHighlight`.
 /// The tab bar runs up into the title bar beside the window buttons; with no tabs open, the title bar stays clear.
 struct WorkspaceDetailView: View {
     @ObservedObject var store: ConversationStore
@@ -109,7 +110,16 @@ struct WorkspaceDetailView: View {
                             .frame(width: resizeAreaFrame.width, height: resizeAreaFrame.height)
                             .offset(x: resizeAreaFrame.minX, y: resizeAreaFrame.minY)
                     }
+
+                    TerminalSplitDropHighlight(
+                        store: store,
+                        area: TerminalSplitDropArea(
+                            frameInWindow: CGRect(origin: .zero, size: geometry.size),
+                            shownSplitFraction: shownSplit.map(splitFraction(of:))
+                        )
+                    )
                 }
+                .reportsTerminalSplitDropArea(in: store, shownSplitFraction: shownSplit.map(splitFraction(of:)))
             }
             .tabBarTerminalPalette(from: .shared, themeStore: .shared)
         }

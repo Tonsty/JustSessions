@@ -54,6 +54,7 @@ struct SidebarSubagentVisibilityTests {
                 onNewSession: { _ in },
                 onClickConversation: { _ in },
                 onSelectPendingNewSession: { _ in },
+                onDroppedRowIntoTerminals: {},
                 onRenameConversation: { _ in },
                 onRenameProject: {},
                 onRemoveSelectedProjects: {},
