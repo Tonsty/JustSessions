@@ -1032,6 +1032,10 @@
 	<string>Show</string>
 	<key>Show %@</key>
 	<string>Show %@</string>
+	<key>Show %lld more</key>
+	<string>Show %lld more</string>
+	<key>Show %lld more sessions</key>
+	<string>Show %lld more sessions</string>
 	<key>Show Sidebar</key>
 	<string>Show Sidebar</string>
 	<key>Show a tip in the sidebar each time JustSessions opens</key>
