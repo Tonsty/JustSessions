@@ -10,8 +10,9 @@ Refreshed on October 10, 2026 from the current native interface at revision `e80
 | [remote-desktop-sessions.jpg](remote-desktop-sessions.jpg) | A sample Claude Code conversation under the `dev-desktop` SSH host, beside local projects. |
 | [tmux-keep-running.jpg](tmux-keep-running.jpg) | A running file-indexing task after closing its tab with **Keep running** and reattaching through the sidebar. |
 | [tmux-close-choice.jpg](tmux-close-choice.jpg) | The actual close-tab dialog, including **Don't ask again**, Keep running, End session, and Cancel. |
+| [demo-split-view.jpg](demo-split-view.jpg) | Used only by the social card. The split-view frame at 28.0 seconds of the homepage demo, recorded October 11, 2026 from v1.2.6: Claude Code and Codex side by side, with `orbit-web`, `orbit-api`, and the `devbox` SSH host in the sidebar. The window is cropped from the 3200 × 1800 recording, its rounded corners are filled with the page color, and it is scaled to 2400 × 1350. See [demo provenance](../../website/media/README.md). |
 
-Full windows are captured at 2400 × 1440 pixels. The close-tab dialog is 520 × 540. These stills are native captures; the homepage uses a [narrated demo video](../../website/media/README.md). The Slack/social card is rendered from the refreshed native-terminal capture.
+Full windows are captured at 2400 × 1440 pixels. The close-tab dialog is 520 × 540. These stills are native captures; the homepage uses a [narrated demo video](../../website/media/README.md). The Slack/social card is rendered from `demo-split-view.jpg`.
 
 The project names, SSH hosts, and saved messages are examples. Remote history is fixture data, with no live SSH connection demonstrated. Claude Code 2.1.296, Codex 0.162.0-alpha.17.2, and OpenCode 1.18.35 are installed CLIs. Capture profiles are isolated from the user's credentials. Published footage shows local help, sample history, and local shell commands; it does not show a model response or performance benchmark. The indexing task hashes 500 disposable files. The split-view shell shows an actual uncommitted change in a sample Git repository.
 
