@@ -90,6 +90,22 @@ struct TerminalPromptSelectionTests {
         try await fixture.expectInput(CLIPromptEditingKeys.clearing(prompt))
     }
 
+    /// Edit → Copy is on while the prompt is selected, though the terminal's own selection is empty.
+    @Test(arguments: TerminalEngine.allCases)
+    func editMenuCopyIsOnWhileThePromptIsSelected(_ engine: TerminalEngine) async throws {
+        let fixture = try await PromptDrawingFixture(engine: engine)
+        defer { fixture.tearDown() }
+        try fixture.drawClaudeCodePrompt(["kiwi mango"])
+        #expect(fixture.terminalView.performKeyEquivalent(with: fixture.commandA))
+        let editMenu = NSMenu()
+        let copyItem = editMenu.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "")
+        copyItem.target = fixture.terminalView
+
+        editMenu.update()
+
+        #expect(copyItem.isEnabled)
+    }
+
     /// Any other key ends the selection and goes to the CLI as usual.
     @Test(arguments: TerminalEngine.allCases)
     func otherKeysEndTheSelection(_ engine: TerminalEngine) async throws {

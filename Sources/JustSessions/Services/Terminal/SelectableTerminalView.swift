@@ -152,6 +152,12 @@ final class SelectableTerminalView: LocalProcessTerminalView {
         super.paste(sender)
     }
 
+    /// The Edit menu's Copy is on while ⌘A's prompt is selected, which SwiftTerm's own selection knows nothing of.
+    override func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
+        if item.action == #selector(copy(_:)), promptSelection.isActive { return true }
+        return super.validateUserInterfaceItem(item)
+    }
+
     /// SwiftTerm's `keyDown` hands Return here; while an input method composes text, Return belongs to it.
     override func interpretKeyEvents(_ eventArray: [NSEvent]) {
         if sendsShiftReturnAsCSIu, terminal.keyboardEnhancementFlags.isEmpty, !hasMarkedText(),
