@@ -11,7 +11,8 @@ actor TranscriptPageSource {
     let limits: TranscriptPageLimits
     /// See `TranscriptBuilder.decodesImages`.
     let decodesImages: Bool
-    private var fileIndex: TranscriptFileIndex?
+    /// The index pages are read from; message search takes the byte offset of its final page from it.
+    private(set) var fileIndex: TranscriptFileIndex?
     private var piRecordIndices: [Int]?
 
     init(
@@ -65,12 +66,10 @@ actor TranscriptPageSource {
                 let record = recordIndices?[position] ?? position
                 return try autoreleasepool {
                     let data = try index.readRecord(at: record, from: handle, maximumByteCount: limits.maximumRecordByteCount)
-                    if data == nil, provider == .codex {
+                    return try decoder.pageEntries(from: data) { byteCount in
                         try handle.seek(toOffset: index.byteRange(at: record).lowerBound)
-                        let head = try handle.read(upToCount: 512) ?? Data()
-                        if !CodexTranscriptReader.mightContainTranscriptItem(head) { return ([], 0) }
+                        return try handle.read(upToCount: byteCount) ?? Data()
                     }
-                    return (decoder.entries(from: data), data?.count ?? 0)
                 }
             }
         ).preparingMarkdown()

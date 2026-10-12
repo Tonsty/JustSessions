@@ -9,6 +9,14 @@ struct TranscriptRecordDecoder {
     var decodesImages = true
     private let jsonDecoder = JSONDecoder()
 
+    /// A record's entries and the bytes decoded, as `TranscriptPageReader` takes them. `data` is nil for a record over
+    /// the page limits' `maximumRecordByteCount`. A Codex record that large is judged by its first bytes, read by `head`,
+    /// and left out when it can't hold a transcript item, rather than shown as a note.
+    func pageEntries(from data: Data?, head: (_ byteCount: Int) throws -> Data) rethrows -> ([TranscriptEntry], Int) {
+        if data == nil, provider == .codex, !CodexTranscriptReader.mightContainTranscriptItem(try head(512)) { return ([], 0) }
+        return (entries(from: data), data?.count ?? 0)
+    }
+
     func entries(from data: Data?) -> [TranscriptEntry] {
         guard let data else {
             return [TranscriptEntry(id: 0, content: .note("This record is too large to preview."), timestamp: nil, startsTurn: false)]
