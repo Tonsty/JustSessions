@@ -50,7 +50,7 @@ struct MessageSearchReadingMeasurements {
     /// Reads every page and returns the most decoded image bytes one page held.
     private func read(_ file: URL, provider: ConversationProvider, decodesImages: Bool) async throws -> Int {
         let source = TranscriptPageSource(
-            file: file, provider: provider, limits: SessionMessageTextReader.wholeSessionLimits, decodesImages: decodesImages
+            file: file, provider: provider, limits: SessionMessageTextReader.wholeSessionLimits(for: provider), decodesImages: decodesImages
         )
         var largestPageImageBytes = 0
         var request = TranscriptPageRequest.first

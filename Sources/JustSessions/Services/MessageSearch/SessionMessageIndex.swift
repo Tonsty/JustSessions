@@ -76,14 +76,24 @@ actor SessionMessageIndex {
     /// Used by the performance measurement to report whether windows hold duplicate index entries.
     func sessionCount() -> Int { sessions.count }
 
-    /// The session's text from the cache, or else read from the session and saved. Nil when the session can't be
-    /// read, or the read is cancelled; a later update tries again.
+    /// The session's text from the cache, or else read from the session and saved. A session saved before, which has
+    /// changed since, is read with `readChanged`, which can resume a Codex session from its saved text. Nil when the
+    /// session can't be read, or the read is cancelled; a later update tries again.
     nonisolated static func searchableText(
         of conversation: Conversation, fingerprint: SessionMessageTextFingerprint, cache: SessionMessageTextCache
     ) async -> SearchableSessionText? {
-        if let saved = cache.text(for: conversation.id, fingerprint: fingerprint) { return SearchableSessionText(saved) }
-        guard let text = try? await SessionMessageTextReader.read(conversation), !Task.isCancelled else { return nil }
-        cache.save(text, for: conversation.id, fingerprint: fingerprint)
-        return SearchableSessionText(text)
+        switch cache.lookup(for: conversation.id, fingerprint: fingerprint) {
+        case .current(let text):
+            return SearchableSessionText(text)
+        case .changed(let saved):
+            guard let read = try? await SessionMessageTextReader.readChanged(conversation, resuming: saved),
+                  !Task.isCancelled else { return nil }
+            cache.save(read.text, resumeState: read.resumeState, for: conversation.id, fingerprint: fingerprint)
+            return SearchableSessionText(read.text)
+        case .missing:
+            guard let text = try? await SessionMessageTextReader.read(conversation), !Task.isCancelled else { return nil }
+            cache.save(text, for: conversation.id, fingerprint: fingerprint)
+            return SearchableSessionText(text)
+        }
     }
 }
