@@ -2,7 +2,7 @@ import { classifyTrafficSource, publishedPages, publishedWebsiteOrigin } from ".
 
 const trafficEndpoint = "https://justsessions-website-traffic.noether-lab.workers.dev/pageview";
 
-/** One anonymous count per page load, independent of gallery interaction. */
+/** One anonymous count per page load, independent of demo video playback. */
 export async function recordWebsitePageView(browser) {
   const page = publishedPages.get(browser.location.pathname);
   if (browser.location.origin !== publishedWebsiteOrigin || !page) return false;
