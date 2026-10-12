@@ -21,6 +21,9 @@ struct SidebarOpenTabGroupHeading: View {
     let menuItems: TabGroupMenuItems
 
     @State private var isHovered = false
+    /// Holds the pointer-over state for a test; nil follows `onHover` as in use.
+    var isHoveredForTests: Bool? = nil
+    private var hovered: Bool { isHoveredForTests ?? isHovered }
 
     static let height: CGFloat = 24
 
@@ -67,7 +70,7 @@ struct SidebarOpenTabGroupHeading: View {
                 .padding(.trailing, 10)
         }
         .font(ThemeFont.detail.weight(.semibold))
-        .background(SidebarRowBackground(isSelected: false, isHovered: isHovered))
+        .background(SidebarRowBackground(isSelected: false, isHovered: hovered))
         .onHover { isHovered = $0 }
         .contextMenu { menuItems }
     }
@@ -77,17 +80,17 @@ struct SidebarOpenTabGroupHeading: View {
     /// moves as the pointer passes over it.
     private var tabCountOrHoverActions: some View {
         ZStack(alignment: .trailing) {
-            if isHovered {
+            Text(verbatim: "\(tabCount)")
+                .monospacedDigit()
+                .foregroundStyle(ThemePalette.tertiaryText)
+                .opacity(hovered ? 0 : 1)
+            ProjectHoverActions<EmptyView>.placeholder
+                .font(ThemeFont.body)
+            if hovered {
                 ProjectHoverActions(store: store, location: location, projectDisplayName: projectName, onNewSession: onNewSession) {
                     menuItems
                 }
                 .font(ThemeFont.body)
-            } else {
-                Text(verbatim: "\(tabCount)")
-                    .monospacedDigit()
-                    .foregroundStyle(ThemePalette.tertiaryText)
-                ProjectHoverActions<EmptyView>.placeholder
-                    .font(ThemeFont.body)
             }
         }
     }

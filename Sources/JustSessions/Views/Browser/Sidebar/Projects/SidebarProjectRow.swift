@@ -17,6 +17,9 @@ struct SidebarProjectRow: View {
     let onRemoveSelectedProjectsAndDeleteSessions: () -> Void
 
     @State private var isHovered = false
+    /// Holds the pointer-over state for a test; nil follows `onHover` as in use.
+    var isHoveredForTests: Bool? = nil
+    private var hovered: Bool { isHoveredForTests ?? isHovered }
 
     private var isSelected: Bool { projectSelection.contains(project.id) }
     private var rowHeight: CGFloat { Self.height(withParentLabel: parentLabel != nil) }
@@ -65,7 +68,7 @@ struct SidebarProjectRow: View {
             sessionCountOrHoverActions
                 .padding(.trailing, 8)
         }
-        .background(SidebarRowBackground(isSelected: isSelected, isHovered: isHovered))
+        .background(SidebarRowBackground(isSelected: isSelected, isHovered: hovered))
         .onHover { isHovered = $0 }
         .contextMenu { menuItems }
     }
@@ -98,7 +101,12 @@ struct SidebarProjectRow: View {
     /// is kept while they are not, so nothing in the row moves as the pointer passes over it.
     private var sessionCountOrHoverActions: some View {
         ZStack(alignment: .trailing) {
-            if isHovered {
+            Text(project.sessionCount.formatted())
+                .font(ThemeFont.detail.monospacedDigit())
+                .foregroundStyle(ThemePalette.secondaryText)
+                .opacity(hovered ? 0 : 1)
+            ProjectHoverActions<EmptyView>.placeholder
+            if hovered {
                 ProjectHoverActions(
                     store: store,
                     location: project.location,
@@ -107,11 +115,6 @@ struct SidebarProjectRow: View {
                 ) {
                     menuItems
                 }
-            } else {
-                Text(project.sessionCount.formatted())
-                    .font(ThemeFont.detail.monospacedDigit())
-                    .foregroundStyle(ThemePalette.secondaryText)
-                ProjectHoverActions<EmptyView>.placeholder
             }
         }
     }

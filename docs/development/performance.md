@@ -447,13 +447,13 @@ Traces recorded with `xcrun xctrace record --template 'Time Profiler' --instrume
 | f156493, run 1 | 34.4% | 26.9% | 20 (259–285 ms) | 103 |
 | f156493, run 2 | 34.7% | 27.9% | 20 (270–287 ms) | 112 |
 | f156493, run 3 | 34.9% | 28.1% | 20 (271–287 ms) | 111 |
-| After, run 1 | 14.7% | 10.1% | 0 | 118 |
-| After, run 2 | 13.7% | 9.3% | 0 | 80 |
-| After, run 3 | 14.8% | 9.8% | 0 | 73 |
+| After, run 1 | 13.1% | 7.8% | 0 | 106 |
+| After, run 2 | 12.4% | 8.0% | 0 | 95 |
+| After, run 3 | 12.7% | 8.1% | 0 | 88 |
 
-**Change:** a row puts its menus in the view tree only while the pointer is over it, and lays out a placeholder of the same size otherwise, so nothing moves under the pointer: `SidebarProjectRow`, `SidebarSessionRow`, `SidebarSubagentRow`, `SidebarOpenTabGroupHeading`, and `SidebarHostHeading`. The sidebar at rest hosts one pop-up button, its header's filter, which `SidebarHoverMenusTests` checks with the 300-session harness, along with the placeholder's size. The right-click menus are unchanged: `.contextMenu` adds no view until it opens.
+**Change:** a row puts its menus in the view tree only while the pointer is over it: `SidebarProjectRow` (⋯ and +), `SidebarSessionRow` and `SidebarSubagentRow` (⋯, in an overlay that never took room), and `SidebarOpenTabGroupHeading` (⋯ and +). The count each trades with stays in the layout, faded out, beside a placeholder of the menus' size, so hovering moves nothing; `SidebarHoverMenusTests` checks each row type's size with and without the pointer and the placeholder's, hosts every row type and checks it carries no pop-up button at rest, and hosts the 300-session browser harness and checks it holds only its header's filter (one pop-up). The host heading is left as it was: one heading per SSH host, not one per row, with its menus mounted and faded. The right-click menus are unchanged; `.contextMenu` adds no view until it opens.
 
-**Limits:** a click still costs about 125 ms of SwiftUI update, most of it `ViewGraph.updateOutputs` and `ScrollViewCommitMutation` re-evaluating the sidebar's rows because they observe the whole store; that is a later item's question. The focus walk's cost is SwiftUI's per node, not the app's, and was left as measured. A row's menus appear on hover as before; VoiceOver reaches them through the row's actions and the right-click menu, as it did while they were at zero opacity, which hid them from it too.
+**Limits:** a click still costs about 100 ms of SwiftUI update, most of it `ViewGraph.updateOutputs` and `ScrollViewCommitMutation` re-evaluating the sidebar's rows because they observe the whole store; that is a later item's question. The focus walk's cost is SwiftUI's per node, not the app's, and was left as measured. A row's menus appear on hover as before. At rest they are no longer in the view tree, so VoiceOver and Full Keyboard Access no longer reach the ⋯ and + as separate controls there; the same actions remain in the row's right-click menu, which is what a keyboard user opened anyway, but this was not checked with VoiceOver running.
 
 ## How to profile
 

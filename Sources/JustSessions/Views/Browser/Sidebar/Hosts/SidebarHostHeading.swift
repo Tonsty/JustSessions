@@ -95,11 +95,12 @@ struct SidebarHostHeading: View {
     /// heading's tooltip still says when the host was refreshed, or why it could not be.
     private var refreshStatusOrMoreActions: some View {
         ZStack(alignment: .trailing) {
-            // The menu is in the view tree only while the pointer is over the heading; see `SidebarProjectRow`.
-            if isHovered, let sshHostActions {
+            refreshStatusIndicator
+                .opacity(isHovered && sshHostActions != nil ? 0 : 1)
+            if let sshHostActions {
                 SidebarSSHHostMoreActionsMenu(host: host, actions: sshHostActions)
-            } else {
-                refreshStatusIndicator
+                    .opacity(isHovered ? 1 : 0)
+                    .allowsHitTesting(isHovered)
             }
         }
     }
@@ -137,19 +138,18 @@ struct SidebarHostHeading: View {
 
     private var projectCountOrAddProjectButton: some View {
         ZStack(alignment: .trailing) {
-            if isHovered {
-                SidebarHostAddProjectButton(
-                    host: host,
-                    archivedProjectCount: archivedProjectCount,
-                    onAddProject: onAddProject,
-                    onShowArchivedProjects: onShowArchivedProjects
-                )
-            } else {
-                Text(projectCount.formatted())
-                    .monospacedDigit()
-                    .foregroundStyle(ThemePalette.tertiaryText)
-                SidebarHostAddProjectButton.placeholder
-            }
+            Text(projectCount.formatted())
+                .monospacedDigit()
+                .foregroundStyle(ThemePalette.tertiaryText)
+                .opacity(isHovered ? 0 : 1)
+            SidebarHostAddProjectButton(
+                host: host,
+                archivedProjectCount: archivedProjectCount,
+                onAddProject: onAddProject,
+                onShowArchivedProjects: onShowArchivedProjects
+            )
+            .opacity(isHovered ? 1 : 0)
+            .allowsHitTesting(isHovered)
         }
     }
 
