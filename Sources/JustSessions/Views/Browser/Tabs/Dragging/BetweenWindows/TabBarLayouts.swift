@@ -7,7 +7,7 @@ import Foundation
 @MainActor
 final class TabBarLayouts {
     /// What a view in a tab bar reports the span of.
-    enum Item: Hashable {
+    enum Item: Hashable, Sendable {
         case group(String)
         case tab(UUID)
     }
