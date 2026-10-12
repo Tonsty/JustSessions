@@ -384,8 +384,8 @@ final class TabDragBetweenWindows: ObservableObject {
 
     /// The side of the workspace's terminals the dragged tabs would show on in a split view, let go at `pointer`.
     private func splitDropSide(in workspace: Workspace, at pointer: CGPoint) -> TerminalSplit.Side? {
-        guard let drag else { return nil }
-        return splitDropTargets.side(forDropping: drag.tabIDs, at: pointer, in: workspace.store, windowFrame: workspace.window.frame)
+        guard let drag, workspace.store.canShowDroppedTabsInSplit(drag.tabIDs) else { return nil }
+        return splitDropTargets.side(at: pointer, in: workspace.store, windowFrame: workspace.window.frame)
     }
 
     /// Highlights the side of the workspace's terminals the tabs would show on, hiding the window carrying them, if any.
@@ -398,8 +398,8 @@ final class TabDragBetweenWindows: ObservableObject {
         if isNewTarget { workspace.window.orderFront(nil) }
         splitDropTargets.show(TerminalSplitDropTargets.Target(
             storeID: ObjectIdentifier(workspace.store),
-            side: side,
-            tabTitle: drag.grabbedTabTitle
+            place: .split(side),
+            title: drag.grabbedTabTitle
         ))
     }
 

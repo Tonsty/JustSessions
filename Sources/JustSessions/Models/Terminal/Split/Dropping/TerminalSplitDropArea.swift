@@ -23,10 +23,16 @@ struct TerminalSplitDropArea: Equatable {
         return point.x < boundary ? .left : .right
     }
 
-    /// Where the tab dropped on `side` shows, in the area's coordinates: that half of a new, even split, or the shown
-    /// split's pane on that side.
-    func paneFrame(on side: TerminalSplit.Side) -> CGRect {
-        side == .left ? paneFrames.left : paneFrames.right
+    /// Where the tab dropped at `place` shows, in the area's coordinates: that side's half of a new, even split, or
+    /// the shown split's pane on that side; or the whole area inside the insets a split's panes have.
+    func frame(of place: TerminalDropPlace) -> CGRect {
+        switch place {
+        case .split(let side):
+            side == .left ? paneFrames.left : paneFrames.right
+        case .wholeArea:
+            CGRect(origin: .zero, size: frameInWindow.size)
+                .insetBy(dx: TerminalSplitLayout.contentInset, dy: TerminalSplitLayout.contentInset)
+        }
     }
 
     private var paneFrames: TerminalSplitLayout.Frames {

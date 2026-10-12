@@ -102,6 +102,26 @@ struct SidebarPinDragTests {
         #expect(drag.translation == 42)
     }
 
+    /// As when dragged onto the terminals, which take the row instead.
+    @Test func offTheListToEitherSideNothingLands() throws {
+        var drag = try #require(makeDrag(of: "a", pinned: ["a", "b", "c"], unpinned: [], pointerY: 10))
+
+        drag.movePointer(to: CGPoint(x: 100, y: 70))
+        #expect(drag.landingGap == 2)
+
+        drag.movePointer(to: CGPoint(x: 300, y: 70))
+        #expect(drag.landingGap == nil)
+        #expect(drag.placement == nil)
+        #expect(drag.landingEdgeY == nil)
+        #expect(drag.translation == 60)
+
+        drag.movePointer(to: CGPoint(x: -5, y: 70))
+        #expect(drag.landingGap == nil)
+
+        drag.movePointer(to: CGPoint(x: 100, y: 70))
+        #expect(drag.placement == .before("c"))
+    }
+
     private func makeDrag(of draggedID: String, pinned: [String], unpinned: [String], pointerY: CGFloat) -> SidebarPinDrag? {
         SidebarPinDrag(
             scope: scope,

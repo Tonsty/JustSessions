@@ -129,6 +129,7 @@ struct ConversationSidebarView: View {
                     store: store,
                     searchText: openTabSearchText,
                     onSelectTab: selectTab,
+                    onDroppedTabIntoTerminals: clearSelectionForDroppedRow,
                     onRenameConversation: onRenameConversation,
                     onCloseTab: onCloseTerminal,
                     onDeleteConversation: { onRequestDeletion(.conversation($0)) },
@@ -306,6 +307,13 @@ struct ConversationSidebarView: View {
         projectSelection.clear()
         sessionSelection.clear()
         store.selectTerminal(terminalID)
+    }
+
+    /// A row dragged onto the terminals shows there in a tab, so, as for a tab selected, the rows highlighted for the
+    /// tabs shown replace any selection in the list.
+    func clearSelectionForDroppedRow() {
+        projectSelection.clear()
+        sessionSelection.clear()
     }
 
     func handleProjectClick(_ project: ProjectConversationGroup) {

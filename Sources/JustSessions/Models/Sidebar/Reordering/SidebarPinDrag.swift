@@ -4,7 +4,7 @@ import CoreGraphics
 /// lands only among the pinned ones, since only they keep the order you put them in; the rest are listed by activity.
 /// Letting go of a pinned one moves it, and of one that is not pinned, pins it there. The rows stay where they are
 /// while a line shows where the dragged one would land, worked out on where they were as the drag began, so nothing
-/// moves under the pointer mid-drag.
+/// moves under the pointer mid-drag. Off the list to either side, as onto the terminals, it lands nowhere.
 struct SidebarPinDrag: Equatable {
     enum Scope: Hashable {
         case projects(on: SessionHost)
@@ -31,6 +31,8 @@ struct SidebarPinDrag: Equatable {
     let startPointerY: CGFloat
     /// Where the pointer is now, from the top of the list.
     var pointerY: CGFloat
+    /// Whether the pointer is off the list to either side, past the dragged row's edges.
+    private(set) var isPointerBesideList = false
 
     private let draggedIndex: Int
     private let pinnedRowCount: Int
@@ -61,14 +63,20 @@ struct SidebarPinDrag: Equatable {
 
     var draggedPinID: String? { rows[draggedIndex].pinID }
 
+    /// Follows the pointer to `pointer`, in the list's coordinate space.
+    mutating func movePointer(to pointer: CGPoint) {
+        pointerY = pointer.y
+        isPointerBesideList = rowFrames[draggedRowID].map { pointer.x < $0.minX || pointer.x > $0.maxX } ?? false
+    }
+
     /// How far the pointer has moved since the drag began, downward positive.
     var translation: CGFloat { pointerY - startPointerY }
 
     /// The gap between rows the dragged one would land in, 0 above the first row and `rows.count` below the last.
-    /// Nil while letting go would change nothing: with the pointer still on the dragged row, past the pinned rows, or
-    /// beside a pinned row's own place.
+    /// Nil while letting go would change nothing: with the pointer still on the dragged row, past the pinned rows,
+    /// beside a pinned row's own place, or off the list.
     var landingGap: Int? {
-        guard let gap = pointedGap, gap <= pinnedRowCount else { return nil }
+        guard !isPointerBesideList, let gap = pointedGap, gap <= pinnedRowCount else { return nil }
         if let draggedFrame = rowFrames[draggedRowID], draggedFrame.minY <= pointerY, pointerY < draggedFrame.maxY {
             return nil
         }

@@ -1,17 +1,17 @@
 import CoreGraphics
 import Foundation
 
-/// Where each window's terminals show, by its store, as `WorkspaceDetailView` reports them, and the side of a split
-/// view a tab dragged over them would show on once let go, which that window highlights; see
+/// Where each window's terminals show, by its store, as `WorkspaceDetailView` reports them, and where a tab or a
+/// sidebar row dragged over them would show once let go, which that window highlights; see
 /// `TerminalSplitDropHighlight`. A window takes out its frame as it closes, so a closed window leaves nothing behind.
 @MainActor
 final class TerminalSplitDropTargets: ObservableObject {
-    /// The side of a window's terminals a dragged tab would show on.
+    /// Where in a window's terminals a dragged tab or session would show.
     struct Target: Equatable {
         let storeID: ObjectIdentifier
-        let side: TerminalSplit.Side
-        /// The dragged tab's title, which the highlighted pane names.
-        let tabTitle: String
+        let place: TerminalDropPlace
+        /// The dragged tab's or session's title, which the highlighted pane names.
+        let title: String
     }
 
     @Published private(set) var shownTarget: Target?
@@ -30,11 +30,11 @@ final class TerminalSplitDropTargets: ObservableObject {
         shownSplitFractionsByStore[ObjectIdentifier(store)] = fraction
     }
 
-    /// The side `tabIDs` would show on in a split view, let go at `pointer` in screen coordinates over the store's
-    /// window, whose frame is `windowFrame`; nil off its terminals, or when they can't show in a split there.
-    func side(forDropping tabIDs: [UUID], at pointer: CGPoint, in store: ConversationStore, windowFrame: CGRect) -> TerminalSplit.Side? {
+    /// The side of a split view under `pointer`, in screen coordinates, over the store's window, whose frame is
+    /// `windowFrame`; nil off its terminals.
+    func side(at pointer: CGPoint, in store: ConversationStore, windowFrame: CGRect) -> TerminalSplit.Side? {
         let storeID = ObjectIdentifier(store)
-        guard store.canShowDroppedTabsInSplit(tabIDs), let terminalFrame = terminalFramesByStore[storeID] else { return nil }
+        guard let terminalFrame = terminalFramesByStore[storeID] else { return nil }
         let area = TerminalSplitDropArea(frameInWindow: terminalFrame, shownSplitFraction: shownSplitFractionsByStore[storeID])
         return area.side(atScreenPoint: pointer, windowFrame: windowFrame)
     }

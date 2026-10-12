@@ -1,9 +1,9 @@
 import SwiftUI
 
-/// Shows where a tab dragged over the window's terminals would show once let go, as Claude Code shows where a session
-/// dragged into its window lands: the pane it would take, a half of a new split or a pane of the shown split, tinted
-/// and outlined, with the tab's title in the middle. It moves to the other side as the pointer crosses over, and lets
-/// every click through.
+/// Shows where a tab or session dragged over the window's terminals would show once let go, as Claude Code shows where
+/// a session dragged into its window lands: the pane it would take, a half of a new split or a pane of the shown split,
+/// or, with no tab shown to split with, the whole area, tinted and outlined, with its title in the middle. It moves to
+/// the other side as the pointer crosses over, and lets every click through.
 struct TerminalSplitDropHighlight: View {
     let store: ConversationStore
     /// The terminals, from their own top-leading corner.
@@ -18,13 +18,13 @@ struct TerminalSplitDropHighlight: View {
         let target = splitDropTargets.shownTarget.flatMap { $0.storeID == ObjectIdentifier(store) ? $0 : nil }
         ZStack(alignment: .topLeading) {
             if let target {
-                let paneFrame = area.paneFrame(on: target.side)
+                let paneFrame = area.frame(of: target.place)
                 ZStack {
                     RoundedRectangle(.card)
                         .fill(ThemePalette.pressedFill)
                     RoundedRectangle(.card)
                         .strokeBorder(ThemePalette.ink, lineWidth: Self.outlineWidth)
-                    Text(target.tabTitle)
+                    Text(target.title)
                         .font(ThemeFont.callout.weight(.medium))
                         .lineLimit(1)
                         .padding(.horizontal, 12)

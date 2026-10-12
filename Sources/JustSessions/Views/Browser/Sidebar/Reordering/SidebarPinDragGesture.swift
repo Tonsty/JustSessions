@@ -4,22 +4,22 @@ extension View {
     /// Lets the row be dragged among the pinned rows of its scope; see `SidebarPinDrag`. Once the pointer has moved a
     /// few points, the drag takes over from the row's buttons, so letting go doesn't click the row, while a click still
     /// does. `onEnded` comes when the drag ends or is cancelled, and `onCancelled` when the row goes away mid-drag, so a
-    /// drag never stays half done. While dragged, the
-    /// row fades, `ghost` follows the pointer, and the landing line shows `landingLineOffset` below the row's top.
-    /// Both are drawn by the dragged row, over the rows they pass, the line over the ghost.
+    /// drag never stays half done. While dragged, the row fades, `ghost` follows the pointer `ghostOffset` below the
+    /// row's top, unless nil, and the landing line shows `landingLineOffset` below it. Both are drawn by the dragged
+    /// row, over the rows they pass, the line over the ghost.
     func sidebarPinDragSource<Ghost: View>(
         isDragged: Bool,
-        translation: CGFloat,
+        ghostOffset: CGFloat?,
         landingLineOffset: CGFloat?,
         landingLineLeadingInset: CGFloat,
-        onChanged: @escaping (_ pointerY: CGFloat) -> Void,
+        onChanged: @escaping (_ pointer: CGPoint) -> Void,
         onEnded: @escaping () -> Void,
         onCancelled: @escaping () -> Void,
         @ViewBuilder ghost: () -> Ghost
     ) -> some View {
         modifier(SidebarPinDragGesture(
             isDragged: isDragged,
-            translation: translation,
+            ghostOffset: ghostOffset,
             landingLineOffset: landingLineOffset,
             landingLineLeadingInset: landingLineLeadingInset,
             onChanged: onChanged,
@@ -42,10 +42,10 @@ enum SidebarPinDragMetrics {
 
 private struct SidebarPinDragGesture<Ghost: View>: ViewModifier {
     let isDragged: Bool
-    let translation: CGFloat
+    let ghostOffset: CGFloat?
     let landingLineOffset: CGFloat?
     let landingLineLeadingInset: CGFloat
-    let onChanged: (CGFloat) -> Void
+    let onChanged: (CGPoint) -> Void
     let onEnded: () -> Void
     let onCancelled: () -> Void
     let ghost: Ghost
@@ -59,14 +59,16 @@ private struct SidebarPinDragGesture<Ghost: View>: ViewModifier {
             .overlay(alignment: .top) {
                 if isDragged {
                     ZStack(alignment: .top) {
-                        ghost
-                            .background {
-                                RoundedRectangle(.control)
-                                    .fill(ThemePalette.raisedSurface)
-                                    .themeShadow(.floating)
-                            }
-                            .opacity(SidebarPinDragMetrics.ghostOpacity)
-                            .offset(y: translation)
+                        if let ghostOffset {
+                            ghost
+                                .background {
+                                    RoundedRectangle(.control)
+                                        .fill(ThemePalette.raisedSurface)
+                                        .themeShadow(.floating)
+                                }
+                                .opacity(SidebarPinDragMetrics.ghostOpacity)
+                                .offset(y: ghostOffset)
+                        }
                         if let landingLineOffset {
                             SidebarPinLandingLine(leadingInset: landingLineLeadingInset)
                                 .offset(y: landingLineOffset - SidebarPinLandingLine.thickness / 2)
@@ -83,7 +85,7 @@ private struct SidebarPinDragGesture<Ghost: View>: ViewModifier {
                     coordinateSpace: .named(SidebarRowFrames.coordinateSpace)
                 )
                 .updating($isDragging) { _, isDragging, _ in isDragging = true }
-                .onChanged { onChanged($0.location.y) }
+                .onChanged { onChanged($0.location) }
             )
             .onChange(of: isDragging) { _, isDragging in
                 if !isDragging { onEnded() }

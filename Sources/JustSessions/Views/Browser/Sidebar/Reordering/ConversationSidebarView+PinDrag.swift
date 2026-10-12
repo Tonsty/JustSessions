@@ -16,7 +16,7 @@ extension ConversationSidebarView {
         of rowID: String,
         in scope: SidebarPinDrag.Scope,
         scopeRows: () -> [SidebarPinDrag.Row],
-        pointerY: CGFloat
+        pointer: CGPoint
     ) {
         if pinDrag?.draggedRowID != rowID {
             pinDrag = SidebarPinDrag(
@@ -25,10 +25,10 @@ extension ConversationSidebarView {
                 rows: scopeRows(),
                 rowFrames: sidebarRowFrames.framesByRowID,
                 scopeBottom: scopeBottom(of: scope),
-                pointerY: pointerY
+                pointerY: pointer.y
             )
         }
-        pinDrag?.pointerY = pointerY
+        pinDrag?.movePointer(to: pointer)
     }
 
     /// The bottom of the host's last project, or of the project's last session.

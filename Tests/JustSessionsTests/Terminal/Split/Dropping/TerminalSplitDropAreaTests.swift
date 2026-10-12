@@ -41,12 +41,19 @@ struct TerminalSplitDropAreaTests {
 
     @Test func theHighlightedPaneIsThePaneTheTabWouldTake() {
         let even = TerminalSplitDropArea(frameInWindow: terminalFrame, shownSplitFraction: nil)
-        #expect(even.paneFrame(on: .left) == CGRect(x: 8, y: 8, width: 500, height: 584))
-        #expect(even.paneFrame(on: .right) == CGRect(x: 518, y: 8, width: 500, height: 584))
+        #expect(even.frame(of: .split(.left)) == CGRect(x: 8, y: 8, width: 500, height: 584))
+        #expect(even.frame(of: .split(.right)) == CGRect(x: 518, y: 8, width: 500, height: 584))
 
         let shown = TerminalSplitDropArea(frameInWindow: terminalFrame, shownSplitFraction: 0.3)
-        #expect(shown.paneFrame(on: .left) == CGRect(x: 8, y: 8, width: 300, height: 584))
-        #expect(shown.paneFrame(on: .right) == CGRect(x: 318, y: 8, width: 700, height: 584))
+        #expect(shown.frame(of: .split(.left)) == CGRect(x: 8, y: 8, width: 300, height: 584))
+        #expect(shown.frame(of: .split(.right)) == CGRect(x: 318, y: 8, width: 700, height: 584))
+    }
+
+    /// With no tab shown to split with, a session dragged from the sidebar fills the terminals, inside the same insets.
+    @Test func theWholeAreaIsHighlightedInsideTheSplitInsets() {
+        let area = TerminalSplitDropArea(frameInWindow: terminalFrame, shownSplitFraction: nil)
+
+        #expect(area.frame(of: .wholeArea) == CGRect(x: 8, y: 8, width: 1010, height: 584))
     }
 
     /// The pointer comes in screen coordinates, measured from the bottom, and the area in the window, from its top.
