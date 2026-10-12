@@ -79,7 +79,7 @@ extension ConversationStore {
         // Project rows sum up their tabs through the store, which does not see a tab's own changes. Other windows'
         // rows show these tabs' CLIs too.
         if hasTabActivityChanged {
-            objectWillChange.send()
+            noteTabStateChanged()
             windowRegistry.tabsChanged(in: self)
         }
     }

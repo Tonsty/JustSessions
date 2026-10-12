@@ -3,7 +3,7 @@ import SwiftUI
 /// Confirms a `SessionDeletionRequest`, then hands it to the store.
 private struct SessionDeletionDialog: ViewModifier {
     @Environment(\.locale) private var locale
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     @Binding var request: SessionDeletionRequest?
 
     func body(content: Content) -> some View {

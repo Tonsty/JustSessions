@@ -4,7 +4,7 @@ import SwiftUI
 /// Chrome's hangs under its tab. It lines up with the tab's leading edge, kept inside the window, and slides from tab
 /// to tab while it shows. It takes no clicks and never the keyboard, so the terminal under it keeps both.
 struct TabHoverCardOverlay: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     @ObservedObject var controller: TabHoverCardController
 
     var body: some View {

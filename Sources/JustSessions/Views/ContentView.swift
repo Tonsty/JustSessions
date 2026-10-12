@@ -2,7 +2,11 @@ import AppKit
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var store: ConversationStore
+    /// Holds the window's store for the window's lifetime: `@StateObject` creates it once, where `@State`'s initial value
+    /// would build a throwaway store every time the window's view is recreated. The holder never publishes; views follow
+    /// the store's own observation.
+    @StateObject private var storeHolder: StoreHolder
+    private var store: ConversationStore { storeHolder.store }
     @State private var searchText = ""
     @State private var recencyFilter: SessionRecencyFilter = .all
     @State private var providerFilter: ConversationProviderFilter = .all
@@ -15,7 +19,7 @@ struct ContentView: View {
     @State private var hasStartedScan = false
 
     init(readService: WorkspaceReadService) {
-        _store = StateObject(wrappedValue: ConversationStore(windowRegistry: .shared, readService: readService))
+        _storeHolder = StateObject(wrappedValue: StoreHolder(store: ConversationStore(windowRegistry: .shared, readService: readService)))
     }
 
     var body: some View {
@@ -75,5 +79,14 @@ struct ContentView: View {
         .dismissesOnClickOutside(item: $renamingProject)
         .sessionDeletionDialog(for: $deletionRequest, store: store)
         .storeAlert(store)
+    }
+}
+
+/// The window's store, held by `@StateObject` so it is created once; see `ContentView.storeHolder`.
+private final class StoreHolder: ObservableObject {
+    let store: ConversationStore
+
+    init(store: ConversationStore) {
+        self.store = store
     }
 }

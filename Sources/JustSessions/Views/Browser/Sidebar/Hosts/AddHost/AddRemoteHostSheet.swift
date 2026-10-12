@@ -8,7 +8,7 @@ import SwiftUI
 /// a code, or a new host key's approval offers Connect…, which logs in, asking in a sheet over this one, then adds it.
 /// A Windows host is told apart by the same login, and said to be unsupported.
 struct AddRemoteHostSheet: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     @Environment(\.dismiss) private var dismiss
     @StateObject private var loginPrompter = SSHLoginPrompter()
     @State private var proposedHost = ""

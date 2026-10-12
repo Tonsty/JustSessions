@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SelectedProjectsContextMenu: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let selectedProjectIDs: Set<String>
     let onRemove: () -> Void
     let onRemoveAndDeleteSessions: () -> Void

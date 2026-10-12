@@ -2,7 +2,7 @@ import SwiftUI
 
 /// A project row's menu, from a right-click or its ⋯ button.
 struct ProjectContextMenu: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let project: ProjectConversationGroup
     let onNewSession: (ConversationProvider) -> Void
     let onRename: () -> Void

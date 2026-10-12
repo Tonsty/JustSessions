@@ -89,7 +89,7 @@ final class WorkspaceWindowRegistry {
     /// The other windows show which sessions this one's tabs run, and what their CLIs do, so they look again.
     func tabsChanged(in store: ConversationStore) {
         for otherStore in stores where otherStore !== store {
-            otherStore.objectWillChange.send()
+            otherStore.noteTabStateChanged()
         }
     }
 }

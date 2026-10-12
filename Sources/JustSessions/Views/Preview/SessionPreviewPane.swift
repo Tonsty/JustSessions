@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Right side of the window when no terminal tab is showing: the selected session's conversation.
 struct SessionPreviewPane: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let sessionSelection: SessionMultiSelection
     var transcriptMatchReveal: TranscriptMatchReveal?
     let onRename: (Conversation) -> Void

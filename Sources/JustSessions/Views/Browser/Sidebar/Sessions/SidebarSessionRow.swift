@@ -3,7 +3,7 @@ import SwiftUI
 /// A session under its project: tool icon and title, then a pin and either its CLI's status or how long ago it was active.
 /// The status gives way to a ⋯ while the pointer is over the row, which opens the same menu as a right-click.
 struct SidebarSessionRow: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let conversation: Conversation
     let sessionSelection: SessionMultiSelection
     let selectedConversations: [Conversation]

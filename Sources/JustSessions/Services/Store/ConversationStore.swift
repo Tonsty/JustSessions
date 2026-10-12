@@ -1,11 +1,15 @@
 import Combine
 import Foundation
+import Observation
 
 /// The listed sessions and open tabs. State changes here; the `ConversationStore+…` extensions build on the
 /// methods below to refresh hosts, launch CLIs, and link new sessions to their tabs.
+/// Observed property by property (`@Observable`): a view re-runs only when a property it read changes, so selecting a tab
+/// re-runs only what shows the selection rather than every row; see item 25 in docs/development/performance.md.
 @MainActor
-final class ConversationStore: ObservableObject {
-    @Published private(set) var conversations: [Conversation] = [] {
+@Observable
+final class ConversationStore {
+    private(set) var conversations: [Conversation] = [] {
         didSet {
             conversationIndex = ConversationIndex(conversations)
             conversationsRevision &+= 1
@@ -15,32 +19,49 @@ final class ConversationStore: ObservableObject {
     /// Sessions subagents ran in, newest first. They stay out of `conversations`, so only the rows of the sessions that
     /// started them list them, and nothing that follows listed sessions, such as linking a new tab, mistakes one for
     /// a session of its own.
-    @Published private(set) var subagentConversations: [Conversation] = [] {
+    private(set) var subagentConversations: [Conversation] = [] {
         didSet { subagentIndex = SubagentConversationIndex(subagentConversations) }
     }
     private(set) var subagentIndex = SubagentConversationIndex([])
     /// Changes with every change to `conversations`, so what is worked out from them knows when to work it out again.
     private(set) var conversationsRevision = 0
     /// What the sidebar lists, kept until what it was worked out from changes; see `ConversationStore+SidebarProjects`.
-    var cachedSidebarProjection: SidebarProjection?
+    @ObservationIgnored var cachedSidebarProjection: SidebarProjection?
     /// What the browser last showed for its filters, kept the same way; see `ConversationStore+SidebarProjects`.
-    var cachedFilteredSidebarProjection: FilteredSidebarProjection?
+    @ObservationIgnored var cachedFilteredSidebarProjection: FilteredSidebarProjection?
     /// Every listed session's messages, shared by the app's workspace windows while any of them searches.
     var messageIndexer: SessionMessageIndexer { readService.messageIndexer }
     /// What the main window's alert shows, if anything.
-    @Published private(set) var alert: StoreAlert?
+    private(set) var alert: StoreAlert?
     /// Alerts that came while `alert` was shown. Each is shown once the ones before it are dismissed, since
     /// SwiftUI keeps showing an alert whose content changes under it.
     private var waitingAlerts: [StoreAlert] = []
-    @Published private(set) var titleAliases: ConversationTitleAliases
-    @Published private(set) var projectDisplayNames: ProjectDisplayNames
-    @Published private(set) var pinnedItems: PinnedItems
-    @Published var sidebarProjectList: SidebarProjectList
-    @Published private(set) var terminalSessions: [TerminalSession] = [] {
-        didSet { windowRegistry.tabsChanged(in: self) }
+    private(set) var titleAliases: ConversationTitleAliases
+    private(set) var projectDisplayNames: ProjectDisplayNames
+    private(set) var pinnedItems: PinnedItems
+    var sidebarProjectList: SidebarProjectList
+    private var terminalSessionsStorage: [TerminalSession] = [] {
+        didSet {
+            windowRegistry.tabsChanged(in: self)
+            followTabStateChanges()
+        }
     }
+    /// Each open tab's own changes, which count in `tabStateRevision`; see `followTabStateChanges()`.
+    @ObservationIgnored private var tabStateSubscriptions: [UUID: AnyCancellable] = [:]
+    /// The open tabs, in tab bar order. Reading them also reads `tabStateRevision`, so a view that looks at tabs
+    /// through the store re-runs when a tab's own state changes, which the store does not see otherwise.
+    private(set) var terminalSessions: [TerminalSession] {
+        get {
+            _ = tabStateRevision
+            return terminalSessionsStorage
+        }
+        set { terminalSessionsStorage = newValue }
+    }
+    /// Counts changes to the tabs' own state that views reading tabs through the store must see: any open tab's own
+    /// change, such as its CLI's activity or its CLI ending, and another window's tabs. See `noteTabStateChanged()`.
+    private(set) var tabStateRevision = 0
     /// Selecting a tab that waited to be shown starts it; see `TerminalSession.isWaitingToBeShown`.
-    @Published private(set) var selectedTerminalID: UUID? {
+    private(set) var selectedTerminalID: UUID? {
         didSet {
             selectedTerminal?.startNowThatItIsShown()
             markTerminalsOnScreenSeen()
@@ -49,7 +70,7 @@ final class ConversationStore: ObservableObject {
     }
     /// Pairs of tabs linked side by side, as in Chrome's split view, any number of them, with a tab in at most one.
     /// A split outlives the selection; both its terminals show only while one of them is selected, see `shownSplit`.
-    @Published private(set) var terminalSplits: [TerminalSplit] = [] {
+    private(set) var terminalSplits: [TerminalSplit] = [] {
         didSet {
             markTerminalsOnScreenSeen()
             terminalsOnScreenChangedForNotificationBells()
@@ -57,45 +78,45 @@ final class ConversationStore: ObservableObject {
     }
     /// Every conversation queued in the running deletion, of one session or several. It changes only when a
     /// deletion starts, when sessions join it, and when it ends; `deletionProgress` follows the sessions in between.
-    @Published private(set) var pendingDeletionConversationIDs: Set<String> = []
+    private(set) var pendingDeletionConversationIDs: Set<String> = []
     /// Sessions asked to be deleted while a host they are on was refreshing, or while a deletion was stopping.
     /// They are deleted when that ends; see `startQueuedDeletion()`.
-    @Published private(set) var queuedDeletionConversationIDs: Set<String> = []
+    private(set) var queuedDeletionConversationIDs: Set<String> = []
     /// How far the running deletion has got. Only the sidebar's progress bar observes it.
     let deletionProgress = SessionDeletionProgress()
     /// The SSH hosts listed after this Mac.
-    @Published var remoteHostList: RemoteHostList
+    var remoteHostList: RemoteHostList
     /// SSH hosts whose tmux sessions keep the host's own prefix keys; see `ConversationStore+RemoteTmuxPrefix`.
-    @Published var remoteHostsUsingTmuxPrefix: RemoteHostsUsingTmuxPrefix
+    var remoteHostsUsingTmuxPrefix: RemoteHostsUsingTmuxPrefix
     /// Commands of your own that tools' CLIs start with, per host; see `ConversationStore+StartCommands`.
-    @Published var cliStartCommands: CLIStartCommands
+    var cliStartCommands: CLIStartCommands
     /// Each SSH host's last shell startup check; see `ConversationStore+RemoteShellStartup`.
-    @Published var remoteShellStartupChecks: RemoteShellStartupChecks
+    var remoteShellStartupChecks: RemoteShellStartupChecks
     /// SSH hosts whose shell startup is being checked now.
-    @Published var hostsCheckingShellStartup: Set<String> = []
+    var hostsCheckingShellStartup: Set<String> = []
     /// SSH hosts checked again in this run because a refresh suggested their startup changed, so a host whose startup
     /// keeps getting in the way is not checked on every refresh.
     var hostsRecheckedShellStartup: Set<String> = []
     /// Each host's last refresh, this Mac's included.
-    @Published var hostRefreshStatuses: [SessionHost: HostRefreshStatus] = [:]
+    var hostRefreshStatuses: [SessionHost: HostRefreshStatus] = [:]
     /// SSH hosts whose last refresh asked for a password, a code, or a new host key's approval, so their headings
     /// offer Connect…; see `ConversationStore+SSHLogin`.
-    @Published var sshHostsNeedingLogIn: Set<String> = []
+    var sshHostsNeedingLogIn: Set<String> = []
     /// SSH hosts this window is logging in to with Connect… now.
-    @Published var sshHostsLoggingIn: Set<String> = []
+    var sshHostsLoggingIn: Set<String> = []
     /// SSH hosts with a login made with Connect… open, in any window; see `SSHLoginConnections`.
-    @Published var sshHostsLoggedIn: Set<String> = []
+    var sshHostsLoggedIn: Set<String> = []
     /// The tool each SSH host's running refresh is copying; see `RemoteSessionCopyStep`.
-    @Published var remoteSessionCopySteps: [SessionHost: RemoteSessionCopyStep] = [:]
+    var remoteSessionCopySteps: [SessionHost: RemoteSessionCopyStep] = [:]
     /// tmux sessions JustSessions started that still run, per host, as of the host's last refresh. On this Mac, one
     /// whose CLI ends leaves within about a second; see `ConversationStore+CLIActivitySync`.
-    @Published var tmuxSessionNamesByHost: [SessionHost: Set<String>] = [:]
+    var tmuxSessionNamesByHost: [SessionHost: Set<String>] = [:]
     /// The tools whose CLI each host has, as of the host's last refresh; a host not checked yet is missing.
     /// See `ConversationStore+InstalledCLIs`.
-    @Published var installedProvidersByHost: [SessionHost: Set<ConversationProvider>] = [:]
+    var installedProvidersByHost: [SessionHost: Set<ConversationProvider>] = [:]
     /// What the CLI of each session running in tmux on this Mac with no tab open is doing, by conversation id.
     /// A tab's own CLI is on the tab; see `TerminalSession.cliActivity`.
-    @Published var detachedCLIActivities: [String: CLIActivity] = [:]
+    var detachedCLIActivities: [String: CLIActivity] = [:]
     /// The CLI of each tmux session on this Mac, by session name, as of the last refresh or the closing of its tab.
     var thisMacTmuxPaneProcessIDs: [String: Int32] = [:]
     /// Renames and kills of tmux sessions, in order per host; see `ConversationStore+Tmux`.
@@ -106,9 +127,9 @@ final class ConversationStore: ObservableObject {
     /// What each CLI on this Mac did at the last activity sync; see `ConversationStore+CLIActivitySync`.
     var sessionAttentionTracker = SessionAttentionTracker()
     /// CLIs on this Mac that finished a turn while off screen; see `ConversationStore+UnseenFinishedTurns`.
-    @Published var unseenFinishedTurns = UnseenFinishedTurns()
+    var unseenFinishedTurns = UnseenFinishedTurns()
     /// When each CLI on this Mac started waiting on you; see `ConversationStore+NotificationBell`.
-    @Published var waitingForYouStartTimes = WaitingForYouStartTimes()
+    var waitingForYouStartTimes = WaitingForYouStartTimes()
     /// Tabs from the last quit still waiting for their host's sessions; see `ConversationStore+TabReopening`.
     var pendingTabReopening = PendingTabReopening()
     let tabPersistenceWindowID = UUID()
@@ -131,7 +152,7 @@ final class ConversationStore: ObservableObject {
     /// joined during the one before.
     private var finishedDeletionRounds: SessionDeletionReport?
     private var deletionTask: Task<Void, Never>?
-    private var thisMacRefreshTask: Task<Void, Never>?
+    @ObservationIgnored private var thisMacRefreshTask: Task<Void, Never>?
     /// Deleted sessions leave the list, and the progress bar moves, at most this often while a deletion runs, and
     /// once more when it ends. Tests set it to zero to follow each session.
     var deletionListUpdateInterval: Duration = .milliseconds(500)
@@ -611,6 +632,22 @@ final class ConversationStore: ObservableObject {
     }
 
     // MARK: - Tabs
+
+    /// Tells views that look at tabs through the store that a tab's own state changed; the store does not see it.
+    func noteTabStateChanged() {
+        tabStateRevision &+= 1
+    }
+
+    /// Counts every open tab's own changes in `tabStateRevision`, as views reading tabs through the store see a tab's
+    /// state, such as its CLI's activity or whether it ended, without observing the tab. A tab sets each of its
+    /// properties only when its value changes, so selecting a tab, which changes none, redraws nothing more.
+    private func followTabStateChanges() {
+        let openTabIDs = Set(terminalSessionsStorage.map(\.id))
+        tabStateSubscriptions = tabStateSubscriptions.filter { openTabIDs.contains($0.key) }
+        for tab in terminalSessionsStorage where tabStateSubscriptions[tab.id] == nil {
+            tabStateSubscriptions[tab.id] = tab.objectWillChange.sink { [weak self] _ in self?.noteTabStateChanged() }
+        }
+    }
 
     /// Swaps a tab for another in the same place, closing the old one; keeps it selected if it was, and hands it the
     /// old tab's place in a split.

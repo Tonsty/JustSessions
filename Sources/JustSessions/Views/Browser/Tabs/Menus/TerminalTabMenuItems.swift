@@ -6,7 +6,7 @@ import SwiftUI
 /// left to the session's row: a pinned session stays at the top of the sidebar, which a tab has nothing to do with. A
 /// tab's terminal offers the same items after its text's; see `TerminalContextMenu`.
 struct TerminalTabMenuItems: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     @ObservedObject var tab: TerminalSession
     let onRename: (Conversation) -> Void
     /// Asks what to do with a tab's CLI, as its × does; also for the split entries that close one of its views.

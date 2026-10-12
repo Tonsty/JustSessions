@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SessionPreviewHeader: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let conversation: Conversation
     let onRename: () -> Void
     let onDelete: () -> Void

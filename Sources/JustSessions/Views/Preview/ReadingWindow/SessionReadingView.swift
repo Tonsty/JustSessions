@@ -2,7 +2,7 @@ import SwiftUI
 
 /// A separate, read-only window for a session. It shares discovery updates, without launching a terminal.
 struct SessionReadingView: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let conversation: Conversation
     let readingPositionStore: TranscriptReadingPositionStore
     let findRequests: SessionReadingFindRequests

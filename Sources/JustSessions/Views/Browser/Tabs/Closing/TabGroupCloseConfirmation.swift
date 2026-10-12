@@ -6,7 +6,7 @@ import SwiftUI
 ///
 /// Return keeps the CLIs running, or closes the tabs when nothing can keep running, and Escape cancels.
 struct TabGroupCloseConfirmation: ViewModifier {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     @Binding var request: TabGroupClosingRequest?
 
     func body(content: Content) -> some View {

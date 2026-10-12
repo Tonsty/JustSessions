@@ -3,7 +3,7 @@ import SwiftUI
 /// What a project's menus offer for its folder: a new session or terminal there, opening it, or copying its path. A
 /// project row's menu adds what arranges the project in the sidebar; an open tab group's menu has only these.
 struct ProjectFolderMenuItems: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let location: ProjectLocation
     let projectDisplayName: String
     let onNewSession: (ConversationProvider) -> Void

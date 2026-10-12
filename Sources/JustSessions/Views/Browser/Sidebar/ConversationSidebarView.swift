@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ConversationSidebarView: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     @Binding var searchText: String
     @Binding var recencyFilter: SessionRecencyFilter
     @Binding var providerFilter: ConversationProviderFilter

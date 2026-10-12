@@ -7,7 +7,7 @@ import SwiftUI
 /// Return closes the tab, and Escape cancels. The dialogs are alerts rather than confirmation dialogs: on macOS, a
 /// confirmation dialog gives no button Return.
 struct TerminalTabCloseConfirmation: ViewModifier {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     @Binding var closingSessionID: UUID?
     let tabCloseChoiceSettingsStore: TabCloseChoiceSettingsStore
     let plainTerminalCloseChoiceSettingsStore: PlainTerminalCloseChoiceSettingsStore

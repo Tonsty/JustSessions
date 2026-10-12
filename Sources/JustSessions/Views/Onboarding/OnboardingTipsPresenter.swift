@@ -4,7 +4,7 @@ import SwiftUI
 /// launch, then each tip the first time what it is about comes into use, such as reading a session or opening a tab.
 /// Help and the Help menu start the tour again, and show every tip again after it.
 struct OnboardingTipsPresenter: ViewModifier {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     @ObservedObject var tour: OnboardingTour
     let tipsStore: OnboardingTipsStore
     let listsProjectWithSessions: Bool

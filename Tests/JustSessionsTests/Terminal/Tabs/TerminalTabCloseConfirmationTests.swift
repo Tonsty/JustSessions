@@ -202,7 +202,7 @@ private final class CloseConfirmationScenario {
 
 /// The browser's close confirmation, asking about `closingSessionID` from the start.
 private struct CloseConfirmationHost: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     let tabCloseChoiceSettingsStore: TabCloseChoiceSettingsStore
     let plainTerminalCloseChoiceSettingsStore: PlainTerminalCloseChoiceSettingsStore
     @State var closingSessionID: UUID?

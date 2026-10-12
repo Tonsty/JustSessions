@@ -17,12 +17,11 @@ struct NotificationBellAcrossWindowsTests {
         #expect(sandbox.first.notificationBellEntries.map(\.reason) == [.needsInput(reason: "input needed")])
         #expect(sandbox.second.notificationBellEntries.map(\.source) == [tab.attentionSource])
 
-        var firstWindowChanges = 0
-        let subscription = sandbox.first.objectWillChange.sink { firstWindowChanges += 1 }
-        defer { subscription.cancel() }
+        let firstWindowChanges = StoreChangeCounter(sandbox.first)
+        defer { firstWindowChanges.cancel() }
         sandbox.second.selectTerminal(tab.id)
         // The first window's bell looks again, as nothing else in that window changed.
-        #expect(firstWindowChanges > 0)
+        #expect(firstWindowChanges.count > 0)
         #expect(sandbox.first.notificationBellEntries.isEmpty)
         #expect(sandbox.second.notificationBellEntries.isEmpty)
 

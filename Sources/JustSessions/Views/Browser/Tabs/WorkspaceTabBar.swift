@@ -14,7 +14,7 @@ import SwiftUI
 /// the others. Dragging the bar's space around and past them moves the window, and a right-click there offers a new
 /// session and collapsing or expanding every group; see `TabGroupsBackgroundMenuItems`.
 struct WorkspaceTabBar: View {
-    @ObservedObject var store: ConversationStore
+    let store: ConversationStore
     @ObservedObject private var tabDragBetweenWindows = TabDragBetweenWindows.shared
     /// Width at the leading edge that tabs never enter, even when scrolled, so the window buttons and sidebar toggle
     /// stay clear of them.
