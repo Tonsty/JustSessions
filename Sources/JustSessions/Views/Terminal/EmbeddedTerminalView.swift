@@ -21,9 +21,9 @@ struct EmbeddedTerminalView: NSViewRepresentable {
         terminalView.makeContextMenu = makeContextMenu
         session.startIfNeeded()
         context.coordinator.wasActive = isActive
-        if isActive { focus(terminalView, coordinator: context.coordinator) }
         let insetView = TerminalInsetView(terminalView: terminalView)
         insetView.isShown = isShown
+        if isActive { focus(insetView, coordinator: context.coordinator) }
         return insetView
     }
 
@@ -32,8 +32,9 @@ struct EmbeddedTerminalView: NSViewRepresentable {
         insetView.terminalView.onFocus = onFocus
         insetView.terminalView.makeContextMenu = makeContextMenu
         if isActive && !context.coordinator.wasActive {
-            focus(insetView.terminalView, coordinator: context.coordinator)
+            focus(insetView, coordinator: context.coordinator)
         }
+        if !isActive { insetView.takesKeyboardInWindow = false }
         context.coordinator.wasActive = isActive
     }
 
@@ -44,10 +45,10 @@ struct EmbeddedTerminalView: NSViewRepresentable {
         insetView.terminalView.makeContextMenu = nil
     }
 
-    private func focus(_ terminalView: any TabTerminalView, coordinator: Coordinator) {
-        DispatchQueue.main.async { [weak terminalView, weak coordinator] in
-            guard let terminalView, coordinator?.wasActive == true else { return }
-            terminalView.window?.makeFirstResponder(terminalView)
+    private func focus(_ insetView: TerminalInsetView, coordinator: Coordinator) {
+        DispatchQueue.main.async { [weak insetView, weak coordinator] in
+            guard let insetView, coordinator?.wasActive == true else { return }
+            insetView.takeKeyboard()
         }
     }
 
