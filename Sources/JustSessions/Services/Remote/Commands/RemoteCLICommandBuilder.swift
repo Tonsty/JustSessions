@@ -113,9 +113,12 @@ struct RemoteCLICommandBuilder {
         guard let tmuxSessionName else { return inLoginShell(directCommand) }
         // `-A` attaches when the session already runs, and the options after it are set again on every attach.
         // The status line and mouse settings make it look and scroll like the CLI on its own, and with no prefix
-        // key Ctrl-B reaches the CLI, unless the host uses its own; see `RemoteTmuxPrefixOptions`. These are
-        // options of this session only; the host's other tmux sessions keep theirs.
-        let sessionOptions = ["set-option status off", "set-option mouse on"]
+        // key Ctrl-B reaches the CLI, unless the host uses its own; see `RemoteTmuxPrefixOptions`. Passthrough lets
+        // a CLI's copy reach this Mac's clipboard: OpenCode sends OSC 52 wrapped for tmux, which tmux 3.3 and later
+        // drop with it off, and its unwrapped OSC 52 only with the server-wide `set-clipboard on`. Older tmux always
+        // passes it, and `-q` skips the option there. These are options of this session and its window only; the
+        // host's other tmux sessions keep theirs.
+        let sessionOptions = ["set-option status off", "set-option mouse on", "set-option -wq allow-passthrough on"]
             + RemoteTmuxPrefixOptions.setOptionCommands(usingHostPrefix: usesHostTmuxPrefix)
         let tmuxCommand = RemoteTmuxAttachScript.command(
             sessionName: tmuxSessionName,
