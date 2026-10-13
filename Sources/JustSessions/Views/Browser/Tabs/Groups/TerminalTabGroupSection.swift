@@ -4,7 +4,7 @@ import SwiftUI
 /// selected tab covers the line as it joins its terminal, and its outline in the group color rises from the line. A collapsed group shows only its label. A tab drags among the
 /// group's tabs, with the other tab of its split, and shows once dropped; dragged off the bar, it goes on between
 /// windows, see `TabDragBetweenWindows`, which also draws tabs dragged in from another window among the group's. The
-/// label drags the whole group, which the tab bar moves.
+/// label drags the whole group, which the tab bar moves, and which goes on between windows once dragged off the bar.
 struct TerminalTabGroupSection: View {
     let store: ConversationStore
     @ObservedObject private var tabDragBetweenWindows = TabDragBetweenWindows.shared
@@ -17,6 +17,7 @@ struct TerminalTabGroupSection: View {
     let allGroups: AllTabGroupsCollapsing
     /// The label's width with the space after it, which the bar leaves out of the room its tabs share.
     let onLabelWidthChange: (CGFloat) -> Void
+    /// The label's drag along the bar, which moves the group among the groups until it goes on between windows.
     let onLabelDragChanged: (_ translation: CGFloat) -> Void
     let onLabelDragEnded: () -> Void
     let onRenameConversation: (Conversation) -> Void
@@ -34,9 +35,11 @@ struct TerminalTabGroupSection: View {
         let shownTabs = isCollapsed ? [] : group.tabs
         let movingUnits = isCollapsed ? [] : store.tabStrip.movingUnits(inGroup: group.projectDirectoryKey)
         // A drag begun before a tab of the group opened or closed is no longer drawn, and is let go once the bar
-        // catches up; see the `onChange` below.
-        let currentTabDrag = (tabDrag ?? tabDragBetweenWindows.tabDrag(in: store, groupKey: group.projectDirectoryKey))
-            .flatMap { $0.itemIDs == movingUnits ? $0 : nil }
+        // catches up; see the `onChange` below. Tabs dragged in from another window, such as a whole group's, move
+        // together as one.
+        let groupKey = group.projectDirectoryKey
+        let currentTabDrag = isCollapsed ? nil : (tabDrag ?? tabDragBetweenWindows.tabDrag(in: store, groupKey: groupKey))
+            .flatMap { $0.itemIDs == store.tabStrip.movingUnits(inGroup: groupKey, keepingTogether: $0.draggedID) ? $0 : nil }
         let tabIDsInSight = currentTabDrag.map { Array($0.orderedItemIDs.joined()) } ?? shownTabs.map(\.id)
         let projectName = store.projectDisplayName(forProjectPath: group.projectDirectoryKey)
         HStack(spacing: 0) {
@@ -61,14 +64,15 @@ struct TerminalTabGroupSection: View {
             )
             .tabHoverCardAnchor(.group(group.projectDirectoryKey))
             .onHover { trackHover(of: .group(group.projectDirectoryKey), isHovering: $0) }
-            .tabBarDrag(onChanged: { translation, _ in onLabelDragChanged(translation) }, onEnded: onLabelDragEnded)
+            .tabBarDrag(onChanged: dragGroup, onEnded: dropDraggedGroup)
             .onboardingTourStop(group.tabs.contains { $0.id == store.selectedTerminalID } ? .tabGroup : nil)
             .padding(.trailing, 6)
             .onGeometryChange(for: CGFloat.self, of: \.size.width, action: onLabelWidthChange)
             ForEach(shownTabs, id: \.id) { session in
                 let split = store.split(containing: session.id)
                 let movingUnit = movingUnits.first { $0.contains(session.id) } ?? [session.id]
-                let isDragged = currentTabDrag?.draggedID == movingUnit
+                let dragItem = currentTabDrag?.itemIDs.first { $0.contains(session.id) } ?? movingUnit
+                let isDragged = currentTabDrag?.draggedID == dragItem
                 TerminalTab(
                     session: session,
                     projectDisplayName: store.projectDisplayName(forProjectPath: session.projectDirectoryKey),
@@ -90,7 +94,7 @@ struct TerminalTabGroupSection: View {
                 )
                 .tabHoverCardAnchor(.tab(session.id))
                 .id(session.id)
-                .offset(x: currentTabDrag?.offset(of: movingUnit) ?? 0)
+                .offset(x: currentTabDrag?.offset(of: dragItem) ?? 0)
                 // The tabs the dragged one passes slide over; it follows the pointer itself.
                 .animation(isDragged ? nil : TabBarDragMetrics.slideAnimation, value: currentTabDrag?.targetIndex)
                 .zIndex(isDragged ? 1 : 0)
@@ -120,6 +124,18 @@ struct TerminalTabGroupSection: View {
     private func tabBefore(_ tabID: UUID, in tabIDsInSight: [UUID]) -> UUID? {
         guard let index = tabIDsInSight.firstIndex(of: tabID), index > 0 else { return nil }
         return tabIDsInSight[index - 1]
+    }
+
+    /// Moves the group among the groups as the pointer moves along the bar, until the drag goes on between windows.
+    private func dragGroup(by translation: CGFloat, from startLocation: CGPoint) {
+        guard tabDragBetweenWindows.followGroupDragInTabBar(group.projectDirectoryKey, of: store, from: startLocation) else { return }
+        onLabelDragChanged(translation)
+    }
+
+    /// Leaves the group where it was let go along the bar.
+    private func dropDraggedGroup() {
+        tabDragBetweenWindows.endDragInTabBar()
+        onLabelDragEnded()
     }
 
     /// Starts dragging the tab, with the other tab of its split, among the group's tabs and splits as they are now,

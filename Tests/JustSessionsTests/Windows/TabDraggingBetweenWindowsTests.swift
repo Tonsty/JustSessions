@@ -96,6 +96,35 @@ struct TabDraggingBetweenWindowsTests {
         expectSplitRules(sandbox.second)
     }
 
+    /// A group dragged by its label moves with all its tabs and their split, and the window it left shows another tab.
+    @Test(arguments: TerminalEngine.allCases)
+    func aWholeGroupMovesToAnotherWindowWithItsSplit(engine: TerminalEngine) throws {
+        let sandbox = try TwoWindowSandbox()
+        defer { sandbox.tearDown() }
+        let left = open(sandbox.first, makeTab(engine: engine, projectPath: "/tmp/app"))
+        let right = open(sandbox.first, makeTab(engine: engine, projectPath: "/tmp/app"))
+        let third = open(sandbox.first, makeTab(engine: engine, projectPath: "/tmp/app"))
+        let staying = open(sandbox.first, makeTab(engine: engine, projectPath: "/tmp/tools"))
+        let tools = open(sandbox.second, makeTab(engine: engine, projectPath: "/tmp/tools"))
+        sandbox.first.selectTerminal(left.id)
+        sandbox.first.splitSelectedTerminal(with: right.id)
+        let split = try #require(sandbox.first.shownSplit)
+
+        let tabs = try #require(sandbox.first.takeOutTabsForAnotherWindow([left.id, right.id, third.id]))
+        sandbox.second.bringInTabsFromAnotherWindow(tabs, at: .asNewGroup(1), selecting: left.id)
+
+        #expect(sandbox.first.terminalSessions.map(\.id) == [staying.id])
+        #expect(sandbox.first.terminalSplits.isEmpty)
+        #expect(sandbox.first.selectedTerminalID == staying.id)
+        #expect(sandbox.second.terminalSessions.map(\.id) == [tools.id, left.id, right.id, third.id])
+        #expect(sandbox.second.shownSplit == split)
+        #expect(sandbox.second.sides(of: split) == TerminalSplit.Sides(left: left.id, right: right.id))
+        #expect(sandbox.first.reopenableTabs.count == 1)
+        #expect(sandbox.second.reopenableTabs.count == 4)
+        expectSplitRules(sandbox.first)
+        expectSplitRules(sandbox.second)
+    }
+
     /// Its CLI ending lists what it saved in the window it is in now.
     @Test(arguments: TerminalEngine.allCases)
     func aMovedTabsCLIEndingRefreshesItsNewWindow(engine: TerminalEngine) throws {

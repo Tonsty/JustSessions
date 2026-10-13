@@ -3,8 +3,8 @@ import Foundation
 /// A tab dragged to another window goes there as it is: the tab, its terminal, and its CLI carry on, with nothing
 /// closed or started again, so a CLI that does not run in tmux moves too. See `TabDragBetweenWindows`.
 extension ConversationStore {
-    /// Takes the tab, or the split's two tabs, out of this window without closing it. When it was selected, the tab
-    /// that would show after it closed shows instead.
+    /// Takes the tab, the split's two tabs, or a whole group's tabs out of this window without closing them. When one
+    /// was selected, the tab that would show after they closed shows instead.
     func takeOutTabsForAnotherWindow(_ tabIDs: [UUID]) -> TabsBetweenWindows? {
         var strip = tabStrip
         guard let unit = strip.takeOutForAnotherWindow(tabIDs) else { return nil }
@@ -36,12 +36,12 @@ extension ConversationStore {
         selectTerminal(tabID)
     }
 
-    /// As when the leaving tabs' first tab closes, with a split's other tab gone too.
+    /// As when the leaving tabs' first tab closes, with the others gone too.
     private func tabToSelect(afterTakingOut leavingIDs: Set<UUID>) -> UUID? {
         guard let firstIndex = terminalSessions.firstIndex(where: { leavingIDs.contains($0.id) }) else { return nil }
         var tabGroupKeys = tabGroupKeys
         var remainingTabIDs = terminalSessions.map(\.id)
-        // A split's other tab sits right after the first, so removing it leaves the first's index as it is.
+        // The others sit after the first, so removing them leaves the first's index as it is.
         for index in terminalSessions.indices.reversed() where index != firstIndex && leavingIDs.contains(terminalSessions[index].id) {
             tabGroupKeys.remove(at: index)
             remainingTabIDs.remove(at: index)

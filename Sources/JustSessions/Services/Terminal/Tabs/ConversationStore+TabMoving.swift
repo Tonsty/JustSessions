@@ -11,6 +11,15 @@ extension ConversationStore {
         apply(strip)
     }
 
+    /// Moves the tabs, whole moving units of one group, together to `place` among their group's other tabs and splits.
+    func moveTabs(_ tabIDs: [UUID], toPlaceInGroup place: Int) {
+        var strip = tabStrip
+        strip.moveTabs(tabIDs, toPlaceInGroup: place)
+        guard strip != tabStrip else { return }
+        defer { persistOpenTabs() }
+        apply(strip)
+    }
+
     /// Moves the group's tabs, in their order, to `place` among the groups.
     func moveTabGroup(_ groupKey: String, toPlace place: Int) {
         var strip = tabStrip
