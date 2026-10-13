@@ -132,6 +132,48 @@ struct ClaudeAdapterTests {
         #expect(try folder.discoveredConversationsBySessionID()[noFolderAnywhere] == nil)
     }
 
+    /// `/cd` in Claude Code 2.1.296 moves the transcript into the new folder's project directory and writes a
+    /// `relocated` line. The session belongs under that folder, ahead of the folder it started in or an index entry.
+    @Test func aSessionMovedWithCdIsListedUnderTheFolderItMovedTo() throws {
+        let folder = try ClaudeProjectFolderFixture()
+        defer { folder.remove() }
+        let sessionID = UUID().uuidString
+        let startedInApp = [
+            #"{"type":"user","cwd":"/Users/me/app","timestamp":"2026-10-13T10:00:00Z","message":{"content":"Start here"}}"#,
+            #"{"type":"custom-title","customTitle":"Moving session"}"#,
+        ]
+        let startFile = try folder.writeTranscript(sessionID, lines: startedInApp)
+        #expect(try folder.discoveredConversationsBySessionID()[sessionID]?.projectPath == "/Users/me/app")
+
+        let movedProjectDirectory = folder.configurationDirectory.appendingPathComponent("projects/-Users-me-other-project")
+        try FileManager.default.createDirectory(at: movedProjectDirectory, withIntermediateDirectories: true)
+        try FileManager.default.removeItem(at: startFile)
+        try (startedInApp + [
+            #"{"type":"relocated","sessionId":"\#(sessionID)","relocatedCwd":"/Users/me/other/project"}"#,
+            #"{"type":"user","cwd":"/Users/me/other/project","timestamp":"2026-10-13T10:05:00Z","message":{"content":"Keep going here"}}"#,
+        ]).joined(separator: "\n").write(to: movedProjectDirectory.appendingPathComponent("\(sessionID).jsonl"), atomically: true, encoding: .utf8)
+        try #"{"entries":[{"sessionId":"\#(sessionID)","projectPath":"/Users/me/app"}]}"#
+            .write(to: movedProjectDirectory.appendingPathComponent("sessions-index.json"), atomically: true, encoding: .utf8)
+
+        let moved = try #require(folder.discoveredConversationsBySessionID()[sessionID])
+        #expect(moved.projectPath == "/Users/me/other/project")
+        #expect(moved.suggestedTitle == "Moving session")
+    }
+
+    /// Each line's `cwd` follows Claude's shell, which changes directory as it works. Only `/cd` moves the session.
+    @Test func aShellThatChangesDirectoryLeavesTheSessionInItsFolder() throws {
+        let folder = try ClaudeProjectFolderFixture()
+        defer { folder.remove() }
+        let sessionID = UUID().uuidString
+        try folder.writeTranscript(sessionID, lines: [
+            #"{"type":"user","cwd":"/Users/me/app","message":{"content":"Build the web app"}}"#,
+            #"{"type":"assistant","cwd":"/Users/me/app/web","message":{"content":"Built"}}"#,
+            #"{"type":"user","cwd":"/Users/me/app/web/node_modules/pkg","message":{"content":"Check the package"}}"#,
+        ])
+
+        #expect(try folder.discoveredConversationsBySessionID()[sessionID]?.projectPath == "/Users/me/app")
+    }
+
     @Test func theTitleIsTheLatestCustomTitleThenTheIndexsNameThenAPrompt() throws {
         let folder = try ClaudeProjectFolderFixture()
         defer { folder.remove() }

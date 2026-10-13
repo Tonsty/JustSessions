@@ -22,7 +22,9 @@ struct ClaudeAdapter: ConversationAdapter {
 
     /// Shared by every Claude Code adapter, this Mac's and each SSH host's mirror, which keep their files apart.
     private static let transcriptHeads = SessionFileSummaryCache<ClaudeTranscriptHead>(persistenceFile: SessionSummaryCacheLocation.file(named: "claude-heads"))
-    private static let transcriptTails = SessionFileSummaryCache<ClaudeTranscriptTail>(persistenceFile: SessionSummaryCacheLocation.file(named: "claude-tails"))
+    /// Named for the version of the tail it keeps: tails kept before `relocated` lines were read would leave a session
+    /// moved with `/cd` under the folder it started in.
+    private static let transcriptTails = SessionFileSummaryCache<ClaudeTranscriptTail>(persistenceFile: SessionSummaryCacheLocation.file(named: "claude-tails-2"))
     private static let subagentSessions = SessionFileSummaryCache<ClaudeSubagentSession>(persistenceFile: SessionSummaryCacheLocation.file(named: "claude-subagents"))
 
     func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
@@ -74,6 +76,7 @@ struct ClaudeAdapter: ConversationAdapter {
     }
 
     /// Nil for a file that is not a session transcript, for a sidechain session, or when no project folder is known.
+    /// A session moved with `/cd` is listed under the folder it moved to, as Claude Code lists it.
     private func conversation(in file: URL, index: ClaudeSessionsIndex) -> Conversation? {
         let sessionID = file.deletingPathExtension().lastPathComponent
         guard file.pathExtension == "jsonl", ConversationMetadata.isValidSessionID(sessionID) else { return nil }
@@ -81,10 +84,13 @@ struct ClaudeAdapter: ConversationAdapter {
         if indexEntry?.isSidechain == true { return nil }
         guard let head = Self.transcriptHeads.summary(of: file, read: ClaudeTranscriptHead.init(file:)),
               !head.isSidechain,
-              let projectPath = indexEntry?.projectPath ?? head.workingDirectory ?? index.originalProjectPath else {
+              let tail = Self.transcriptTails.summary(of: file, read: ClaudeTranscriptTail.init(file:)),
+              let projectPath = tail.relocatedWorkingDirectory
+                ?? indexEntry?.projectPath
+                ?? head.workingDirectory
+                ?? index.originalProjectPath else {
             return nil
         }
-        guard let tail = Self.transcriptTails.summary(of: file, read: ClaudeTranscriptTail.init(file:)) else { return nil }
         let title = ConversationMetadata.cleanTitle(
             tail.latestCustomTitle
                 ?? indexEntry?.customTitle
