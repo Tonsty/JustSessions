@@ -1,5 +1,41 @@
 [
   {
+    "version": "1.2.10",
+    "publishedOn": "2026-10-12",
+    "title": {
+      "en": "Paste images and tune terminal colors",
+      "zh-Hans": "粘贴图片与调节终端颜色"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "⌘V pastes a copied image into Claude Code in Ghostty tabs and on SSH hosts too.",
+            "zh-Hans": "在 Ghostty 标签页和 SSH 主机上，⌘V 也能把复制的图片粘贴到 Claude Code。"
+          },
+          {
+            "en": "Color intensity in Appearance settings makes the terminal's 16 ANSI colors stronger or softer.",
+            "zh-Hans": "外观设置新增「颜色浓淡」，可调浓或调淡终端的 16 种 ANSI 颜色。"
+          }
+        ]
+      },
+      {
+        "kind": "fixed",
+        "items": [
+          {
+            "en": "Colors from Claude Code and other 256-color CLIs no longer look faded in SwiftTerm tabs.",
+            "zh-Hans": "SwiftTerm 标签页中，Claude Code 等 256 色 CLI 的颜色不再发灰。"
+          },
+          {
+            "en": "Small bug fixes.",
+            "zh-Hans": "修复了一些小问题。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.9",
     "publishedOn": "2026-10-12",
     "title": {
