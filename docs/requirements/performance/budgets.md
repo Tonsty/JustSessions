@@ -52,6 +52,7 @@ Measurement suites live in `Tests/JustSessionsTests/Performance/` and record onl
 | PERF-69 | Unchanged transcript indexes are reused and extended for appended lines instead of rebuilt. | `b48e8af`, `6f9363f` | `TranscriptIncrementalIndexTests` |
 | PERF-70 | Message search indexes in the background, most recent first, reads each session once until it changes, and drops its text from memory a minute after the last search. | `1bb0b55` | `SessionMessageIndexerTests` |
 | PERF-71 | A grown Codex session's search text resumes from its saved final page after a SHA-256 check of every byte it was read from; any other change reads it in full. A one-record append to a 27 MiB rollout takes about 36 ms instead of 300, and to a 500 MiB log about 200 instead of 690. Cold reads and cache hits stay as they were; a session's first read keeps no resume state. | `b0d40a5f` | `CodexSessionTextResumerTests`, `IncrementalMessageSearchMeasurements` |
+| PERF-72 | Typing in a Rename dialog redraws only the dialog, not the browser and sidebar: about 12 ms per keystroke with 4 tabs and 35 projects, against 60 ms when it redrew them. | `46660c11` | Manual: `docs/development/performance.md` item 27 |
 
 ## Terminals
 
