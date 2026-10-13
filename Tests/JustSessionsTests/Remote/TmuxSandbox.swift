@@ -3,6 +3,7 @@ import Foundation
 
 /// A temporary remote home: a login shell that runs its `-c` command, a `claude` that records how it was
 /// started and then waits, and a private tmux server, which reads `tmuxConfiguration` as the home's `~/.tmux.conf`.
+/// The login shell reads `loginShellStartup` first, as a host's startup files may define an alias or function.
 struct TmuxSandbox {
     /// The folder of an installed tmux, or nil where none is, and tests that need one are skipped.
     static var installedTmuxDirectory: String? {
@@ -15,18 +16,28 @@ struct TmuxSandbox {
     let project: URL
     let environment: [String: String]
     private let launchLog: URL
+    /// The line of the `claude` stand-in that records how it was started.
+    private let recordLaunch: String
 
-    init(tmuxDirectory: String?, tmuxConfiguration: String? = nil) throws {
+    init(tmuxDirectory: String?, tmuxConfiguration: String? = nil, loginShellStartup: String? = nil) throws {
         root = FileManager.default.temporaryDirectory.appendingPathComponent("tmux-\(UUID().uuidString.prefix(8))")
         project = root.appendingPathComponent("Bob's paper")
         launchLog = root.appendingPathComponent("launches.log")
         let bin = root.appendingPathComponent("bin")
         try FileManager.default.createDirectory(at: project, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: bin, withIntermediateDirectories: true)
-        try writeExecutableScript("#!/bin/sh\nshift\nexec /bin/sh -c \"$1\"\n", to: bin.appendingPathComponent("login-shell"))
-        let record = "{ pwd -P; printf '%s\\n' \"$@\"; } >> '\(launchLog.path)'"
-        try writeExecutableScript("#!/bin/sh\n\(record)\nexec sleep 60\n", to: bin.appendingPathComponent("claude"))
-        try writeExecutableScript("#!/bin/sh\n\(record)\n", to: bin.appendingPathComponent("claude-once"))
+        if let loginShellStartup {
+            let startupFile = root.appendingPathComponent("startup")
+            try loginShellStartup.write(to: startupFile, atomically: true, encoding: .utf8)
+            try writeExecutableScript(
+                "#!/bin/sh\nshift\nexec /bin/sh -c \". '\(startupFile.path)'; $1\"\n",
+                to: bin.appendingPathComponent("login-shell")
+            )
+        } else {
+            try writeExecutableScript("#!/bin/sh\nshift\nexec /bin/sh -c \"$1\"\n", to: bin.appendingPathComponent("login-shell"))
+        }
+        recordLaunch = "{ pwd -P; printf '%s\\n' \"$@\"; } >> '\(launchLog.path)'"
+        try writeExecutableScript("#!/bin/sh\n\(recordLaunch)\nexec sleep 60\n", to: bin.appendingPathComponent("claude"))
         if let tmuxConfiguration {
             try tmuxConfiguration.write(to: root.appendingPathComponent(".tmux.conf"), atomically: true, encoding: .utf8)
         }
@@ -37,6 +48,16 @@ struct TmuxSandbox {
             "TMUX_TMPDIR": root.path,
             "TERM": "xterm-256color",
         ]
+    }
+
+    /// Makes the `claude` stand-in run `script` instead, for a test whose CLI behaves otherwise.
+    func replaceCLI(withScript script: String) throws {
+        try writeExecutableScript(script, to: root.appendingPathComponent("bin/claude"))
+    }
+
+    /// Makes the `claude` stand-in exit once it has recorded how it was started.
+    func makeCLIExitAtOnce() throws {
+        try replaceCLI(withScript: "#!/bin/sh\n\(recordLaunch)\n")
     }
 
     var launchRecord: String? { try? String(contentsOf: launchLog, encoding: .utf8) }

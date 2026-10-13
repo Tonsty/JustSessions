@@ -50,10 +50,17 @@ final class RemoteClaudeSessionIDFlagSupport: @unchecked Sendable {
     }
 
     /// What a new session's tab would start, with `--help` in place of the app's arguments.
-    static func helpCommand(startCommand: String?, host: String) -> String {
+    static func helpCommand(
+        startCommand: String?,
+        host: String,
+        cliLocation: RemoteCLILocation? = nil
+    ) -> String {
         let invocation = CLIStartCommandLine.customCommand(startCommand).map {
             CLIStartCommandLine.remoteInvocation(startCommand: $0, arguments: ["--help"])
-        } ?? "\(ConversationProvider.claude.executableName) --help"
+        } ?? RemoteCLIInvocation.oneOffInvocation(
+            executableName: ConversationProvider.claude.executableName,
+            location: cliLocation ?? RemoteHostCLILocations.shared.location(of: .claude, on: host)
+        ) + " --help"
         return RemoteCLICommandBuilder.loginShellCommand(invocation, on: host)
     }
 

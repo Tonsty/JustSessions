@@ -114,4 +114,44 @@ struct RemoteHostCheckScriptTests {
         #expect(output.exitStatus("folder-exit") == 1)
         #expect(output.text("folder")?.contains("No such file or directory") == true)
     }
+
+    /// An alias or function `sh` can't see is asked in the login shell; a CLI in an install folder runs with its
+    /// folder first on PATH, as tabs start them.
+    @Test func asksEachCLIForItsVersionWhereTabsStartIt() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let installFolder = root.appendingPathComponent(".claude/local")
+        try FileManager.default.createDirectory(at: installFolder, withIntermediateDirectories: true)
+        let loginShell = try writeExecutableScript(
+            "#!/bin/sh\nshift\nexec /bin/sh -c \"pi() { echo pi-from-function; }; $1\"\n",
+            to: root.appendingPathComponent("login-shell")
+        )
+        let claude = try writeExecutableScript(
+            "#!/bin/sh\necho \"${PATH%%:*}\"\n",
+            to: installFolder.appendingPathComponent("claude")
+        )
+        let programs = RemoteHostCheckProgram.all { _ in nil }.map {
+            $0.located(by: [.claude: .installed(path: claude.path), .pi: .loginShell])
+        }
+        let command = RemoteHostCheckScript.command(startup: .interactive, programs: programs, projectPath: nil)
+
+        let result = BoundedProcessRunner.result(
+            ofExecutable: "/bin/sh",
+            arguments: ["-c", command],
+            environment: ["HOME": root.path, "SHELL": loginShell.path, "PATH": "/usr/bin:/bin"],
+            includesStandardError: true,
+            timeout: 20
+        )
+
+        let output = RemoteHostCheckOutput(try #require(result).output)
+        #expect(output.text("cli-claude-path") == claude.path)
+        #expect(output.text("cli-claude-version") == installFolder.path)
+        #expect(output.exitStatus("cli-claude-version-exit") == 0)
+        #expect(output.text("cli-pi-path") == nil)
+        #expect(output.text("cli-pi-version") == "pi-from-function")
+        #expect(output.exitStatus("cli-pi-version-exit") == 0)
+        // Found by neither, so not asked.
+        #expect(output.text("cli-codex-version-exit") == nil)
+    }
 }
+

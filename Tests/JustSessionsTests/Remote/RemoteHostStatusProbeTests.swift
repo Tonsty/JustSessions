@@ -64,4 +64,75 @@ struct RemoteHostStatusProbeTests {
 
         #expect(RemoteHostStatusProbe.status(inOutput: try #require(output)).installedProviders == [.codex, .antigravity, .kiro, .opencode, .pi])
     }
+
+    @Test func aCLIOnlyInAnInstallFolderStartsFromThereAndTheLoginShellsComesFirst() {
+        let nvm = "/home/me/.nvm/versions/node"
+        let output = """
+            \(RemoteHostStatusProbe.installedCLIsHeading)
+            codex
+            \(RemoteHostStatusProbe.installFoldersHeading)
+            codex \(nvm)/v20.1.0/bin/codex
+            claude \(nvm)/v22.3.0/bin/claude
+            claude \(nvm)/v9.11.2/bin/claude
+            opencode /home/me and you/.opencode/bin/opencode
+
+            """
+
+        let status = RemoteHostStatusProbe.status(inOutput: output)
+
+        #expect(status.cliLocations == [
+            .codex: .loginShell,
+            .claude: .installed(path: "\(nvm)/v22.3.0/bin/claude"),
+            .opencode: .installed(path: "/home/me and you/.opencode/bin/opencode"),
+        ])
+        #expect(status.installedProviders == [.codex, .claude, .opencode])
+    }
+
+    @Test func probeFindsACLIInAnInstallFolderTheLoginShellsPathLeavesOut() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let bin = root.appendingPathComponent("bin")
+        let installFolder = root.appendingPathComponent(".claude/local")
+        try FileManager.default.createDirectory(at: bin, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: installFolder, withIntermediateDirectories: true)
+        try writeExecutableScript("#!/bin/sh\nshift\nexec /bin/sh -c \"$1\"\n", to: bin.appendingPathComponent("login-shell"))
+        try writeExecutableScript("#!/bin/sh\nexit 0\n", to: bin.appendingPathComponent("codex"))
+        try writeExecutableScript("#!/bin/sh\nexit 0\n", to: installFolder.appendingPathComponent("claude"))
+
+        let output = BoundedProcessRunner.output(
+            ofExecutable: "/bin/sh",
+            arguments: ["-c", RemoteHostStatusProbe.command(on: "devbox")],
+            environment: ["HOME": root.path, "SHELL": bin.appendingPathComponent("login-shell").path, "PATH": "\(bin.path):/usr/bin:/bin"],
+            timeout: 10
+        )
+
+        // Other folders, such as `/opt/homebrew/bin`, may have this Mac's own CLIs.
+        let probeOutput = try #require(output)
+        let cliLocations = try #require(RemoteHostStatusProbe.status(inOutput: probeOutput).cliLocations)
+        #expect(cliLocations[.codex] == .loginShell)
+        #expect(cliLocations[.claude] == .installed(path: installFolder.appendingPathComponent("claude").path))
+    }
+
+    /// With this Mac's bash as the login shell, whose startup file defines them, as a host's might.
+    @Test func probeFindsAliasesAndFunctionsOfTheLoginShell() throws {
+        let home = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: home) }
+        try """
+            alias pi="$HOME/tools/pi --from-alias"
+            agy() { "$HOME/tools/agy" "$@"; }
+
+            """.write(to: home.appendingPathComponent(".bash_profile"), atomically: true, encoding: .utf8)
+
+        let output = BoundedProcessRunner.output(
+            ofExecutable: "/bin/sh",
+            arguments: ["-c", RemoteHostStatusProbe.command(startup: .interactive)],
+            environment: ["HOME": home.path, "SHELL": "/bin/bash", "PATH": "/usr/bin:/bin", "TMUX_TMPDIR": home.path],
+            timeout: 20
+        )
+
+        let probeOutput = try #require(output)
+        let cliLocations = try #require(RemoteHostStatusProbe.status(inOutput: probeOutput).cliLocations)
+        #expect(cliLocations[.pi] == .loginShell)
+        #expect(cliLocations[.antigravity] == .loginShell)
+    }
 }
