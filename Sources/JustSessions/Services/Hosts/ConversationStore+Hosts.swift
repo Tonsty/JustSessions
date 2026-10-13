@@ -19,18 +19,26 @@ extension ConversationStore {
         }
     }
 
-    /// From the New Session sheet. A folder typed for an SSH host is looked up there first, so a missing folder is
-    /// reported before a tab opens, and the tab waits under the path the CLI records for its session.
+    /// From the New Session sheet. The typed folder is looked up on its host first, so a missing folder is reported
+    /// before a tab opens, or created when `creatingMissingFolder` is set, and the tab waits under the path the CLI
+    /// records for its session.
     func launchNewSession(
         provider: ConversationProvider,
         host: SessionHost,
         folder: String,
+        creatingMissingFolder: Bool = false,
         resolver: RemoteFolderResolver = RemoteFolderResolver()
     ) async throws {
-        try launchNewSession(provider: provider, in: try await projectLocation(of: folder, on: host, resolver: resolver))
+        let location = try await projectLocation(
+            of: folder,
+            on: host,
+            creatingMissingFolder: creatingMissingFolder,
+            resolver: resolver
+        )
+        try launchNewSession(provider: provider, in: location)
     }
 
-    /// A folder typed in the New Session sheet. On an SSH host it is looked up there, which fails when it is missing
+    /// A folder typed in the New Session sheet or Add project, looked up on its host, which fails when it is missing
     /// unless `creatingMissingFolder` asks for it to be created there first.
     func projectLocation(
         of folder: String,
@@ -40,7 +48,8 @@ extension ConversationStore {
     ) async throws -> ProjectLocation {
         switch host {
         case .thisMac:
-            return ProjectLocation(host: .thisMac, path: folder)
+            let path = try ThisMacFolderResolver.resolvedPath(of: folder, creatingMissingFolder: creatingMissingFolder)
+            return ProjectLocation(host: .thisMac, path: path)
         case .ssh(let destination):
             let resolvedPath = try await Task.detached(priority: .userInitiated) {
                 try resolver.resolvedPath(of: folder, host: destination, creatingMissingFolder: creatingMissingFolder)

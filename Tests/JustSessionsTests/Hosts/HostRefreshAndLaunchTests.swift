@@ -64,6 +64,55 @@ struct HostRefreshAndLaunchTests {
         #expect(store.terminalSessions.isEmpty)
     }
 
+    @Test @MainActor func aMissingFolderOnAnSSHHostIsCreatedThereWhenAsked() async throws {
+        let store = ConversationStore(adapters: [])
+        let recorder = RemoteCommandRecorder()
+
+        try await store.launchNewSession(
+            provider: .codex,
+            host: .ssh("devbox"),
+            folder: "~/new",
+            creatingMissingFolder: true,
+            resolver: RemoteFolderResolver(runner: recorder.runner(answering: (0, "/home/me/new\n")))
+        )
+
+        let tab = try #require(store.terminalSessions.last)
+        #expect(recorder.commands.map(\.command) == [RemoteFolderResolver.lookupCommand(for: "~/new", creatingMissingFolder: true)])
+        #expect(tab.projectPath == "/home/me/new")
+        store.closeAllTerminals()
+    }
+
+    @Test @MainActor func missingFolderOnThisMacOpensNoTabAndIsNotCreated() async throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let missingFolder = root.appendingPathComponent("gone").path
+        let store = ConversationStore(adapters: [])
+
+        await #expect(throws: ThisMacFolderResolutionError.missingFolder(folder: missingFolder)) {
+            try await store.launchNewSession(provider: .claude, host: .thisMac, folder: missingFolder)
+        }
+        await #expect(throws: ThisMacFolderResolutionError.missingFolder(folder: missingFolder)) {
+            try await store.openPlainTerminal(host: .thisMac, folder: missingFolder)
+        }
+        #expect(store.terminalSessions.isEmpty)
+        #expect(!FileManager.default.fileExists(atPath: missingFolder))
+    }
+
+    @Test @MainActor func plainTerminalOnThisMacCreatesAMissingFolderWhenAsked() async throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let newFolder = root.appendingPathComponent("new/app")
+        let store = ConversationStore(adapters: [])
+
+        try await store.openPlainTerminal(host: .thisMac, folder: newFolder.path, creatingMissingFolder: true)
+
+        let tab = try #require(store.terminalSessions.last)
+        var isDirectory: ObjCBool = false
+        #expect(FileManager.default.fileExists(atPath: newFolder.path, isDirectory: &isDirectory) && isDirectory.boolValue)
+        #expect(tab.command.workingDirectory == newFolder.standardizedFileURL.path)
+        store.closeAllTerminals()
+    }
+
     @Test @MainActor func plainTerminalOnAnSSHHostOpensInTheFolderTheHostReports() async throws {
         let store = ConversationStore(adapters: [])
         let recorder = RemoteCommandRecorder()

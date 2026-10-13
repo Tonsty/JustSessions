@@ -11,14 +11,21 @@ extension ConversationStore {
         }
     }
 
-    /// From the New Session sheet, which shows the error. A folder typed for an SSH host is looked up there first, so a
-    /// missing folder is reported before a tab opens.
+    /// From the New Session sheet, which shows the error. The typed folder is looked up on its host first, so a
+    /// missing folder is reported before a tab opens, or created when `creatingMissingFolder` is set.
     func openPlainTerminal(
         host: SessionHost,
         folder: String,
+        creatingMissingFolder: Bool = false,
         resolver: RemoteFolderResolver = RemoteFolderResolver()
     ) async throws {
-        openTerminal(try makePlainTerminal(in: try await projectLocation(of: folder, on: host, resolver: resolver)))
+        let location = try await projectLocation(
+            of: folder,
+            on: host,
+            creatingMissingFolder: creatingMissingFolder,
+            resolver: resolver
+        )
+        openTerminal(try makePlainTerminal(in: location))
     }
 
     /// A plain terminal tab in the folder, not opened yet.

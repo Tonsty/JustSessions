@@ -7051,6 +7051,52 @@
           }
         }
       }
+    },
+    "There is no folder %@ on this Mac. Check the path, or create the folder.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 Mac 上没有文件夹 %@。请检查路径，或创建该文件夹。"
+          }
+        }
+      }
+    },
+    "There is no folder %@ on %@. Check the path, or create the folder.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "There is no folder %1$@ on %2$@. Check the path, or create the folder."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$@ 上没有文件夹 %1$@。请检查路径，或创建该文件夹。"
+          }
+        }
+      }
+    },
+    "Create folder and start": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建文件夹并开始"
+          }
+        }
+      }
+    },
+    "Create folder and open terminal": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建文件夹并打开终端"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

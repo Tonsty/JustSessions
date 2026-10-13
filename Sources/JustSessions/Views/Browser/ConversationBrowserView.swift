@@ -137,9 +137,18 @@ struct ConversationBrowserView: View {
             ) { request in
                 switch request.kind {
                 case .cli(let provider):
-                    try await store.launchNewSession(provider: provider, host: request.host, folder: request.folder)
+                    try await store.launchNewSession(
+                        provider: provider,
+                        host: request.host,
+                        folder: request.folder,
+                        creatingMissingFolder: request.creatingMissingFolder
+                    )
                 case .plainTerminal:
-                    try await store.openPlainTerminal(host: request.host, folder: request.folder)
+                    try await store.openPlainTerminal(
+                        host: request.host,
+                        folder: request.folder,
+                        creatingMissingFolder: request.creatingMissingFolder
+                    )
                 }
             }
         }

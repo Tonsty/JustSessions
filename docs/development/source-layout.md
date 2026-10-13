@@ -46,6 +46,7 @@ Application paths below are relative to `Sources/JustSessions/`. Tests live in `
 - `Services/Appearance/`: saves the app's appearance, theme, and your changes to each theme's colors, sets the appearance on every window, and gives terminals a newly chosen theme's colors.
 - `Services/Adapters/`: provider discovery and native arguments, one folder per CLI. Separate adapters make adding another CLI straightforward.
 - `Services/Hosts/`: refreshing every host and starting new sessions on any of them.
+- `Services/Hosts/ThisMacFolder/`: checks a folder typed for a new session or project on this Mac, and creates a missing one once the sheet's offer is taken; `Services/Remote/NewSession/RemoteFolderResolver` does the same on an SSH host.
 - `Services/Hosts/InstalledCLIs/`: which CLIs each host has, so new sessions offer only those.
 - `Services/Launch/`: CLI executable resolution and process environment.
 - `Services/Launch/PlainTerminal/`: opens a plain terminal, a login shell in a project folder that is no session.
