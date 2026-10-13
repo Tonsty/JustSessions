@@ -1,8 +1,8 @@
 import Foundation
 
-/// Check this host…: logs in as the app's background commands do, checks the host's shell startup, then asks the host
-/// about everything else in one command; see `RemoteHostCheckScript`. A host the app can't log in to is not asked
-/// anything more. Runs `ssh` several times, so call it off the main actor.
+/// Check this host…: logs in as the app's background commands do, checks the host's shell startup, looks up its CLIs
+/// as a refresh does, then asks the host about everything else in one command; see `RemoteHostCheckScript`. A host
+/// the app can't log in to is not asked anything more. Runs `ssh` several times, so call it off the main actor.
 struct RemoteHostCheck: Sendable {
     /// Room for every CLI's version within its own time limit.
     static let scriptTimeout: TimeInterval = 120
@@ -25,6 +25,8 @@ struct RemoteHostCheck: Sendable {
         let report: HostCheckReport
         /// For the store to keep, as after Check shell startup; nil when it didn't run or didn't finish.
         let shellStartupResult: RemoteShellStartupCheckResult?
+        /// For the store to keep, as after a refresh; nil when the lookup didn't answer.
+        var cliLocations: [ConversationProvider: RemoteCLILocation]? = nil
     }
 
     func check(
@@ -35,10 +37,12 @@ struct RemoteHostCheck: Sendable {
         thisMacSummary: String,
         now: () -> Date = Date.init
     ) -> Outcome {
+        var cliLocations: [ConversationProvider: RemoteCLILocation]?
         func outcome(_ findings: [HostCheckFinding], _ shellStartupResult: RemoteShellStartupCheckResult?) -> Outcome {
             Outcome(
                 report: HostCheckReport(host: host, checkedAt: now(), thisMacSummary: thisMacSummary, findings: findings),
-                shellStartupResult: shellStartupResult
+                shellStartupResult: shellStartupResult,
+                cliLocations: cliLocations
             )
         }
 
@@ -50,6 +54,9 @@ struct RemoteHostCheck: Sendable {
         let startup = shellStartupResult?.shellStartup ?? RemoteHostShellStartups.shared.startup(on: host)
         findings.append(RemoteHostConnectionFindings.shellStartupFinding(shellStartupResult, host: host, startup: startup))
 
+        // Where tabs start each CLI from now, so the script checks that.
+        cliLocations = RemoteHostStatusProbe.status(ofHost: host, startup: startup, runner: runner)?.cliLocations
+        let programs = cliLocations.map { locations in programs.map { $0.located(by: locations) } } ?? programs
         let command = RemoteHostCheckScript.command(startup: startup, programs: programs, projectPath: session?.projectPath)
         guard let result = runner.run(host, command, Self.scriptTimeout),
               result.exitStatus != RemoteHostCommandRunner.connectionFailureExitStatus else {

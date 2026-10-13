@@ -78,7 +78,7 @@ ssh justsessions-test 'mkdir -p "$HOME/justsessions-test/project with spaces"'
 The app runs CLIs and looks them up through the host's interactive login shell, `exec "$SHELL" -lic`, so the PATH set in `~/.bashrc`, such as nvm's, is in effect. A non-interactive `bash -lc` skips Ubuntu's `~/.bashrc` and can miss a CLI the app finds. For example, when testing Claude Code, check it the same way the app does:
 
 ```sh
-ssh -o BatchMode=yes justsessions-test 'exec "$SHELL" -lic "command -v claude && claude --version"'
+ssh -o BatchMode=yes justsessions-test 'exec "$SHELL" -lic "type claude && claude --version"'
 ```
 
 Without a terminal, bash first prints `cannot set terminal process group` and `no job control in this shell`; those two lines are expected. Substitute the executable for the provider being tested. Keep its session storage at the locations documented in [session storage](../guides/session-storage.md#ssh-session-cache). `rsync` is required for history mirroring; Antigravity and OpenCode also require `python3`, and Antigravity deletion requires `lsof`. Remote persistence uses the VM's `tmux`, not the app's bundled Mac binary.
@@ -173,6 +173,7 @@ Run the checks relevant to the change and record the result of each:
 | Windows host | Adding the PowerShell user says it runs Windows and points to WSL; **Add anyway** shows the same on its heading, and no shell startup check runs for it. |
 | Discovery and refresh | The installed provider is offered; the new session appears under the remote project and its preview matches the remote history. |
 | Launch and resume | New sessions and resumed sessions run in the VM's project, including its space-containing path. Branch only where the provider supports it. |
+| CLI as an alias, a function, or in an install folder | For the bash and the fish user: with an alias that adds a flag, then a function, for the CLI in the startup file, **Check this host…** says so and passes, and a new tab's CLI has the flag (`ps -o args`). With the CLI only in `~/.claude/local` and that folder off the PATH, New session offers it and the tab starts it from there. **Close and delete session…** on a session started through the alias ends it and deletes it. |
 | Keep running and reconnect | Close a running CLI tab with **Keep running**, then reattach to the same process and session. Also test interruption of just the SSH connection when changing reconnect behavior. Keep the VM running throughout. |
 | Plain terminal | A terminal opens in the remote project and closing its tab ends that shell, as described in the user guide. |
 | Dropping files | In both terminal engines, drop an image and a file whose name has spaces on a Claude Code or Codex tab and on a plain terminal on the VM. Each path typed is under `~/.cache/justsessions/dropped-files` and the file there matches. Drop a file of a few hundred MB: the corner shows progress, and **Cancel** types nothing and leaves no copy. A folder is refused with a note. Stopping the VM mid-copy says the connection was lost. |

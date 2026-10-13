@@ -12,9 +12,8 @@ struct RemoteTmuxEndingBeforeDeletionTests {
         defer { sandbox.tearDown() }
         let readyMarker = sandbox.root.appendingPathComponent("ready")
         let exitMarker = sandbox.root.appendingPathComponent("exited")
-        try writeExecutableScript(
-            "#!/bin/sh\ntrap 'sleep 1; touch \"\(exitMarker.path)\"; exit 0' HUP\ntouch \"\(readyMarker.path)\"\nwhile :; do sleep 0.2; done\n",
-            to: sandbox.root.appendingPathComponent("bin/claude-slow-exit")
+        try sandbox.replaceCLI(
+            withScript: "#!/bin/sh\ntrap 'sleep 1; touch \"\(exitMarker.path)\"; exit 0' HUP\ntouch \"\(readyMarker.path)\"\nwhile :; do sleep 0.2; done\n"
         )
         let tmuxName = TmuxSessionName.unique(for: .claude)
         let command = RemoteCLICommandBuilder.remoteCommand(
@@ -22,10 +21,41 @@ struct RemoteTmuxEndingBeforeDeletionTests {
             projectPath: sandbox.project.path,
             arguments: [],
             tmuxSessionName: tmuxName
-        ).replacingOccurrences(of: "exec claude", with: "exec claude-slow-exit")
+        )
         let client = try sandbox.startClient(command)
         defer { client.terminate() }
         try #require(sandbox.waitUntil { FileManager.default.fileExists(atPath: readyMarker.path) })
+
+        _ = sandbox.run(RemoteTmuxCommands.killSessionWaitingForCLIExitCommand(tmuxName, on: "devbox", timeoutSeconds: 5))
+
+        #expect(FileManager.default.fileExists(atPath: exitMarker.path))
+        #expect(!sandbox.hasTmuxSession(tmuxName))
+    }
+
+    /// The login shell runs a function, so the CLI is the pane's child. Both hang up; the shell exits at once.
+    @Test func endingWaitsForACLIAFunctionStartedInTheLoginShell() throws {
+        guard let tmuxDirectory = TmuxSandbox.installedTmuxDirectory else { return }
+        let sandbox = try TmuxSandbox(
+            tmuxDirectory: tmuxDirectory,
+            loginShellStartup: "claude() { command claude --from-function \"$@\"; }\n"
+        )
+        defer { sandbox.tearDown() }
+        let readyMarker = sandbox.root.appendingPathComponent("ready")
+        let exitMarker = sandbox.root.appendingPathComponent("exited")
+        try sandbox.replaceCLI(
+            withScript: "#!/bin/sh\ntrap 'sleep 1; touch \"\(exitMarker.path)\"; exit 0' HUP\necho \"$@\" > \"\(readyMarker.path)\"\nwhile :; do sleep 0.2; done\n"
+        )
+        let tmuxName = TmuxSessionName.unique(for: .claude)
+        let command = RemoteCLICommandBuilder.remoteCommand(
+            provider: .claude,
+            projectPath: sandbox.project.path,
+            arguments: [],
+            tmuxSessionName: tmuxName
+        )
+        let client = try sandbox.startClient(command)
+        defer { client.terminate() }
+        try #require(sandbox.waitUntil { FileManager.default.fileExists(atPath: readyMarker.path) })
+        #expect((try? String(contentsOf: readyMarker, encoding: .utf8)) == "--from-function\n")
 
         _ = sandbox.run(RemoteTmuxCommands.killSessionWaitingForCLIExitCommand(tmuxName, on: "devbox", timeoutSeconds: 5))
 
@@ -38,9 +68,8 @@ struct RemoteTmuxEndingBeforeDeletionTests {
         let sandbox = try TmuxSandbox(tmuxDirectory: tmuxDirectory)
         defer { sandbox.tearDown() }
         let processIDFile = sandbox.root.appendingPathComponent("pid")
-        try writeExecutableScript(
-            "#!/bin/sh\ntrap '' HUP\necho $$ > \"\(processIDFile.path)\"\nwhile :; do sleep 0.2; done\n",
-            to: sandbox.root.appendingPathComponent("bin/claude-stubborn")
+        try sandbox.replaceCLI(
+            withScript: "#!/bin/sh\ntrap '' HUP\necho $$ > \"\(processIDFile.path)\"\nwhile :; do sleep 0.2; done\n"
         )
         let tmuxName = TmuxSessionName.unique(for: .claude)
         let command = RemoteCLICommandBuilder.remoteCommand(
@@ -48,7 +77,7 @@ struct RemoteTmuxEndingBeforeDeletionTests {
             projectPath: sandbox.project.path,
             arguments: [],
             tmuxSessionName: tmuxName
-        ).replacingOccurrences(of: "exec claude", with: "exec claude-stubborn")
+        )
         let client = try sandbox.startClient(command)
         defer { client.terminate() }
         try #require(sandbox.waitUntil { ((try? String(contentsOf: processIDFile, encoding: .utf8)) ?? "").hasSuffix("\n") })

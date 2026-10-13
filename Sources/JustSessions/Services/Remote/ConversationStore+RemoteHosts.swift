@@ -30,8 +30,9 @@ extension ConversationStore {
                 let status = RemoteHostStatusProbe.status(ofHost: host)
                 if let status {
                     await self.setTmuxSessionNames(status.tmuxSessionNames, on: .ssh(host))
-                    if let installedProviders = status.installedProviders {
-                        await self.setInstalledProviders(installedProviders, on: .ssh(host))
+                    if let cliLocations = status.cliLocations {
+                        RemoteHostCLILocations.shared.setLocations(cliLocations, on: host)
+                        await self.setInstalledProviders(Set(cliLocations.keys), on: .ssh(host))
                     }
                     await self.checkClaudeSessionIDFlagIfUnanswered(on: host)
                 }
@@ -91,11 +92,13 @@ extension ConversationStore {
         remoteHostList.save(to: userDefaults)
         remoteHostsUsingTmuxPrefix.setUsesTmuxPrefix(false, for: host)
         remoteHostsUsingTmuxPrefix.save(to: userDefaults)
+        tabCloseChoiceSettingsStore.forgetSSHHost(host)
         forgetRemoteShellStartup(on: host)
         hostRefreshStatuses.removeValue(forKey: .ssh(host))
         remoteSessionCopySteps.removeValue(forKey: .ssh(host))
         tmuxSessionNamesByHost.removeValue(forKey: .ssh(host))
         installedProvidersByHost.removeValue(forKey: .ssh(host))
+        RemoteHostCLILocations.shared.forgetLocations(on: host)
         replaceConversations(on: .ssh(host), with: [])
         Task.detached(priority: .utility) {
             mirror.removeMirror(host: host)

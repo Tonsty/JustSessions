@@ -170,6 +170,8 @@ final class ConversationStore {
     let userDefaults: UserDefaults
     /// The engine new tabs' terminals open with.
     let terminalEngineStore: TerminalEngineStore
+    /// Each host's choice of what closing a CLI tab does, which a removed SSH host's goes with.
+    let tabCloseChoiceSettingsStore: TabCloseChoiceSettingsStore
 
     init(
         adapters: [any ConversationAdapter] = [
@@ -183,9 +185,10 @@ final class ConversationStore {
         remoteClaudeSessionIDFlagSupport: RemoteClaudeSessionIDFlagSupport = .shared,
         remoteShellStartupCheck: RemoteShellStartupCheck = RemoteShellStartupCheck(),
         remoteHostCheck: RemoteHostCheck = RemoteHostCheck(),
-        // Unlike the settings above, the engine comes from the shared store, which reads the standard defaults; a test
-        // that depends on the engine passes its own store.
+        // Unlike the settings above, the engine and the close choices come from the shared stores, which read the
+        // standard defaults; a test that depends on one passes its own store.
         terminalEngineStore: TerminalEngineStore = .shared,
+        tabCloseChoiceSettingsStore: TabCloseChoiceSettingsStore = .shared,
         startsBackgroundPolling: Bool = true,
         readService: WorkspaceReadService? = nil
     ) {
@@ -199,6 +202,7 @@ final class ConversationStore {
         self.remoteHostCheck = remoteHostCheck
         self.userDefaults = userDefaults
         self.terminalEngineStore = terminalEngineStore
+        self.tabCloseChoiceSettingsStore = tabCloseChoiceSettingsStore
         self.sessionNotifier = sessionNotifier
         self.windowRegistry = windowRegistry
         self.titleAliases = ConversationTitleAliases.load(from: userDefaults)

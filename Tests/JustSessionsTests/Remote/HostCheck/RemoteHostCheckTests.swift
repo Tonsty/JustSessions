@@ -78,4 +78,41 @@ struct RemoteHostCheckTests {
         #expect(outcome.report.findings.map(\.status) == [.passed, .passed, .problem])
         #expect(outcome.shellStartupResult?.outcome == .interactiveStartupWorks)
     }
+
+    /// The check looks up the CLIs as a refresh does, checks each where tabs start it, and hands the store what it found.
+    @Test func checksEachCLIWhereTheLookupFoundIt() throws {
+        let recorder = RemoteCommandRecorder()
+        let installedClaude = "/home/me/.claude/local/claude"
+        let lookupOutput = """
+            \(RemoteHostStatusProbe.installedCLIsHeading)
+            codex
+            \(RemoteHostStatusProbe.installFoldersHeading)
+            claude \(installedClaude)
+
+            """
+        let check = RemoteHostCheck(
+            runner: recorder.runner(answeringEach: { command in
+                command.contains(RemoteHostStatusProbe.installFoldersHeading)
+                    ? (0, lookupOutput)
+                    : (0, hostCheckScriptOutput(["shell": "/bin/bash", "cli-claude-path": installedClaude, "done": ""]))
+            }),
+            connectionCheck: RemoteHostConnectionCheck(runner: recorder.runner(answering: (0, "%OS% :OS\n"))),
+            shellStartupCheck: RemoteShellStartupCheck(run: { _, _, _ in (0, Self.shellStartupWorks) })
+        )
+
+        let outcome = check.check(
+            host: "devbox",
+            programs: RemoteHostCheckProgram.all { _ in nil },
+            session: nil,
+            providersWithSessions: [],
+            thisMacSummary: "This Mac"
+        )
+
+        #expect(outcome.cliLocations == [.codex: .loginShell, .claude: .installed(path: installedClaude)])
+        let scriptCommand = try #require(recorder.commands.last?.command)
+        #expect(scriptCommand.contains("program=\"\(installedClaude)\""))
+        let claude = try #require(outcome.report.findings.first { $0.id == "cli-claude" })
+        #expect(claude.summary.contains(installedClaude))
+    }
 }
+

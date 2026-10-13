@@ -6,13 +6,15 @@ import Testing
 @MainActor
 struct SettingsTabPageSizeTests {
     /// The Settings window keeps one size because every tab shares it. The Appearance tab scrolls in it; this catches
-    /// a General or Permissions tab that outgrows it and starts to scroll too.
+    /// a General or Permissions tab that outgrows it and starts to scroll too. General lists This Mac and one SSH host,
+    /// each with its own close-tab choice.
     @Test func generalAndPermissionsTabsFitTheSharedPageWithoutScrolling() throws {
         let settings = try IsolatedUserDefaults()
         defer { settings.removeSuite() }
 
         let tabs: [(name: String, content: AnyView)] = [
             ("General", AnyView(GeneralSettingsView(
+                hosts: [.thisMac, .ssh("devbox")],
                 languageStore: AppLanguageStore(userDefaults: settings.userDefaults),
                 tabReopeningSettingsStore: TabReopeningSettingsStore(userDefaults: settings.userDefaults),
                 launchAtLoginSettingsStore: LaunchAtLoginSettingsStore(),

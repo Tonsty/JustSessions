@@ -83,6 +83,58 @@ struct RemoteHostCLIFindingsTests {
         #expect(programs.count == ConversationProvider.allCases.count - 1)
     }
 
+    @Test func anAliasOrFunctionOfTheLoginShellIsFoundThere() throws {
+        let programs = RemoteHostCheckProgram.all { _ in nil }.map { $0.located(by: [.claude: .loginShell, .pi: .loginShell]) }
+        let found = findings(
+            in: hostCheckOutput([
+                "cli-claude-path": "",
+                "cli-claude-version": "2.1.0 (Claude Code)",
+                "cli-claude-version-exit": "0",
+                "cli-pi-path": "",
+                "cli-pi-version": "env: node: No such file or directory",
+                "cli-pi-version-exit": "127",
+            ]),
+            programs: programs
+        )
+
+        let claude = try #require(found.first { $0.id == "cli-claude" })
+        #expect(claude.status == .passed)
+        #expect(claude.summary.contains("alias or function"))
+        #expect(claude.hostOutput == "2.1.0 (Claude Code)")
+        #expect(claude.commandToRunYourself
+            == "ssh devbox 'env JUSTSESSIONS=1 \"$SHELL\" -lic \"command -v claude && claude --version\"'")
+        let pi = try #require(found.first { $0.id == "cli-pi" })
+        #expect(pi.status == .warning)
+        #expect(pi.summary.contains("alias or function"))
+    }
+
+    @Test func aCLIInAnInstallFolderSaysTabsStartItThere() throws {
+        let path = "/home/me/.claude/local/claude"
+        let programs = RemoteHostCheckProgram.all { _ in nil }.map { $0.located(by: [.claude: .installed(path: path)]) }
+        let found = findings(
+            in: hostCheckOutput([
+                "cli-claude-path": path,
+                "cli-claude-version": "2.1.0 (Claude Code)",
+                "cli-claude-version-exit": "0",
+            ]),
+            programs: programs
+        )
+
+        let claude = try #require(found.first { $0.id == "cli-claude" })
+        #expect(claude.status == .passed)
+        #expect(claude.summary.contains(path))
+        #expect(claude.summary.contains("PATH"))
+        #expect(claude.commandToRunYourself
+            == "ssh devbox 'env JUSTSESSIONS=1 \"$SHELL\" -lic \"command -v \(path) && \(path) --version\"'")
+    }
+
+    @Test func aStartCommandsProgramKeepsItsPlaceWhereverTheExecutableIs() throws {
+        let programs = RemoteHostCheckProgram.all { $0 == .claude ? "~/bin/claude-wrapper --fast" : nil }
+        let claude = try #require(programs.first { $0.provider == .claude })
+
+        #expect(claude.located(by: [.claude: .installed(path: "/home/me/.claude/local/claude")]) == claude)
+    }
+
     private func findings(
         in output: RemoteHostCheckOutput,
         programs: [RemoteHostCheckProgram] = RemoteHostCheckProgram.all { _ in nil },

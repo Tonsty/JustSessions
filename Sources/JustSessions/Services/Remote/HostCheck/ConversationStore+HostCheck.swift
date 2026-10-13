@@ -48,6 +48,10 @@ extension ConversationStore {
         if let shellStartupResult = outcome.shellStartupResult {
             applyRemoteShellStartupCheckResult(shellStartupResult, on: host)
         }
+        if let cliLocations = outcome.cliLocations, remoteHostList.hosts.contains(host) {
+            RemoteHostCLILocations.shared.setLocations(cliLocations, on: host)
+            setInstalledProviders(Set(cliLocations.keys), on: .ssh(host))
+        }
         // The sheet may have closed, or started another run, since.
         guard hostCheck?.runID == runID else { return }
         hostCheck?.report = outcome.report
