@@ -27,7 +27,7 @@ struct SSHLogin: Sendable {
         self.timeout = timeout
     }
 
-    /// The master runs `true`, then stays open; see `SSHLoginConnections.idleTimeout`. The background commands'
+    /// The master runs `true`, then stays open; see `SSHLoginConnections.persistence`. The background commands'
     /// connection settings apply, but the login may ask questions.
     static func sshArguments(host: String, controlPath: String) -> [String] {
         [RemoteHostCommandRunner.noTerminalOption, "-o", "BatchMode=no"]
@@ -35,7 +35,7 @@ struct SSHLogin: Sendable {
             + [
                 "-o", "ControlMaster=yes",
                 "-o", "ControlPath=\(controlPath)",
-                "-o", "ControlPersist=\(SSHLoginConnections.idleTimeout)",
+                "-o", "ControlPersist=\(SSHLoginConnections.persistence)",
                 host, "true",
             ]
     }
