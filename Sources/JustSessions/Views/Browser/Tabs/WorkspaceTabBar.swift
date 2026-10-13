@@ -9,9 +9,9 @@ import SwiftUI
 /// tab takes its terminal's color and runs down into it, through the bar's bottom line. As in Chrome, tabs narrow
 /// together to fit the bar as more open, and the bar scrolls once they are as narrow as they get; a split's two tabs
 /// share one tab's width. Dragging a group's label moves the whole group among the others, as dragging either tab of
-/// a split across projects moves the split; tabs drag within their group, see `TerminalTabGroupSection`, and between
-/// windows, see `TabDragBetweenWindows`, which also draws a tab dragged in from another window as its own group among
-/// the others. Dragging the bar's space around and past them moves the window, and a right-click there offers a new
+/// a split across projects moves the split; tabs drag within their group, see `TerminalTabGroupSection`, and tabs or
+/// whole groups between windows, see `TabDragBetweenWindows`, which also draws tabs dragged in from another window as
+/// their own group among the others. Dragging the bar's space around and past them moves the window, and a right-click there offers a new
 /// session and collapsing or expanding every group; see `TabGroupsBackgroundMenuItems`.
 struct WorkspaceTabBar: View {
     let store: ConversationStore

@@ -1,4 +1,5 @@
-/// A tab, or a split's two tabs, on its way from one window to another, its terminal and CLI still running.
+/// A tab, a split's two tabs, or a whole group's tabs on their way from one window to another, their terminals and
+/// CLIs still running.
 struct TabsBetweenWindows {
     let unit: DetachedTabStripUnit
     /// The unit's tabs, in its order.
