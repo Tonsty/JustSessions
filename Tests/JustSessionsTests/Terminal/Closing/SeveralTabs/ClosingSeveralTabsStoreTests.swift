@@ -22,6 +22,23 @@ struct ClosingSeveralTabsStoreTests {
             return tab
         }
 
+        /// A tab whose CLI tmux can keep running on `host`. Nothing starts, since no terminal is shown.
+        func openTmuxTab(_ title: String, on host: SessionHost) -> TerminalSession {
+            let tab = TerminalSession(
+                engine: .swiftTerm,
+                conversation: nil,
+                provider: .claude,
+                projectPath: "/tmp/justsessions-tests/app",
+                action: .resume,
+                displayTitle: title,
+                command: NativeCLICommand(executablePath: "/usr/bin/true", arguments: [], workingDirectory: "/tmp", environment: []),
+                host: host,
+                tmuxSessionName: "justsessions-closing-several-tabs-test-\(title)"
+            )
+            store.openTerminal(tab)
+            return tab
+        }
+
         /// A tab reopened at launch and not selected yet, which has started nothing.
         func reopenTabWaitingToBeShown(_ title: String, in projectPath: String) -> TerminalSession {
             let tab = makeTab(title, in: projectPath, startsOnceShown: true)
@@ -87,8 +104,29 @@ struct ClosingSeveralTabsStoreTests {
         let second = fixture.reopenTabWaitingToBeShown("Second", in: "/tmp/justsessions-tests/app")
         try #require(first.isWaitingToBeShown && second.isWaitingToBeShown)
 
-        let question = store.closingQuestion(forTabs: [first.id, second.id], tabCloseChoice: .askEachTime, plainTerminalCloseChoice: .askEachTime)
+        let question = store.closingQuestion(
+            forTabs: [first.id, second.id], tabCloseChoices: TabCloseChoicesByHost(), plainTerminalCloseChoice: .askEachTime
+        )
 
-        #expect(question == .closeWithoutAsking(endingTmuxSessions: true))
+        #expect(question == .closeWithoutAsking)
+    }
+
+    /// Each tab's CLI in tmux reads the choice saved for its own host.
+    @Test func eachTabReadsItsOwnHostsChoice() throws {
+        let fixture = try Fixture()
+        defer { fixture.tearDown() }
+        let store = fixture.store
+        let thisMacTab = fixture.openTmuxTab("Local", on: .thisMac)
+        let devboxTab = fixture.openTmuxTab("Remote", on: .ssh("devbox"))
+        let tabIDs = [thisMacTab.id, devboxTab.id]
+        try #require(thisMacTab.closingNeed == .canKeepCLIRunning && devboxTab.closingNeed == .canKeepCLIRunning)
+
+        let bothSaved = TabCloseChoicesByHost(thisMacChoice: .endSession, sshHostChoices: ["devbox": .keepRunning])
+        #expect(store.closingQuestion(forTabs: tabIDs, tabCloseChoices: bothSaved, plainTerminalCloseChoice: .askEachTime)
+            == .closeWithoutAsking)
+
+        let devboxAsks = TabCloseChoicesByHost(thisMacChoice: .endSession, sshHostChoices: ["buildbox": .keepRunning])
+        #expect(store.closingQuestion(forTabs: tabIDs, tabCloseChoices: devboxAsks, plainTerminalCloseChoice: .askEachTime)
+            == .keepOrEndCLIs(alsoStopsOthers: false))
     }
 }

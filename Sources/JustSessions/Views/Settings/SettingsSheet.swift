@@ -3,6 +3,7 @@ import SwiftUI
 /// Settings as a sheet on a workspace window: the tabs, then Done.
 struct SettingsSheet: View {
     @Binding var selectedTab: SettingsTab
+    let hosts: [SessionHost]
     let onCheckForUpdates: () -> Void
     @Environment(\.dismiss) private var dismiss
 
@@ -10,6 +11,7 @@ struct SettingsSheet: View {
         VStack(spacing: 0) {
             SettingsView(
                 selectedTab: $selectedTab,
+                hosts: hosts,
                 languageStore: .shared,
                 tabReopeningSettingsStore: .shared,
                 launchAtLoginSettingsStore: .shared,

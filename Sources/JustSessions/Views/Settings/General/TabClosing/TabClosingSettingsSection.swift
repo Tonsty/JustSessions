@@ -1,8 +1,10 @@
 import SwiftUI
 
-/// The closing part of the General tab: what closing a tab does when its CLI can keep running in tmux, and what closing
-/// a plain terminal does. Don't ask again in the close dialog sets the same choices.
+/// The closing part of the General tab: what closing a tab does when its CLI can keep running in tmux, one choice per
+/// host, and what closing a plain terminal does. Don't ask again in the close dialog sets the same choices.
 struct TabClosingSettingsSection: View {
+    /// This Mac first, then the SSH hosts, as the sidebar lists them.
+    let hosts: [SessionHost]
     @ObservedObject var tabCloseChoiceSettingsStore: TabCloseChoiceSettingsStore
     @ObservedObject var plainTerminalCloseChoiceSettingsStore: PlainTerminalCloseChoiceSettingsStore
 
@@ -13,20 +15,17 @@ struct TabClosingSettingsSection: View {
                     .font(ThemeFont.heading)
                 HelpPopoverButton(
                     title: "Closing tabs",
-                    explanation: "The CLI tab choice is for tabs whose CLI can keep running in tmux. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too."
+                    explanation: "Each host has its own choice for tabs whose CLI can keep running in tmux there. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too."
                 )
                 .accessibilityIdentifier("settings.help.closingTabs")
             }
-            Picker("When you close a CLI tab", selection: Binding(
-                get: { tabCloseChoiceSettingsStore.choice },
-                set: { tabCloseChoiceSettingsStore.setChoice($0) }
-            )) {
-                Text("Ask each time").tag(TabCloseChoice.askEachTime)
-                Text("Keep running").tag(TabCloseChoice.keepRunning)
-                Text("End session").tag(TabCloseChoice.endSession)
+            Text("When you close a CLI tab")
+            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
+                ForEach(hosts) { host in
+                    HostTabCloseChoiceRow(host: host, tabCloseChoiceSettingsStore: tabCloseChoiceSettingsStore)
+                }
             }
-            .fixedSize()
-            .accessibilityIdentifier("settings.tabCloseChoice")
+            .padding(.leading, 16)
             Picker("When you close a terminal", selection: Binding(
                 get: { plainTerminalCloseChoiceSettingsStore.choice },
                 set: { plainTerminalCloseChoiceSettingsStore.setChoice($0) }
