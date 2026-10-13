@@ -24,6 +24,7 @@ Live SSH checks follow [SSH development testing](../../development/ssh-testing.m
 | SSH-24 | Every shell the app starts on a host has `JUSTSESSIONS=1`, and CLIs start through `$SHELL -lic`. | `f8eeafa`, `a719190` | `RemoteCLICommandBuilderTests` |
 | SSH-25 | Quoting is correct under `sh`, `bash`, `zsh`, `dash`, and `fish`, also for a value quoted twice, as in a tmux tab's command: single quotes and backslashes are written outside the quotes, where fish reads them as `sh` does. | `4c7df7a`, `475817a`, `405ca9a` | `ShellQuotingPropertyTests` |
 | SSH-26 | What a host's login shell reads, which may be fish, uses no `if`, loops, or `VAR=value` before a command; `&&`, `;`, and pipes read the same in fish. Anything more runs in `sh -c`. | `405ca9a` | `RemoteTmuxKeepAliveTests`, `RemoteTmuxPrefixKeysTests` |
+| SSH-27 | A login made with **Connect…** has no idle limit (`ControlPersist=yes`). It ends on **Disconnect**, when the host is removed, when the app quits, or when the connection drops. The next launch closes a login left by an app that crashed; a running copy's logins are kept. | `b38a341` | `SSHLoginTests`, `SSHLoginsOfEndedAppsTests` |
 
 ## Shell startup check
 
@@ -52,6 +53,7 @@ Live SSH checks follow [SSH development testing](../../development/ssh-testing.m
 | SSH-63 | Only session files leave a host. Pi's extension folders, settings, and credentials stay; OpenCode's sessions come from a snapshot built on the host with `python3`, so its accounts, credentials, and tool output never leave it. | `e0831a5`, `c8af982` | `PiRemoteMirrorTests`, `OpenCodeRemoteMirrorTests`, `AntigravityRemoteMirrorTests` |
 | SSH-64 | Refresh covers every host, and each heading has its own refresh. A host that fails shows the classified reason on its heading; the others still list. A tab whose CLI exits, or a new session's tab that is left or closed, refreshes its own host. | `a2be251`, `b20f964`, `bb94daa` | `HostRefreshAndLaunchTests` |
 | SSH-65 | The installed CLIs on a host are found with `command -v` in the same call that lists its tmux sessions. | `12abb26` | `RemoteHostStatusProbeTests`, `InstalledCLIsTests` |
+| SSH-66 | While a workspace window shows on screen, each SSH host refreshes on its own 5 minutes after its last copy, and when the app comes forward once that time has passed. After a failure it waits 5 minutes, then twice as long after each failure in a row, up to an hour; a host that needs **Connect…** waits for it. The oldest window copies the host; after any copy, the other windows list it without copying again. | `b38a341` | `HostAutoRefreshScheduleTests`, `HostAutoRefresherTests`, `SharedRemoteCopyTests` |
 
 ## Sessions on a host
 
