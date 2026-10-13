@@ -54,14 +54,13 @@ enum RemoteTmuxCommands {
     }
 
     /// Gives every JustSessions session on the host the prefix keys `RemoteTmuxPrefixOptions` describes, so a new
-    /// choice reaches tabs already attached and sessions no tab shows, which you may attach to yourself.
+    /// choice reaches tabs already attached and sessions no tab shows, which you may attach to yourself. `sh` runs the
+    /// loop, as the login shell may be fish.
     static func setPrefixOptionsCommand(usingHostPrefix: Bool, on host: String) -> String {
         // `set-option` takes a pane: `=name:` is exactly that session, where a bare `=name` finds nothing.
         let setOptions = RemoteTmuxPrefixOptions.setOptionCommands(usingHostPrefix: usingHostPrefix, target: "\"=$name:\"")
-        return RemoteCLICommandBuilder.loginShellCommand(
-            "tmux list-sessions -F '#{session_name}' 2>/dev/null | grep '^\(TmuxSessionName.prefix)'"
-                + " | while IFS= read -r name; do tmux \(setOptions.joined(separator: " \\; ")) 2>/dev/null; done; true",
-            on: host
-        )
+        let script = "tmux list-sessions -F '#{session_name}' 2>/dev/null | grep '^\(TmuxSessionName.prefix)'"
+            + " | while IFS= read -r name; do tmux \(setOptions.joined(separator: " \\; ")) 2>/dev/null; done; true"
+        return RemoteCLICommandBuilder.loginShellCommand("sh -c \(ShellQuoting.quoted(script))", on: host)
     }
 }

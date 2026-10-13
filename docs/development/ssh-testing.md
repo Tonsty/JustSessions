@@ -126,6 +126,20 @@ A key with a passphrase that the agent does not hold: create a key with a passph
 
 Remove these users, their `sshd_config.d` files, the `pam_google_authenticator` line, the alias, and any known-host entry the test trusted when you no longer need them.
 
+## Hosts whose login shell is fish
+
+`sshd` hands every command the app sends to the user's login shell, and that shell also runs each CLI. fish reads quotes and some syntax differently from `sh`, bash, and zsh, so check remote commands with a VM user whose shell is fish:
+
+```sh
+ssh justsessions-test 'set -e
+sudo apt-get install -y fish
+sudo useradd -m -s /usr/bin/fish fishtest
+sudo install -d -m 700 -o fishtest -g fishtest /home/fishtest/.ssh
+sudo install -m 600 -o fishtest -g fishtest /home/ubuntu/.ssh/authorized_keys /home/fishtest/.ssh/authorized_keys'
+```
+
+`ssh fishtest@justsessions-test 'echo $FISH_VERSION'` prints fish's version (3.7.0 on Ubuntu 24.04). Add `fishtest@justsessions-test`, then check that its heading shows no shell startup warning, that a session starts and resumes in tmux, and that **Use this host's tmux prefix** reaches a running session.
+
 ## Windows hosts
 
 The app tells a Windows host apart when it is added or refreshed, and says it isn't supported. To exercise that without a Windows machine, give a VM user PowerShell as its shell, with Windows' `OS` variable set. This stands in for a Windows host whose OpenSSH default shell is PowerShell; it does not cover `cmd.exe`, Windows' default, or a real Windows host.

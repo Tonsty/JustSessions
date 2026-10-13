@@ -120,7 +120,9 @@ struct RemoteCLICommandBuilder {
         let tmuxCommand = "exec tmux new-session -A -s \(ShellQuoting.quoted(tmuxSessionName)) "
             + ShellQuoting.quoted(inLoginShell(directCommand))
             + sessionOptions.map { " \\; \($0)" }.joined()
-        return inLoginShell("if command -v tmux >/dev/null 2>&1; then \(tmuxCommand); else \(directCommand); fi")
+        // The login shell may be fish, which has no `if …; then …; fi`; `&&` and `;` read the same in both. When tmux
+        // is found, `exec` replaces the shell, so the CLI runs directly only without it.
+        return inLoginShell("command -v tmux >/dev/null 2>&1 && \(tmuxCommand); \(directCommand)")
     }
 
     /// Runs `innerCommand` in the host's login shell, started as the host needs; see `RemoteShellStartup`.
