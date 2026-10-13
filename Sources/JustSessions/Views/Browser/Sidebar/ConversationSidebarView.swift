@@ -157,6 +157,8 @@ struct ConversationSidebarView: View {
                 ThemeDivider()
                 SidebarSelectionActionBar(
                     selectedCount: sessionSelection.selectedConversationIDs.count,
+                    endableCount: selectedConversations.filter(store.canEndSession).count,
+                    onEnd: { store.endSessions(selectedConversations) },
                     onDelete: { onRequestDeletion(.conversations(selectedConversations)) }
                 )
             }

@@ -2784,6 +2784,34 @@
         }
       }
     },
+    "End %lld sessions": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "End %lld session"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "End %lld sessions"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束 %lld 个会话"
+          }
+        }
+      }
+    },
     "End and close this terminal": {
       "localizations": {
         "zh-Hans": {
@@ -5503,12 +5531,12 @@
         }
       }
     },
-    "Right-click a selected row in the sidebar to resume, branch, or delete them.": {
+    "Right-click a selected row in the sidebar to resume, branch, end, or delete them.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "右键点击侧栏中已选择的条目，以继续、创建分支或删除会话。"
+            "value": "右键点击侧栏中已选择的条目，以继续、创建分支、结束或删除会话。"
           }
         }
       }
@@ -6415,6 +6443,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "删除当前会话后停止；保留其余会话"
+          }
+        }
+      }
+    },
+    "Stop the running CLIs of the selected sessions; they can be resumed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止所选会话中正在运行的 CLI；之后仍可继续"
           }
         }
       }

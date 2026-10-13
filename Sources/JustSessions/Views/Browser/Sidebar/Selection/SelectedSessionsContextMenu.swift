@@ -9,6 +9,7 @@ struct SelectedSessionsContextMenu: View {
     var body: some View {
         let resumableCount = selectedConversations.filter { store.canLaunch($0, action: .resume) }.count
         let branchableCount = selectedConversations.filter { store.canLaunch($0, action: .branch) }.count
+        let endableCount = selectedConversations.filter(store.canEndSession).count
 
         Button("Resume \(resumableCount) sessions", systemImage: "play") {
             store.launch(selectedConversations, action: .resume)
@@ -18,6 +19,11 @@ struct SelectedSessionsContextMenu: View {
             store.launch(selectedConversations, action: .branch)
         }
         .disabled(branchableCount == 0)
+        if endableCount > 0 {
+            Button("End \(endableCount) sessions", systemImage: "stop.circle", role: .destructive) {
+                store.endSessions(selectedConversations)
+            }
+        }
         Divider()
         ConversationSharingMenuItems(selections: selectedConversations.map {
             ConversationExportSelection(conversation: $0, title: store.title(for: $0))

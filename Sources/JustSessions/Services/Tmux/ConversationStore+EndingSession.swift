@@ -32,6 +32,13 @@ extension ConversationStore {
         for store in windowStores { store.tmuxSessionNamesByHost[host]?.subtract(endedTmuxNames) }
     }
 
+    /// End sessions, from a multi-selection: ends each selected session whose CLI runs and skips the rest.
+    func endSessions(_ conversations: [Conversation]) {
+        for conversation in conversations where canEndSession(conversation) {
+            endSession(conversation)
+        }
+    }
+
     /// Close and end session, from a tab's menu: closes the tab and stops its CLI without asking, as End session does
     /// from the session's row. A new session's tab not yet linked to its session stops only its own CLI.
     func closeTerminalEndingSession(_ id: UUID) {

@@ -1038,8 +1038,8 @@
 	<string>Reverse views</string>
 	<key>Right view</key>
 	<string>Right view</string>
-	<key>Right-click a selected row in the sidebar to resume, branch, or delete them.</key>
-	<string>Right-click a selected row in the sidebar to resume, branch, or delete them.</string>
+	<key>Right-click a selected row in the sidebar to resume, branch, end, or delete them.</key>
+	<string>Right-click a selected row in the sidebar to resume, branch, end, or delete them.</string>
 	<key>Right-click a session to rename, pin, export, or delete it, and a project to rename, pin, or archive it. ⌘-click or ⇧-click selects several.</key>
 	<string>Right-click a session to rename, pin, export, or delete it, and a project to rename, pin, or archive it. ⌘-click or ⇧-click selects several.</string>
 	<key>Right-click a session to rename, pin, export, or delete it. ⌘-click or Shift-click to select several at once.</key>
@@ -1206,6 +1206,8 @@
 	<string>Stop copying; nothing is typed</string>
 	<key>Stop deleting after the current session; the rest stay listed</key>
 	<string>Stop deleting after the current session; the rest stay listed</string>
+	<key>Stop the running CLIs of the selected sessions; they can be resumed</key>
+	<string>Stop the running CLIs of the selected sessions; they can be resumed</string>
 	<key>Stopping deletion</key>
 	<string>Stopping deletion</string>
 	<key>Stopping…</key>
