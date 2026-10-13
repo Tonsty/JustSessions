@@ -134,6 +134,30 @@ No difference stands out from the load's noise:
 - **Memory:** the base's two rounds differed by up to 2.5 MB per tab, and the fork stays within the base's range.
 - **Frames:** every repaint drew 150–151 frames.
 
+**The SwiftTerm fork's modified arrow keys, 13 October 2026.** The pin moved to the fork's `1.15.0-justsessions.3`; see [SwiftTerm fork](build-and-release.md#swiftterm-fork). It changes only how `keyDown` sends arrows, Home, and End with Shift, Option, or Control, which runs when such a key is pressed; these workloads press no key. `TerminalEngineMeasurements` (repaint, bulk, and hidden tabs) ran on the base (`ab2e037`, `1.15.0-justsessions.2`) and on the fork (`f4a5e68`, rebased since as `34d9523`), alternating base, fork, base, fork.
+
+**Method:**
+- **Machine:** Apple M4 Max, 14 cores, 36 GB, macOS 27.0.1.
+- **Build:** release build from `swift test -c release`, Swift 6.4.
+- **Load:** other sessions were running. The load average was 8–12.
+- **Runs:** each figure below is the median of the test's three runs in that round.
+
+| SwiftTerm | Base, round 1 / 2 | Fork, round 1 / 2 |
+| --- | --- | --- |
+| Repaint, 1 tab: process CPU | 5.3% / 5.7% | 7.4% / 6.3% |
+| Repaint, 1 tab: main thread | 3.9% / 4.2% | 5.7% / 4.7% |
+| Repaint, 1 tab: longest main-thread gap | 24.7 / 24.9 ms | 24.9 / 24.8 ms |
+| Repaint, 5 tabs, 1 shown: process CPU | 6.2% / 6.7% | 21.1% / 7.8% |
+| Repaint, 10 tabs, 1 shown: process CPU | 8.7% / 13.1% | 21.3% / 10.0% |
+| Bulk 20 MB: time | 0.79 / 0.78 s | 0.78 / 0.80 s |
+| Bulk 20 MB: process CPU | 123% / 123% | 118% / 119% |
+
+No difference stands out from the load's noise:
+- **Hidden tabs:** every engine ran high in the fork's round 1, Ghostty too, whose library didn't change: its 5-tab runs took 7.3–8.3% of a core against 2.5–5.0% in the other rounds. In round 2 the fork's medians were 7.8% and 10.0%, against base runs of 6.0–7.8% with 5 tabs and 7.6–18.7% with 10.
+- **CPU, one tab:** the fork's medians were 1–2 points higher, but single runs overlap: the base's spanned 5.0–11.3% and the fork's 4.9–13.7%.
+- **Bulk:** the fork took 0.78–0.80 s and 118–119% of a core, against the base's 0.78–0.79 s and 123%.
+- **Frames:** the repaint runs drew 146–150 frames on the base and 144–150 on the fork.
+
 ## Work items
 
 | # | Item | Status |
