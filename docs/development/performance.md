@@ -163,6 +163,8 @@ No difference stands out from the load's noise:
 | 23 | [Show N more under each project](#23-show-n-more-under-each-project) | Measured, no change |
 | 24 | [A growing Codex session's search text was read in full on every change](#24-a-growing-codex-sessions-search-text-was-read-in-full-on-every-change) | Done: issue #56 |
 | 25 | [What a tab switch still costs](#25-what-a-tab-switch-still-costs) | Done: #218 and this change |
+| 26 | [Typing in an SSH tab](#26-typing-in-an-ssh-tab) | Done: this change |
+| 27 | [Typing in a Rename dialog](#27-typing-in-a-rename-dialog) | Measured, no change |
 | 26 | [Refreshing hosts on their own](#26-refreshing-hosts-on-their-own) | Measured on the test VM; done |
 
 ### 1. Timestamp parsing
@@ -641,6 +643,36 @@ With an accessibility client (`/tmp/perf-switch.sh`, which presses the tabs thro
 **Change:** `HostAutoRefresher` checks every 15 seconds while a workspace window shows on screen (not hidden, minimized, covered, or behind a locked screen), and when the app comes forward. This Mac refreshes a minute after its last refresh started, in every window, through the one shared scan (item 18). An SSH host refreshes 5 minutes after its last copy; after a failure it waits 5 minutes, then twice as long after each failure in a row, up to an hour, and a host that needs **Connect…** is left alone. The oldest window copies the host. After any successful copy, the other windows read it from disk instead of copying the host again.
 
 **Limits:** the VM runs on the same Mac, so the timing has no real network latency and little data. A distant host or one with a large history takes longer per copy; none was timed.
+
+### 26. Typing in an SSH tab
+
+**Question:** typing in an SSH tab lags. How much of the lag is the app's, and how much the network's?
+
+**Evidence:** each keystroke goes from the tab through `ssh` to the host, through its tmux to the CLI, and back. The tab's own share is small (PERF-82: about 1.9 ms p50 keystroke-to-echo on this Mac). Two more waits came from settings, not from the network:
+
+- OpenSSH 9.5 and later send a terminal's keystrokes in batches every 20 ms, with fake keystrokes for a while after typing stops (`ObscureKeystrokeTiming`), so that someone watching the network can't time each key. macOS 27's OpenSSH 10.3 has it on by default.
+- tmux before 3.5 waits 500 ms after Esc to see whether a longer key sequence follows (`escape-time`). Ubuntu 24.04 ships tmux 3.4. This Mac's tmux already sets 10 ms; a tab's tmux on a host didn't.
+
+When a tab goes through a Connect… login, its keystrokes are sent by the login's master, so the master's setting decides. With the master at the default, a tab passing `ObscureKeystrokeTiming=no` itself still took 3–10 ms at p50, against about 1 ms with the master's off.
+
+**Change:** tabs and the Connect… master pass `ObscureKeystrokeTiming=no` (SSH-28) where this Mac's `ssh` takes it; an `ssh` older than 9.5 would refuse to connect with it. A tab's tmux sets `escape-time 10` on every attach (SSH-86).
+
+**Measured:** the command a tab runs, written by the app's `RemoteCLICommandBuilder` with `cat` in place of the CLI, run in a pseudo-terminal against the Multipass VM (Ubuntu 24.04, tmux 3.4), from a Mac with OpenSSH 10.3. Each of 30 keystrokes was timed until its echo came back, and each of 8 Esc presses until the pane's `^[` came back. "Main" is the same command with the option and `escape-time` taken out; each run started a fresh tmux server on the VM. Runs alternated main, change, main, change; the load average was 7 to 11.
+
+| Build | Keystroke to echo, p50 / p90 | Esc to echo, p50 | Server's `escape-time` |
+| --- | --- | --- | --- |
+| Main | 15.0 / 24.7 ms, 20.0 / 77.2 ms | 516, 530 ms | 500 |
+| This change | 1.3 / 1.9 ms, 1.7 / 53.9 ms | 46, 48 ms | 10 |
+
+**Limits:** the VM runs on this Mac, so its round trip is under a millisecond; over a real network the round trip comes on top of what remains, and nothing here hides it. Only showing typed keys before the host answers, as mosh does, could; that would need both engines to draw guesses and take them back. The app's GUI tab and a live Connect… login were not timed; the Connect… numbers above are from `ssh` run by hand with the same options. No macOS host was tested.
+
+### 27. Typing in a Rename dialog
+
+**Question:** the Rename dialog's text is `@State` on `ContentView`, the window's root, and every keystroke changes it. Does each keystroke redraw the window's browser and sidebar?
+
+**Measured:** no. A debug build with a counter at the start of five views' bodies opened Rename on a session and typed 20 characters into the alert's field, 200 ms apart. `editedTitle` took each keystroke, and `ContentView`, `ConversationBrowserView`, `ConversationSidebarView`, `WorkspaceDetailView`, and `SidebarProjectRow` ran their bodies 0 times. `ContentView`'s body makes a binding to the text but never reads it, so SwiftUI doesn't make it depend on the text.
+
+**Limits:** the window had no tabs open and its projects were collapsed.
 
 ## How to profile
 

@@ -62,6 +62,7 @@ Measurement suites live in `Tests/JustSessionsTests/Performance/` and record onl
 | PERF-82 | Typing stays at about 1.9 ms p50 keystroke-to-echo beside one visible and five hidden terminals each printing a 2 MB/s log. No cross-terminal scheduler is needed; recheck after a SwiftTerm upgrade. | `65b3637` | `TerminalFairnessMeasurements` |
 | PERF-83 | A Ghostty tab pauses reading while 4 MiB of output waits. In the repaint workload its main thread uses about 1.2% of a core against SwiftTerm's 14.8%. | `8d6e97d` | `GhosttyOutputBackpressureTests`, `TerminalEngineMeasurements` |
 | PERF-84 | SwiftTerm's Metal renderer stays off until `TerminalEngineMeasurements` shows main-thread gaps no worse than Core Graphics drawing (under about 35 ms when measured), no dropped frames, no extra hidden-tab drawing, and a real CPU saving. | `1533250` | `TerminalEngineMeasurements` |
+| PERF-85 | In an SSH tab to the test VM, a keystroke echoes in about 1.5 ms at p50 instead of 15–20 ms (SSH-28), and Esc reaches a CLI in tmux 3.4 in about 47 ms instead of 520 ms (SSH-86). The network's round trip comes on top of both; nothing hides it. | `b0dc6dd` | Live run of the tab's command against the test VM; see [item 26](../../development/performance.md#26-typing-in-an-ssh-tab) |
 
 ## Method
 

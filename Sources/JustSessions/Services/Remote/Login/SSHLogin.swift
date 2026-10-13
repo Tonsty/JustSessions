@@ -28,10 +28,16 @@ struct SSHLogin: Sendable {
     }
 
     /// The master runs `true`, then stays open; see `SSHLoginConnections.persistence`. The background commands'
-    /// connection settings apply, but the login may ask questions.
-    static func sshArguments(host: String, controlPath: String) -> [String] {
+    /// connection settings apply, but the login may ask questions. Tabs go through it, and it, not the tab, decides
+    /// whether their keystrokes are sent in batches; see `SSHKeystrokeTiming`.
+    static func sshArguments(
+        host: String,
+        controlPath: String,
+        keystrokeTimingOptions: [String] = SSHKeystrokeTiming.options
+    ) -> [String] {
         [RemoteHostCommandRunner.noTerminalOption, "-o", "BatchMode=no"]
             + RemoteHostCommandRunner.connectionSettingOptions
+            + keystrokeTimingOptions
             + [
                 "-o", "ControlMaster=yes",
                 "-o", "ControlPath=\(controlPath)",
