@@ -164,7 +164,7 @@ No difference stands out from the load's noise:
 | 24 | [A growing Codex session's search text was read in full on every change](#24-a-growing-codex-sessions-search-text-was-read-in-full-on-every-change) | Done: issue #56 |
 | 25 | [What a tab switch still costs](#25-what-a-tab-switch-still-costs) | Done: #218 and this change |
 | 26 | [Typing in an SSH tab](#26-typing-in-an-ssh-tab) | Done: this change |
-| 27 | [Typing in a Rename dialog](#27-typing-in-a-rename-dialog) | Measured, no change |
+| 27 | [Typing in a Rename dialog](#27-typing-in-a-rename-dialog) | Done: this change |
 | 26 | [Refreshing hosts on their own](#26-refreshing-hosts-on-their-own) | Measured on the test VM; done |
 
 ### 1. Timestamp parsing
@@ -668,12 +668,33 @@ When a tab goes through a Connect… login, its keystrokes are sent by the login
 
 ### 27. Typing in a Rename dialog
 
-**Question:** the Rename dialog's text is `@State` on `ContentView`, the window's root, and every keystroke changes it. Does each keystroke redraw the window's browser and sidebar?
+**Evidence:** typing in a session's Rename dialog lagged. The name being typed was `ContentView`'s own state, so every keystroke ran `ContentView`'s body. That builds `ConversationBrowserView` with closures SwiftUI can't compare, so the whole browser and sidebar redrew, as tab switches did before item 25.
 
-**Measured:** no. A debug build with a counter at the start of five views' bodies opened Rename on a session and typed 20 characters into the alert's field, 200 ms apart. `editedTitle` took each keystroke, and `ContentView`, `ConversationBrowserView`, `ConversationSidebarView`, `WorkspaceDetailView`, and `SidebarProjectRow` ran their bodies 0 times. `ContentView`'s body makes a binding to the text but never reads it, so SwiftUI doesn't make it depend on the text.
+An earlier measurement found no redraw: a debug build with **no tabs open and its projects collapsed** ran none of five views' bodies while 20 characters were typed. Under the conditions below the browser and sidebar redrew on every keystroke.
 
-**Limits:** the window had no tabs open and its projects were collapsed.
+**Measured:** main `a2f75614` against this change, release builds, 4 tabs open, Apple M4 Pro, macOS 26.6.1.
+- **Opening the dialog:** each run relaunched the app, then opened Rename from tab 1's right-click menu, using real mouse events and an accessibility press of the menu item. The right-click builds the window's accessibility tree, as it does when you rename (item 22).
+- **Typing:** 20 characters, 0.4 s apart, inside a Time Profiler trace (`/tmp/perf-7/rename-typing.sh`, `keycost.py`).
+- **Busy time per keystroke:** main-thread time in the typing window, minus the quiet rate after it, divided by 20 keystrokes.
 
+| Build | Longest stall per keystroke: median (max), runs 1 and 2 | Main-thread time per keystroke |
+| --- | --- | --- |
+| Main a2f75614 | 60 ms (64), 62 ms (67) | 46, 54 ms |
+| This change | 14 ms (18), 12 ms (17) | 13, 16 ms |
+
+On main, nearly all of each keystroke was SwiftUI's graph update (41–47 ms), with `ContentView`'s body running on every keystroke. Installed v1.2.9 measured the same as main: 61 and 62 ms.
+
+Counting body runs with a log line at the start of 19 views' bodies, release builds of main `f7b4b410` and this change, 20 characters typed 0.3 s apart (`/tmp/perf-7/rename-bodies.sh`): on main every keystroke ran `ContentView`, `ConversationBrowserView`, and `ConversationSidebarView` once, 67 `SidebarProjectSection` and 42 `SidebarProjectRow` bodies, and 4 each of the tab bar's and open tabs' rows. With this change none of the 19 ran, and the field held all 20 characters.
+
+**Change:** the Rename dialogs of a session and of a project, and what is typed in them, moved into `RenameDialogs`, a modifier of their own, so a keystroke redraws only the dialog.
+
+Moving them showed an older bug: reopening a dialog on the same session or project showed an empty field. SwiftUI fills an alert's field only when its text differs from what the field last showed, which a second open of the same name never does. The field now gets a new identity each time a dialog opens (`openCount`), and shows the name shown now until you type. Checked on the release build, reading the field through accessibility:
+- tabs 1, 1, 2, 1, 2 and 2 each opened on their name;
+- a rename followed by a reopen opened on the new name;
+- projects opened on their name, the same project twice included;
+- typing replaced the selected name, as before.
+
+**Limits:** one Mac, 4 tabs and about 35 projects listed; the stall on main grows with the sidebar.
 ## How to profile
 
 Attach to a running copy, so you keep your windows and sessions. Record in chunks, so you can analyze finished chunks while still using the app:

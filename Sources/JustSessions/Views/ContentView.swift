@@ -13,9 +13,9 @@ struct ContentView: View {
     @State private var statusFilter: SessionStatusFilter = .all
     @State private var renamingConversation: Conversation?
     @State private var renamingProject: ProjectConversationGroup?
-    @State private var editedProjectName = ""
+    /// How many times a Rename dialog opened; see `RenameDialogs.openCount`.
+    @State private var renameDialogOpenCount = 0
     @State private var deletionRequest: SessionDeletionRequest?
-    @State private var editedTitle = ""
     @State private var hasStartedScan = false
 
     init(readService: WorkspaceReadService) {
@@ -29,13 +29,13 @@ struct ContentView: View {
             recencyFilter: $recencyFilter,
             providerFilter: $providerFilter,
             statusFilter: $statusFilter,
-            onRename: { conversation in
-                editedTitle = store.title(for: conversation)
-                renamingConversation = conversation
+            onRename: {
+                renameDialogOpenCount += 1
+                renamingConversation = $0
             },
-            onRenameProject: { project in
-                editedProjectName = project.displayName
-                renamingProject = project
+            onRenameProject: {
+                renameDialogOpenCount += 1
+                renamingProject = $0
             },
             onRequestDeletion: { deletionRequest = $0 }
         )
@@ -55,28 +55,12 @@ struct ContentView: View {
         }
         .background(WorkspaceWindowRegistration(store: store))
         .onDisappear { store.closeWorkspace() }
-        .alert("Rename conversation", isPresented: Binding(isPresenting: $renamingConversation)) {
-            TextField("Name", text: $editedTitle)
-            Button("Cancel", role: .cancel) { renamingConversation = nil }
-            Button("Save") {
-                if let conversation = renamingConversation { store.rename(conversation, to: editedTitle) }
-                renamingConversation = nil
-            }
-        } message: {
-            Text("This changes the display name in JustSessions.")
-        }
-        .dismissesOnClickOutside(item: $renamingConversation)
-        .alert("Rename project", isPresented: Binding(isPresenting: $renamingProject)) {
-            TextField("Name", text: $editedProjectName)
-            Button("Cancel", role: .cancel) { renamingProject = nil }
-            Button("Save") {
-                if let project = renamingProject { store.renameProject(project.projectPath, to: editedProjectName) }
-                renamingProject = nil
-            }
-        } message: {
-            Text("Only renames it in JustSessions. Leave empty to use the folder name (\(renamingProject?.folderName ?? "")).")
-        }
-        .dismissesOnClickOutside(item: $renamingProject)
+        .modifier(RenameDialogs(
+            store: store,
+            conversation: $renamingConversation,
+            project: $renamingProject,
+            openCount: renameDialogOpenCount
+        ))
         .sessionDeletionDialog(for: $deletionRequest, store: store)
         .storeAlert(store)
     }
