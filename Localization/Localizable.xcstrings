@@ -7031,6 +7031,26 @@
           }
         }
       }
+    },
+    "Color intensity": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "颜色浓淡"
+          }
+        }
+      }
+    },
+    "Makes the 16 colors that shells and many CLIs pick from stronger or softer. Colors a program sets exactly stay as they are.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "调浓或调淡 shell 和许多 CLI 使用的 16 种颜色。程序直接指定的颜色保持不变。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

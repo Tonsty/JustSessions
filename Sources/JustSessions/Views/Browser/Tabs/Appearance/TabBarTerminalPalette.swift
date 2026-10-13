@@ -24,14 +24,15 @@ extension TerminalPalette {
     }
 }
 
-/// Picks the palette as `TerminalAppearanceStyling` does for each terminal, from the theme as terminals take it.
+/// Picks the palette as `TerminalAppearanceStyling` does for each terminal, from the settings and theme as terminals
+/// take them.
 private struct TabBarTerminalPalette: ViewModifier {
     @ObservedObject var appearanceStore: TerminalAppearanceStore
     @ObservedObject var themeStore: AppThemeStore
     @Environment(\.colorScheme) private var colorScheme
 
     func body(content: Content) -> some View {
-        let preferences = appearanceStore.preferences.validated
+        let preferences = appearanceStore.terminalPreferences.validated
         let usesDarkColors = preferences.mode.usesDarkColors(whenAppIsDark: colorScheme == .dark)
         content.environment(
             \.tabBarTerminalPalette,

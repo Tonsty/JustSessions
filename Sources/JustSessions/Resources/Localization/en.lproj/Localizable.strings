@@ -334,6 +334,8 @@
 	<string>Collapse group</string>
 	<key>Collapse project</key>
 	<string>Collapse project</string>
+	<key>Color intensity</key>
+	<string>Color intensity</string>
 	<key>Colors</key>
 	<string>Colors</string>
 	<key>Connect again; a CLI still running in tmux on the host is reattached</key>
@@ -658,6 +660,8 @@
 	<string>Logged in with Connect…</string>
 	<key>Make text bigger or smaller with ⌘+ and ⌘−, in terminals and conversations.</key>
 	<string>Make text bigger or smaller with ⌘+ and ⌘−, in terminals and conversations.</string>
+	<key>Makes the 16 colors that shells and many CLIs pick from stronger or softer. Colors a program sets exactly stay as they are.</key>
+	<string>Makes the 16 colors that shells and many CLIs pick from stronger or softer. Colors a program sets exactly stay as they are.</string>
 	<key>Markdown (.md)…</key>
 	<string>Markdown (.md)…</string>
 	<key>Match app</key>

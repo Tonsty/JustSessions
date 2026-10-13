@@ -266,6 +266,23 @@ struct GhosttyAppearanceConfigurationTests {
         #expect(controller.lastConfigurationIssue == nil)
     }
 
+    /// **Color intensity** reaches Ghostty's ANSI colors once dragging pauses, as it reaches SwiftTerm's.
+    @Test func aColorIntensityReachesTheController() async throws {
+        let settings = try IsolatedUserDefaults()
+        defer { settings.removeSuite() }
+        let appearanceStore = TerminalAppearanceStore(userDefaults: settings.userDefaults, terminalPreferencesDelay: .milliseconds(50))
+        let themeStore = AppThemeStore(userDefaults: settings.userDefaults)
+        let controller = GhosttyTerminalControllers.shared.controller(appearanceStore: appearanceStore, themeStore: themeStore)
+        controller.setColorScheme(.dark)
+
+        appearanceStore.setColorIntensityPercent(200)
+
+        let vividPalette = AppThemeColors.justSessionsDark.terminalPalette.withANSIColorIntensity(percent: 200)
+        let vividRed = "palette = 1=\(Self.hex(vividPalette.distinguishableANSIHexColors[1]))"
+        try await expectEventually { Self.lines(of: controller).contains(vividRed) }
+        Self.expectColors(of: vividPalette, in: controller)
+    }
+
     @Test func storesShareOneControllerAndOtherStoresGetTheirOwn() throws {
         let stores = try IsolatedAppearanceStores()
         defer { stores.remove() }

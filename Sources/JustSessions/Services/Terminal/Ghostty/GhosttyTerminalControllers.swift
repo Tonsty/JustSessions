@@ -36,7 +36,7 @@ private final class AppearanceFollower {
     init(appearanceStore: TerminalAppearanceStore, themeStore: AppThemeStore) {
         self.appearanceStore = appearanceStore
         self.themeStore = themeStore
-        let configuration = GhosttyAppearanceConfiguration(preferences: appearanceStore.preferences, appTheme: themeStore.terminalTheme)
+        let configuration = GhosttyAppearanceConfiguration(preferences: appearanceStore.terminalPreferences, appTheme: themeStore.terminalTheme)
         // A base of only a comment rather than libghostty-spm's default configuration, which thickens the font at full
         // strength whatever the colors and would sit under every reload. Ghostty logs an error for an empty file. The
         // theme replaces libghostty-spm's default theme, which would otherwise override the colors.
@@ -51,7 +51,7 @@ private final class AppearanceFollower {
             .prepend(GhosttyFontConfiguration.screensBackingScaleFactor)
             .removeDuplicates()
         // The stores publish before their values change, so take the values from the publishers.
-        subscription = appearanceStore.$preferences.combineLatest(themeStore.$terminalTheme, backingScaleFactors)
+        subscription = appearanceStore.$terminalPreferences.combineLatest(themeStore.$terminalTheme, backingScaleFactors)
             .dropFirst()
             .sink { [controller] preferences, appTheme, backingScaleFactor in
                 // Each reloads and redraws every terminal on the controller, and does nothing for an unchanged value.
