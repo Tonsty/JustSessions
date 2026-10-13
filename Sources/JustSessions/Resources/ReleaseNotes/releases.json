@@ -1,5 +1,50 @@
 [
   {
+    "version": "1.2.11",
+    "publishedOn": "2026-10-13",
+    "title": {
+      "en": "Hosts refresh on their own",
+      "zh-Hans": "主机自动刷新"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "Hosts refresh on their own while a window shows: This Mac every minute, SSH hosts every 5 minutes.",
+            "zh-Hans": "窗口显示时，主机会自动刷新：这台 Mac 每分钟一次，SSH 主机每 5 分钟一次。"
+          },
+          {
+            "en": "Drag a tab group's label off the tab bar to move the whole group to a new or another window.",
+            "zh-Hans": "把标签组的名称拖出标签栏，可将整组移到新窗口或另一个窗口。"
+          }
+        ]
+      },
+      {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "Closing a CLI tab remembers your choice per host; a choice saved before this version resets to Ask each time.",
+            "zh-Hans": "关闭 CLI 标签页时的选择改为按主机保存；此前保存的选择会重置为“每次询问”。"
+          }
+        ]
+      },
+      {
+        "kind": "fixed",
+        "items": [
+          {
+            "en": "Fixed sessions not starting on SSH hosts whose login shell is fish, or whose CLI is a shell alias.",
+            "zh-Hans": "修复了在登录 shell 为 fish 或 CLI 为 shell 别名的 SSH 主机上无法启动会话的问题。"
+          },
+          {
+            "en": "Small bug fixes.",
+            "zh-Hans": "修复了一些小问题。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.10",
     "publishedOn": "2026-10-12",
     "title": {
