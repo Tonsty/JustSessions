@@ -22,6 +22,7 @@
 | TRM-25 | A theme change reaches CLIs that follow it: the tab answers `CSI ? 996 n` and sends a report on every color change while subscribed (`CSI ? 2031 h`), without moving the scroll position or selection. On SSH hosts with tmux before 3.6, Claude Code is made to redraw after a light/dark switch. | `d14311d`, `8307649` | `TerminalThemeChangeInTmuxTests`, `TerminalThemeReportingTests`, `UnheardLightDarkChangeTests` |
 | TRM-26 | Tabs on SSH hosts set `COLORTERM=truecolor` for the CLI and tmux. | `a049d60` | `TerminalColorEnvironmentTests` |
 | TRM-27 | Colors 16–255 of the 256-color palette are xterm's in both engines, whatever the theme; only the 16 ANSI colors follow it. SwiftTerm's own default blends them from the 16, which drained the color from Claude Code's text on soft themes such as JustSessions dark. | `02e7fa5` | `Terminal256ColorPaletteRenderingTests`, `GhosttyAppearanceConfigurationTests` |
+| TRM-28 | **Color intensity** (50–200%, default 100%) makes the 16 ANSI colors of every scheme more or less vivid in both engines: it scales their OKLab chroma at the same lightness and hue, stopping at the edge of sRGB, before TRM-24 and TRM-22 apply. At 100% every scheme is unchanged. Colors 16–255 and colors a program sets exactly are untouched. Terminals take a new value once dragging pauses; Restore Defaults resets it. | `b8f5f65` | `TerminalColorIntensityTests`, `TerminalColorIntensitySettingsTests`, `TerminalColorIntensityRenderingTests`, `GhosttyAppearanceConfigurationTests` |
 
 ## Fonts and zoom
 
