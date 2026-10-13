@@ -91,6 +91,7 @@ extension ConversationStore {
         remoteHostList.save(to: userDefaults)
         remoteHostsUsingTmuxPrefix.setUsesTmuxPrefix(false, for: host)
         remoteHostsUsingTmuxPrefix.save(to: userDefaults)
+        tabCloseChoiceSettingsStore.forgetSSHHost(host)
         forgetRemoteShellStartup(on: host)
         hostRefreshStatuses.removeValue(forKey: .ssh(host))
         remoteSessionCopySteps.removeValue(forKey: .ssh(host))

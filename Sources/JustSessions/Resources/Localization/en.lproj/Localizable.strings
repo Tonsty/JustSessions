@@ -492,6 +492,8 @@
 	<string>Disconnect</string>
 	<key>Don't ask again</key>
 	<string>Don't ask again</string>
+	<key>Don't ask again on %@</key>
+	<string>Don't ask again on %@</string>
 	<key>Don't show tips</key>
 	<string>Don't show tips</string>
 	<key>Done</key>
@@ -502,6 +504,8 @@
 	<string>Drag a tab out of the tab bar to give it its own window.</string>
 	<key>Drop files from Finder onto a terminal on this Mac to paste their paths.</key>
 	<string>Drop files from Finder onto a terminal on this Mac to paste their paths.</string>
+	<key>Each host has its own choice for tabs whose CLI can keep running in tmux there. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.</key>
+	<string>Each host has its own choice for tabs whose CLI can keep running in tmux there. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.</string>
 	<key>Edit</key>
 	<string>Edit</string>
 	<key>End and close this terminal</key>
@@ -1256,8 +1260,6 @@
 	<string>That answer wasn't accepted. Try again.</string>
 	<key>The Antigravity session database, associated folder, and annotations will move to the macOS Trash. This also removes its entry from Antigravity's local index.</key>
 	<string>The Antigravity session database, associated folder, and annotations will move to the macOS Trash. This also removes its entry from Antigravity's local index.</string>
-	<key>The CLI tab choice is for tabs whose CLI can keep running in tmux. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.</key>
-	<string>The CLI tab choice is for tabs whose CLI can keep running in tmux. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.</string>
 	<key>The CLIs and shells running in them will stop.</key>
 	<string>The CLIs and shells running in them will stop.</string>
 	<key>The Claude Code session file and its associated folder will move to the macOS Trash. This also removes its entry from Claude Code's local index.</key>

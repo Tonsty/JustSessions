@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// Mouse and keyboard closes share the same choice about keeping a tmux CLI running, and about closing a plain
-/// terminal. Don't ask again saves the answer picked with it, so later closes do the same without asking; Settings can
-/// change it back.
+/// terminal. Don't ask again saves the answer picked with it, so later closes do the same without asking: on the tab's
+/// host for a CLI tmux can keep running, and for every plain terminal. Settings can change it back.
 ///
 /// Return closes the tab, and Escape cancels. The dialogs are alerts rather than confirmation dialogs: on macOS, a
 /// confirmation dialog gives no button Return.
@@ -54,7 +54,7 @@ struct TerminalTabCloseConfirmation: ViewModifier {
                 Text("The shell and anything still running in it will stop.")
             }
             // Only the two dialogs above show the checkbox: a modifier applies to the dialogs it wraps.
-            .dialogSuppressionToggle("Don't ask again", isSuppressed: $savesCloseChoice)
+            .dialogSuppressionToggle(dontAskAgainLabel, isSuppressed: $savesCloseChoice)
             .alert("End this CLI session?", isPresented: presentation(of: .endCLI)) {
                 Button("End session", role: .destructive) { closeTab(endingTmuxSession: true) }
                     .keyboardShortcut(.defaultAction)
@@ -66,6 +66,15 @@ struct TerminalTabCloseConfirmation: ViewModifier {
             .onChange(of: closingSessionID) { _, newClosingSessionID in
                 if newClosingSessionID == nil { savesCloseChoice = false }
             }
+    }
+
+    /// A CLI tab's answer is saved for its host only, so its checkbox names the host.
+    private var dontAskAgainLabel: Text {
+        if let closingTabTmuxHost {
+            Text("Don't ask again on \(closingTabTmuxHost.nameInSentence)")
+        } else {
+            Text("Don't ask again")
+        }
     }
 
     /// Shows `dialog` while a tab waits to close and it is the dialog for that tab.
@@ -82,7 +91,9 @@ struct TerminalTabCloseConfirmation: ViewModifier {
             if savesCloseChoice {
                 switch closingDialog {
                 case .keepOrEndCLI:
-                    tabCloseChoiceSettingsStore.setChoice(endingTmuxSession ? .endSession : .keepRunning)
+                    if let closingTabTmuxHost {
+                        tabCloseChoiceSettingsStore.setChoice(endingTmuxSession ? .endSession : .keepRunning, for: closingTabTmuxHost)
+                    }
                 case .closePlainTerminal:
                     plainTerminalCloseChoiceSettingsStore.setChoice(.closeWithoutAsking)
                 case .endCLI, nil:

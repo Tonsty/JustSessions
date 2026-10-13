@@ -4,6 +4,8 @@ import SwiftUI
 /// allows the app; and help. A switcher at the top picks the page; release notes open from General.
 struct SettingsView: View {
     @Binding var selectedTab: SettingsTab
+    /// This Mac and the window's SSH hosts, for settings each host has its own of.
+    let hosts: [SessionHost]
     let languageStore: AppLanguageStore
     let tabReopeningSettingsStore: TabReopeningSettingsStore
     let launchAtLoginSettingsStore: LaunchAtLoginSettingsStore
@@ -33,6 +35,7 @@ struct SettingsView: View {
                 switch selectedTab {
                 case .general:
                     GeneralSettingsView(
+                        hosts: hosts,
                         languageStore: languageStore,
                         tabReopeningSettingsStore: tabReopeningSettingsStore,
                         launchAtLoginSettingsStore: launchAtLoginSettingsStore,
