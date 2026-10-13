@@ -27,6 +27,7 @@ Measurement suites live in `Tests/JustSessionsTests/Performance/` and record onl
 | PERF-23 | Slow lookups run off the main thread and once: the login shell's `PATH` and environment at launch, the `--session-id` check once per command line, installed terminal fonts. | `022aad5`, `758b100`, `09cfb34`, `6cd0a7e` | `ClaudeSessionIDFlagSupportConcurrencyTests` |
 | PERF-24 | A host refresh logs in once through the shared SSH connection. | `0489e83` | `SSHConnectionSharingTests` |
 | PERF-25 | Timestamps parse with `Date.ISO8601FormatStyle` (about 50 times faster than `ISO8601DateFormatter`, with no lock between parallel readers). | `d47db56`, `4c7df7a` | `ISO8601TimestampParserTests` |
+| PERF-26 | Only one window copies an SSH host; the others read its copy from disk. A warm copy of the test VM's six tools takes about 0.8 to 1.2 s, and the status probe 0.1 to 0.7 s (no network latency, about 1 MB of history). | `b38a341` | `SharedRemoteCopyTests`, [performance.md item 26](../../development/performance.md#26-refreshing-hosts-on-their-own) |
 
 ## Deletion
 
@@ -65,4 +66,4 @@ Measurement suites live in `Tests/JustSessionsTests/Performance/` and record onl
 ## Method
 
 - Profile a build made like the release (same SDK), with an accessibility client such as Raycast running, and leave the SwiftUI instrument out of CPU profiles. See [How to profile](../../development/performance.md#how-to-profile).
-- Activity syncs once a second; a new tab waiting to link refreshes this Mac every 6 seconds and copies an SSH host every 10. Don't tighten these without measuring.
+- Activity syncs once a second; a new tab waiting to link refreshes this Mac every 6 seconds and copies an SSH host every 10. On their own, while a workspace window shows on screen, this Mac refreshes every minute and each SSH host every 5 minutes. Don't tighten these without measuring.

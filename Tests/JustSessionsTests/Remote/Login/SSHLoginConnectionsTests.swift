@@ -22,7 +22,7 @@ struct SSHLoginConnectionsTests {
         #expect(connections.loggedInHosts == ["devbox"])
     }
 
-    /// A master that ends, as after the Mac sleeps or `ControlPersist` runs out, removes its socket.
+    /// A master that ends, as after the Mac sleeps, removes its socket.
     @Test func aLoginThatEndedIsNoLongerUsed() throws {
         let directory = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }

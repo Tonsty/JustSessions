@@ -50,6 +50,11 @@ final class WorkspaceWindowRegistry {
         DispatchQueue.main.async { handOver(store, window) }
     }
 
+    /// Whether any workspace window shows on screen: not minimized, hidden, or covered whole.
+    var hasWindowOnScreen: Bool {
+        workspaces.contains { $0.store != nil && $0.window?.occlusionState.contains(.visible) == true }
+    }
+
     func window(of store: ConversationStore) -> NSWindow? {
         workspaces.first { $0.store === store }?.window
     }

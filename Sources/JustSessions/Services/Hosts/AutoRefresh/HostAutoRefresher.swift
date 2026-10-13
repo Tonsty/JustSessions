@@ -1,0 +1,81 @@
+import AppKit
+
+/// Refreshes the hosts on their own, as `HostAutoRefreshSchedule` says: checked every 15 seconds while a workspace
+/// window shows on screen, and as soon as the app comes forward. This Mac's scan is shared by every window. An SSH host
+/// is copied by the oldest window, and the others list its copy, so more windows don't mean more copies.
+@MainActor
+final class HostAutoRefresher {
+    static let shared = HostAutoRefresher()
+
+    /// How often the schedule is checked; much shorter than its intervals, so a host is refreshed soon after it is due.
+    static let checkInterval: Duration = .seconds(15)
+
+    private let registry: WorkspaceWindowRegistry
+    private let isAnyWindowOnScreen: () -> Bool
+    /// Starts a window's refresh of an SSH host, as `refreshRemoteHost(_:)` does; tests copy from a local folder.
+    private let refreshSSHHost: (ConversationStore, String) -> Task<Void, Never>?
+    private var schedule = HostAutoRefreshSchedule()
+    private var checking: Task<Void, Never>?
+    private var activationObserver: (any NSObjectProtocol)?
+
+    init(
+        registry: WorkspaceWindowRegistry = .shared,
+        isAnyWindowOnScreen: (() -> Bool)? = nil,
+        refreshSSHHost: @escaping (ConversationStore, String) -> Task<Void, Never>? = { $0.refreshRemoteHost($1) }
+    ) {
+        self.registry = registry
+        self.isAnyWindowOnScreen = isAnyWindowOnScreen ?? { registry.hasWindowOnScreen }
+        self.refreshSSHHost = refreshSSHHost
+    }
+
+    func start() {
+        guard checking == nil else { return }
+        // The app's windows may not count as on screen yet when it comes forward, so this doesn't wait for them.
+        activationObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.refreshDueHosts() }
+        }
+        checking = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: Self.checkInterval)
+                self?.check()
+            }
+        }
+    }
+
+    /// The periodic check: nothing is refreshed while no workspace window shows, as when the app is hidden, its
+    /// windows are minimized or covered, or the screen is locked.
+    func check(now: Date = .now) {
+        guard isAnyWindowOnScreen() else { return }
+        refreshDueHosts(now: now)
+    }
+
+    func refreshDueHosts(now: Date = .now) {
+        let stores = registry.stores
+        guard let oldestStore = stores.first else { return }
+        if schedule.isThisMacDue(
+            lastRefreshStartedAt: oldestStore.lastRefreshStartedAt,
+            status: oldestStore.hostRefreshStatuses[.thisMac],
+            now: now
+        ) {
+            for store in stores where !store.isScanningThisMac { store.refreshThisMac() }
+        }
+        for host in oldestStore.remoteHostList.hosts where schedule.isSSHHostDue(
+            host,
+            status: oldestStore.hostRefreshStatuses[.ssh(host)],
+            needsLogIn: oldestStore.sshHostsNeedingLogIn.contains(host),
+            now: now
+        ) {
+            guard let refresh = refreshSSHHost(oldestStore, host) else { continue }
+            schedule.noteTry(on: host, at: now)
+            Task { [weak self, weak oldestStore] in
+                await refresh.value
+                guard let self, let oldestStore else { return }
+                self.schedule.noteResult(on: host, status: oldestStore.hostRefreshStatuses[.ssh(host)])
+            }
+        }
+    }
+}

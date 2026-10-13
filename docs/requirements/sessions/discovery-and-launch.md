@@ -14,6 +14,7 @@
 | DSC-06 | Pi's session list skips symbolic links and pipes named like session files. | `e0831a5` | `PiAdapterTests` |
 | DSC-07 | Codex threads started by another thread (`thread_spawn`) are subagents, not top-level sessions. | `27c9939` | `CodexAdapterTests`, `SubagentConversationsTests` |
 | DSC-08 | Subagents' sessions are hidden by default. With **Show subagents under the sessions that started them** on in Settings → General, a parent session shows a chevron that lists them, newest first. They can be read but never launched, renamed, pinned, or deleted on their own, and they stay out of search, notifications, and tab linking. Kiro CLI records no parent, so its subagents stay hidden. | `27c9939`, `23c4377` | `SidebarSubagentRowsTests`, `SidebarSubagentVisibilityTests` |
+| DSC-09 | While a workspace window shows on screen, this Mac refreshes on its own a minute after its last refresh started, and when the app comes forward once a minute has passed. Every window refreshes through the one shared scan. | `b38a341` | `HostAutoRefreshScheduleTests`, `HostAutoRefresherTests` |
 
 ## Finding the CLIs
 
