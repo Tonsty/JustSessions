@@ -58,10 +58,11 @@ struct ThemeSurfaceRenderingTests {
                     let referencePixel = try #require(bitmap.colorAt(x: bitmap.pixelsWide / 6, y: bitmap.pixelsHigh - 2))
                     let expectedColor = hexValue(of: referencePixel)
                     // Ten points up, in points rather than pixels: on a display without Retina, as on CI, 20 pixels
-                    // reach the sheet's bottom controls.
+                    // reach the sheet's bottom controls. Ten points in from the left, in the margin every page keeps
+                    // clear: the Help page's text runs to its bottom edge, and at 1x a line of it sat under the middle.
                     let renderingScale = Double(bitmap.pixelsWide) / size.width
                     let pixel = try #require(bitmap.colorAt(
-                        x: bitmap.pixelsWide / 2,
+                        x: Int(10 * renderingScale),
                         y: bitmap.pixelsHigh - Int(10 * renderingScale)
                     ))
                     let actualColor = hexValue(of: pixel)
