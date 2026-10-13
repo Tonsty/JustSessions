@@ -16,6 +16,8 @@ struct Conversation: Identifiable, Sendable, Equatable {
     private(set) var id: String
     /// Worked out once: on this Mac it resolves symlinks on disk, and the sidebar asks for it for every session.
     private(set) var projectDirectoryKey: String
+    /// The model the CLI used last, as its session files record it; nil when they don't, or for a CLI not read yet.
+    let model: SessionModel?
 
     init(
         provider: ConversationProvider,
@@ -25,7 +27,8 @@ struct Conversation: Identifiable, Sendable, Equatable {
         updatedAt: Date,
         sourceFile: URL,
         host: SessionHost = .thisMac,
-        parentSessionID: String? = nil
+        parentSessionID: String? = nil,
+        model: SessionModel? = nil
     ) {
         self.provider = provider
         self.sessionID = sessionID
@@ -35,6 +38,7 @@ struct Conversation: Identifiable, Sendable, Equatable {
         self.sourceFile = sourceFile
         self.host = host
         self.parentSessionID = parentSessionID
+        self.model = model
         self.id = Self.id(provider: provider, sessionID: sessionID, host: host)
         self.projectDirectoryKey = ProjectLocation(host: host, path: projectPath).key
     }
@@ -53,7 +57,8 @@ struct Conversation: Identifiable, Sendable, Equatable {
             updatedAt: updatedAt,
             sourceFile: sourceFile,
             host: host,
-            parentSessionID: parentSessionID
+            parentSessionID: parentSessionID,
+            model: model
         )
     }
     /// A subagent's session, listed under the session that started it and only read, never resumed or deleted on its own.

@@ -70,12 +70,17 @@ struct ClaudeAdapterTests {
         let folder = try ClaudeProjectFolderFixture()
         defer { folder.remove() }
         let sessionID = UUID().uuidString
-        try folder.writeTranscript(sessionID, lines: [#"{"type":"user","cwd":"/Users/me/app","message":{"content":"Ship it"}}"#])
+        try folder.writeTranscript(sessionID, lines: [
+            #"{"type":"user","cwd":"/Users/me/app","message":{"content":"Ship it"}}"#,
+            #"{"type":"assistant","message":{"model":"claude-opus-4-8","content":[]}}"#,
+        ])
         let subagents = folder.projectDirectory.appendingPathComponent("\(sessionID)/subagents")
         let workflow = subagents.appendingPathComponent("workflows/wf_1a2b")
         try FileManager.default.createDirectory(at: workflow, withIntermediateDirectories: true)
-        try #"{"type":"user","isSidechain":true,"agentId":"a1b2c3","cwd":"/Users/me/app","message":{"content":"Fix the refund bug, then test it"}}"#
-            .write(to: subagents.appendingPathComponent("agent-a1b2c3.jsonl"), atomically: true, encoding: .utf8)
+        try [
+            #"{"type":"user","isSidechain":true,"agentId":"a1b2c3","cwd":"/Users/me/app","message":{"content":"Fix the refund bug, then test it"}}"#,
+            #"{"type":"assistant","isSidechain":true,"agentId":"a1b2c3","message":{"model":"claude-haiku-4-5-20251001","content":[]}}"#,
+        ].joined(separator: "\n").write(to: subagents.appendingPathComponent("agent-a1b2c3.jsonl"), atomically: true, encoding: .utf8)
         try #"{"agentType":"general-purpose","description":"Fix refund bug","spawnDepth":1}"#
             .write(to: subagents.appendingPathComponent("agent-a1b2c3.meta.json"), atomically: true, encoding: .utf8)
         try #"{"type":"user","isSidechain":true,"cwd":"/Users/me/app/api","message":{"content":"Research the API"}}"#
@@ -86,11 +91,14 @@ struct ClaudeAdapterTests {
 
         #expect(Set(found.keys) == [sessionID, "a1b2c3", "d4e5f6"])
         #expect(found[sessionID]?.parentSessionID == nil)
+        #expect(found[sessionID]?.model == SessionModel(id: "claude-opus-4-8"))
         let described = try #require(found["a1b2c3"])
         #expect(described.parentSessionID == sessionID)
         #expect(described.suggestedTitle == "Fix refund bug")
         #expect(described.projectPath == "/Users/me/app")
         #expect(described.sourceFile.lastPathComponent == "agent-a1b2c3.jsonl")
+        #expect(described.model == SessionModel(id: "claude-haiku-4-5-20251001"))
+        #expect(found["d4e5f6"]?.model == nil)
         #expect(found["d4e5f6"]?.parentSessionID == sessionID)
         #expect(found["d4e5f6"]?.suggestedTitle == "Research the API")
         #expect(found["d4e5f6"]?.projectPath == "/Users/me/app/api")

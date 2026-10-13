@@ -248,6 +248,22 @@
         }
       }
     },
+    "%@ · %@ subagent · %@ · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ · %2$@ subagent · %3$@ · %4$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@ 子代理 · %3$@ · %4$@"
+          }
+        }
+      }
+    },
     "%@ · %@ · %@%@": {
       "shouldTranslate": false
     },
@@ -322,6 +338,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@，%2$@ 子代理"
+          }
+        }
+      }
+    },
+    "%@, %@ subagent, %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@, %2$@ subagent, %3$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@，%2$@ 子代理，%3$@"
           }
         }
       }

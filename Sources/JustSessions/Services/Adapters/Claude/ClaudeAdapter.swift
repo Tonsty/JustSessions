@@ -24,8 +24,8 @@ struct ClaudeAdapter: ConversationAdapter {
     private static let transcriptHeads = SessionFileSummaryCache<ClaudeTranscriptHead>(persistenceFile: SessionSummaryCacheLocation.file(named: "claude-heads"))
     /// Named for the version of the tail it keeps: tails kept before `relocated` lines were read would leave a session
     /// moved with `/cd` under the folder it started in.
-    private static let transcriptTails = SessionFileSummaryCache<ClaudeTranscriptTail>(persistenceFile: SessionSummaryCacheLocation.file(named: "claude-tails-2"))
-    private static let subagentSessions = SessionFileSummaryCache<ClaudeSubagentSession>(persistenceFile: SessionSummaryCacheLocation.file(named: "claude-subagents"))
+    private static let transcriptTails = SessionFileSummaryCache<ClaudeTranscriptTail>(persistenceFile: SessionSummaryCacheLocation.file(named: "claude-tails-3"))
+    private static let subagentSessions = SessionFileSummaryCache<ClaudeSubagentSession>(persistenceFile: SessionSummaryCacheLocation.file(named: "claude-subagents-2"))
 
     func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
         try cancellation.checkCancellation()
@@ -107,7 +107,8 @@ struct ClaudeAdapter: ConversationAdapter {
             projectPath: projectPath,
             suggestedTitle: title,
             updatedAt: updatedAt,
-            sourceFile: file
+            sourceFile: file,
+            model: SessionModel(id: tail.latestModel)
         )
     }
 
@@ -121,7 +122,8 @@ struct ClaudeAdapter: ConversationAdapter {
             suggestedTitle: session.title,
             updatedAt: ConversationMetadata.fileModificationDate(file),
             sourceFile: file,
-            parentSessionID: parent.sessionID
+            parentSessionID: parent.sessionID,
+            model: SessionModel(id: session.model)
         )
     }
 }
