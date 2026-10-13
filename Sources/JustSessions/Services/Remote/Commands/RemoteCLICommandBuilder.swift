@@ -117,9 +117,11 @@ struct RemoteCLICommandBuilder {
         // options of this session only; the host's other tmux sessions keep theirs.
         let sessionOptions = ["set-option status off", "set-option mouse on"]
             + RemoteTmuxPrefixOptions.setOptionCommands(usingHostPrefix: usesHostTmuxPrefix)
-        let tmuxCommand = "exec tmux new-session -A -s \(ShellQuoting.quoted(tmuxSessionName)) "
-            + ShellQuoting.quoted(inLoginShell(directCommand))
-            + sessionOptions.map { " \\; \($0)" }.joined()
+        let tmuxCommand = RemoteTmuxAttachScript.command(
+            sessionName: tmuxSessionName,
+            paneCommand: inLoginShell(directCommand),
+            sessionOptions: sessionOptions
+        )
         // The login shell may be fish, which has no `if …; then …; fi`; `&&` and `;` read the same in both. When tmux
         // is found, `exec` replaces the shell, so the CLI runs directly only without it.
         return inLoginShell("command -v tmux >/dev/null 2>&1 && \(tmuxCommand); \(directCommand)")

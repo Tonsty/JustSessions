@@ -142,6 +142,7 @@ Each CLI on a host starts through your login shell, as `$SHELL -lic`, so it is f
 
 A refresh, a new session, or a resume on a host runs programs installed there, such as `rsync`, tmux, and the CLI, through your shell's startup files. When one of them fails, JustSessions can show which.
 
+- When a CLI fails as it starts, its tab ends showing what the CLI printed, and the bar above it shows its exit status, such as **Exited (127)**. On a host whose tmux is older than 3.2, tmux clears that output and the tab shows only `[exited]`.
 - Choose **Check this host…** from the host's **⋯** menu, or click the warning beside its name after a failed refresh. When a host's tab ends, as when a session fails to resume, click **Check host** above its terminal; that check also looks at the tab's folder and its CLI.
 - The check logs in as the app does, checks your [shell startup](#shell-startup-on-ssh-hosts), then looks up `rsync`, tmux, each CLI, and, for OpenCode and Antigravity, `python3` with its `sqlite3` module. It asks each CLI for its version, for at most 10 seconds. It only reads, and changes nothing on the host.
 - Problems come first, then warnings. Each shows what the host printed and a command to run in Terminal. If that command fails the same way there, the problem is on the host: fix it there, or send it to whoever runs the host. **Copy report** copies the findings as text, starting with this Mac's JustSessions, macOS, and OpenSSH versions, for an issue or a message. **Check again** runs it again after you change something.
