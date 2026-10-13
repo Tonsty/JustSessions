@@ -20,7 +20,7 @@
 
 | ID | Requirement | Origin | Related tests |
 | --- | --- | --- | --- |
-| DSC-20 | CLIs are found when the app is opened from Finder or the Dock: the login shell's `PATH` is read once in the background, with common install folders (nvm, bun, volta, pnpm, `~/.toolbox/bin`) as a fallback. Spawned CLIs get that combined `PATH`, so npm-installed CLIs find `node`. | `022aad5`, `112a6aa` | `CLILookupTests`, `LoginShellEnvironmentTests` |
+| DSC-20 | CLIs are found when the app is opened from Finder or the Dock: the login shell's `PATH` is read once in the background, with common install folders (nvm, bun, volta, pnpm, `~/.toolbox/bin`, `~/.opencode/bin`) as a fallback. Spawned CLIs get that combined `PATH`, so npm-installed CLIs find `node`. | `022aad5`, `112a6aa`, `81e53c6` | `CLILookupTests`, `LoginShellEnvironmentTests` |
 | DSC-21 | Spawned CLIs never inherit `NO_COLOR` or similar variables, and see `TERM=xterm-256color` and `COLORTERM=truecolor`. | `3f2b21b` | `TerminalColorEnvironmentTests` |
 | DSC-22 | New session menus offer only CLIs installed on that machine; until a machine's first check finishes, every CLI that runs there is offered. The sidebar's CLI filter lists CLIs that are installed or have sessions. | `12abb26` | `InstalledCLIsTests` |
 

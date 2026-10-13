@@ -36,7 +36,8 @@ struct RemoteCLICommandBuilder {
                 tmuxSessionName: tmuxSessionName,
                 usesHostTmuxPrefix: usesHostTmuxPrefix,
                 startCommand: startCommand,
-                shellStartup: RemoteHostShellStartups.shared.startup(on: host)
+                shellStartup: RemoteHostShellStartups.shared.startup(on: host),
+                cliLocation: RemoteHostCLILocations.shared.location(of: provider, on: host)
             )
         )
     }
@@ -88,8 +89,8 @@ struct RemoteCLICommandBuilder {
     static let terminalEnvironment = ["COLORTERM=truecolor"]
 
     /// Runs the CLI through the host's login shell, so the PATH set up in the host's shell profile
-    /// (for example `~/.local/bin` or an nvm-managed `node`) is in effect; see `RemoteShellStartup`.
-    /// Without tmux on the host, the CLI runs directly.
+    /// (for example `~/.local/bin` or an nvm-managed `node`) is in effect, and so are its aliases and functions; see
+    /// `RemoteShellStartup` and `RemoteCLIInvocation`. Without tmux on the host, the CLI runs directly.
     static func remoteCommand(
         provider: ConversationProvider,
         projectPath: String,
@@ -97,16 +98,21 @@ struct RemoteCLICommandBuilder {
         tmuxSessionName: String? = nil,
         usesHostTmuxPrefix: Bool = false,
         startCommand: String? = nil,
-        shellStartup: RemoteShellStartup = .interactive
+        shellStartup: RemoteShellStartup = .interactive,
+        cliLocation: RemoteCLILocation = .loginShell
     ) -> String {
-        let customStartCommand = CLIStartCommandLine.customCommand(startCommand)
-        let cliInvocation = customStartCommand.map {
-            CLIStartCommandLine.remoteInvocation(
+        let directCommand = CLIStartCommandLine.customCommand(startCommand).map {
+            let invocation = CLIStartCommandLine.remoteInvocation(
                 startCommand: $0,
                 arguments: provider.argumentsAfterCustomStartCommand(arguments)
             )
-        } ?? ([provider.executableName] + arguments.map(ShellQuoting.quoted)).joined(separator: " ")
-        let directCommand = "cd \(ShellQuoting.quoted(projectPath)) && exec \(cliInvocation)"
+            return "cd \(ShellQuoting.quoted(projectPath)) && exec \(invocation)"
+        } ?? RemoteCLIInvocation.startCommand(
+            executableName: provider.executableName,
+            location: cliLocation,
+            projectPath: projectPath,
+            quotedArguments: arguments.map(ShellQuoting.quoted)
+        )
         func inLoginShell(_ command: String) -> String {
             shellStartup.command(running: command, environment: terminalEnvironment)
         }

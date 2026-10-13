@@ -28,6 +28,8 @@
 	<string>%@ 是 %@ 上的文件夹。</string>
 	<key>%@ is already added.</key>
 	<string>%@ 已添加。</string>
+	<key>%@ is an alias or function in %@'s login shell. Tabs run it as typing %@ there would.</key>
+	<string>%@ 是 %@ 登录 shell 中的 alias 或函数。标签页运行它的效果与在那里输入 %@ 相同。</string>
 	<key>%@ isn't a folder on %@, so the session can't start there. It may have been moved or deleted.</key>
 	<string>%@ 不是 %@ 上的文件夹，因此会话无法在那里启动。它可能已被移动或删除。</string>
 	<key>%@ isn't on the PATH of %@'s login shell, so its sessions listed here can't resume. If it's installed, add its folder to PATH in a startup file that shell reads.</key>
@@ -676,6 +678,12 @@
 	<string>在主机上安装 `rsync` 和需要使用的 CLI。</string>
 	<key>Interface language</key>
 	<string>界面语言</string>
+	<key>It didn't print its version within %lld seconds.</key>
+	<string>它未在 %lld 秒内输出版本。</string>
+	<key>It failed when asked for its version, so it may fail to start sessions too.</key>
+	<string>查询版本时失败，因此启动会话也可能失败。</string>
+	<key>It isn't on the PATH of %@'s login shell, so tabs start it from this folder.</key>
+	<string>它不在 %@ 登录 shell 的 PATH 中，因此标签页从这个文件夹启动它。</string>
 	<key>Its CLI, still running on %@, ends first.</key>
 	<string>会先结束它仍在 %@ 上运行的 CLI。</string>
 	<key>Its tab closes and its CLI ends first.</key>

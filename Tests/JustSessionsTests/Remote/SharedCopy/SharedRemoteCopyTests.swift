@@ -10,7 +10,7 @@ struct SharedRemoteCopyTests {
         defer { sandbox.tearDown() }
         let (discovery, sessionID) = try Self.copyWithOneClaudeSession(in: sandbox)
         let refreshedAt = Date.now
-        let status = RemoteHostStatus(tmuxSessionNames: ["justsessions-claude-1"], installedProviders: [.claude])
+        let status = RemoteHostStatus(tmuxSessionNames: ["justsessions-claude-1"], cliLocations: [.claude: .loginShell])
 
         sandbox.first.shareRemoteHostCopy("devbox", refreshedAt: refreshedAt, status: status, discovery: discovery)
 

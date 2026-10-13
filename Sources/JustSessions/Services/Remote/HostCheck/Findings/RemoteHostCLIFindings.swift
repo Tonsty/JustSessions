@@ -1,8 +1,10 @@
 import Foundation
 
-/// Each tool's CLI as the login shell the app's commands use finds it. A CLI found there but failing to print its
-/// version, such as a Node CLI whose `node` isn't on the PATH, would fail to start a session too. A missing CLI matters
-/// for the tab's session and for tools with sessions listed under the host; the others are listed together.
+/// Each tool's CLI where tabs start it from: a program, an alias, or a function of the login shell the app's commands
+/// use, or a program in an install folder that shell's PATH leaves out; see `RemoteCLILocation`. A CLI found but
+/// failing to print its version, such as a Node CLI whose `node` isn't on the PATH, would fail to start a session too.
+/// A missing CLI matters for the tab's session and for tools with sessions listed under the host; the others are
+/// listed together.
 enum RemoteHostCLIFindings {
     static func findings(in output: RemoteHostCheckOutput, context: RemoteHostCheckContext) -> [HostCheckFinding] {
         var findings: [HostCheckFinding] = []
@@ -10,6 +12,8 @@ enum RemoteHostCLIFindings {
         for program in context.programs {
             if let path = output.text(program.key + "-path") {
                 findings.append(foundFinding(program, path: path, output: output, context: context))
+            } else if program.location == .loginShell {
+                findings.append(aliasOrFunctionFinding(program, output: output, context: context))
             } else if program.provider == context.session?.provider || context.providersWithSessions.contains(program.provider) {
                 findings.append(missingFinding(program, context: context))
             } else {
@@ -55,12 +59,51 @@ enum RemoteHostCLIFindings {
                 "Found at \(path), but it failed when asked for its version, so it may fail to start sessions too."
             )
         }
+        let installFolderNote = program.location == .installed(path: program.program)
+            ? " " + AppLocalization.string("It isn't on the PATH of \(context.host)'s login shell, so tabs start it from this folder.")
+            : ""
+        return HostCheckFinding(
+            id: program.key,
+            status: status,
+            title: program.provider.rawValue,
+            summary: summary + installFolderNote,
+            hostOutput: versionOutput,
+            commandToRunYourself: command(for: program, context: context)
+        )
+    }
+
+    /// No program `sh` finds, but the login shell has an alias or function by the name, which tabs run there.
+    private static func aliasOrFunctionFinding(
+        _ program: RemoteHostCheckProgram,
+        output: RemoteHostCheckOutput,
+        context: RemoteHostCheckContext
+    ) -> HostCheckFinding {
+        let found = AppLocalization.string(
+            "\(program.program) is an alias or function in \(context.host)'s login shell. Tabs run it as typing \(program.program) there would."
+        )
+        let status: HostCheckFinding.Status
+        let summary: String
+        switch output.exitStatus(program.key + "-version-exit") {
+        case 0:
+            status = .passed
+            summary = found
+        case RemoteHostCheckScript.stoppedAtTimeLimitStatus:
+            status = .warning
+            summary = found + " " + AppLocalization.string(
+                "It didn't print its version within \(RemoteHostCheckScript.versionTimeoutSeconds) seconds."
+            )
+        default:
+            status = .warning
+            summary = found + " " + AppLocalization.string(
+                "It failed when asked for its version, so it may fail to start sessions too."
+            )
+        }
         return HostCheckFinding(
             id: program.key,
             status: status,
             title: program.provider.rawValue,
             summary: summary,
-            hostOutput: versionOutput,
+            hostOutput: output.text(program.key + "-version"),
             commandToRunYourself: command(for: program, context: context)
         )
     }

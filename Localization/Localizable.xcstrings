@@ -146,6 +146,22 @@
         }
       }
     },
+    "%@ is an alias or function in %@'s login shell. Tabs run it as typing %@ there would.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ is an alias or function in %2$@'s login shell. Tabs run it as typing %3$@ there would."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 是 %@ 登录 shell 中的 alias 或函数。标签页运行它的效果与在那里输入 %@ 相同。"
+          }
+        }
+      }
+    },
     "%@ isn't a folder on %@, so the session can't start there. It may have been moved or deleted.": {
       "localizations": {
         "zh-Hans": {
@@ -3593,6 +3609,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "界面语言"
+          }
+        }
+      }
+    },
+    "It didn't print its version within %lld seconds.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它未在 %lld 秒内输出版本。"
+          }
+        }
+      }
+    },
+    "It failed when asked for its version, so it may fail to start sessions too.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询版本时失败，因此启动会话也可能失败。"
+          }
+        }
+      }
+    },
+    "It isn't on the PATH of %@'s login shell, so tabs start it from this folder.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它不在 %@ 登录 shell 的 PATH 中，因此标签页从这个文件夹启动它。"
           }
         }
       }

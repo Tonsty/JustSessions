@@ -664,6 +664,12 @@
 	<string>Install `rsync` and the CLIs you use on the host.</string>
 	<key>Interface language</key>
 	<string>Interface language</string>
+	<key>It didn't print its version within %lld seconds.</key>
+	<string>It didn't print its version within %lld seconds.</string>
+	<key>It failed when asked for its version, so it may fail to start sessions too.</key>
+	<string>It failed when asked for its version, so it may fail to start sessions too.</string>
+	<key>It isn't on the PATH of %@'s login shell, so tabs start it from this folder.</key>
+	<string>It isn't on the PATH of %@'s login shell, so tabs start it from this folder.</string>
 	<key>Its CLI, still running on %@, ends first.</key>
 	<string>Its CLI, still running on %@, ends first.</string>
 	<key>Its tab closes and its CLI ends first.</key>

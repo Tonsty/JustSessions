@@ -25,6 +25,7 @@ enum RemoteHostCheckScript {
         versionTimeoutSeconds: Int = versionTimeoutSeconds
     ) -> String {
         let loginShellScript = loginShellScript(
+            startup: startup,
             programs: programs,
             projectPath: projectPath,
             versionTimeoutSeconds: versionTimeoutSeconds
@@ -56,6 +57,7 @@ enum RemoteHostCheckScript {
     }
 
     static func loginShellScript(
+        startup: RemoteShellStartup = .interactive,
         programs: [RemoteHostCheckProgram],
         projectPath: String?,
         versionTimeoutSeconds: Int = versionTimeoutSeconds
@@ -119,11 +121,22 @@ enum RemoteHostCheckScript {
                 lines += [
                     "if [ -n \"$found\" ]; then",
                     "  marker \(program.key)-version",
-                    "  limited \"$found\" --version",
+                    "  limited \(versionInvocation(of: program)) --version",
                     "  marker \(program.key)-version-exit",
                     "  echo \"$limited_status\"",
-                    "fi",
                 ]
+                // Not a program `sh` finds, but the login shell found it: an alias or function, asked there, as a tab
+                // runs it.
+                if program.location == .loginShell {
+                    lines += [
+                        "else",
+                        "  marker \(program.key)-version",
+                        "  limited \"$SHELL\" \(startup.shellFlags) \"\(program.program) --version\"",
+                        "  marker \(program.key)-version-exit",
+                        "  echo \"$limited_status\"",
+                    ]
+                }
+                lines.append("fi")
             }
         }
         lines += [
@@ -147,5 +160,13 @@ enum RemoteHostCheckScript {
         }
         lines.append("marker done")
         return lines.joined(separator: "\n")
+    }
+
+    /// The found program, with its folder first on PATH when it is in an install folder, as a tab starts it; see
+    /// `RemoteCLIInvocation`. `RemoteHostCheckProgram.all` keeps only a path that can go in double quotes.
+    private static func versionInvocation(of program: RemoteHostCheckProgram) -> String {
+        guard case .installed(let path) = program.location else { return "\"$found\"" }
+        let folder = (path as NSString).deletingLastPathComponent
+        return "env \"PATH=\(folder):$PATH\" \"$found\""
     }
 }

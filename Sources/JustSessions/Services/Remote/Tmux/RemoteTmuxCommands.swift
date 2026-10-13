@@ -37,17 +37,21 @@ enum RemoteTmuxCommands {
         )
     }
 
-    /// Ends the session as `killSessionCommand` does, then waits up to `timeoutSeconds` for its CLI, the pane's
-    /// process, to exit, so the session can be deleted without the CLI writing to it again. `sh` runs the script, as
-    /// the login shell may be fish.
+    /// Ends the session as `killSessionCommand` does, then waits up to `timeoutSeconds` for its CLI to exit, so the
+    /// session can be deleted without the CLI writing to it again. The CLI is the pane's process, or, for an alias or
+    /// function the login shell runs, a child of it, which may outlive the shell once both hang up; see
+    /// `RemoteCLIInvocation`. `sh` runs the script, as the login shell may be fish.
     static func killSessionWaitingForCLIExitCommand(_ name: String, on host: String, timeoutSeconds: Int) -> String {
         let script = [
             // `=name:` is the session's pane; a bare `=name` is no pane.
             "pid=$(tmux display-message -p -t \(ShellQuoting.quoted("=" + name + ":")) '#{pane_pid}' 2>/dev/null)",
+            // `ps -A -o pid= -o ppid=` lists every process with its parent on Linux, macOS, and BusyBox.
+            "pids=\"$pid $([ -n \"$pid\" ] && ps -A -o pid= -o ppid= 2>/dev/null | awk -v parent=\"$pid\" '$2 == parent { print $1 }')\"",
             "tmux kill-session -t \(ShellQuoting.quoted("=" + name)) 2>/dev/null",
+            "running() { for p in $pids; do kill -0 \"$p\" 2>/dev/null && return 0; done; return 1; }",
             // A deadline rather than a count of polls: each poll starts `sleep`, which takes its own time.
             "deadline=$(($(date +%s) + \(timeoutSeconds)))",
-            "while [ -n \"$pid\" ] && kill -0 \"$pid\" 2>/dev/null && [ \"$(date +%s)\" -lt \"$deadline\" ]; do sleep 0.1; done",
+            "while [ -n \"$pid\" ] && running && [ \"$(date +%s)\" -lt \"$deadline\" ]; do sleep 0.1; done",
             "true",
         ].joined(separator: "; ")
         return RemoteCLICommandBuilder.loginShellCommand("sh -c \(ShellQuoting.quoted(script))", on: host)

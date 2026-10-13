@@ -16,9 +16,13 @@ enum RemoteShellStartup: String, Codable, Sendable {
     /// Runs `innerCommand` in the host's login shell, which also gets `environment`'s `NAME=value` entries. The outer
     /// command is read by the host's own shell, which may be fish, so it leaves the shell syntax to `innerCommand`.
     func command(running innerCommand: String, environment: [String] = []) -> String {
-        let flags = self == .interactive ? "-lic" : "-lc"
         let assignments = (["\(Self.environmentVariable)=1"] + environment).joined(separator: " ")
-        return "exec /usr/bin/env \(assignments) \"$SHELL\" \(flags) \(ShellQuoting.quoted(innerCommand))"
+        return "exec /usr/bin/env \(assignments) \"$SHELL\" \(shellFlags) \(ShellQuoting.quoted(innerCommand))"
+    }
+
+    /// The login shell's flags before the command it runs.
+    var shellFlags: String {
+        self == .interactive ? "-lic" : "-lc"
     }
 }
 
