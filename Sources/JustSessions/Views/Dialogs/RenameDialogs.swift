@@ -4,9 +4,9 @@ import SwiftUI
 /// it redrew the whole browser and sidebar on every keystroke, about 60 ms each, since the browser takes closures that
 /// SwiftUI can't compare. Here a keystroke redraws only the dialog.
 ///
-/// SwiftUI fills a dialog's field only when its text changes in the update that opens the dialog. So the field shows the
-/// name shown now until you type, worked out from the session or project being renamed, which opening the dialog sets:
-/// set before, as the same name again for the same session, the field opened empty.
+/// SwiftUI keeps a dialog's field from one opening to the next and fills it only when its text differs from what the
+/// field last showed, so a dialog reopened on the same name showed an empty field. The field takes `openCount` as its
+/// identity, so each opening gets a new one, and it shows the name shown now until you type.
 struct RenameDialogs: ViewModifier {
     let store: ConversationStore
     /// The session being renamed; nil while its dialog is closed.
