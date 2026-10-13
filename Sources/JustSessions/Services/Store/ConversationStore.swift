@@ -365,6 +365,10 @@ final class ConversationStore {
         pendingDeletionConversationIDs.count > 1
     }
 
+    func isDeleting(on host: SessionHost) -> Bool {
+        hostsWithRunningDeletion.contains(host)
+    }
+
     /// Returns true when a deletion runs on `host`; its refresh then starts once the deletion ends: it may read a
     /// session before it is deleted and list it again.
     func deferRefreshWhileDeleting(on host: SessionHost) -> Bool {

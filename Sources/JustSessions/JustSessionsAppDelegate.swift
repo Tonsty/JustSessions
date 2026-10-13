@@ -17,6 +17,8 @@ final class JustSessionsAppDelegate: NSObject, NSApplicationDelegate {
         GhosttyResourcesLaunchCheck.runIfAsked()
         LaunchCrashReportOffer.offerIfTheLastRunCrashed()
         ZoomInEqualsKey.startForwarding()
+        HostAutoRefresher.shared.start()
+        DispatchQueue.global(qos: .utility).async { SSHLoginConnections.closeLoginsOfEndedApps() }
     }
 
     /// Logins made with Connect… end with the app; nothing it typed for them is kept.

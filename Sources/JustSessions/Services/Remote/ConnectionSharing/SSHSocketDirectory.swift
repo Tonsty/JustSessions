@@ -10,9 +10,36 @@ enum SSHSocketDirectory {
         makeDirectory(at: rootPath, named: "refresh-\(identifier.uuidString)")
     }
 
-    /// Makes a new directory for one login made with Connect…, unique for the same reason as a refresh's.
-    static func makeLoginDirectory(at rootPath: String, identifier: UUID = UUID()) -> URL? {
-        makeDirectory(at: rootPath, named: "login-\(identifier.uuidString)")
+    /// Makes a new directory for one login made with Connect…, unique for the same reason as a refresh's. Its name
+    /// carries the app's process ID, so a later launch can tell a login left by an app that crashed.
+    static func makeLoginDirectory(
+        at rootPath: String,
+        processID: pid_t = getpid(),
+        identifier: UUID = UUID()
+    ) -> URL? {
+        makeDirectory(at: rootPath, named: "login-\(processID)-\(identifier.uuidString)")
+    }
+
+    /// The login directories whose app is no longer running, as after a crash; another copy of the app that still
+    /// runs keeps its own. Only names made by `makeLoginDirectory` count, so a folder named any other way, whose
+    /// first part may happen to be digits, is never taken for a login of an ended app.
+    static func loginDirectoriesOfEndedProcesses(
+        at rootPath: String,
+        isRunning: (pid_t) -> Bool = SSHSocketDirectory.isRunning
+    ) -> [URL] {
+        guard preparedRoot(at: rootPath) != nil,
+              let names = try? FileManager.default.contentsOfDirectory(atPath: rootPath) else { return [] }
+        let root = URL(fileURLWithPath: rootPath, isDirectory: true)
+        return names.sorted().compactMap { name in
+            let parts = name.split(separator: "-", maxSplits: 2)
+            guard parts.count == 3, parts[0] == "login", let processID = pid_t(parts[1]),
+                  UUID(uuidString: String(parts[2])) != nil, !isRunning(processID) else { return nil }
+            return root.appendingPathComponent(name, isDirectory: true)
+        }
+    }
+
+    static func isRunning(_ processID: pid_t) -> Bool {
+        kill(processID, 0) == 0 || errno == EPERM
     }
 
     private static func makeDirectory(at rootPath: String, named name: String) -> URL? {

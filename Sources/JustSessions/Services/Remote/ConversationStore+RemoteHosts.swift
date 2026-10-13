@@ -3,12 +3,18 @@ import Foundation
 /// Sessions on SSH hosts. Each host is copied into a local mirror in the background, apart from this Mac's scan,
 /// so a slow or unreachable host never holds up the rest of the list.
 extension ConversationStore {
-    func refreshRemoteHost(_ host: String, discovery: RemoteSessionDiscovery = RemoteSessionDiscovery()) {
+    /// Returns the refresh's task, or nil when none started: the host is refreshing already, or a deletion from it
+    /// runs and the refresh waits for it.
+    @discardableResult
+    func refreshRemoteHost(
+        _ host: String,
+        discovery: RemoteSessionDiscovery = RemoteSessionDiscovery()
+    ) -> Task<Void, Never>? {
         guard remoteHostList.hosts.contains(host),
               !deferRefreshWhileDeleting(on: .ssh(host)),
-              hostRefreshStatuses[.ssh(host)] != .refreshing else { return }
+              hostRefreshStatuses[.ssh(host)] != .refreshing else { return nil }
         hostRefreshStatuses[.ssh(host)] = .refreshing
-        Task.detached(priority: .userInitiated) {
+        return Task.detached(priority: .userInitiated) {
             // The last copy lists right away; the host may be slow or offline.
             if let mirroredConversations = try? discovery.readMirror(host: host), !mirroredConversations.isEmpty {
                 await self.applyRemoteHostConversations(mirroredConversations, host: host)
@@ -29,8 +35,10 @@ extension ConversationStore {
                     }
                     await self.checkClaudeSessionIDFlagIfUnanswered(on: host)
                 }
-                await self.setRemoteHostRefreshStatus(.refreshed(.now), host: host)
+                let refreshedAt = Date.now
+                await self.setRemoteHostRefreshStatus(.refreshed(refreshedAt), host: host)
                 await self.noteLoginState(on: host, refreshProblem: nil)
+                await self.shareRemoteHostCopy(host, refreshedAt: refreshedAt, status: status, discovery: discovery)
                 // After the refresh, so a check that changes how the host's shell starts can refresh it again.
                 if let status {
                     await self.checkRemoteShellStartupIfNeeded(on: host, statusListedCLIs: status.installedProviders != nil)

@@ -163,6 +163,7 @@ No difference stands out from the load's noise:
 | 23 | [Show N more under each project](#23-show-n-more-under-each-project) | Measured, no change |
 | 24 | [A growing Codex session's search text was read in full on every change](#24-a-growing-codex-sessions-search-text-was-read-in-full-on-every-change) | Done: issue #56 |
 | 25 | [What a tab switch still costs](#25-what-a-tab-switch-still-costs) | Done: #218 and this change |
+| 26 | [Refreshing hosts on their own](#26-refreshing-hosts-on-their-own) | Measured on the test VM; done |
 
 ### 1. Timestamp parsing
 
@@ -632,6 +633,14 @@ A tab's own state, such as its CLI's activity or whether its CLI ended, lives on
 With an accessibility client (`/tmp/perf-switch.sh`, which presses the tabs through accessibility), main took a median of 99 and 96 ms per click's longest stall and 144 and 138 ms of main-thread time; this change, 66 and 67 ms and 112 ms. At rest with the CLIs working, the main thread was busy 2.9% of 20 s on main and 1.9% with this change. The same 13 clicks and shortcuts (tabs, ⌘1–⌘3, ⌘[ and ⌘], ⌘⇧[ and ⌘⇧], ⌃Tab) left the same tab selected after each in both builds.
 
 **Limits:** these runs had 3 tabs, against 5 in item 21; the sidebar's share grows with the projects it lists. What is left of a switch is mostly SwiftUI updating the tab bar, the open tabs list, and the terminal area. A symlink changed while a tab is open no longer changes its project until the tab reopens, as for sessions, which keep the key found when they were listed. A view that read a tab's state through something other than the store's tabs, and was redrawn before only because some other property of the store changed at the same time, would now miss the change; the tests and the checks above found none. Showing a session's conversation and going Back from it was not checked by hand: every listed session had a running tab.
+
+### 26. Refreshing hosts on their own
+
+**Evidence:** a host refreshed only when a window opened, from its heading, or after events such as a tab's CLI exiting, so a session started outside the app showed only after a manual refresh. This Mac's refresh reads only the files a CLI wrote to (PERF-20), about 50 ms with 1,400 sessions (PERF-01). An SSH host's refresh had not been timed (item 17). On 13 October 2026 it was timed against the Multipass test VM (`justsessions-test`, Ubuntu 24.04 on the same Mac, about 1 MB of Claude Code history) with `RemoteSessionDiscovery.discoverToolByTool` and `RemoteHostStatusProbe`, four runs into a new mirror: copying all six tools took 1.45 s the first time, then 0.79 to 1.19 s; the status probe took 0.12 to 0.65 s.
+
+**Change:** `HostAutoRefresher` checks every 15 seconds while a workspace window shows on screen (not hidden, minimized, covered, or behind a locked screen), and when the app comes forward. This Mac refreshes a minute after its last refresh started, in every window, through the one shared scan (item 18). An SSH host refreshes 5 minutes after its last copy; after a failure it waits 5 minutes, then twice as long after each failure in a row, up to an hour, and a host that needs **Connect…** is left alone. The oldest window copies the host. After any successful copy, the other windows read it from disk instead of copying the host again.
+
+**Limits:** the VM runs on the same Mac, so the timing has no real network latency and little data. A distant host or one with a large history takes longer per copy; none was timed.
 
 ## How to profile
 

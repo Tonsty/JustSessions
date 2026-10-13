@@ -2,14 +2,14 @@ import Foundation
 
 /// The SSH logins made with Connect…, for hosts that ask for a password, a passphrase, or a code: one app-owned master
 /// connection per host. While it is open, every command, copy, and tab of the app's on that host goes through it, so
-/// nothing asks again. It closes after `idleTimeout` with nothing using it, when the connection drops, as when the Mac
+/// nothing asks again. It stays open with nothing using it, and closes when the connection drops, as when the Mac
 /// sleeps, on Disconnect, when the host is removed, and when the app quits. Nothing typed to log in is kept.
 final class SSHLoginConnections: @unchecked Sendable {
     static let shared = SSHLoginConnections()
 
-    /// `ControlPersist`: how long a login stays open with no command, copy, or tab using it. It also ends a login
-    /// left behind by an app that crashed.
-    static let idleTimeout = "1h"
+    /// `ControlPersist`: a login has no idle limit. One left behind by an app that crashed is closed at the next
+    /// launch; see `closeLoginsOfEndedApps(socketRoot:)`.
+    static let persistence = "yes"
 
     private let lock = NSLock()
     private var directoriesByHost: [String: URL] = [:]
@@ -83,6 +83,20 @@ final class SSHLoginConnections: @unchecked Sendable {
         for (host, directory) in directories { closeMaster(in: directory, host: host) }
     }
 
+    /// At launch: closes the logins that a copy of the app that is no longer running left open, as after a crash,
+    /// since they have no idle limit to end them.
+    static func closeLoginsOfEndedApps(
+        socketRoot: String = SSHConnectionSharing.socketRoot,
+        close: @Sendable (_ host: String, _ controlPath: String) -> Void = SSHLoginConnections.closeMaster
+    ) {
+        for directory in SSHSocketDirectory.loginDirectoriesOfEndedProcesses(at: socketRoot) {
+            let controlPath = Self.controlPath(in: directory)
+            // `ssh -O exit` needs a destination, but the socket alone picks the master.
+            if FileManager.default.fileExists(atPath: controlPath) { close("left-by-ended-app", controlPath) }
+            try? FileManager.default.removeItem(at: directory)
+        }
+    }
+
     private func closeMasterInBackground(in directory: URL, host: String) {
         DispatchQueue.global(qos: .utility).async { [self] in closeMaster(in: directory, host: host) }
     }
@@ -93,7 +107,7 @@ final class SSHLoginConnections: @unchecked Sendable {
         try? FileManager.default.removeItem(at: directory)
     }
 
-    private static func closeMaster(host: String, controlPath: String) {
+    static func closeMaster(host: String, controlPath: String) {
         _ = BoundedProcessRunner.result(
             ofExecutable: "/usr/bin/ssh",
             arguments: ["-O", "exit", "-S", controlPath, "-o", "BatchMode=yes", "--", host],
