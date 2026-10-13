@@ -53,13 +53,14 @@ struct RemoteTmuxKeepAliveTests {
     @Test func hostWithoutTmuxRunsTheCLIDirectly() throws {
         let sandbox = try TmuxSandbox(tmuxDirectory: nil)
         defer { sandbox.tearDown() }
+        try sandbox.makeCLIExitAtOnce()
         let command = RemoteCLICommandBuilder.remoteCommand(
             provider: .claude,
             projectPath: sandbox.project.path,
             arguments: ["--resume", "abc"],
             tmuxSessionName: TmuxSessionName.unique(for: .claude)
         )
-        _ = sandbox.run(command.replacingOccurrences(of: "exec claude", with: "exec claude-once"))
+        _ = sandbox.run(command)
         #expect(sandbox.launchRecord?.hasSuffix("/Bob's paper\n--resume\nabc\n") == true)
     }
 }

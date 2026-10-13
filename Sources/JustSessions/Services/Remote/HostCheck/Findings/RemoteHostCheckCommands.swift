@@ -29,6 +29,6 @@ enum RemoteHostCheckCommands {
     }
 
     private static func loginShellPrefix(_ startup: RemoteShellStartup) -> String {
-        "env \(RemoteShellStartup.environmentVariable)=1 \"$SHELL\" " + (startup == .interactive ? "-lic" : "-lc")
+        "env \(RemoteShellStartup.environmentVariable)=1 \"$SHELL\" " + startup.shellFlags
     }
 }
