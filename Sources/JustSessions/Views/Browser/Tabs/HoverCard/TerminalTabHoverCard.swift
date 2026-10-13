@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// A tab's hover card: its whole title, where it runs and with which CLI, and what the CLI is doing, kept current
-/// while the card shows.
+/// A tab's hover card: its whole title, where it runs, with which CLI and model, and what the CLI is doing, kept
+/// current while the card shows.
 struct TerminalTabHoverCard: View {
     @ObservedObject var session: TerminalSession
     let projectDisplayName: String
@@ -34,9 +34,10 @@ struct TerminalTabHoverCard: View {
         }
     }
 
-    /// Such as "JustSessions · Claude Code", with the host after the project once SSH hosts are added.
+    /// Such as "JustSessions · Claude Code · claude-opus-4-8", with the host after the project once SSH hosts are added,
+    /// and the model the session's CLI used last once its session files name one.
     private var location: String {
-        [projectDisplayName, hostDisplayName, session.provider?.rawValue ?? "Terminal"]
+        [projectDisplayName, hostDisplayName, session.provider?.rawValue ?? "Terminal", session.conversation?.model?.label]
             .compactMap { $0 }
             .joined(separator: " · ")
     }

@@ -46,6 +46,8 @@
 	<string>%@ 将通过原生 CLI 永久删除此会话。此操作无法撤销。</string>
 	<key>%@ · %@ subagent · %@</key>
 	<string>%1$@ · %2$@ 子代理 · %3$@</string>
+	<key>%@ · %@ subagent · %@ · %@</key>
+	<string>%1$@ · %2$@ 子代理 · %3$@ · %4$@</string>
 	<key>%@ · ⌘-click to select multiple projects; Shift-click to select a range</key>
 	<string>%@ · 按住 ⌘ 点击选择多个项目；按住 Shift 点击选择一个范围</string>
 	<key>%@'s interactive startup files start another program, so CLIs start without them. A PATH set only in those files doesn't reach the CLIs.</key>
@@ -58,6 +60,8 @@
 	<string>%@ 的 tmux 服务器由另一个版本的 tmux 启动，与 JustSessions 在那里找到的 %@ 不同，例如在会话运行时升级了 tmux。其会话仍在运行，但无法打开。请用启动该服务器的 tmux 重新接入，或用它结束这些会话后重新启动。</string>
 	<key>%@, %@ subagent</key>
 	<string>%1$@，%2$@ 子代理</string>
+	<key>%@, %@ subagent, %@</key>
+	<string>%1$@，%2$@ 子代理，%3$@</string>
 	<key>%@, %@, open terminal, not saved yet</key>
 	<string>%@，%@，终端已打开，尚未保存</string>
 	<key>%lld earlier entries are not shown. Resume the session to see all of it.</key>

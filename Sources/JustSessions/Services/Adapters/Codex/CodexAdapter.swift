@@ -27,6 +27,7 @@ struct CodexAdapter: ConversationAdapter {
     /// sessions of their own.
     private static let rolloutHeads = SessionFileSummaryCache<CodexRolloutHead>(persistenceFile: SessionSummaryCacheLocation.file(named: "codex-heads-2"))
     private static let firstUserPrompts = SessionFileSummaryCache<String>(persistenceFile: SessionSummaryCacheLocation.file(named: "codex-prompts"))
+    private static let models = SessionFileSummaryCache<SessionModel>(persistenceFile: SessionSummaryCacheLocation.file(named: "codex-models"))
 
     func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
         try cancellation.checkCancellation()
@@ -59,12 +60,14 @@ struct CodexAdapter: ConversationAdapter {
                 suggestedTitle: title,
                 updatedAt: updatedAt,
                 sourceFile: file,
-                parentSessionID: head.spawn?.parentThreadID
+                parentSessionID: head.spawn?.parentThreadID,
+                model: Self.models.summary(of: file, read: CodexRolloutModel.latest(in:))
             ))
         }
         try cancellation.checkCancellation()
         Self.rolloutHeads.forgetFiles(in: sessionsDirectory, except: rolloutFiles)
         Self.firstUserPrompts.forgetFiles(in: sessionsDirectory, except: rolloutFiles)
+        Self.models.forgetFiles(in: sessionsDirectory, except: rolloutFiles)
         return conversations
     }
 

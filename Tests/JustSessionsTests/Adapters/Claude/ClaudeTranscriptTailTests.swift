@@ -16,12 +16,27 @@ struct ClaudeTranscriptTailTests {
         #expect(tail.latestCustomTitle == "Second name")
     }
 
+    @Test func readsTheModelOfTheLastAssistantLineThatNamesOne() {
+        let tail = ClaudeTranscriptTail(lines: jsonLines([
+            #"{"type":"assistant","message":{"model":"claude-haiku-4-5-20251001","content":"Earlier"}}"#,
+            #"{"type":"assistant","message":{"model":"claude-opus-4-8","content":"Later"}}"#,
+            #"{"type":"assistant","message":{"model":"<synthetic>","content":"Interrupted"}}"#,
+            #"{"type":"user","timestamp":"2026-09-24T11:00:00Z","message":{"content":"Keep going"}}"#,
+            #"{"type":"custom-title","customTitle":"Named"}"#,
+        ]))
+
+        #expect(tail.latestModel == "claude-opus-4-8")
+        #expect(tail.latestCustomTitle == "Named")
+        #expect(tail.latestTimestamp == ConversationMetadata.date("2026-09-24T11:00:00Z"))
+    }
+
     @Test func aTranscriptWithNeitherSaysNothing() {
         let tail = ClaudeTranscriptTail(lines: jsonLines([#"{"type":"user","message":{"content":"Hi"}}"#]))
 
         #expect(tail.latestTimestamp == nil)
         #expect(tail.latestCustomTitle == nil)
         #expect(tail.relocatedWorkingDirectory == nil)
+        #expect(tail.latestModel == nil)
     }
 
     /// Claude Code 2.1.296 writes a `relocated` line when `/cd` moves a session, and again with the session's other

@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// A session a subagent ran in, under the session that started it. Clicking it reads it in the preview; it is never
-/// resumed, renamed, pinned, or deleted on its own. The age gives way to a ⋯ while the pointer is over the row.
+/// resumed, renamed, pinned, or deleted on its own. Its model, shortened, comes before its age, as a subagent often runs
+/// on another model than the session that started it; both give way to a ⋯ while the pointer is over the row.
 struct SidebarSubagentRow: View {
     let store: ConversationStore
     let row: SidebarSubagentRows.Row
@@ -26,16 +27,25 @@ struct SidebarSubagentRow: View {
                 Text(title)
             } trailing: {
                 ZStack(alignment: .trailing) {
-                    SessionAgeLabel(lastActivity: conversation.updatedAt)
-                        .opacity(hovered ? 0 : 1)
+                    HStack(spacing: 6) {
+                        if let model = conversation.model {
+                            Text(verbatim: model.shortName)
+                                .font(ThemeFont.detail)
+                                .foregroundStyle(ThemePalette.tertiaryText)
+                                .lineLimit(1)
+                                .fixedSize()
+                        }
+                        SessionAgeLabel(lastActivity: conversation.updatedAt)
+                    }
+                    .opacity(hovered ? 0 : 1)
                     SidebarRowMoreActionsLabel()
                         .hidden()
                 }
             }
         }
         .buttonStyle(ThemePlainButtonStyle(showsHover: false))
-        .help("\(title) · \(conversation.provider.rawValue) subagent · \(SidebarSessionDateText.shared.text(for: conversation.updatedAt))")
-        .accessibilityLabel("\(title), \(conversation.provider.rawValue) subagent")
+        .help(helpText(title: title, conversation: conversation))
+        .accessibilityLabel(accessibilityText(title: title, conversation: conversation))
         .overlay(alignment: .leading) {
             if row.subagentCount > 0 {
                 SubagentDisclosureButton(
@@ -61,6 +71,17 @@ struct SidebarSubagentRow: View {
         )
         .onHover { isHovered = $0 }
         .contextMenu { menuItems }
+    }
+
+    private func helpText(title: String, conversation: Conversation) -> LocalizedStringKey {
+        let date = SidebarSessionDateText.shared.text(for: conversation.updatedAt)
+        guard let model = conversation.model else { return "\(title) · \(conversation.provider.rawValue) subagent · \(date)" }
+        return "\(title) · \(conversation.provider.rawValue) subagent · \(model.label) · \(date)"
+    }
+
+    private func accessibilityText(title: String, conversation: Conversation) -> LocalizedStringKey {
+        guard let model = conversation.model else { return "\(title), \(conversation.provider.rawValue) subagent" }
+        return "\(title), \(conversation.provider.rawValue) subagent, \(model.label)"
     }
 
     private var menuItems: some View {

@@ -39,7 +39,10 @@ struct CodexAdapterTests {
         let spawnedID = UUID().uuidString.lowercased()
         let reviewID = UUID().uuidString.lowercased()
         let prompt = #"{"type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"Plan the port"}]}}"#
-        try folder.writeRollout(sessionID: parentID, laterLines: [prompt])
+        try folder.writeRollout(sessionID: parentID, laterLines: [
+            #"{"type":"turn_context","payload":{"model":"gpt-6-astra","effort":"ultra"}}"#,
+            prompt,
+        ])
         try folder.writeRollout(named: "rollout-2026-09-24T10-05-00-\(spawnedID).jsonl", lines: [
             #"{"type":"session_meta","payload":{"id":"\#(spawnedID)","cwd":"/Users/me/app","forked_from_id":"\#(parentID)","source":{"subagent":{"thread_spawn":{"parent_thread_id":"\#(parentID)","depth":1,"agent_path":"/root/decode_plan","agent_nickname":"Bohr","agent_role":null}}}}}"#,
             prompt,
@@ -52,6 +55,8 @@ struct CodexAdapterTests {
 
         #expect(found[parentID]?.parentSessionID == nil)
         #expect(found[parentID]?.suggestedTitle == "Plan the port")
+        #expect(found[parentID]?.model == SessionModel(id: "gpt-6-astra", effort: "ultra"))
+        #expect(found[spawnedID]?.model == nil)
         #expect(found[spawnedID]?.parentSessionID == parentID)
         #expect(found[spawnedID]?.suggestedTitle == "Bohr \u{00B7} decode_plan")
         #expect(found[reviewID]?.parentSessionID == nil)

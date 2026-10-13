@@ -77,6 +77,11 @@ struct SessionPreviewHeader: View {
                 HStack(spacing: 5) {
                     Text(conversation.provider.rawValue)
                     Text("·")
+                    // The model the CLI used last, as it records it.
+                    if let model = conversation.model {
+                        Text(verbatim: model.label)
+                        Text("·")
+                    }
                     // With SSH hosts added, every session names its host, this Mac included.
                     if store.hasRemoteHosts {
                         Label(conversation.host.displayName, systemImage: conversation.host.symbolName)
