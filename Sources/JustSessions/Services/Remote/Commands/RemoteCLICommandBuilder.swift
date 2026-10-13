@@ -6,13 +6,17 @@ import Foundation
 struct RemoteCLICommandBuilder {
     let inheritedEnvironment: [String: String]
     let loginConnections: SSHLoginConnections
+    /// See `SSHKeystrokeTiming`.
+    let keystrokeTimingOptions: [String]
 
     init(
         inheritedEnvironment: [String: String] = SSHProcessEnvironment.standard,
-        loginConnections: SSHLoginConnections = .shared
+        loginConnections: SSHLoginConnections = .shared,
+        keystrokeTimingOptions: [String] = SSHKeystrokeTiming.options
     ) {
         self.inheritedEnvironment = inheritedEnvironment
         self.loginConnections = loginConnections
+        self.keystrokeTimingOptions = keystrokeTimingOptions
     }
 
     /// `startCommand` is one set in the New session sheet; nil starts the tool's own executable. It stands in for
@@ -52,6 +56,9 @@ struct RemoteCLICommandBuilder {
                 + [
                     // Notice a dead connection within a minute, so the tab ends and offers to reconnect.
                     "-o", "ServerAliveInterval=15", "-o", "ServerAliveCountMax=4",
+                ]
+                + keystrokeTimingOptions
+                + [
                     // With a `RemoteCommand` in `~/.ssh/config`, `ssh` would refuse to run the tab's command.
                     "-o", "RemoteCommand=none",
                     host,
@@ -123,8 +130,14 @@ struct RemoteCLICommandBuilder {
         // a CLI's copy reach this Mac's clipboard: OpenCode sends OSC 52 wrapped for tmux, which tmux 3.3 and later
         // drop with it off, and its unwrapped OSC 52 only with the server-wide `set-clipboard on`. Older tmux always
         // passes it, and `-q` skips the option there. These are options of this session and its window only; the
-        // host's other tmux sessions keep theirs.
-        let sessionOptions = ["set-option status off", "set-option mouse on", "set-option -wq allow-passthrough on"]
+        // host's other tmux sessions keep theirs. The exception is `escape-time`, a server option: tmux before 3.5,
+        // such as Ubuntu 24.04's 3.4, waits 500 ms after Esc to see whether a longer key sequence follows, so Esc
+        // reached the CLI half a second late. The host's other sessions get 10 ms too, as tmux 3.5 and later give
+        // them anyway.
+        let sessionOptions = [
+            "set-option status off", "set-option mouse on", "set-option -wq allow-passthrough on",
+            "set-option -s escape-time 10",
+        ]
             + RemoteTmuxPrefixOptions.setOptionCommands(usingHostPrefix: usesHostTmuxPrefix)
         let tmuxCommand = "exec tmux new-session -A -s \(ShellQuoting.quoted(tmuxSessionName)) "
             + ShellQuoting.quoted(inLoginShell(directCommand))

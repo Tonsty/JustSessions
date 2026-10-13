@@ -74,6 +74,16 @@ struct SSHConfigOverrideTests {
         #expect(Self.setting("localforward", in: result.output) == ["18080 [localhost]:8080"])
     }
 
+    /// Where this Mac's `ssh` takes the option, a tab sends each keystroke as it is typed; an older one, which prints
+    /// no such setting, still connects.
+    @Test func aTabSendsKeystrokesAsTheyAreTyped() throws {
+        let tab = RemoteCLICommandBuilder(inheritedEnvironment: [:]).sshCommand(host: "devbox", remoteCommand: "true")
+        let result = try Self.resolvedSettings(sshArguments: tab.arguments)
+
+        #expect(result.exitStatus == 0)
+        #expect(Self.setting("obscurekeystroketiming", in: result.output) == (SSHKeystrokeTiming.options.isEmpty ? [] : ["no"]))
+    }
+
     private static func resolvedSettings(sshArguments: [String]) throws -> (exitStatus: Int32, output: String) {
         let root = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }

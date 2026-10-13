@@ -78,7 +78,9 @@ struct SSHLoginTests {
     /// The login has no idle limit: it stays open until Disconnect, the host's removal, quitting, or a dropped
     /// connection ends it.
     @Test func theMasterStartsWithTheBackgroundSettingsAndMayAsk() {
-        #expect(SSHLogin.sshArguments(host: "devbox", controlPath: "/tmp/justsessions-ssh-501/login-id/master") == [
+        #expect(SSHLogin.sshArguments(
+            host: "devbox", controlPath: "/tmp/justsessions-ssh-501/login-id/master", keystrokeTimingOptions: []
+        ) == [
             "-T", "-o", "BatchMode=no", "-o", "ConnectTimeout=10", "-o", "ServerAliveInterval=10",
             "-o", "ServerAliveCountMax=3", "-o", "RemoteCommand=none", "-o", "ClearAllForwardings=yes",
             "-o", "ControlMaster=yes", "-o", "ControlPath=/tmp/justsessions-ssh-501/login-id/master",
