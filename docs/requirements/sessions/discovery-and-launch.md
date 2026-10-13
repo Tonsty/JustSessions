@@ -15,6 +15,7 @@
 | DSC-07 | Codex threads started by another thread (`thread_spawn`) are subagents, not top-level sessions. | `27c9939` | `CodexAdapterTests`, `SubagentConversationsTests` |
 | DSC-08 | Subagents' sessions are hidden by default. With **Show subagents under the sessions that started them** on in Settings → General, a parent session shows a chevron that lists them, newest first. They can be read but never launched, renamed, pinned, or deleted on their own, and they stay out of search, notifications, and tab linking. Kiro CLI records no parent, so its subagents stay hidden. | `27c9939`, `23c4377` | `SidebarSubagentRowsTests`, `SidebarSubagentVisibilityTests` |
 | DSC-09 | While a workspace window shows on screen, this Mac refreshes on its own a minute after its last refresh started, and when the app comes forward once a minute has passed. Every window refreshes through the one shared scan. | `b38a341` | `HostAutoRefreshScheduleTests`, `HostAutoRefresherTests` |
+| DSC-10 | A Claude Code session moved with `/cd` is listed, and resumed, under the folder it moved to: the last `relocated` line's `relocatedCwd`, read from the transcript's tail, as Claude Code reads it. Other lines' `cwd` follows Claude's shell as it changes directory, so it never moves a session. | `4a68097` | `ClaudeAdapterTests`, `ClaudeTranscriptTailTests`, manual `/cd` in Claude Code 2.1.296 |
 
 ## Finding the CLIs
 
@@ -28,7 +29,7 @@
 
 | ID | Requirement | Origin | Related tests |
 | --- | --- | --- | --- |
-| DSC-40 | Resume opens the session in its own CLI in its original folder: double-click, **Resume**, or the row's menu. | `65f5ade`, `d5c9dfc` | `CLIArgumentContractTests`, `NativeCLICommandResolverTests` |
+| DSC-40 | Resume opens the session in its own CLI in its project folder (DSC-10): double-click, **Resume**, or the row's menu. | `65f5ade`, `d5c9dfc` | `CLIArgumentContractTests`, `NativeCLICommandResolverTests` |
 | DSC-41 | A new session or branch shows under its project at once, as an italic pending row, before its CLI writes anything. | `758b100`, `d2cabd7` | `NewSessionLinkTests`, `BranchTabLinkTests`, `ThisMacAppearingSessionTests` |
 | DSC-42 | A new Claude Code tab starts with `--session-id` when that `claude` (or its start command) lists it in `--help`, checked once per command line, on this Mac and on SSH hosts. The tab links only to that session. | `758b100`, `5c8ad54`, `9a9d465` | `ClaudeSessionIDFlagSupportTests`, `RemoteClaudeNewSessionLinkingTests` |
 | DSC-43 | Other new tabs link through the CLI's process tree (one `sysctl` and one `lsof` for all waiting tabs), or, for CLIs that give no such sign, to the first session that appears in their project after the tab started. While such a tab waits, this Mac refreshes every 6 seconds. | `758b100`, `12abb26` | `NewSessionFileFinderTests`, `ClaudeSessionFileLocatorTests` |

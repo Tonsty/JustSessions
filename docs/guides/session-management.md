@@ -6,7 +6,7 @@ Use the sidebar to find a conversation, read its preview, and resume it in its o
 
 ## Find any session
 
-- All Claude Code, Codex, Antigravity CLI, Kiro CLI, OpenCode, and Pi sessions in one sidebar, grouped by machine (this Mac, then each SSH host), then by project folder, sorted by recent activity.
+- All Claude Code, Codex, Antigravity CLI, Kiro CLI, OpenCode, and Pi sessions in one sidebar, grouped by machine (this Mac, then each SSH host), then by project folder, sorted by recent activity. A Claude Code session moved with `/cd` is listed under the folder it moved to.
 - Search projects by name or path, and sessions by title, session ID, or message text: click the magnifying glass at the top of the sidebar. Its field opens across the top line; **Escape** or its **×** clears and closes it, and an empty field closes once you click elsewhere.
 - Message text is what the reader shows: your messages, the CLI's replies, and tool call summaries, ignoring case and accents. A session whose messages match stays under its project with the matching line beneath its title; click it to read the conversation at that message, with Find open on your search. The first search reads each session once, most recent first, and the top of the list shows how many are done; later searches read again only sessions that changed. Text past a message's preview limit is not searched. See [message search](session-storage.md#message-search) for what is kept on your Mac.
 - Choose **Projects** to browse the library or **Open tabs** to switch between this window's open terminals. Each view keeps its search and scroll position when switching; each window remembers the selected view.
