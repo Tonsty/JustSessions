@@ -70,6 +70,8 @@
 	<string>还有 %lld 个标签页</string>
 	<key>%lld of %lld</key>
 	<string>%lld / %lld</string>
+	<key>%lld of them are still running: their tabs close and their CLIs end first.</key>
+	<string>其中 %lld 个仍在运行：会先关闭它们的标签页并结束它们的 CLI。</string>
 	<key>%lld points</key>
 	<string>%lld 磅</string>
 	<key>%lld projects selected</key>
@@ -100,6 +102,8 @@
 	<string>**⌘N** 可用任一已安装的 CLI 开始会话，或打开普通终端。标签页按项目分组，侧边栏的 **已打开** 会列出全部标签页。右键单击标签页可将两个并排显示。</string>
 	<key>1 message</key>
 	<string>1 条消息</string>
+	<key>1 of them is still running: its tab closes and its CLI ends first.</key>
+	<string>其中 1 个仍在运行：会先关闭它的标签页并结束它的 CLI。</string>
 	<key>1 session with an open terminal will be skipped.</key>
 	<string>将跳过 1 个终端已打开的会话。</string>
 	<key>1 subagent session stays on disk.</key>
@@ -332,6 +336,10 @@
 	<string>关闭 %@ 中的所有标签？</string>
 	<key>Close all tabs in group…</key>
 	<string>关闭标签组中的所有标签…</string>
+	<key>Close and delete %lld sessions</key>
+	<string>关闭并删除 %lld 个会话</string>
+	<key>Close and delete 1 session</key>
+	<string>关闭并删除 1 个会话</string>
 	<key>Close and delete session</key>
 	<string>关闭并删除会话</string>
 	<key>Close and delete session…</key>

@@ -20,8 +20,8 @@ private struct SessionDeletionDialog: ViewModifier {
                     }
                 }
             case .conversations(let conversations):
-                deleteButton(for: store.deletionPlan(for: conversations)) {
-                    store.deleteConversations(conversations)
+                deleteButton(for: store.deletionPlan(for: conversations, endingTheirCLIs: true)) {
+                    store.closeAndDeleteConversations(conversations)
                 }
             case .project(let projectPath):
                 deleteButton(for: store.deletionPlan(for: projectPath)) {
@@ -71,7 +71,9 @@ private struct SessionDeletionDialog: ViewModifier {
         case .conversation(let conversation):
             message(forDeleting: conversation)
         case .conversations(let conversations):
-            SessionDeletionConfirmationText.message(forDeletingSelectionWith: store.deletionPlan(for: conversations), language: language)
+            SessionDeletionConfirmationText.message(
+                forDeletingSelectionWith: store.deletionPlan(for: conversations, endingTheirCLIs: true), language: language
+            )
         case .project(let projectPath):
             SessionDeletionConfirmationText.message(
                 forDeletingProjectAt: ProjectLocation(key: projectPath),

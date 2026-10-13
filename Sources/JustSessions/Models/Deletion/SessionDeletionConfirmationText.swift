@@ -4,8 +4,12 @@ import Foundation
 enum SessionDeletionConfirmationText {
     static let oneSessionButtonTitle = "Delete session"
 
+    /// Close and delete when the plan ends any CLIs first.
     static func buttonTitle(for plan: SessionDeletionPlan, language: AppInterfaceLanguage = AppLocalization.developmentLanguage) -> String {
         let count = plan.deletableConversations.count
+        if plan.cliEndingCount > 0 {
+            return AppLocalization.string(count == 1 ? "Close and delete 1 session" : "Close and delete \(count) sessions", language: language)
+        }
         return AppLocalization.string(count == 1 ? "Delete 1 session" : "Delete \(count) sessions", language: language)
     }
 
@@ -39,6 +43,14 @@ enum SessionDeletionConfirmationText {
         }
     }
 
+    private static func cliEndingSentence(forSessionCount count: Int, language: AppInterfaceLanguage) -> String? {
+        switch count {
+        case 0: nil
+        case 1: AppLocalization.string("1 of them is still running: its tab closes and its CLI ends first.", language: language)
+        default: AppLocalization.string("\(count) of them are still running: their tabs close and their CLIs end first.", language: language)
+        }
+    }
+
     private static func oneSessionSentence(forDeleting conversation: Conversation, language: AppInterfaceLanguage) -> String {
         if let sshDestination = conversation.host.sshDestination {
             // The folder beside a Pi session holds subagent runs and forks that are never mirrored or listed.
@@ -59,8 +71,10 @@ enum SessionDeletionConfirmationText {
         }
     }
 
+    /// With a plan made for Close and delete, first says how many of the sessions have their CLIs ended.
     static func message(forDeletingSelectionWith plan: SessionDeletionPlan, language: AppInterfaceLanguage = AppLocalization.developmentLanguage) -> String {
         joined([
+            cliEndingSentence(forSessionCount: plan.cliEndingCount, language: language),
             AppLocalization.string("Claude Code, Antigravity, and Pi sessions on this Mac move to the Trash. Codex, Kiro CLI, and OpenCode sessions and all sessions on SSH hosts are permanently deleted.", language: language),
         ] + subagentSentences(for: plan, language: language) + [
             skippedSessionsSentence(for: plan, language: language),

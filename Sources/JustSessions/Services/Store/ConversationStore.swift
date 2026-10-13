@@ -404,6 +404,7 @@ final class ConversationStore {
         return SessionDeletionPlan(
             deletableConversations: deletable,
             openTerminalCount: notYetPending.count - deletable.count,
+            cliEndingCount: endingTheirCLIs ? deletable.filter(hasTerminal(for:)).count : 0,
             deletedSubagentCount: (deletesSubagents[true] ?? []).reduce(0) { $0 + descendantSubagentCount(of: $1) },
             keptSubagentCount: (deletesSubagents[false] ?? []).reduce(0) { $0 + descendantSubagentCount(of: $1) }
         )

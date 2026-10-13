@@ -446,6 +446,16 @@
         }
       }
     },
+    "%lld of them are still running: their tabs close and their CLIs end first.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其中 %lld 个仍在运行：会先关闭它们的标签页并结束它们的 CLI。"
+          }
+        }
+      }
+    },
     "%lld points": {
       "localizations": {
         "zh-Hans": {
@@ -628,6 +638,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "1 条消息"
+          }
+        }
+      }
+    },
+    "1 of them is still running: its tab closes and its CLI ends first.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其中 1 个仍在运行：会先关闭它的标签页并结束它的 CLI。"
           }
         }
       }
@@ -1830,6 +1850,44 @@
           "stringUnit": {
             "state": "translated",
             "value": "关闭标签组中的所有标签…"
+          }
+        }
+      }
+    },
+    "Close and delete %lld sessions": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Close and delete %lld session"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Close and delete %lld sessions"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭并删除 %lld 个会话"
+          }
+        }
+      }
+    },
+    "Close and delete 1 session": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭并删除 1 个会话"
           }
         }
       }

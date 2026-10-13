@@ -16,18 +16,45 @@ extension ConversationStore {
     }
 
     func closeAndDelete(_ conversation: Conversation, remoteRunner: RemoteHostCommandRunner = RemoteHostCommandRunner()) {
+        endCLIs(of: [conversation], remoteRunner: remoteRunner) { $0.delete(conversation) }
+    }
+
+    /// Delete for a multi-selection: closes the tabs and ends the CLIs of the selected sessions that run, as Close and
+    /// delete does, then deletes every deletable selected session in one deletion.
+    func closeAndDeleteConversations(
+        _ candidateConversations: [Conversation],
+        remoteRunner: RemoteHostCommandRunner = RemoteHostCommandRunner()
+    ) {
+        let deletable = deletionPlan(for: candidateConversations, endingTheirCLIs: true).deletableConversations
+        let running = deletable.filter { cliEndingBeforeDeletion(of: $0) != nil }
+        endCLIs(of: running, remoteRunner: remoteRunner) { $0.deleteConversations(deletable) }
+    }
+
+    /// Closes the sessions' tabs in every window and ends their CLIs, then, once the CLIs have exited, runs `delete`.
+    private func endCLIs(
+        of conversations: [Conversation],
+        remoteRunner: RemoteHostCommandRunner,
+        then delete: @escaping @MainActor (ConversationStore) -> Void
+    ) {
         let cliExits = DispatchGroup()
-        var endedTmuxNames: Set<String> = []
-        for store in otherWindowStores {
-            endedTmuxNames.formUnion(store.closeTabsAndEndCLI(of: conversation, cliExits: cliExits, remoteRunner: remoteRunner))
+        var endedTmuxNamesByHost: [SessionHost: Set<String>] = [:]
+        for conversation in conversations {
+            var endedTmuxNames: Set<String> = []
+            for store in otherWindowStores {
+                endedTmuxNames.formUnion(store.closeTabsAndEndCLI(of: conversation, cliExits: cliExits, remoteRunner: remoteRunner))
+            }
+            endedTmuxNames.formUnion(closeTabsAndEndCLI(
+                of: conversation, alsoEndingTmuxSessionWithoutTab: true, cliExits: cliExits, remoteRunner: remoteRunner
+            ))
+            endedTmuxNamesByHost[conversation.host, default: []].formUnion(endedTmuxNames)
         }
-        endedTmuxNames.formUnion(closeTabsAndEndCLI(
-            of: conversation, alsoEndingTmuxSessionWithoutTab: true, cliExits: cliExits, remoteRunner: remoteRunner
-        ))
         cliExits.notify(queue: .main) { [weak self] in
             MainActor.assumeIsolated {
                 guard let self else { return }
-                Task { await self.deleteOnceRefreshed(conversation, endedTmuxNames: endedTmuxNames) }
+                Task {
+                    await self.waitForRefreshes(forgetting: endedTmuxNamesByHost)
+                    delete(self)
+                }
             }
         }
     }
@@ -77,14 +104,15 @@ extension ConversationStore {
         return tmuxNames
     }
 
-    /// A refresh of the host that started before the CLI ended may list it as running still, and a deletion would
-    /// then skip the session. So this waits for that refresh, then forgets the ended tmux sessions. A refresh that
-    /// starts later finds them gone.
-    private func deleteOnceRefreshed(_ conversation: Conversation, endedTmuxNames: Set<String>) async {
-        while hostRefreshStatuses[conversation.host] == .refreshing {
+    /// A refresh of a host that started before its CLIs ended may list them as running still, and a deletion would
+    /// then skip their sessions. So this waits for those refreshes, then forgets the ended tmux sessions. A refresh
+    /// that starts later finds them gone.
+    private func waitForRefreshes(forgetting endedTmuxNamesByHost: [SessionHost: Set<String>]) async {
+        while endedTmuxNamesByHost.keys.contains(where: { hostRefreshStatuses[$0] == .refreshing }) {
             try? await Task.sleep(for: .milliseconds(100))
         }
-        tmuxSessionNamesByHost[conversation.host]?.subtract(endedTmuxNames)
-        delete(conversation)
+        for (host, endedTmuxNames) in endedTmuxNamesByHost {
+            tmuxSessionNamesByHost[host]?.subtract(endedTmuxNames)
+        }
     }
 }
