@@ -24,6 +24,9 @@ enum TerminalAppearanceStyling {
         terminalView.selectedTextForegroundColor = NSColor(hexValue: scheme.readableSelectionForeground)
         terminalView.caretColor = NSColor(hexValue: scheme.foreground)
         terminalView.caretTextColor = NSColor(hexValue: palette.background)
+        // Colors 16–255 are xterm's, as in Ghostty and most terminals. SwiftTerm's default blends them from the 16 ANSI
+        // colors, which drained the color from the 256-color text Claude Code draws, most on themes with soft ANSI colors.
+        terminalView.getTerminal().ansi256PaletteStrategy = .xterm
         terminalView.installColors(palette.ansiColors)
         terminalView.minimumContrastRatio = minimumContrastRatio
         terminalView.layer?.backgroundColor = terminalView.nativeBackgroundColor.cgColor

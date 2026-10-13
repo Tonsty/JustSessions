@@ -21,6 +21,7 @@ Application paths below are relative to `Sources/JustSessions/`. Tests live in `
 - `Services/Sidebar/`: the sidebar's projects as the filters and search leave them. `Sessions/` picks what a session row shows as its CLI's status: its running tab's, the selected one first, then its CLI's in tmux with no tab open.
 - `Models/Terminal/Appearance/`: terminal colors, font, and size, and the terminal part of a theme's colors.
 - `Models/Terminal/Appearance/ColorSchemes/`: which colors terminals use, the app theme's, a preset, or imported ones, with the colors of presets that are not app themes, Dracula and Nord, in `Presets/`.
+- `Models/Terminal/Appearance/ColorIntensity/`: the **Color intensity** setting, which makes the 16 ANSI colors more or less vivid by scaling their OKLab chroma at the same lightness and hue.
 - `Models/Terminal/Engine/`: the engines that can draw a tab's terminal: SwiftTerm by default, or Ghostty when chosen in Appearance settings.
 - `Models/Terminal/Tabs/`: where tabs open and which shows after one closes, so each project's tabs stay together; tab groups and their colors.
 - `Models/Terminal/Tabs/HoverCard/`, `Views/Browser/Tabs/HoverCard/`: the card under a tab or group label the pointer rests on, as in Chrome. A tab's shows its whole title, project, CLI, and status; a group's lists its tabs. The models decide when it shows and hides; the views draw it over the terminal.

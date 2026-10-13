@@ -11,6 +11,8 @@ struct TerminalAppearancePreferences: Codable, Equatable {
     var mode: TerminalAppearanceMode = .matchApp
     var fontFamily: TerminalFontFamily = .system
     var fontSize: Double = defaultFontSize
+    /// How strongly the 16 ANSI colors show, as a percentage of the scheme's own; see `TerminalColorIntensity`.
+    var colorIntensityPercent = TerminalColorIntensity.defaultPercent
 
     var validated: Self {
         var preferences = self
@@ -18,16 +20,19 @@ struct TerminalAppearancePreferences: Codable, Equatable {
         preferences.fontSize = fontSize.isFinite
             ? min(max(fontSize, Self.fontSizeRange.lowerBound), Self.fontSizeRange.upperBound)
             : Self.defaultFontSize
+        let intensityRange = TerminalColorIntensity.percentRange
+        preferences.colorIntensityPercent = min(max(colorIntensityPercent, intensityRange.lowerBound), intensityRange.upperBound)
         return preferences
     }
 
-    /// The chosen colors, in one version or in light and dark.
+    /// The chosen colors, in one version or in light and dark, with their ANSI colors at the chosen intensity.
     func colorVariants(appTheme: ResolvedAppTheme) -> TerminalPaletteVariants {
-        switch colorChoice {
+        let chosenVariants = switch colorChoice {
         case .matchAppTheme: TerminalPaletteVariants(appTheme: appTheme)
         case .preset(let preset): preset.variants
         case .imported: importedColors?.variants ?? TerminalPaletteVariants(appTheme: appTheme)
         }
+        return chosenVariants.withANSIColorIntensity(percent: colorIntensityPercent)
     }
 
     static func load(from userDefaults: UserDefaults) -> Self {
@@ -54,5 +59,8 @@ extension TerminalAppearancePreferences {
         if let mode = try? container.decode(TerminalAppearanceMode.self, forKey: .mode) { self.mode = mode }
         if let fontFamily = try? container.decode(TerminalFontFamily.self, forKey: .fontFamily) { self.fontFamily = fontFamily }
         if let fontSize = try? container.decode(Double.self, forKey: .fontSize) { self.fontSize = fontSize }
+        if let colorIntensityPercent = try? container.decode(Int.self, forKey: .colorIntensityPercent) {
+            self.colorIntensityPercent = colorIntensityPercent
+        }
     }
 }

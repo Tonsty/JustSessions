@@ -329,7 +329,7 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     }
 
     private func observeAppearance(in store: TerminalAppearanceStore, themeStore: AppThemeStore) {
-        appearanceSubscription = store.$preferences.combineLatest(themeStore.$terminalTheme).sink { [weak self] preferences, theme in
+        appearanceSubscription = store.$terminalPreferences.combineLatest(themeStore.$terminalTheme).sink { [weak self] preferences, theme in
             guard let self else { return }
             appearancePreferences = preferences
             self.theme = theme

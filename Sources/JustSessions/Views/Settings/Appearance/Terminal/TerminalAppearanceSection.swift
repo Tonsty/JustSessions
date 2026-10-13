@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// The terminal part of the Appearance tab: the engine new tabs open with, the color scheme, which matches the app
-/// theme unless set here, its light or dark version, the font, and a preview. Rows of the tab's grid.
+/// theme unless set here, its light or dark version, how strongly its colors show, the font, and a preview. Rows of
+/// the tab's grid.
 struct TerminalAppearanceSection: View {
     @ObservedObject var appearanceStore: TerminalAppearanceStore
     @ObservedObject var engineStore: TerminalEngineStore
@@ -50,6 +51,10 @@ struct TerminalAppearanceSection: View {
             // The theme only matters here for whether the scheme has both versions, and every app theme does.
             .disabled(!appearanceStore.preferences.colorVariants(appTheme: themeStore.resolvedTheme).hasLightAndDarkVersions)
             .help("Picks the light or dark version of color schemes that have both.")
+        }
+        GridRow {
+            Text("Color intensity")
+            TerminalColorIntensitySlider(appearanceStore: appearanceStore)
         }
         GridRow {
             Text("Font")
