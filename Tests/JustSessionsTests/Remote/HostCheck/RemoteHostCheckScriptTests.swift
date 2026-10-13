@@ -53,7 +53,9 @@ struct RemoteHostCheckScriptTests {
             startup: .interactive,
             programs: programs,
             projectPath: root.path,
-            versionTimeoutSeconds: 1
+            // Long enough for the stand-ins that answer at once to start while the whole suite runs in parallel;
+            // `pi`, which sleeps, still runs into it.
+            versionTimeoutSeconds: 3
         )
 
         let started = Date()
