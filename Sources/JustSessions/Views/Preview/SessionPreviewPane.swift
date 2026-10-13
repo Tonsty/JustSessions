@@ -21,7 +21,7 @@ struct SessionPreviewPane: View {
                 ContentUnavailableView(
                     "\(sessionSelection.selectedConversationIDs.count) sessions selected",
                     systemImage: "checklist",
-                    description: Text("Right-click a selected row in the sidebar to resume, branch, or delete them.")
+                    description: Text("Right-click a selected row in the sidebar to resume, branch, end, or delete them.")
                 )
             } else if let conversation = previewedConversation {
                 VStack(spacing: 0) {

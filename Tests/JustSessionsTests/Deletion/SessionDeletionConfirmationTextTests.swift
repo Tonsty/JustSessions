@@ -50,6 +50,26 @@ struct SessionDeletionConfirmationTextTests {
         #expect(SessionDeletionConfirmationText.buttonTitle(for: plan) == expectedTitle)
     }
 
+    /// A selection or project whose running sessions are closed and deleted says so in its button and message.
+    @Test(arguments: [
+        (1, 1, "Close and delete 1 session", "1 session is still running: its tab closes and its CLI ends first."),
+        (4, 3, "Close and delete 4 sessions", "3 sessions are still running: their tabs close and their CLIs end first."),
+    ] as [(Int, Int, String, String)])
+    func deletionThatEndsCLIsFirstSaysHowMany(deletableCount: Int, cliEndingCount: Int, expectedTitle: String, expectedSentence: String) {
+        let plan = SessionDeletionPlan(
+            deletableConversations: (0..<deletableCount).map { _ in .fixture() }, openTerminalCount: 0, cliEndingCount: cliEndingCount
+        )
+        let project = ProjectLocation(host: .thisMac, path: "/Users/me/app")
+        #expect(SessionDeletionConfirmationText.buttonTitle(for: plan) == expectedTitle)
+        #expect(SessionDeletionConfirmationText.message(forDeletingSelectionWith: plan).hasPrefix(expectedSentence + " "))
+        #expect(SessionDeletionConfirmationText.message(forDeletingProjectAt: project, plan: plan).hasPrefix(
+            "This affects all tools in /Users/me/app, including sessions hidden by the current filter. " + expectedSentence + " "
+        ))
+        #expect(SessionDeletionConfirmationText.message(forRemovingSelectedProjectsAt: [project, project], plan: plan).hasPrefix(
+            "This affects all tools in 2 projects, including sessions hidden by the current filter. " + expectedSentence + " "
+        ))
+    }
+
     @Test func projectOnThisMacMentionsTheTrash() {
         let plan = SessionDeletionPlan(deletableConversations: [.fixture()], openTerminalCount: 1)
         let message = SessionDeletionConfirmationText.message(

@@ -80,6 +80,8 @@
 	<string>已选择 %lld 项</string>
 	<key>%lld sessions</key>
 	<string>%lld 个会话</string>
+	<key>%lld sessions are still running: their tabs close and their CLIs end first.</key>
+	<string>有 %lld 个会话仍在运行：会先关闭它们的标签页并结束它们的 CLI。</string>
 	<key>%lld sessions selected</key>
 	<string>已选择 %lld 个会话</string>
 	<key>%lld sessions with open terminals will be skipped.</key>
@@ -100,6 +102,8 @@
 	<string>**⌘N** 可用任一已安装的 CLI 开始会话，或打开普通终端。标签页按项目分组，侧边栏的 **已打开** 会列出全部标签页。右键单击标签页可将两个并排显示。</string>
 	<key>1 message</key>
 	<string>1 条消息</string>
+	<key>1 session is still running: its tab closes and its CLI ends first.</key>
+	<string>有 1 个会话仍在运行：会先关闭它的标签页并结束它的 CLI。</string>
 	<key>1 session with an open terminal will be skipped.</key>
 	<string>将跳过 1 个终端已打开的会话。</string>
 	<key>1 subagent session stays on disk.</key>
@@ -212,8 +216,8 @@
 	<string>归档所选项目</string>
 	<key>Archive selected projects and delete their sessions</key>
 	<string>归档所选项目并删除其会话</string>
-	<key>Archive the selected projects and delete their sessions, except those with open terminals</key>
-	<string>归档所选项目并删除其会话，已打开终端的会话除外</string>
+	<key>Archive the selected projects and delete their sessions, ending those that still run first</key>
+	<string>归档所选项目并删除其会话，仍在运行的会先结束</string>
 	<key>Archive the selected projects; keep sessions and open terminals</key>
 	<string>归档所选项目；保留会话和已打开的终端</string>
 	<key>Archived projects</key>
@@ -332,6 +336,10 @@
 	<string>关闭 %@ 中的所有标签？</string>
 	<key>Close all tabs in group…</key>
 	<string>关闭标签组中的所有标签…</string>
+	<key>Close and delete %lld sessions</key>
+	<string>关闭并删除 %lld 个会话</string>
+	<key>Close and delete 1 session</key>
+	<string>关闭并删除 1 个会话</string>
 	<key>Close and delete session</key>
 	<string>关闭并删除会话</string>
 	<key>Close and delete session…</key>
@@ -520,6 +528,8 @@
 	<string>每台主机各有自己的选项，适用于 CLI 可在该主机的 tmux 中保持运行的标签。终端的 shell 总会随标签一起结束。关闭对话框中的“不再询问”也会设置这些选项。</string>
 	<key>Edit</key>
 	<string>编辑</string>
+	<key>End %lld sessions</key>
+	<string>结束 %lld 个会话</string>
 	<key>End and close this terminal</key>
 	<string>结束并关闭此终端</string>
 	<key>End session</key>
@@ -1052,8 +1062,8 @@
 	<string>反转视图</string>
 	<key>Right view</key>
 	<string>右侧视图</string>
-	<key>Right-click a selected row in the sidebar to resume, branch, or delete them.</key>
-	<string>右键点击侧栏中已选择的条目，以继续、创建分支或删除会话。</string>
+	<key>Right-click a selected row in the sidebar to resume, branch, end, or delete them.</key>
+	<string>右键点击侧栏中已选择的条目，以继续、创建分支、结束或删除会话。</string>
 	<key>Right-click a session to rename, pin, export, or delete it, and a project to rename, pin, or archive it. ⌘-click or ⇧-click selects several.</key>
 	<string>右键单击会话可以重命名、置顶、导出或删除；右键单击项目可以重命名、置顶或归档。按住 ⌘ 或 ⇧ 单击可选择多个。</string>
 	<key>Right-click a session to rename, pin, export, or delete it. ⌘-click or Shift-click to select several at once.</key>
@@ -1228,6 +1238,8 @@
 	<string>停止复制，不会输入任何路径</string>
 	<key>Stop deleting after the current session; the rest stay listed</key>
 	<string>删除当前会话后停止；保留其余会话</string>
+	<key>Stop the running CLIs of the selected sessions; they can be resumed</key>
+	<string>停止所选会话中正在运行的 CLI；之后仍可继续</string>
 	<key>Stopping deletion</key>
 	<string>正在停止删除</string>
 	<key>Stopping…</key>

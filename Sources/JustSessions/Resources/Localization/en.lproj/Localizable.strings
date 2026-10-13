@@ -80,6 +80,8 @@
 	<string>%lld pt</string>
 	<key>%lld selected</key>
 	<string>%lld selected</string>
+	<key>%lld sessions are still running: their tabs close and their CLIs end first.</key>
+	<string>%lld sessions are still running: their tabs close and their CLIs end first.</string>
 	<key>%lld sessions selected</key>
 	<string>%lld sessions selected</string>
 	<key>%lld sessions with open terminals will be skipped.</key>
@@ -100,6 +102,8 @@
 	<string>**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab to show two side by side.</string>
 	<key>1 message</key>
 	<string>1 message</string>
+	<key>1 session is still running: its tab closes and its CLI ends first.</key>
+	<string>1 session is still running: its tab closes and its CLI ends first.</string>
 	<key>1 session with an open terminal will be skipped.</key>
 	<string>1 session with an open terminal will be skipped.</string>
 	<key>1 subagent session stays on disk.</key>
@@ -208,8 +212,8 @@
 	<string>Archive selected projects</string>
 	<key>Archive selected projects and delete their sessions</key>
 	<string>Archive selected projects and delete their sessions</string>
-	<key>Archive the selected projects and delete their sessions, except those with open terminals</key>
-	<string>Archive the selected projects and delete their sessions, except those with open terminals</string>
+	<key>Archive the selected projects and delete their sessions, ending those that still run first</key>
+	<string>Archive the selected projects and delete their sessions, ending those that still run first</string>
 	<key>Archive the selected projects; keep sessions and open terminals</key>
 	<string>Archive the selected projects; keep sessions and open terminals</string>
 	<key>Archived projects</key>
@@ -328,6 +332,8 @@
 	<string>Close all tabs in %@?</string>
 	<key>Close all tabs in group…</key>
 	<string>Close all tabs in group…</string>
+	<key>Close and delete 1 session</key>
+	<string>Close and delete 1 session</string>
 	<key>Close and delete session</key>
 	<string>Close and delete session</string>
 	<key>Close and delete session…</key>
@@ -1038,8 +1044,8 @@
 	<string>Reverse views</string>
 	<key>Right view</key>
 	<string>Right view</string>
-	<key>Right-click a selected row in the sidebar to resume, branch, or delete them.</key>
-	<string>Right-click a selected row in the sidebar to resume, branch, or delete them.</string>
+	<key>Right-click a selected row in the sidebar to resume, branch, end, or delete them.</key>
+	<string>Right-click a selected row in the sidebar to resume, branch, end, or delete them.</string>
 	<key>Right-click a session to rename, pin, export, or delete it, and a project to rename, pin, or archive it. ⌘-click or ⇧-click selects several.</key>
 	<string>Right-click a session to rename, pin, export, or delete it, and a project to rename, pin, or archive it. ⌘-click or ⇧-click selects several.</string>
 	<key>Right-click a session to rename, pin, export, or delete it. ⌘-click or Shift-click to select several at once.</key>
@@ -1206,6 +1212,8 @@
 	<string>Stop copying; nothing is typed</string>
 	<key>Stop deleting after the current session; the rest stay listed</key>
 	<string>Stop deleting after the current session; the rest stay listed</string>
+	<key>Stop the running CLIs of the selected sessions; they can be resumed</key>
+	<string>Stop the running CLIs of the selected sessions; they can be resumed</string>
 	<key>Stopping deletion</key>
 	<string>Stopping deletion</string>
 	<key>Stopping…</key>

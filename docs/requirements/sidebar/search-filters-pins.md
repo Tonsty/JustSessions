@@ -33,6 +33,6 @@
 
 | ID | Requirement | Origin | Related tests |
 | --- | --- | --- | --- |
-| SBF-60 | ⌘-click toggles and Shift-click selects a range of sessions, across projects. Right-clicking a selected row resumes, branches, or deletes all of them; a bar at the bottom also offers Delete. | `d5c9dfc` | `SessionMultiSelectionTests` |
+| SBF-60 | ⌘-click toggles and Shift-click selects a range of sessions, across projects. Right-clicking a selected row resumes, branches, ends, or deletes all of them; a bar at the bottom also offers Delete, and End while any of them runs. Ending skips sessions nothing runs and doesn't ask first, as End session from one row doesn't. | `d5c9dfc` | `SessionMultiSelectionTests`, `SessionEndingAcrossWindowsTests` |
 | SBF-61 | Projects can be multi-selected the same way, then archived (with or without deleting their sessions) from the bottom bar or a selected project's menu. A project's arrow expands or collapses it without changing the selection. | `e53fdf3`, `73cc919` | `ProjectMultiSelectionTests`, `SidebarProjectBatchRemovalTests` |
 | SBF-62 | Clicking empty sidebar space, or Escape while the sidebar has focus, cancels a batch selection; a single session's conversation stays open. | `36f23f8` | `SessionMultiSelectionTests` |

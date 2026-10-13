@@ -76,6 +76,7 @@ struct ProjectSessionDeletionTests {
         #expect(store.errorMessage == nil)
     }
 
+    /// A running session's CLI is ended first, as Close and delete does, so it goes too.
     @Test @MainActor func projectRemovalDeletesItsSessionsAndRemovesItFromTheSidebar() async throws {
         let temporaryDirectory = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
@@ -90,11 +91,13 @@ struct ProjectSessionDeletionTests {
         store.refreshThisMac()
         try await expectEventually { !store.isScanningThisMac }
         store.tmuxSessionNamesByHost[.thisMac] = [TmuxSessionName.forConversation(runningOpenCode)]
+        #expect(store.deletionPlan(for: removedProject.path).cliEndingCount == 1)
 
         store.deleteSessionsAndRemoveProject(removedProject.path)
-        try await expectEventually { !store.isDeletingSessions }
+        #expect(!store.isRunningInTmux(runningOpenCode))
+        try await expectEventually { store.conversations.map(\.id) == [otherClaude.id] && !store.isDeletingSessions }
         #expect(!FileManager.default.fileExists(atPath: removedClaude.sourceFile.path))
-        #expect(FileManager.default.fileExists(atPath: runningOpenCode.sourceFile.path))
+        #expect(!FileManager.default.fileExists(atPath: runningOpenCode.sourceFile.path))
         #expect(FileManager.default.fileExists(atPath: otherClaude.sourceFile.path))
         #expect(FileManager.default.fileExists(atPath: removedProject.path))
         #expect(store.sidebarProjectGroups.map(\.id) == [otherProject.path])
@@ -110,15 +113,17 @@ struct ProjectSessionDeletionTests {
         defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
         let isolatedUserDefaults = try IsolatedUserDefaults()
         defer { isolatedUserDefaults.removeSuite() }
-        let project = try makeProject("running-only", in: temporaryDirectory)
-        let running = try savedConversation(.opencode, project: project, in: temporaryDirectory)
-        let store = makeStore(listing: [running], userDefaults: isolatedUserDefaults.userDefaults)
+        let project = try makeProject("already-deleting", in: temporaryDirectory)
+        let conversation = try savedConversation(.opencode, project: project, in: temporaryDirectory)
+        let store = makeStore(listing: [conversation], userDefaults: isolatedUserDefaults.userDefaults)
         store.refreshThisMac()
         try await expectEventually { !store.isScanningThisMac }
-        store.tmuxSessionNamesByHost[.thisMac] = [TmuxSessionName.forConversation(running)]
+        // Its deletion waits for the host's refresh, so it is already being deleted.
+        store.hostRefreshStatuses[.thisMac] = .refreshing
+        store.deleteConversations([conversation])
+        #expect(store.isDeletionPending(for: conversation))
 
         store.deleteSessionsAndRemoveProject(project.path)
-        #expect(!store.isDeletingSessions)
         #expect(store.sidebarProjectGroups.map(\.id) == [project.path])
     }
 

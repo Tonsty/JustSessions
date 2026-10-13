@@ -532,6 +532,16 @@
         }
       }
     },
+    "%lld sessions are still running: their tabs close and their CLIs end first.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有 %lld 个会话仍在运行：会先关闭它们的标签页并结束它们的 CLI。"
+          }
+        }
+      }
+    },
     "%lld sessions selected": {
       "localizations": {
         "zh-Hans": {
@@ -628,6 +638,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "1 条消息"
+          }
+        }
+      }
+    },
+    "1 session is still running: its tab closes and its CLI ends first.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有 1 个会话仍在运行：会先关闭它的标签页并结束它的 CLI。"
           }
         }
       }
@@ -1213,12 +1233,12 @@
         }
       }
     },
-    "Archive the selected projects and delete their sessions, except those with open terminals": {
+    "Archive the selected projects and delete their sessions, ending those that still run first": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "归档所选项目并删除其会话，已打开终端的会话除外"
+            "value": "归档所选项目并删除其会话，仍在运行的会先结束"
           }
         }
       }
@@ -1830,6 +1850,44 @@
           "stringUnit": {
             "state": "translated",
             "value": "关闭标签组中的所有标签…"
+          }
+        }
+      }
+    },
+    "Close and delete %lld sessions": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Close and delete %lld session"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Close and delete %lld sessions"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭并删除 %lld 个会话"
+          }
+        }
+      }
+    },
+    "Close and delete 1 session": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭并删除 1 个会话"
           }
         }
       }
@@ -2780,6 +2838,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "编辑"
+          }
+        }
+      }
+    },
+    "End %lld sessions": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "End %lld session"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "End %lld sessions"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束 %lld 个会话"
           }
         }
       }
@@ -5503,12 +5589,12 @@
         }
       }
     },
-    "Right-click a selected row in the sidebar to resume, branch, or delete them.": {
+    "Right-click a selected row in the sidebar to resume, branch, end, or delete them.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "右键点击侧栏中已选择的条目，以继续、创建分支或删除会话。"
+            "value": "右键点击侧栏中已选择的条目，以继续、创建分支、结束或删除会话。"
           }
         }
       }
@@ -6415,6 +6501,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "删除当前会话后停止；保留其余会话"
+          }
+        }
+      }
+    },
+    "Stop the running CLIs of the selected sessions; they can be resumed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止所选会话中正在运行的 CLI；之后仍可继续"
           }
         }
       }

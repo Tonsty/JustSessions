@@ -33,6 +33,29 @@ struct SessionEndingAcrossWindowsTests {
         #expect(!sandbox.second.isRunningInTmux(sandbox.conversation))
     }
 
+    /// Ending a multi-selection ends the sessions that run, in a tab of either window or in tmux, and skips the rest.
+    @Test func endingSelectedSessionsEndsEachOneThatRuns() throws {
+        let sandbox = try TwoWindowSandbox(sessionCount: 4)
+        let (inFirstWindow, inSecondWindow, inTmux, notRunning) =
+            (sandbox.conversations[0], sandbox.conversations[1], sandbox.conversations[2], sandbox.conversations[3])
+        defer { sandbox.tearDown() }
+        _ = try #require(sandbox.openTab(of: inFirstWindow, in: sandbox.first))
+        _ = try #require(sandbox.openTab(of: inSecondWindow, in: sandbox.second))
+        let tmuxSessionName = TmuxSessionName.forConversation(inTmux)
+        for store in [sandbox.first, sandbox.second] { store.setTmuxSessionNames([tmuxSessionName], on: .thisMac) }
+        #expect(sandbox.second.canEndSession(inTmux))
+        #expect(!sandbox.second.canEndSession(notRunning))
+
+        sandbox.second.endSessions(sandbox.conversations)
+
+        #expect(sandbox.first.terminalSessions.isEmpty)
+        #expect(sandbox.second.terminalSessions.isEmpty)
+        for store in [sandbox.first, sandbox.second] {
+            #expect(!store.isRunningInTmux(inTmux))
+            #expect(!sandbox.conversations.contains(where: store.canEndSession))
+        }
+    }
+
     @Test func aSessionNothingRunsCannotBeEnded() throws {
         let sandbox = try TwoWindowSandbox()
         defer { sandbox.tearDown() }

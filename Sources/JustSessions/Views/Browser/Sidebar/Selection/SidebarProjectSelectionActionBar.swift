@@ -27,7 +27,7 @@ struct SidebarProjectSelectionActionBar: View {
             }
             .buttonStyle(QuietBorderedButtonStyle())
             .controlSize(.small)
-            .help("Archive the selected projects and delete their sessions, except those with open terminals")
+            .help("Archive the selected projects and delete their sessions, ending those that still run first")
             .accessibilityLabel("Archive selected projects and delete their sessions")
         }
         .padding(.horizontal, 18)
