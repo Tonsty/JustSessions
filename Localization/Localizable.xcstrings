@@ -446,16 +446,6 @@
         }
       }
     },
-    "%lld of them are still running: their tabs close and their CLIs end first.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "其中 %lld 个仍在运行：会先关闭它们的标签页并结束它们的 CLI。"
-          }
-        }
-      }
-    },
     "%lld points": {
       "localizations": {
         "zh-Hans": {
@@ -538,6 +528,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld 个会话"
+          }
+        }
+      }
+    },
+    "%lld sessions are still running: their tabs close and their CLIs end first.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有 %lld 个会话仍在运行：会先关闭它们的标签页并结束它们的 CLI。"
           }
         }
       }
@@ -642,12 +642,12 @@
         }
       }
     },
-    "1 of them is still running: its tab closes and its CLI ends first.": {
+    "1 session is still running: its tab closes and its CLI ends first.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "其中 1 个仍在运行：会先关闭它的标签页并结束它的 CLI。"
+            "value": "有 1 个会话仍在运行：会先关闭它的标签页并结束它的 CLI。"
           }
         }
       }
@@ -1233,12 +1233,12 @@
         }
       }
     },
-    "Archive the selected projects and delete their sessions, except those with open terminals": {
+    "Archive the selected projects and delete their sessions, ending those that still run first": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "归档所选项目并删除其会话，已打开终端的会话除外"
+            "value": "归档所选项目并删除其会话，仍在运行的会先结束"
           }
         }
       }

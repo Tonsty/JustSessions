@@ -19,15 +19,19 @@ extension ConversationStore {
         endCLIs(of: [conversation], remoteRunner: remoteRunner) { $0.delete(conversation) }
     }
 
-    /// Delete for a multi-selection: closes the tabs and ends the CLIs of the selected sessions that run, as Close and
-    /// delete does, then deletes every deletable selected session in one deletion.
+    /// Delete for a multi-selection or a project: deletes the sessions nothing runs at once, and closes the tabs and
+    /// ends the CLIs of the others, as Close and delete does, deleting them once their CLIs have exited. They join
+    /// the first deletion while it still runs.
     func closeAndDeleteConversations(
         _ candidateConversations: [Conversation],
         remoteRunner: RemoteHostCommandRunner = RemoteHostCommandRunner()
     ) {
         let deletable = deletionPlan(for: candidateConversations, endingTheirCLIs: true).deletableConversations
         let running = deletable.filter { cliEndingBeforeDeletion(of: $0) != nil }
-        endCLIs(of: running, remoteRunner: remoteRunner) { $0.deleteConversations(deletable) }
+        let runningIDs = Set(running.map(\.id))
+        deleteConversations(deletable.filter { !runningIDs.contains($0.id) })
+        guard !running.isEmpty else { return }
+        endCLIs(of: running, remoteRunner: remoteRunner) { $0.deleteConversations(running) }
     }
 
     /// Closes the sessions' tabs in every window and ends their CLIs, then, once the CLIs have exited, runs `delete`.

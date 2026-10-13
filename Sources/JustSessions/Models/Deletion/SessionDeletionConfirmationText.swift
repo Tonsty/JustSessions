@@ -43,11 +43,11 @@ enum SessionDeletionConfirmationText {
         }
     }
 
-    private static func cliEndingSentence(forSessionCount count: Int, language: AppInterfaceLanguage) -> String? {
-        switch count {
+    static func cliEndingSentence(for plan: SessionDeletionPlan, language: AppInterfaceLanguage) -> String? {
+        switch plan.cliEndingCount {
         case 0: nil
-        case 1: AppLocalization.string("1 of them is still running: its tab closes and its CLI ends first.", language: language)
-        default: AppLocalization.string("\(count) of them are still running: their tabs close and their CLIs end first.", language: language)
+        case 1: AppLocalization.string("1 session is still running: its tab closes and its CLI ends first.", language: language)
+        default: AppLocalization.string("\(plan.cliEndingCount) sessions are still running: their tabs close and their CLIs end first.", language: language)
         }
     }
 
@@ -74,7 +74,7 @@ enum SessionDeletionConfirmationText {
     /// With a plan made for Close and delete, first says how many of the sessions have their CLIs ended.
     static func message(forDeletingSelectionWith plan: SessionDeletionPlan, language: AppInterfaceLanguage = AppLocalization.developmentLanguage) -> String {
         joined([
-            cliEndingSentence(forSessionCount: plan.cliEndingCount, language: language),
+            cliEndingSentence(for: plan, language: language),
             AppLocalization.string("Claude Code, Antigravity, and Pi sessions on this Mac move to the Trash. Codex, Kiro CLI, and OpenCode sessions and all sessions on SSH hosts are permanently deleted.", language: language),
         ] + subagentSentences(for: plan, language: language) + [
             skippedSessionsSentence(for: plan, language: language),
@@ -89,6 +89,7 @@ enum SessionDeletionConfirmationText {
     ) -> String {
         joined([
             AppLocalization.string("This affects all tools in \(location.copyablePath), including sessions hidden by the current filter.", language: language),
+            cliEndingSentence(for: plan, language: language),
             removesProjectFromSidebar
                 ? AppLocalization.string("The project will be archived; skipped sessions stay on disk and come back when it is restored.", language: language)
                 : AppLocalization.string("The project will stay in the sidebar.", language: language),

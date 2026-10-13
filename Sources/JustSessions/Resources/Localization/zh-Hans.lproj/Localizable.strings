@@ -70,8 +70,6 @@
 	<string>还有 %lld 个标签页</string>
 	<key>%lld of %lld</key>
 	<string>%lld / %lld</string>
-	<key>%lld of them are still running: their tabs close and their CLIs end first.</key>
-	<string>其中 %lld 个仍在运行：会先关闭它们的标签页并结束它们的 CLI。</string>
 	<key>%lld points</key>
 	<string>%lld 磅</string>
 	<key>%lld projects selected</key>
@@ -82,6 +80,8 @@
 	<string>已选择 %lld 项</string>
 	<key>%lld sessions</key>
 	<string>%lld 个会话</string>
+	<key>%lld sessions are still running: their tabs close and their CLIs end first.</key>
+	<string>有 %lld 个会话仍在运行：会先关闭它们的标签页并结束它们的 CLI。</string>
 	<key>%lld sessions selected</key>
 	<string>已选择 %lld 个会话</string>
 	<key>%lld sessions with open terminals will be skipped.</key>
@@ -102,8 +102,8 @@
 	<string>**⌘N** 可用任一已安装的 CLI 开始会话，或打开普通终端。标签页按项目分组，侧边栏的 **已打开** 会列出全部标签页。右键单击标签页可将两个并排显示。</string>
 	<key>1 message</key>
 	<string>1 条消息</string>
-	<key>1 of them is still running: its tab closes and its CLI ends first.</key>
-	<string>其中 1 个仍在运行：会先关闭它的标签页并结束它的 CLI。</string>
+	<key>1 session is still running: its tab closes and its CLI ends first.</key>
+	<string>有 1 个会话仍在运行：会先关闭它的标签页并结束它的 CLI。</string>
 	<key>1 session with an open terminal will be skipped.</key>
 	<string>将跳过 1 个终端已打开的会话。</string>
 	<key>1 subagent session stays on disk.</key>
@@ -216,8 +216,8 @@
 	<string>归档所选项目</string>
 	<key>Archive selected projects and delete their sessions</key>
 	<string>归档所选项目并删除其会话</string>
-	<key>Archive the selected projects and delete their sessions, except those with open terminals</key>
-	<string>归档所选项目并删除其会话，已打开终端的会话除外</string>
+	<key>Archive the selected projects and delete their sessions, ending those that still run first</key>
+	<string>归档所选项目并删除其会话，仍在运行的会先结束</string>
 	<key>Archive the selected projects; keep sessions and open terminals</key>
 	<string>归档所选项目；保留会话和已打开的终端</string>
 	<key>Archived projects</key>

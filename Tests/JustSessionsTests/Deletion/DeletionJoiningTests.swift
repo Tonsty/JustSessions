@@ -102,13 +102,13 @@ struct DeletionJoiningTests {
         store.tmuxSessionNamesByHost[.thisMac] = [TmuxSessionName.forConversation(running)]
 
         let selectedProjects: Set<String> = [firstProject.path, runningOnlyProject.path]
-        #expect(store.deletionPlan(forProjects: selectedProjects).deletableConversations.map(\.id) == [deleted.id])
+        #expect(Set(store.deletionPlan(forProjects: selectedProjects).deletableConversations.map(\.id)) == [deleted.id, running.id])
         store.deleteSessionsAndRemoveProjects(selectedProjects)
         #expect(store.sidebarProjectGroups.map(\.id) == [otherProject.path])
-        try await expectEventually { !store.isDeletingSessions }
+        try await expectEventually { store.conversations.map(\.id) == [kept.id] && !store.isDeletingSessions }
 
-        #expect(!sandbox.fileExists(for: deleted))
-        #expect(sandbox.fileExists(for: running) && sandbox.fileExists(for: kept))
+        #expect(!sandbox.fileExists(for: deleted) && !sandbox.fileExists(for: running))
+        #expect(sandbox.fileExists(for: kept))
         #expect(Set(store.archivedProjectPaths) == selectedProjects)
     }
 

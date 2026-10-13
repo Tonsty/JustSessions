@@ -390,8 +390,9 @@ final class ConversationStore {
         deletionPlan(forProjects: [projectPath])
     }
 
+    /// A project's sessions are deleted as Close and delete does: those that run have their CLIs ended first.
     func deletionPlan(forProjects projectPaths: Set<String>) -> SessionDeletionPlan {
-        deletionPlan(for: conversations.filter { projectPaths.contains($0.projectDirectoryKey) })
+        deletionPlan(for: conversations.filter { projectPaths.contains($0.projectDirectoryKey) }, endingTheirCLIs: true)
     }
 
     /// Sessions already being deleted, or waiting to be, are left out: they are not deleted twice. So are subagents'
@@ -423,7 +424,7 @@ final class ConversationStore {
     }
 
     func deleteSessions(in projectPath: String) {
-        deleteConversations(conversations.filter { $0.projectDirectoryKey == projectPath })
+        closeAndDeleteConversations(conversations.filter { $0.projectDirectoryKey == projectPath })
     }
 
     /// Deletes every conversation in the list except those with open terminals and those already being deleted.

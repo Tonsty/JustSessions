@@ -32,6 +32,7 @@ extension SessionDeletionConfirmationText {
         }
         let sentences: [String?] = [
             AppLocalization.string("This affects all tools in \(locations.count) projects, including sessions hidden by the current filter.", language: language),
+            cliEndingSentence(for: plan, language: language),
             AppLocalization.string("The projects will be archived; skipped sessions stay on disk and come back when they are restored.", language: language),
             deletionSentence,
         ] + subagentSentences(for: plan, language: language) + [
