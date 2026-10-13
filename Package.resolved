@@ -1,5 +1,5 @@
 {
-  "originHash" : "3dd0bce996704437887d3206c5b01972a5385825eefa9bddc6ba8b0e196dd104",
+  "originHash" : "0a008e590ea1fbfaeab398da589831547de3efb26ea49bd2e5d09bcd56acc1d2",
   "pins" : [
     {
       "identity" : "cucumberswift",
@@ -31,10 +31,10 @@
     {
       "identity" : "libghostty-spm",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Lakr233/libghostty-spm.git",
+      "location" : "https://github.com/yangzichao/libghostty-spm.git",
       "state" : {
-        "revision" : "d139d99a5b10ab45a0a0704d4c1fb1d595710837",
-        "version" : "2.2.2026100901"
+        "revision" : "9747e8caa796ac97d80b0779b814eb8cf7484642",
+        "version" : "2.2.2026100901-justsessions.2"
       }
     },
     {

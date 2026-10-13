@@ -29,11 +29,4 @@ final class TerminalImagePaste {
         if let image = TerminalClipboardImage(pasteboard: pasteboard) { copyToHost(image) }
         return .sendNothing
     }
-
-    /// ⌘V, the Edit menu's Paste, on whichever key types V on the keyboard's layout.
-    static func isPasteKey(_ event: NSEvent) -> Bool {
-        event.type == .keyDown
-            && event.modifierFlags.intersection([.shift, .control, .option, .command]) == .command
-            && event.charactersIgnoringModifiers?.lowercased() == "v"
-    }
 }
