@@ -1,7 +1,9 @@
 /// A raw-input CLI stand-in. Terminal initialization can deliver device-attribute replies before user keys: tmux passes
 /// a reply that comes after it stopped waiting, 5 seconds after it attached, on to the pane, as when the main thread is
 /// busy while a test opens the tab. Recognize those replies as a real terminal program does: `CSI ? … c`, `CSI > … c`,
-/// and Ghostty's version (`DCS > | … ST`). Record every other byte unchanged.
+/// and Ghostty's version (`DCS > | … ST`). Record every other byte unchanged, until `KEY_BYTE_COUNT` bytes, 8 unless set.
+/// With `ASKS_FOR_EXTENDED_KEYS` set, first ask for keyboard modes as Codex does: modifyOtherKeys 2, which tmux takes,
+/// and the kitty keyboard protocol, which tmux ignores.
 enum TmuxKeyboardReaderFixture {
     static let script = #"""
         #!/usr/bin/python3
@@ -11,13 +13,16 @@ enum TmuxKeyboardReaderFixture {
         import tty
 
         tty.setraw(0)
+        if os.environ.get("ASKS_FOR_EXTENDED_KEYS"):
+            os.write(1, b"\x1b[>4;2m\x1b[>7u")
+        byte_count = int(os.environ.get("KEY_BYTE_COUNT", "8"))
         key_log = pathlib.Path(os.environ["KEY_LOG"])
         key_log.write_bytes(b"")
         pathlib.Path(os.environ["READY_MARKER"]).write_text("")
         os.write(1, b"KEY_READER_READY")
 
         recorded = bytearray()
-        while len(recorded) < 8:
+        while len(recorded) < byte_count:
             first = os.read(0, 1)
             if not first:
                 raise SystemExit("terminal closed before the keys arrived")
