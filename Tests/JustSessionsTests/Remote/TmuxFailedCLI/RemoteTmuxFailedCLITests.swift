@@ -10,10 +10,10 @@ struct RemoteTmuxFailedCLITests {
         guard let tmuxDirectory = TmuxSandbox.installedTmuxDirectory else { return }
         let sandbox = try TmuxSandbox(tmuxDirectory: tmuxDirectory)
         defer { sandbox.tearDown() }
-        try sandbox.addProgram(named: "claude-fails", script: "echo Starting; echo 'env: node: No such file or directory' >&2; exit 127")
+        try sandbox.replaceCLI(withScript: "#!/bin/sh\necho Starting\necho 'env: node: No such file or directory' >&2\nexit 127\n")
         let tmuxName = TmuxSessionName.unique(for: .claude)
 
-        let client = try sandbox.runClient(tabCommand(sandbox, tmuxName, cli: "claude-fails"))
+        let client = try sandbox.runClient(tabCommand(sandbox, tmuxName))
 
         #expect(client.exitStatus == 127)
         // What the tab shows once tmux has given its screen back.
@@ -28,9 +28,10 @@ struct RemoteTmuxFailedCLITests {
         guard let tmuxDirectory = TmuxSandbox.installedTmuxDirectory else { return }
         let sandbox = try TmuxSandbox(tmuxDirectory: tmuxDirectory)
         defer { sandbox.tearDown() }
+        try sandbox.makeCLIExitAtOnce()
         let tmuxName = TmuxSessionName.unique(for: .claude)
 
-        let client = try sandbox.runClient(tabCommand(sandbox, tmuxName, cli: "claude-once"))
+        let client = try sandbox.runClient(tabCommand(sandbox, tmuxName))
 
         #expect(client.exitStatus == 0)
         #expect(sandbox.launchCount == 1)
@@ -42,10 +43,10 @@ struct RemoteTmuxFailedCLITests {
         guard let tmuxDirectory = TmuxSandbox.installedTmuxDirectory else { return }
         let sandbox = try TmuxSandbox(tmuxDirectory: tmuxDirectory)
         defer { sandbox.tearDown() }
-        try sandbox.addProgram(named: "claude-fails-later", script: #"while [ ! -e "$HOME/fail-now" ]; do sleep 0.1; done; exit 3"#)
+        try sandbox.replaceCLI(withScript: #"#!/bin/sh\#nwhile [ ! -e "$HOME/fail-now" ]; do sleep 0.1; done; exit 3\#n"#)
         let tmuxName = TmuxSessionName.unique(for: .claude)
 
-        let client = try sandbox.startClient(tabCommand(sandbox, tmuxName, cli: "claude-fails-later"))
+        let client = try sandbox.startClient(tabCommand(sandbox, tmuxName))
         #expect(sandbox.waitUntil { sandbox.hasTmuxSession(tmuxName) })
         client.terminate()
         client.waitUntilExit()
@@ -65,19 +66,19 @@ struct RemoteTmuxFailedCLITests {
         _ = sandbox.run("tmux new-session -d -s \(ShellQuoting.quoted(tmuxName)) 'exit 3' \\; set-option -w remain-on-exit failed")
         #expect(sandbox.waitUntil { sandbox.run("tmux display-message -p -t \(target) '#{pane_dead}'") == "1\n" })
 
-        let client = try sandbox.startClient(tabCommand(sandbox, tmuxName, cli: "claude"))
+        let client = try sandbox.startClient(tabCommand(sandbox, tmuxName))
         defer { client.terminate() }
 
         #expect(sandbox.waitUntil { sandbox.launchCount == 1 })
         #expect(sandbox.run("tmux display-message -p -t \(target) '#{pane_dead}'") == "0\n")
     }
 
-    private func tabCommand(_ sandbox: TmuxSandbox, _ tmuxName: String, cli: String) -> String {
+    private func tabCommand(_ sandbox: TmuxSandbox, _ tmuxName: String) -> String {
         RemoteCLICommandBuilder.remoteCommand(
             provider: .claude,
             projectPath: sandbox.project.path,
             arguments: ["--resume", "abc"],
             tmuxSessionName: tmuxName
-        ).replacingOccurrences(of: "exec claude", with: "exec \(cli)")
+        )
     }
 }
