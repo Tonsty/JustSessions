@@ -3,6 +3,7 @@ import SwiftUI
 /// The General tab of Settings: interface language, what the app does at startup, what closing a tab does, whether the
 /// sidebar lists subagents, and when it notifies you; then the installed versions, software updates, and feedback.
 struct GeneralSettingsView: View {
+    let hosts: [SessionHost]
     @ObservedObject var languageStore: AppLanguageStore
     let tabReopeningSettingsStore: TabReopeningSettingsStore
     let launchAtLoginSettingsStore: LaunchAtLoginSettingsStore
@@ -37,6 +38,7 @@ struct GeneralSettingsView: View {
             ThemeDivider()
 
             TabClosingSettingsSection(
+                hosts: hosts,
                 tabCloseChoiceSettingsStore: tabCloseChoiceSettingsStore,
                 plainTerminalCloseChoiceSettingsStore: plainTerminalCloseChoiceSettingsStore
             )

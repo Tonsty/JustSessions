@@ -16,7 +16,7 @@
 | --- | --- | --- | --- |
 | SET-20 | Interface language: Follow System (default), English, or Chinese; unmatched system languages fall back to English. | `77bdca4` | `AppLanguageStoreTests`, `AppLanguageEnvironmentTests` |
 | SET-21 | Startup: reopen tabs at launch (default on) and launch at login (optional). | `3c634a3`, `110fd5d`, `f333697` | `TabReopeningSettingsStoreTests`, `LaunchAtLoginSettingsStoreTests` |
-| SET-22 | Notifications: one switch per kind (ACT-43). Closing tabs: a picker for CLI tabs and one for plain terminals (TMX-21). Sidebar: show subagents (DSC-08, default off). | `33931f7`, `e5f95f4`, `2ff2669`, `23c4377` | `SessionNotificationPreferencesTests`, `TabCloseChoiceSettingsStoreTests`, `SidebarSubagentVisibilityTests` |
+| SET-22 | Notifications: one switch per kind (ACT-43). Closing tabs: a CLI tab picker for each host, This Mac first, and one for plain terminals (TMX-21). Sidebar: show subagents (DSC-08, default off). | `33931f7`, `e5f95f4`, `2ff2669`, `23c4377`, `9aabe60` | `SessionNotificationPreferencesTests`, `TabCloseChoiceSettingsStoreTests`, `SidebarSubagentVisibilityTests` |
 | SET-23 | Software update settings and About sit at the end of General: app and macOS versions, Check for updates, Release notes, Send feedback, Report an issue, Website, and GitHub. Release notes open under General with a back button, not as a page of their own. | `e619195`, `1ee0af5`, `603eec3`, `7e21d0d` | `AppReleaseHistoryTests`, `FeedbackLinksTests` |
 
 ## Appearance

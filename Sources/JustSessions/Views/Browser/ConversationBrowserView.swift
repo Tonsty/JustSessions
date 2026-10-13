@@ -157,7 +157,7 @@ struct ConversationBrowserView: View {
             HostCheckSheet(store: store, presentedState: state)
         }
         .dismissesOnClickOutside(item: hostCheckBinding)
-        .showsAppWideSheets($appWideSheet, onCheckForUpdates: { updateManager.checkForUpdates() })
+        .showsAppWideSheets($appWideSheet, hosts: store.hosts, onCheckForUpdates: { updateManager.checkForUpdates() })
         .modifier(WorkspaceTabActionsValue(
             store: store,
             isEnabled: workspaceTabCommandsEnabled,
@@ -186,7 +186,7 @@ struct ConversationBrowserView: View {
     /// A tab still waiting to be shown runs nothing, so it closes without asking what to do with its CLI; so does a tab
     /// whose CLI or shell already ended, which also ends the dead tmux session that kept a failed CLI's output. A tab
     /// whose CLI can keep running in tmux, or a plain terminal, closes without asking too once you chose Don't ask
-    /// again, doing what you chose.
+    /// again, doing what you chose: for that tab's host, or for every plain terminal.
     private func requestClosingTerminal(_ id: UUID?) {
         guard let id, let closingTab = store.terminalSessions.first(where: { $0.id == id }) else { return }
         switch closingTab.closingNeed {
@@ -195,7 +195,8 @@ struct ConversationBrowserView: View {
         case .alreadyEnded:
             store.closeTerminal(id, endingTmuxSession: true)
         case .canKeepCLIRunning:
-            if let endsTmuxSession = TabCloseChoiceSettingsStore.shared.choice.endsTmuxSessionWithoutAsking {
+            let savedChoice = TabCloseChoiceSettingsStore.shared.choice(for: closingTab.host)
+            if let endsTmuxSession = savedChoice.endsTmuxSessionWithoutAsking {
                 store.closeTerminal(id, endingTmuxSession: endsTmuxSession)
             } else {
                 closingTerminalID = id
@@ -216,11 +217,11 @@ struct ConversationBrowserView: View {
         }
         let question = store.closingQuestion(
             forTabs: tabIDs,
-            tabCloseChoice: TabCloseChoiceSettingsStore.shared.choice,
+            tabCloseChoices: TabCloseChoiceSettingsStore.shared.choices,
             plainTerminalCloseChoice: PlainTerminalCloseChoiceSettingsStore.shared.choice
         )
-        if case .closeWithoutAsking(let endingTmuxSessions) = question {
-            store.closeTabs(tabIDs, endingTmuxSessions: endingTmuxSessions)
+        if question == .closeWithoutAsking {
+            store.closeTabs(tabIDs, as: TabCloseChoiceSettingsStore.shared.choices)
         } else {
             closingTabGroup = TabGroupClosingRequest(projectName: projectName, tabIDs: tabIDs, question: question)
         }

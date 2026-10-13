@@ -6719,16 +6719,6 @@
         }
       }
     },
-    "The CLI tab choice is for tabs whose CLI can keep running in tmux. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CLI 标签的选项适用于 CLI 可在 tmux 中保持运行的标签。终端的 shell 总会随标签一起结束。关闭对话框中的“不再询问”也会设置这些选项。"
-          }
-        }
-      }
-    },
     "The CLIs and shells running in them will stop.": {
       "localizations": {
         "zh-Hans": {
@@ -7690,6 +7680,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "创建文件夹并打开终端"
+          }
+        }
+      }
+    },
+    "Each host has its own choice for tabs whose CLI can keep running in tmux there. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每台主机各有自己的选项，适用于 CLI 可在该主机的 tmux 中保持运行的标签。终端的 shell 总会随标签一起结束。关闭对话框中的“不再询问”也会设置这些选项。"
+          }
+        }
+      }
+    },
+    "Don't ask again on %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 %@ 上不再询问"
           }
         }
       }
