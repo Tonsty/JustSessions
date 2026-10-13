@@ -19,6 +19,8 @@ struct TerminalWorkspaceView: View {
     let onFocus: () -> Void
     /// Builds the menu a right-click on the terminal shows, with the link under the pointer, if any.
     let makeContextMenu: (_ linkUnderPointer: String?) -> NSMenu
+    /// Does what ⌘-clicking a link in the terminal does.
+    let onOpenLink: (_ link: String) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -35,7 +37,8 @@ struct TerminalWorkspaceView: View {
                 isShown: isShown,
                 isActive: isActive,
                 onFocus: onFocus,
-                makeContextMenu: makeContextMenu
+                makeContextMenu: makeContextMenu,
+                onOpenLink: onOpenLink
             )
                 .id(session.id)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

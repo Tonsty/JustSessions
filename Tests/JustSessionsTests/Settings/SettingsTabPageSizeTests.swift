@@ -20,6 +20,8 @@ struct SettingsTabPageSizeTests {
                 launchAtLoginSettingsStore: LaunchAtLoginSettingsStore(),
                 tabCloseChoiceSettingsStore: TabCloseChoiceSettingsStore(userDefaults: settings.userDefaults),
                 plainTerminalCloseChoiceSettingsStore: PlainTerminalCloseChoiceSettingsStore(userDefaults: settings.userDefaults),
+                fileLinkClickSettingsStore: FileLinkClickSettingsStore(userDefaults: settings.userDefaults),
+                editorStore: ExternalEditorStore { _ in nil },
                 notificationSettingsStore: SessionNotificationSettingsStore(userDefaults: settings.userDefaults),
                 onCheckForUpdates: {}
             ))),

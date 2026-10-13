@@ -4,7 +4,7 @@ import SwiftUI
 enum SettingsTabPageMetrics {
     /// Fits the Permissions page, and the General page with This Mac and one SSH host, without scrolling. Each further
     /// SSH host adds a row to General, which then scrolls, as the much taller Appearance page does.
-    static let size = CGSize(width: 540, height: 665)
+    static let size = CGSize(width: 540, height: 700)
     static let contentPadding: CGFloat = 24
 }
 

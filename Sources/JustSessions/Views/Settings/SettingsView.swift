@@ -11,6 +11,8 @@ struct SettingsView: View {
     let launchAtLoginSettingsStore: LaunchAtLoginSettingsStore
     let tabCloseChoiceSettingsStore: TabCloseChoiceSettingsStore
     let plainTerminalCloseChoiceSettingsStore: PlainTerminalCloseChoiceSettingsStore
+    let fileLinkClickSettingsStore: FileLinkClickSettingsStore
+    let editorStore: ExternalEditorStore
     let appAppearanceStore: AppAppearanceStore
     let appThemeStore: AppThemeStore
     let terminalAppearanceStore: TerminalAppearanceStore
@@ -41,6 +43,8 @@ struct SettingsView: View {
                         launchAtLoginSettingsStore: launchAtLoginSettingsStore,
                         tabCloseChoiceSettingsStore: tabCloseChoiceSettingsStore,
                         plainTerminalCloseChoiceSettingsStore: plainTerminalCloseChoiceSettingsStore,
+                        fileLinkClickSettingsStore: fileLinkClickSettingsStore,
+                        editorStore: editorStore,
                         notificationSettingsStore: notificationSettingsStore,
                         onCheckForUpdates: onCheckForUpdates
                     )

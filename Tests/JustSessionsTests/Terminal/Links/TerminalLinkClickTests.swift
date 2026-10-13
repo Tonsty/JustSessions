@@ -3,7 +3,7 @@ import Testing
 @testable import JustSessions
 
 /// A ⌘-click on a link reaches the tab the same way whichever engine draws its terminal: as the link's text, which
-/// `TerminalLinkOpener` then opens.
+/// `TerminalLinkActions+Click` then acts on.
 @MainActor
 @Suite(.serialized)
 struct TerminalLinkClickTests {

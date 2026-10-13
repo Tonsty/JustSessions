@@ -65,19 +65,11 @@ struct TerminalContextMenu {
         AppLocalization.string(value, language: language)
     }
 
-    /// A menu whose items are enabled or not as they were built. AppKit's own check would turn every item on, since
-    /// each one can always run its action.
     func makeMenu(title: String = "", items: [NSMenuItem]) -> NSMenu {
-        let menu = NSMenu(title: title)
-        menu.autoenablesItems = false
-        menu.items = items
-        return menu
+        ActionMenu.make(title: title, items: items)
     }
 
     func submenuItem(title: String, systemImage: String, items: [NSMenuItem]) -> NSMenuItem {
-        let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
-        item.image = NSImage(systemSymbolName: systemImage, accessibilityDescription: nil)
-        item.submenu = makeMenu(title: title, items: items)
-        return item
+        ActionMenu.submenuItem(title: title, systemImage: systemImage, items: items)
     }
 }

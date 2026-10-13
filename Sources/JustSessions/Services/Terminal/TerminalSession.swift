@@ -44,7 +44,8 @@ final class TerminalSession: ObservableObject, Identifiable {
     /// The title the tab's CLI last gave its terminal. A Codex CLI's title names its thread; see `CodexThreadTitle`.
     private(set) var terminalTitle: String?
     var onProcessFinished: (() -> Void)?
-    /// Opens what ⌘-clicking a link in the tab's terminal points to.
+    /// Says what a link in the tab's terminal points to and opens it; see `TerminalLinkActions` for what a ⌘-click and
+    /// a right-click on one do.
     var linkOpener: TerminalLinkOpener
     /// For a tab on an SSH host: copies files dropped on it to the host before typing their paths there.
     let sshFileDrop: TerminalSSHFileDrop?
@@ -135,7 +136,6 @@ final class TerminalSession: ObservableObject, Identifiable {
             terminalView.imagePaste.copyToHost = { [weak self] image in self?.copyPastedImageToHost(image) }
             sshFileDrop.typePaths = { [weak self] hostPaths in self?.typeCopiedPaths(hostPaths) }
         }
-        terminalView.onOpenLink = { [weak self] link in self?.linkOpener.open(link) }
         terminalView.connectProcessObserver(processObserver)
         processObserver.session = self
     }
