@@ -2,7 +2,7 @@ import AppKit
 import Testing
 @testable import JustSessions
 
-/// A right-click on a link starts the terminal's menu with what to do with it; see `TerminalContextMenu+Link`. Both
+/// A right-click on a link starts the terminal's menu with what to do with it; see `TerminalLinkActions`. Both
 /// engines hand the menu the same link (`TerminalLinkRightClickTests`), so these build the menu with it directly.
 @MainActor
 @Suite(.serialized)

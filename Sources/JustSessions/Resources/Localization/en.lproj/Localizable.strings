@@ -120,6 +120,8 @@
 	<string>A session whose subagents ran sessions of their own gets a chevron before its icon. Click it to list them under the session and read them. Kiro's aren't listed; on SSH hosts, only Codex's and Antigravity's are.</string>
 	<key>A subagent ran this session for the session that started it. It can be read here, but not resumed or deleted on its own.</key>
 	<string>A subagent ran this session for the session that started it. It can be read here, but not resumed or deleted on its own.</string>
+	<key>A web address always opens in your browser, and a folder in the Finder. An editor opens text files, such as code and Markdown, at the printed line when it's VS Code or an editor built on it; images, PDFs, and other files open in their default app. Right-click a link for every choice.</key>
+	<string>A web address always opens in your browser, and a folder in the Finder. An editor opens text files, such as code and Markdown, at the printed line when it's VS Code or an editor built on it; images, PDFs, and other files open in their default app. Right-click a link for every choice.</string>
 	<key>A+</key>
 	<string>A+</string>
 	<key>About JustSessions</key>
@@ -550,6 +552,8 @@
 	<string>Feedback and issues start with these versions filled in.</string>
 	<key>Fields and buttons</key>
 	<string>Fields and buttons</string>
+	<key>File links</key>
+	<string>File links</string>
 	<key>Filter project sessions</key>
 	<string>Filter project sessions</string>
 	<key>Filters active</key>
@@ -888,10 +892,14 @@
 	<string>Open a project in your editor straight from its right-click menu.</string>
 	<key>Open in</key>
 	<string>Open in</string>
+	<key>Open in %@</key>
+	<string>Open in %@</string>
 	<key>Open in Finder</key>
 	<string>Open in Finder</string>
 	<key>Open in a separate reading window</key>
 	<string>Open in a separate reading window</string>
+	<key>Open in its default app</key>
+	<string>Open in its default app</string>
 	<key>Open in new window</key>
 	<string>Open in new window</string>
 	<key>Open project in</key>
@@ -1396,6 +1404,8 @@
 	<string>When you close a terminal</string>
 	<key>When you close this tab, choose **Keep running**: the CLI carries on, even after you quit. Click its session to return.</key>
 	<string>When you close this tab, choose **Keep running**: the CLI carries on, even after you quit. Click its session to return.</string>
+	<key>When you ⌘-click a file</key>
+	<string>When you ⌘-click a file</string>
 	<key>Works with SSH keys, or with a password or code.</key>
 	<string>Works with SSH keys, or with a password or code.</string>
 	<key>Yes</key>

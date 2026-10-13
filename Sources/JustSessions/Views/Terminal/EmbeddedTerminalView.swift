@@ -12,6 +12,8 @@ struct EmbeddedTerminalView: NSViewRepresentable {
     let onFocus: () -> Void
     /// Builds the menu a right-click on the terminal or its margin shows, with the link under the pointer, if any.
     let makeContextMenu: (_ linkUnderPointer: String?) -> NSMenu
+    /// Does what ⌘-clicking a link in the terminal does; see `TerminalLinkActions+Click`.
+    let onOpenLink: (_ link: String) -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -19,6 +21,7 @@ struct EmbeddedTerminalView: NSViewRepresentable {
         let terminalView = session.terminalView
         terminalView.onFocus = onFocus
         terminalView.makeContextMenu = makeContextMenu
+        terminalView.onOpenLink = onOpenLink
         session.startIfNeeded()
         context.coordinator.wasActive = isActive
         let insetView = TerminalInsetView(terminalView: terminalView)
@@ -31,6 +34,7 @@ struct EmbeddedTerminalView: NSViewRepresentable {
         insetView.isShown = isShown
         insetView.terminalView.onFocus = onFocus
         insetView.terminalView.makeContextMenu = makeContextMenu
+        insetView.terminalView.onOpenLink = onOpenLink
         if isActive && !context.coordinator.wasActive {
             focus(insetView, coordinator: context.coordinator)
         }
@@ -43,6 +47,7 @@ struct EmbeddedTerminalView: NSViewRepresentable {
     static func dismantleNSView(_ insetView: TerminalInsetView, coordinator: Coordinator) {
         insetView.terminalView.onFocus = nil
         insetView.terminalView.makeContextMenu = nil
+        insetView.terminalView.onOpenLink = nil
     }
 
     private func focus(_ insetView: TerminalInsetView, coordinator: Coordinator) {

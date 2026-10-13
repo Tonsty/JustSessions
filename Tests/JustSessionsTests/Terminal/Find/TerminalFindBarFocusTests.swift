@@ -35,7 +35,8 @@ struct TerminalFindBarFocusTests {
                 onReconnect: nil,
                 onCheckHost: nil,
                 onFocus: { [unowned self] in focusCount += 1 },
-                makeContextMenu: { _ in NSMenu() }
+                makeContextMenu: { _ in NSMenu() },
+                onOpenLink: { _ in }
             ))
             window.makeKeyAndOrderFront(nil)
         }

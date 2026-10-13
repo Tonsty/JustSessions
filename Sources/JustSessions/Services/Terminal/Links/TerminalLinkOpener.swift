@@ -1,7 +1,7 @@
 import AppKit
 
-/// Acts on a link in a tab's terminal, whichever engine draws it: ⌘-clicking opens it, and the right-click menu offers
-/// the rest; see `TerminalContextMenu+Link`. `TerminalLinkTarget` says what a link points at.
+/// Acts on a link in a tab's terminal, whichever engine draws it; `TerminalLinkActions` says which action a ⌘-click or
+/// a right-click menu's item takes. `TerminalLinkTarget` says what a link points at.
 @MainActor
 struct TerminalLinkOpener {
     let host: SessionHost
@@ -18,11 +18,6 @@ struct TerminalLinkOpener {
 
     func target(of link: String) -> TerminalLinkTarget? {
         TerminalLinkTarget(link: link, host: host, workingDirectory: workingDirectory)
-    }
-
-    /// What ⌘-clicking does; see `open(_:)` for a target.
-    func open(_ link: String) {
-        if let target = target(of: link) { open(target) }
     }
 
     /// Opens a web page in the default browser, and a file or folder on this Mac in the app macOS opens its kind with,

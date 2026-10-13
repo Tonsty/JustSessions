@@ -81,7 +81,8 @@ struct WorkspaceDetailView: View {
                                     store: store, tab: session, onRename: onRename, onCloseTab: onCloseTerminal, onDelete: onDelete,
                                     linkUnderPointer: linkUnderPointer
                                 ).makeMenu()
-                            }
+                            },
+                            onOpenLink: { link in TerminalLinkActions(store: store, tab: session).openClicked(link) }
                         )
                         // A split's terminal keeps its place inside the pane's outline, above the mini toolbar, while
                         // another tab shows too, so selecting another tab resizes no terminal.

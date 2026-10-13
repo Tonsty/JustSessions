@@ -7799,6 +7799,56 @@
           }
         }
       }
+    },
+    "When you ⌘-click a file": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按住 ⌘ 点击文件时"
+          }
+        }
+      }
+    },
+    "Open in its default app": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用默认 App 打开"
+          }
+        }
+      }
+    },
+    "Open in %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 %@ 中打开"
+          }
+        }
+      }
+    },
+    "File links": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件链接"
+          }
+        }
+      }
+    },
+    "A web address always opens in your browser, and a folder in the Finder. An editor opens text files, such as code and Markdown, at the printed line when it's VS Code or an editor built on it; images, PDFs, and other files open in their default app. Right-click a link for every choice.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网址总是在浏览器中打开，文件夹总是在 Finder 中打开。编辑器会打开代码、Markdown 等文本文件；VS Code 及基于它的编辑器会跳到输出里的行号。图片、PDF 和其他文件用默认 App 打开。右键单击链接可以看到所有选项。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
