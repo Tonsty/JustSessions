@@ -6,8 +6,8 @@ struct SidebarSSHHostActions {
     let usesTmuxPrefix: Binding<Bool>
     /// What the host's shell startup check found; nil before it ran. See `RemoteShellStartupCheck`.
     let shellStartupCheck: RemoteShellStartupCheckResult?
-    let isCheckingShellStartup: Bool
-    let onCheckShellStartup: () -> Void
+    /// Check this host…; see `ConversationStore+HostCheck`.
+    let onCheckHost: () -> Void
     /// Connect…, for a host that asks for a password or a code; see `ConversationStore+SSHLogin`.
     let login: SidebarSSHHostLogin
     let onConnect: () -> Void

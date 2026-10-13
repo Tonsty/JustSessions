@@ -3,8 +3,8 @@ import Foundation
 /// SSH hosts whose shell startup gets in the way of the app's commands; see `RemoteShellStartupCheck`. A host is checked
 /// the first time it refreshes without a result: right after it is added, or, for a host added before the check
 /// existed, on its next refresh. A refresh that fails or says nothing about the host's CLIs, as such a startup causes,
-/// checks it again, once a run, unless the last check found nothing the app can do. You check any host from its ⋯
-/// menu, as after changing its startup files.
+/// checks it again, once a run, unless the last check found nothing the app can do. Check this host… in its ⋯ menu
+/// checks it too, as after you changed its startup files; see `ConversationStore+HostCheck`.
 extension ConversationStore {
     /// Gives `RemoteHostShellStartups` each listed host's startup, as its last check found.
     func applyRemoteShellStartups() {
@@ -35,11 +35,6 @@ extension ConversationStore {
         checkRemoteShellStartup(on: host)
     }
 
-    /// From the host's ⋯ menu, as after you changed its startup files.
-    func checkRemoteShellStartupNow(on host: String) {
-        checkRemoteShellStartup(on: host)
-    }
-
     /// When the host is removed.
     func forgetRemoteShellStartup(on host: String) {
         saveRemoteShellStartupCheck(nil, on: host)
@@ -60,7 +55,13 @@ extension ConversationStore {
     private func finishRemoteShellStartupCheck(_ result: RemoteShellStartupCheckResult?, on host: String) {
         RemoteHostShellStartups.shared.endCheck(on: host)
         hostsCheckingShellStartup.remove(host)
-        guard let result, remoteHostList.hosts.contains(host) else { return }
+        guard let result else { return }
+        applyRemoteShellStartupCheckResult(result, on: host)
+    }
+
+    /// Keeps a check's result, from this check or from Check this host…, and remakes what the host's new startup changes.
+    func applyRemoteShellStartupCheckResult(_ result: RemoteShellStartupCheckResult, on host: String) {
+        guard remoteHostList.hosts.contains(host) else { return }
         let previousStartup = RemoteHostShellStartups.shared.startup(on: host)
         saveRemoteShellStartupCheck(result, on: host)
         RemoteHostShellStartups.shared.setStartup(result.shellStartup, on: host)

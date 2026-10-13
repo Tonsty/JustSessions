@@ -234,8 +234,7 @@ struct ConversationSidebarView: View {
                         set: { store.setUsesTmuxPrefix($0, on: destination) }
                     ),
                     shellStartupCheck: store.shellStartupCheck(on: destination),
-                    isCheckingShellStartup: store.hostsCheckingShellStartup.contains(destination),
-                    onCheckShellStartup: { store.checkRemoteShellStartupNow(on: destination) },
+                    onCheckHost: { store.checkHost(destination) },
                     login: sshHostLogin(destination),
                     onConnect: { [sshLoginPrompter] in
                         store.logInFromHeading(to: destination) { await sshLoginPrompter.ask($0) }

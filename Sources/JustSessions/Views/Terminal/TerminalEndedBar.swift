@@ -1,8 +1,10 @@
 import SwiftUI
 
-/// Above a tab's terminal once its CLI has ended: how it ended and, for a remote tab, a way to connect again.
+/// Above a tab's terminal once its CLI has ended: how it ended and, for a remote tab, a way to check the host, as
+/// when its session failed to resume, and to connect again.
 struct TerminalEndedBar: View {
     let exitCode: Int32?
+    let onCheckHost: (() -> Void)?
     let onReconnect: (() -> Void)?
 
     var body: some View {
@@ -14,6 +16,12 @@ struct TerminalEndedBar: View {
             .font(ThemeFont.caption)
             .foregroundStyle(ThemePalette.secondaryText)
             Spacer()
+            if let onCheckHost {
+                Button("Check host", systemImage: "stethoscope", action: onCheckHost)
+                    .buttonStyle(QuietBorderedButtonStyle())
+                    .controlSize(.small)
+                    .help("Check what on the host could have ended this tab, such as its CLI or its folder")
+            }
             if let onReconnect {
                 Button("Reconnect", systemImage: "arrow.triangle.2.circlepath", action: onReconnect)
                     .buttonStyle(QuietBorderedButtonStyle())

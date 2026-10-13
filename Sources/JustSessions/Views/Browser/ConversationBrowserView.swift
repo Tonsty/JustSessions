@@ -153,6 +153,10 @@ struct ConversationBrowserView: View {
             }
         }
         .dismissesOnClickOutside(item: $newSessionSheetHost)
+        .sheet(item: hostCheckBinding) { state in
+            HostCheckSheet(store: store, presentedState: state)
+        }
+        .dismissesOnClickOutside(item: hostCheckBinding)
         .showsAppWideSheets($appWideSheet, onCheckForUpdates: { updateManager.checkForUpdates() })
         .modifier(WorkspaceTabActionsValue(
             store: store,
@@ -224,6 +228,12 @@ struct ConversationBrowserView: View {
 
     var workspaceTabCommandsEnabled: Bool {
         newSessionSheetHost == nil && appWideSheet == nil && closingTerminalID == nil && closingTabGroup == nil
+            && store.hostCheck == nil
+    }
+
+    /// Check this host…'s sheet, which the sidebar and an ended tab open through the store.
+    private var hostCheckBinding: Binding<HostCheckSheetState?> {
+        Binding(get: { store.hostCheck }, set: { store.hostCheck = $0 })
     }
 
     /// The selected tab's tool, or a terminal when that tab is one; else the tool the sidebar shows, Codex when it shows

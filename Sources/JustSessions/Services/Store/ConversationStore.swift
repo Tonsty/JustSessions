@@ -93,6 +93,8 @@ final class ConversationStore {
     /// SSH hosts checked again in this run because a refresh suggested their startup changed, so a host whose startup
     /// keeps getting in the way is not checked on every refresh.
     var hostsRecheckedShellStartup: Set<String> = []
+    /// The host check this window shows, while it runs and once it has a report; see `ConversationStore+HostCheck`.
+    var hostCheck: HostCheckSheetState?
     /// Each host's last refresh, this Mac's included.
     var hostRefreshStatuses: [SessionHost: HostRefreshStatus] = [:]
     /// SSH hosts whose last refresh asked for a password, a code, or a new host key's approval, so their headings
@@ -162,6 +164,8 @@ final class ConversationStore {
     let remoteClaudeSessionIDFlagSupport: RemoteClaudeSessionIDFlagSupport
     /// Finds out whether an SSH host's shell startup gets in the way; see `ConversationStore+RemoteShellStartup`.
     let remoteShellStartupCheck: RemoteShellStartupCheck
+    /// Check this host…; see `ConversationStore+HostCheck`.
+    let remoteHostCheck: RemoteHostCheck
     /// Where custom titles, project names, pins, sidebar projects, SSH hosts, and start commands are kept.
     let userDefaults: UserDefaults
     /// The engine new tabs' terminals open with.
@@ -178,6 +182,7 @@ final class ConversationStore {
         remoteDeletion: RemoteConversationDeletion = RemoteConversationDeletion(),
         remoteClaudeSessionIDFlagSupport: RemoteClaudeSessionIDFlagSupport = .shared,
         remoteShellStartupCheck: RemoteShellStartupCheck = RemoteShellStartupCheck(),
+        remoteHostCheck: RemoteHostCheck = RemoteHostCheck(),
         // Unlike the settings above, the engine comes from the shared store, which reads the standard defaults; a test
         // that depends on the engine passes its own store.
         terminalEngineStore: TerminalEngineStore = .shared,
@@ -191,6 +196,7 @@ final class ConversationStore {
         self.remoteDeletion = remoteDeletion
         self.remoteClaudeSessionIDFlagSupport = remoteClaudeSessionIDFlagSupport
         self.remoteShellStartupCheck = remoteShellStartupCheck
+        self.remoteHostCheck = remoteHostCheck
         self.userDefaults = userDefaults
         self.terminalEngineStore = terminalEngineStore
         self.sessionNotifier = sessionNotifier

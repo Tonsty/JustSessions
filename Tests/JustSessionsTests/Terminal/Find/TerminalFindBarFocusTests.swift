@@ -33,6 +33,7 @@ struct TerminalFindBarFocusTests {
                 isShown: true,
                 isActive: isActive,
                 onReconnect: nil,
+                onCheckHost: nil,
                 onFocus: { [unowned self] in focusCount += 1 },
                 makeContextMenu: { _ in NSMenu() }
             ))

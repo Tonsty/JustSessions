@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// A host's heading above its projects: its name, how its last refresh went, and its project count. A failed refresh
-/// shows a warning after the name; see `SidebarHostRefreshFailureWarning`. So does an SSH host whose shell startup keeps
+/// shows a warning after the name, which checks an SSH host; see `SidebarHostRefreshFailureWarning`. So does an SSH host whose shell startup keeps
 /// CLIs from starting; see `SidebarHostShellStartupWarning`. A refresh that needed a password, a code, or a new host
 /// key's approval shows Connect… in place of the first warning; see `SidebarHostConnectButton`. While the pointer is over the heading, the
 /// count gives way to a +, and an SSH host's refresh status to a ⋯. The + adds a project there, or
@@ -51,7 +51,11 @@ struct SidebarHostHeading: View {
                     action: sshHostActions.onConnect
                 )
             } else if let failureMessage {
-                SidebarHostRefreshFailureWarning(host: host, failureMessage: failureMessage)
+                SidebarHostRefreshFailureWarning(
+                    host: host,
+                    failureMessage: failureMessage,
+                    onCheckHost: sshHostActions?.onCheckHost
+                )
             }
             if let shellStartupCheck = sshHostActions?.shellStartupCheck, shellStartupCheck.outcome == .blocked {
                 SidebarHostShellStartupWarning(host: host, stoppedAt: shellStartupCheck.stoppedAt)

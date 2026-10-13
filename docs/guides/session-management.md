@@ -109,8 +109,8 @@ The host runs Linux or macOS and needs `rsync` plus the CLI you want to run inst
 - Refresh updates every host at once. A host that can't be reached shows the error on its heading; the others still list.
 - An SSH host's sessions are copied one tool at a time, and each tool's sessions are listed as soon as they are copied. Meanwhile the host's heading shows how far the copy is, such as **2/6**, and its tooltip names the tool being copied. A host with nothing listed yet, such as one just added, says the same under its heading.
 - Install **tmux on the remote host** so a session there keeps running when the connection drops or the tab closes. The app's bundled tmux is only for this Mac. Run `tmux -V` on the host to check installation, then select the session to reattach.
-- Point at a host's heading and click its **⋯** for the host's own settings: **Connect…** or **Disconnect** (see [below](#hosts-that-ask-for-a-password-or-code)), **Use this host's tmux prefix** (see [terminal persistence](session-storage.md#terminal-persistence)), and **Remove host**. The heading's right-click menu has them too, after **Add project…** and **Refresh**.
-- If a session opens a shell instead of its CLI, see [shell startup](#shell-startup-on-ssh-hosts) below.
+- Point at a host's heading and click its **⋯** for the host's own settings: **Connect…** or **Disconnect** (see [below](#hosts-that-ask-for-a-password-or-code)), **Use this host's tmux prefix** (see [terminal persistence](session-storage.md#terminal-persistence)), **Check this host…** (see [below](#when-something-fails-on-an-ssh-host)), and **Remove host**. The heading's right-click menu has them too, after **Add project…** and **Refresh**.
+- If a session opens a shell instead of its CLI, see [shell startup](#shell-startup-on-ssh-hosts) below. If a refresh fails or a session won't start or resume, see [when something fails](#when-something-fails-on-an-ssh-host).
 
 ### Hosts that ask for a password or code
 
@@ -125,9 +125,9 @@ The host runs Linux or macOS and needs `rsync` plus the CLI you want to run inst
 
 Each CLI on a host starts through your login shell, as `$SHELL -lic`, so it is found wherever your shell's startup files put it. If those files start another program in every interactive shell, such as tmux or zsh, that program's prompt shows instead of the CLI.
 
-- JustSessions checks for this when you add a host, and once for hosts added before this check existed. It runs your shell in a terminal, as a tab does, and traces bash's or zsh's startup to find where it stopped. A refresh that fails, or can't tell which CLIs the host has, checks it again, once per run, and **Check shell startup** in the host's **⋯** menu checks it any time. The menu also shows what the last check found.
+- JustSessions checks for this when you add a host, and once for hosts added before this check existed. It runs your shell in a terminal, as a tab does, and traces bash's or zsh's startup to find where it stopped. A refresh that fails, or can't tell which CLIs the host has, checks it again, once per run, and **Check this host…** in the host's **⋯** menu checks it any time. The menu also shows what the last check found.
 - If a login shell without your interactive startup, `$SHELL -lc`, still runs the CLIs, the app starts everything that way on that host, and the host's **⋯** menu says so. Otherwise a warning shows beside the host's name; point at it to see the line where the startup stopped, or click it for the [user guide](https://yangzichao.github.io/JustSessions/guide.html#ssh-shell-startup).
-- To fix it, make that line run only in interactive shells, and not in the ones JustSessions starts, which have `JUSTSESSIONS=1` set. Then choose **Check shell startup** from the host's **⋯** menu:
+- To fix it, make that line run only in interactive shells, and not in the ones JustSessions starts, which have `JUSTSESSIONS=1` set. Then choose **Check this host…** from the host's **⋯** menu:
 
   ```sh
   if [[ $- == *i* ]] && [ -z "$JUSTSESSIONS" ]; then exec zsh -l; fi
@@ -137,6 +137,16 @@ Each CLI on a host starts through your login shell, as `$SHELL -lic`, so it is f
 
 - Without your interactive startup, a CLI it puts on your `PATH`, as nvm's setup does, is missing from **New session**. Move that setup to `~/.profile`, or above the line in `~/.bashrc` that stops for non-interactive shells.
 - The check lets the startup run as a tab would, so what it starts, such as a tmux session, can stay running on the host.
+
+### When something fails on an SSH host
+
+A refresh, a new session, or a resume on a host runs programs installed there, such as `rsync`, tmux, and the CLI, through your shell's startup files. When one of them fails, JustSessions can show which.
+
+- Choose **Check this host…** from the host's **⋯** menu, or click the warning beside its name after a failed refresh. When a host's tab ends, as when a session fails to resume, click **Check host** above its terminal; that check also looks at the tab's folder and its CLI.
+- The check logs in as the app does, checks your [shell startup](#shell-startup-on-ssh-hosts), then looks up `rsync`, tmux, each CLI, and, for OpenCode and Antigravity, `python3` with its `sqlite3` module. It asks each CLI for its version, for at most 10 seconds. It only reads, and changes nothing on the host.
+- Problems come first, then warnings. Each shows what the host printed and a command to run in Terminal. If that command fails the same way there, the problem is on the host: fix it there, or send it to whoever runs the host. **Copy report** copies the findings as text, starting with this Mac's JustSessions, macOS, and OpenSSH versions, for an issue or a message. **Check again** runs it again after you change something.
+- A CLI found on the host but failing to print its version, as when it is a Node program and `node` isn't on the login shell's `PATH`, fails to start sessions too.
+- tmux on the host needs version 2.6 or later. A tmux server started by another tmux version than the one on your `PATH`, as after upgrading tmux while sessions run, can't be reached: its sessions keep running but can't be opened. Reattach them with the tmux that started the server, or end them with it and start them again.
 
 ## Clean up
 
