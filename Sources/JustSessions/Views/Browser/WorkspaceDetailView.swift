@@ -74,6 +74,7 @@ struct WorkspaceDetailView: View {
                             isShown: isShown,
                             isActive: isActive,
                             onReconnect: session.host == .thisMac ? nil : { store.reconnectRemoteTerminal(session.id) },
+                            onCheckHost: session.host == .thisMac ? nil : { store.checkHost(ofTerminal: session.id) },
                             onFocus: { store.selectTerminal(session.id) },
                             makeContextMenu: { linkUnderPointer in
                                 TerminalContextMenu(

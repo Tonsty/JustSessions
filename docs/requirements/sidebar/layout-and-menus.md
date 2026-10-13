@@ -23,7 +23,7 @@
 | SBL-20 | Projects always sit under a host heading, **This Mac** first, even with no SSH hosts. A heading shows its refresh state: a spinner, when an SSH host was last copied, or a warning. The warning stays after the host's name, so pointing at it shows the error. | `a2be251`, `bc0a2e8`, `44398c8` | `HostModelTests`, `SidebarEmptyHostMessageTests` |
 | SBL-21 | Each host has its own refresh button. Its **+** adds a project (folder panel with New Folder on this Mac, a checked path on SSH); while the host has archived projects, **+** opens a menu with Add project… and Archived projects (…). The added project is listed, selected, and scrolled into view. | `b8755e7`, `f2b470a`, `a658f0b`, `b20f964` | `AddProjectFromHostHeadingTests` |
 | SBL-22 | An empty host says why it is empty, including what the status filters can't know for SSH hosts and other CLIs. | `412bd7c`, `8ddfcf5`, `66e5e05` | `SidebarEmptyHostMessageTests` |
-| SBL-23 | An SSH host's heading shows a **⋯** on hover with the host's own settings (tmux prefix, Check shell startup and its last result, Remove host). Its right-click menu has every heading item, ending with the same ones. | `cd8a1a0`, `a719190`, `ec88022` | `RemoteTmuxPrefixChoiceTests`, `RemoteShellStartupStoreTests` |
+| SBL-23 | An SSH host's heading shows a **⋯** on hover with the host's own settings (tmux prefix, the shell startup check's last result, Check this host…, Remove host). Its right-click menu has every heading item, ending with the same ones. | `cd8a1a0`, `a719190`, `ec88022`, `9c9888a` | `RemoteTmuxPrefixChoiceTests`, `RemoteShellStartupStoreTests`, `HostCheckStoreTests` |
 
 ## Rows and menus
 

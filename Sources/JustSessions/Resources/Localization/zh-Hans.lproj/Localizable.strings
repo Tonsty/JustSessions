@@ -14,20 +14,46 @@
 	<string>%@ - 左侧视图</string>
 	<key>%@ - Right view</key>
 	<string>%@ - 右侧视图</string>
+	<key>%@ Click to check %@.</key>
+	<string>%@ 点按以检查 %@。</string>
 	<key>%@ could not be refreshed: %@</key>
 	<string>无法刷新 %@：%@</string>
+	<key>%@ didn't answer the rest of the check within %lld seconds, or the connection dropped.</key>
+	<string>%@ 未在 %lld 秒内回应其余检查，或连接已断开。</string>
 	<key>%@ has not saved this session yet · click to open its terminal</key>
 	<string>%@ 尚未保存此会话 · 点击打开终端</string>
+	<key>%@ has tmux %@. JustSessions needs tmux 2.6 or later to pass Control-B to the CLI and to end a session before deleting it.</key>
+	<string>%@ 上的 tmux 版本为 %@。JustSessions 需要 tmux 2.6 或更高版本，才能把 Control-B 传给 CLI，并在删除会话前结束它。</string>
+	<key>%@ is a folder on %@.</key>
+	<string>%@ 是 %@ 上的文件夹。</string>
 	<key>%@ is already added.</key>
 	<string>%@ 已添加。</string>
+	<key>%@ isn't a folder on %@, so the session can't start there. It may have been moved or deleted.</key>
+	<string>%@ 不是 %@ 上的文件夹，因此会话无法在那里启动。它可能已被移动或删除。</string>
+	<key>%@ isn't on the PATH of %@'s login shell, so its sessions listed here can't resume. If it's installed, add its folder to PATH in a startup file that shell reads.</key>
+	<string>%@ 不在 %@ 登录 shell 的 PATH 中，因此这里列出的相应会话无法恢复。如果已安装，请在该 shell 读取的启动文件中把它所在的文件夹加入 PATH。</string>
+	<key>%@ isn't on the PATH of %@'s login shell, so this session can't start. If it's installed, add its folder to PATH in a startup file that shell reads.</key>
+	<string>%@ 不在 %@ 登录 shell 的 PATH 中，因此这个会话无法启动。如果已安装，请在该 shell 读取的启动文件中把它所在的文件夹加入 PATH。</string>
+	<key>%@ printed:</key>
+	<string>%@ 输出：</string>
 	<key>%@ tab group</key>
 	<string>%@ 标签组</string>
+	<key>%@ wasn't checked: the check can't pass a path with quotes, $, or backslashes to %@.</key>
+	<string>未检查 %@：检查无法把含引号、$ 或反斜杠的路径传给 %@。</string>
 	<key>%@ will permanently delete this session using its native CLI. This cannot be undone.</key>
 	<string>%@ 将通过原生 CLI 永久删除此会话。此操作无法撤销。</string>
 	<key>%@ · %@ subagent · %@</key>
 	<string>%1$@ · %2$@ 子代理 · %3$@</string>
 	<key>%@ · ⌘-click to select multiple projects; Shift-click to select a range</key>
 	<string>%@ · 按住 ⌘ 点击选择多个项目；按住 Shift 点击选择一个范围</string>
+	<key>%@'s interactive startup files start another program, so CLIs start without them. A PATH set only in those files doesn't reach the CLIs.</key>
+	<string>%@ 的交互式启动文件会启动其他程序，因此 CLI 启动时不读取这些文件。只在这些文件中设置的 PATH 不会作用于 CLI。</string>
+	<key>%@'s shell startup starts another program before the app's commands run, so sessions open that program instead of their CLI.</key>
+	<string>%@ 的 shell 启动配置会在 App 的命令运行前启动其他程序，因此会话会打开该程序，而不是 CLI。</string>
+	<key>%@'s tmux server runs tmux %@, but the tmux JustSessions finds is %@. Opening a session in that server can fail until its sessions end and the server starts again.</key>
+	<string>%@ 的 tmux 服务器运行的是 tmux %@，但 JustSessions 找到的 tmux 是 %@。在其会话结束、服务器重新启动之前，在该服务器中打开会话可能失败。</string>
+	<key>%@'s tmux server was started by another tmux version than %@, the one JustSessions finds there, as when tmux is upgraded while sessions run. Its sessions keep running but can't be opened. Reattach with the tmux that started the server, or end its sessions with that tmux and start them again.</key>
+	<string>%@ 的 tmux 服务器由另一个版本的 tmux 启动，与 JustSessions 在那里找到的 %@ 不同，例如在会话运行时升级了 tmux。其会话仍在运行，但无法打开。请用启动该服务器的 tmux 重新接入，或用它结束这些会话后重新启动。</string>
 	<key>%@, %@ subagent</key>
 	<string>%1$@，%2$@ 子代理</string>
 	<key>%@, %@, open terminal, not saved yet</key>
@@ -218,6 +244,8 @@
 	<string>**添加 SSH 主机…** 后，可以浏览和继续其他机器上的会话。</string>
 	<key>Browse…</key>
 	<string>浏览…</string>
+	<key>CLIs run in %@ on %@, so they keep running when a tab closes or the connection drops.</key>
+	<string>CLI 使用 %@ 运行于 %@ 上，因此关闭标签页或连接断开时它们会继续运行。</string>
 	<key>CLIs skip your interactive shell startup, which starts another program</key>
 	<string>CLI 会跳过你的交互式 shell 启动配置，因为它会先启动其他程序</string>
 	<key>Can't check</key>
@@ -230,22 +258,32 @@
 	<string>取消删除</string>
 	<key>Changes the chosen theme's colors, in its light or dark version. Your changes stay with the theme when you choose another one. Text is made readable on your colors, so the text color can come out darker or lighter than you chose. Terminals that match the app theme take its background.</key>
 	<string>修改所选主题浅色或深色版本的颜色。改选其他主题后，你的修改仍保留在这个主题上。文字会自动调整到在你的颜色上清晰可读，因此文字颜色可能比你选的更深或更浅。与应用主题一致的终端会使用它的背景。</string>
+	<key>Check %@</key>
+	<string>检查 %@</string>
 	<key>Check Again</key>
+	<string>重新检查</string>
+	<key>Check again</key>
 	<string>重新检查</string>
 	<key>Check for updates</key>
 	<string>检查更新</string>
-	<key>Check shell startup</key>
-	<string>检查 shell 启动配置</string>
+	<key>Check host</key>
+	<string>检查主机</string>
 	<key>Check that the CLI runs in your usual terminal and has saved a conversation. **New session** offers only the CLIs it finds installed.</key>
 	<string>确认 CLI 能在你常用的终端里运行，并且已保存过对话。**新建会话** 只提供检测到已安装的 CLI。</string>
-	<key>Checking shell startup…</key>
-	<string>正在检查 shell 启动配置…</string>
+	<key>Check this host…</key>
+	<string>检查此主机…</string>
+	<key>Check what on the host could have ended this tab, such as its CLI or its folder</key>
+	<string>检查主机上可能导致此标签页结束的原因，例如它的 CLI 或文件夹</string>
+	<key>Checking %@…</key>
+	<string>正在检查 %@…</string>
 	<key>Checking the folder on %@…</key>
 	<string>正在检查 %@ 上的文件夹…</string>
 	<key>Checking the start command on %@…</key>
 	<string>正在检查 %@ 上的启动命令…</string>
 	<key>Checking the start command…</key>
 	<string>正在检查启动命令…</string>
+	<key>Checks this host</key>
+	<string>检查此主机</string>
 	<key>Choose</key>
 	<string>选择</string>
 	<key>Choose **Add SSH host…** at the bottom of the sidebar, then enter `user@hostname` or an alias from `~/.ssh/config`. Your code and CLIs run on the host; its history is cached on this Mac.</key>
@@ -340,12 +378,16 @@
 	<string>颜色浓淡</string>
 	<key>Colors</key>
 	<string>配色</string>
+	<key>Commands start in %@'s login shell with its interactive startup files, as in your own terminal.</key>
+	<string>命令在 %@ 的登录 shell 中启动，并读取其交互式启动文件，与你自己的终端相同。</string>
 	<key>Connect again; a CLI still running in tmux on the host is reattached</key>
 	<string>重新连接；仍在主机 tmux 中运行的 CLI 会重新接入</string>
 	<key>Connecting to %@…</key>
 	<string>正在连接 %@…</string>
 	<key>Connecting…</key>
 	<string>正在连接…</string>
+	<key>Connection</key>
+	<string>连接</string>
 	<key>Connects to %@, port %@.</key>
 	<string>连接到 %@，端口 %@。</string>
 	<key>Connects to %@.</key>
@@ -358,6 +400,10 @@
 	<string>双击任意会话，就能在原来的 CLI 和文件夹里接着聊。</string>
 	<key>Copied</key>
 	<string>已复制</string>
+	<key>Copies %@'s sessions to this Mac.</key>
+	<string>将 %@ 的会话复制到此 Mac。</string>
+	<key>Copies sessions of %@.</key>
+	<string>复制 %@ 的会话。</string>
 	<key>Copies the colors once. JustSessions doesn't read iTerm2's settings again.</key>
 	<string>只复制一次配色，之后 JustSessions 不会再读取 iTerm2 的设置。</string>
 	<key>Copy</key>
@@ -374,10 +420,16 @@
 	<string>复制对话</string>
 	<key>Copy project path</key>
 	<string>复制项目路径</string>
+	<key>Copy report</key>
+	<string>复制报告</string>
 	<key>Copy saved messages and tool-call summaries as Markdown</key>
 	<string>将已保存的消息和工具调用摘要复制为 Markdown</string>
 	<key>Copy session ID</key>
 	<string>复制会话 ID</string>
+	<key>Copy the command</key>
+	<string>复制命令</string>
+	<key>Copy the report as text, for an issue or for whoever runs the host</key>
+	<string>将报告复制为文本，用于报告问题或发给主机的管理员</string>
 	<key>Copy the selection. Hold ⇧ while dragging to select text.</key>
 	<string>复制所选内容。按住 ⇧ 拖动即可选择文字。</string>
 	<key>Copying %@ sessions (%lld of %lld)…</key>
@@ -544,6 +596,16 @@
 	<string>前进（⌘]）。右键单击可查看历史记录。</string>
 	<key>Forward again</key>
 	<string>再次前进</string>
+	<key>Found at %@, but it didn't print its version within %lld seconds.</key>
+	<string>位于 %@，但未在 %lld 秒内输出版本。</string>
+	<key>Found at %@, but it failed when asked for its version, so it may fail to start sessions too.</key>
+	<string>位于 %@，但查询版本时失败，因此启动会话也可能失败。</string>
+	<key>Found at %@.</key>
+	<string>位于 %@。</string>
+	<key>Found nothing on %@ that keeps sessions from working.</key>
+	<string>未在 %@ 上发现妨碍会话运行的问题。</string>
+	<key>Found something on %@ that keeps sessions from working; see the problems below.</key>
+	<string>%@ 上有妨碍会话运行的问题，请查看下方标出的问题。</string>
 	<key>Full</key>
 	<string>全宽</string>
 	<key>Full Disk Access</key>
@@ -586,6 +648,8 @@
 	<string>隐藏，下次打开 JustSessions 时再显示</string>
 	<key>Host</key>
 	<string>主机</string>
+	<key>Host check</key>
+	<string>主机检查</string>
 	<key>Hosts run Linux or macOS. For Windows, connect to WSL over SSH.</key>
 	<string>主机需运行 Linux 或 macOS。Windows 请通过 SSH 连接到 WSL。</string>
 	<key>How it works</key>
@@ -620,6 +684,8 @@
 	<string>JustSessions 网站</string>
 	<key>JustSessions and the CLIs in its terminals need it to reach a device on your network, such as an SSH host at a local address. macOS doesn't let apps check it, so look for JustSessions in Privacy &amp; Security &gt; Local Network.</key>
 	<string>JustSessions 及其终端中的 CLI 需要它来访问你所在网络中的设备，例如本地地址上的 SSH 主机。macOS 不允许应用检查这项权限，请在「隐私与安全性 &gt; 本地网络」中找到 JustSessions。</string>
+	<key>JustSessions host check: %@</key>
+	<string>JustSessions 主机检查：%@</string>
 	<key>JustSessions quit unexpectedly</key>
 	<string>JustSessions 意外退出了</string>
 	<key>JustSessions read the history your CLIs keep and grouped it by project. Nothing was imported or uploaded.</key>
@@ -670,8 +736,12 @@
 	<string>本地网络</string>
 	<key>Log in to %@</key>
 	<string>登录 %@</string>
+	<key>Logged in to %@.</key>
+	<string>已登录 %@。</string>
 	<key>Logged in with Connect…</key>
 	<string>已通过“连接…”登录</string>
+	<key>Login shell</key>
+	<string>登录 shell</string>
 	<key>Make text bigger or smaller with ⌘+ and ⌘−, in terminals and conversations.</key>
 	<string>⌘+ / ⌘− 调整终端和对话的文字大小。</string>
 	<key>Makes the 16 colors that shells and many CLIs pick from stronger or softer. Colors a program sets exactly stay as they are.</key>
@@ -776,6 +846,10 @@
 	<string>未允许</string>
 	<key>Not asked yet</key>
 	<string>尚未请求</string>
+	<key>Not found on %@: %@.</key>
+	<string>%@ 上未找到：%@。</string>
+	<key>Note</key>
+	<string>提示</string>
 	<key>Notifications</key>
 	<string>通知</string>
 	<key>Notifications for JustSessions are turned off in System Settings &gt; Notifications.</key>
@@ -836,6 +910,8 @@
 	<string>可选。没有它时，终端中的 CLI 第一次打开受保护文件夹（例如「文稿」或外置磁盘）中的文件，macOS 会逐个询问。</string>
 	<key>Organize</key>
 	<string>整理</string>
+	<key>Other CLIs</key>
+	<string>其他 CLI</string>
 	<key>Paste</key>
 	<string>粘贴</string>
 	<key>Path on the host, such as ~/code/app</key>
@@ -868,6 +944,8 @@
 	<string>上一个匹配项（⇧⌘G 或 ⇧Return）</string>
 	<key>Previous tab</key>
 	<string>上一个标签页</string>
+	<key>Problem</key>
+	<string>问题</string>
 	<key>Project filters are active</key>
 	<string>项目筛选已启用</string>
 	<key>Project folder</key>
@@ -970,8 +1048,14 @@
 	<string>右键单击会话可以重命名、置顶、导出或删除。按住 ⌘ 或 Shift 单击可一次选择多个。</string>
 	<key>Right-click another tab and choose **New split view with current tab**. Drag between the two views to resize them.</key>
 	<string>右键单击另一个标签页，选择 **使用当前标签页创建新的拆分视图**。在两个视图之间拖动可调整大小。</string>
+	<key>Run it yourself in Terminal:</key>
+	<string>在终端中自行运行：</string>
+	<key>Run it yourself: %@</key>
+	<string>自行运行：%@</string>
 	<key>Running</key>
 	<string>运行中</string>
+	<key>Runs on %@ what JustSessions runs there. When a command below fails the same way in your own Terminal, the problem is on %@.</key>
+	<string>在 %@ 上运行 JustSessions 在那里运行的命令。如果下方的命令在你自己的终端中以同样方式失败，问题就出在 %@ 上。</string>
 	<key>SSH alias or user@hostname</key>
 	<string>SSH 别名或 user@hostname</string>
 	<key>SSH aliases come from `~/.ssh/config`.</key>
@@ -1038,6 +1122,10 @@
 	<string>取消拆分视图</string>
 	<key>Session %lld of %lld</key>
 	<string>会话 %lld / %lld</string>
+	<key>Sessions of %@ are copied with python3 on %@, which isn't on its login shell's PATH.</key>
+	<string>%@ 的会话需要用 %@ 上的 python3 复制，但它不在登录 shell 的 PATH 中。</string>
+	<key>Sessions on %@ can work, but see the warnings below.</key>
+	<string>%@ 上的会话可以运行，但请查看下方的警告。</string>
 	<key>Sessions on %@ open a shell instead of their CLI, because its shell startup runs %@ first. Click for how to fix it.</key>
 	<string>%1$@ 上的会话会打开 shell 而不是它们的 CLI，因为它的 shell 启动配置会先运行 %2$@。单击查看修复方法。</string>
 	<key>Sessions on %@ open a shell instead of their CLI, because its shell startup starts another program first. Click for how to fix it.</key>
@@ -1052,6 +1140,8 @@
 	<string>设置…</string>
 	<key>Setup requirements</key>
 	<string>配置要求</string>
+	<key>Shell startup</key>
+	<string>Shell 启动配置</string>
 	<key>Shell startup help</key>
 	<string>Shell 启动配置帮助</string>
 	<key>Shell startup in the user guide ↗</key>
@@ -1198,6 +1288,10 @@
 	<string>Pi 会话文件及其关联文件夹将移到 macOS 废纸篓。</string>
 	<key>The bottom of the sidebar shows a random tip about something you may not have tried. → shows another, and × hides it until JustSessions opens again.</key>
 	<string>侧栏底部会随机显示一条提示，介绍你可能还没用过的功能。→ 换一条，× 隐藏到下次打开 JustSessions。</string>
+	<key>The check of %@'s shell startup didn't finish.</key>
+	<string>%@ 的 shell 启动配置检查未完成。</string>
+	<key>The check's commands didn't run in %@'s login shell, so nothing else could be checked. The app's commands start the same way, so sessions there can't start either.</key>
+	<string>检查命令未能在 %@ 的登录 shell 中运行，因此无法检查其他项目。App 的命令以同样方式启动，所以那里的会话也无法启动。</string>
 	<key>The folder is listed under %@ in the sidebar, ready for new sessions.</key>
 	<string>该文件夹会列在侧边栏的 %@ 下，可直接在其中新建会话。</string>
 	<key>The host needs:</key>
@@ -1234,6 +1328,8 @@
 	<string>此 Mac</string>
 	<key>This Mac hasn't connected to this host before. Trust it only if the fingerprint matches the host's.</key>
 	<string>这台 Mac 之前没有连接过这台主机。只有在指纹与主机的一致时才信任它。</string>
+	<key>This Mac: %@</key>
+	<string>此 Mac：%@</string>
 	<key>This affects all tools in %@, including sessions hidden by the current filter.</key>
 	<string>此操作会影响 %@ 中所有工具的会话，包括被当前筛选条件隐藏的会话。</string>
 	<key>This affects all tools in %lld projects, including sessions hidden by the current filter.</key>
@@ -1272,6 +1368,8 @@
 	<string>两个标签页并排显示</string>
 	<key>Undo your last edit to the line, in Claude Code and shells</key>
 	<string>在 Claude Code 和 shell 中撤销对这一行的上一次编辑</string>
+	<key>Unknown</key>
+	<string>未知</string>
 	<key>Unknown error</key>
 	<string>未知错误</string>
 	<key>Unpin project</key>
@@ -1296,6 +1394,8 @@
 	<string>等待我处理</string>
 	<key>Want computer use? Add a computer-use MCP server to your CLI, then allow Accessibility in Settings → Permissions.</key>
 	<string>想用 computer use？给 CLI 加一个 computer-use MCP，再在 设置 → 权限 里允许辅助功能。</string>
+	<key>Warning</key>
+	<string>警告</string>
 	<key>Website ↗</key>
 	<string>网站 ↗</string>
 	<key>When you close a CLI tab</key>
@@ -1320,6 +1420,8 @@
 	<string>你的会话已经在这里</string>
 	<key>Your shell startup keeps CLIs from starting!</key>
 	<string>你的 shell 启动配置使 CLI 无法启动！</string>
+	<key>Your start command's program, found at %@.</key>
+	<string>你的启动命令所用的程序，位于 %@。</string>
 	<key>Zoom In</key>
 	<string>放大</string>
 	<key>Zoom Out</key>
@@ -1344,6 +1446,14 @@
 	<string>macOS 会在 JustSessions 第一次需要时询问。</string>
 	<key>macOS doesn't let apps check this. Look for JustSessions in System Settings.</key>
 	<string>macOS 不允许应用检查这项权限。请在系统设置中找到 JustSessions。</string>
+	<key>python3 on %@ can't load its sqlite3 module, so sessions of %@ can't be copied.</key>
+	<string>%@ 上的 python3 无法加载 sqlite3 模块，因此无法复制 %@ 的会话。</string>
+	<key>rsync isn't installed on %@, or isn't on the PATH of commands run over ssh, so its sessions can't be copied to this Mac.</key>
+	<string>%@ 上未安装 rsync，或它不在通过 ssh 运行的命令的 PATH 中，因此无法将其会话复制到此 Mac。</string>
+	<key>tmux isn't installed on %@, so CLIs there run without it: closing a tab or losing the connection ends them.</key>
+	<string>%@ 上未安装 tmux，因此那里的 CLI 不在 tmux 中运行：关闭标签页或连接断开都会结束它们。</string>
+	<key>tmux on %@ answered with an error.</key>
+	<string>%@ 上的 tmux 返回了错误。</string>
 	<key>⇧-click</key>
 	<string>⇧ 点击</string>
 	<key>⌘-click</key>

@@ -13,6 +13,8 @@ struct TerminalWorkspaceView: View {
     /// Shown for a remote tab whose connection ended. Reconnecting selects the tab first, as from a split pane whose
     /// tab is not selected, so the replacement it opens is selected too.
     let onReconnect: (() -> Void)?
+    /// Shown for a remote tab whose command ended; see `ConversationStore+HostCheck`.
+    let onCheckHost: (() -> Void)?
     /// Called when a click lands on the terminal, before it takes the keyboard.
     let onFocus: () -> Void
     /// Builds the menu a right-click on the terminal shows, with the link under the pointer, if any.
@@ -21,7 +23,11 @@ struct TerminalWorkspaceView: View {
     var body: some View {
         VStack(spacing: 0) {
             if session.hasExited {
-                TerminalEndedBar(exitCode: session.exitCode, onReconnect: onReconnect.map { reconnect in { onFocus(); reconnect() } })
+                TerminalEndedBar(
+                    exitCode: session.exitCode,
+                    onCheckHost: onCheckHost,
+                    onReconnect: onReconnect.map { reconnect in { onFocus(); reconnect() } }
+                )
                 ThemeDivider()
             }
             EmbeddedTerminalView(
