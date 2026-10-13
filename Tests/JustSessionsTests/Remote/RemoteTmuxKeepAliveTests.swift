@@ -27,6 +27,8 @@ struct RemoteTmuxKeepAliveTests {
         #expect(options.contains("mouse on"))
         #expect(options.contains("prefix None"))
         #expect(options.contains("prefix2 None"))
+        let windowOptions = sandbox.run("tmux show-options -w -t \(ShellQuoting.quoted(tmuxName))")
+        #expect(windowOptions.contains("allow-passthrough on"))
 
         // The connection drops: the client goes away, the CLI stays.
         firstClient.terminate()
