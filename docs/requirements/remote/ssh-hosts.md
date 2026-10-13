@@ -22,7 +22,8 @@ Live SSH checks follow [SSH development testing](../../development/ssh-testing.m
 | SSH-22 | A host's background commands share one login (`ControlMaster=auto`, a socket per host in `/tmp/justsessions-ssh-<uid>`, `ControlPersist=60`). A host whose config sets its own `ControlPath` keeps the user's settings. Tabs keep their own connections. Removing a host ends its shared connection. | `0489e83` | `SSHConnectionSharingTests` |
 | SSH-23 | A dead connection is given up after about 30 seconds (`ServerAliveInterval 10` × 3). | `b82be85`, `43ade47` | `NonInteractiveSSHOptionsTests` |
 | SSH-24 | Every shell the app starts on a host has `JUSTSESSIONS=1`, and CLIs start through `$SHELL -lic`. | `f8eeafa`, `a719190` | `RemoteCLICommandBuilderTests` |
-| SSH-25 | Quoting is correct under `sh`, `bash`, `zsh`, and `dash`. | `4c7df7a`, `475817a` | `ShellQuotingPropertyTests` |
+| SSH-25 | Quoting is correct under `sh`, `bash`, `zsh`, `dash`, and `fish`, also for a value quoted twice, as in a tmux tab's command: single quotes and backslashes are written outside the quotes, where fish reads them as `sh` does. | `4c7df7a`, `475817a`, `405ca9a` | `ShellQuotingPropertyTests` |
+| SSH-26 | What a host's login shell reads, which may be fish, uses no `if`, loops, or `VAR=value` before a command; `&&`, `;`, and pipes read the same in fish. Anything more runs in `sh -c`. | `405ca9a` | `RemoteTmuxKeepAliveTests`, `RemoteTmuxPrefixKeysTests` |
 
 ## Shell startup check
 

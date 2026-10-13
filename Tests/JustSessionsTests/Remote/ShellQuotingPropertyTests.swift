@@ -46,10 +46,37 @@ struct ShellQuotingPropertyTests {
         #expect(Self.nulTerminatedValues(output) == values)
     }
 
-    @Test func singleQuotesAreClosedEscapedAndReopened() {
+    @Test func singleQuotesAndBackslashesAreWrittenOutsideTheQuotes() {
         #expect(ShellQuoting.quoted("it's") == #"'it'\''s'"#)
+        #expect(ShellQuoting.quoted(#"a\b"#) == #"'a'\\'b'"#)
         #expect(ShellQuoting.quoted("") == "''")
         #expect(ShellQuoting.quoted("$HOME") == "'$HOME'")
+    }
+
+    /// A fish login shell reads `\'` and `\\` inside single quotes as escapes, so a value quoted once or twice must
+    /// keep backslashes out of them, where fish and POSIX shells read `\'` and `\\` alike.
+    @Test func quotingOnceOrTwiceLeavesNoBackslashInsideSingleQuotes() {
+        var generator = SeededRandomNumberGenerator(seed: 0xF15B)
+        for value in (0..<300).map({ _ in generator.string(of: Self.awkwardCharacters, lengthIn: 0...12) }) {
+            let once = ShellQuoting.quoted(value)
+            #expect(Self.hasNoBackslashInsideSingleQuotes(once), "\(once)")
+            #expect(Self.hasNoBackslashInsideSingleQuotes(ShellQuoting.quoted("sh -c " + once)), "\(value)")
+        }
+    }
+
+    /// Outside single quotes, a backslash escapes the next character; inside them, there is none.
+    private static func hasNoBackslashInsideSingleQuotes(_ word: String) -> Bool {
+        var isInsideQuotes = false
+        var characters = word.makeIterator()
+        while let character = characters.next() {
+            switch (character, isInsideQuotes) {
+            case ("'", _): isInsideQuotes.toggle()
+            case ("\\", true): return false
+            case ("\\", false): _ = characters.next()
+            default: break
+            }
+        }
+        return !isInsideQuotes
     }
 
     private static func printEachValue(_ values: [String], in shell: Shell) -> String? {
