@@ -61,6 +61,7 @@ final class StoreChangeCounter {
         _ = store.cliStartCommands
         _ = store.remoteShellStartupChecks
         _ = store.hostsCheckingShellStartup
+        _ = store.hostCheck
         _ = store.hostRefreshStatuses
         _ = store.sshHostsNeedingLogIn
         _ = store.sshHostsLoggingIn

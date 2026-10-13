@@ -41,7 +41,8 @@ struct RemoteShellStartupStoreTests {
         #expect(runs.count == 2)
     }
 
-    @Test func aBlockedHostIsCheckedAgainOnlyWhenAsked() async throws {
+    /// Check this host… checks it again; see `HostCheckStoreTests`.
+    @Test func aBlockedHostIsNotCheckedAgainOnARefresh() async throws {
         let runs = CheckRuns([(0, Self.marker)])
         let (store, settings, host) = try makeStore(saved: .blocked, check: runs.check)
         defer { cleanUp(settings, host) }
@@ -49,10 +50,6 @@ struct RemoteShellStartupStoreTests {
         store.checkRemoteShellStartupIfNeeded(on: host, statusListedCLIs: false)
         try await Task.sleep(for: .milliseconds(100))
         #expect(runs.count == 0)
-
-        store.checkRemoteShellStartupNow(on: host)
-        try await expectEventually { store.shellStartupCheck(on: host)?.outcome == .interactiveStartupWorks }
-        #expect(RemoteHostShellStartups.shared.startup(on: host) == .interactive)
     }
 
     @Test func aSavedResultAppliesWhenTheAppStartsAndRemovingTheHostForgetsIt() throws {

@@ -18,14 +18,32 @@
 	<string>%@ - Left view</string>
 	<key>%@ - Right view</key>
 	<string>%@ - Right view</string>
+	<key>%@ Click to check %@.</key>
+	<string>%@ Click to check %@.</string>
 	<key>%@ could not be refreshed: %@</key>
 	<string>%@ could not be refreshed: %@</string>
+	<key>%@ didn't answer the rest of the check within %lld seconds, or the connection dropped.</key>
+	<string>%@ didn't answer the rest of the check within %lld seconds, or the connection dropped.</string>
 	<key>%@ has not saved this session yet · click to open its terminal</key>
 	<string>%@ has not saved this session yet · click to open its terminal</string>
+	<key>%@ has tmux %@. JustSessions needs tmux 2.6 or later to pass Control-B to the CLI and to end a session before deleting it.</key>
+	<string>%@ has tmux %@. JustSessions needs tmux 2.6 or later to pass Control-B to the CLI and to end a session before deleting it.</string>
+	<key>%@ is a folder on %@.</key>
+	<string>%@ is a folder on %@.</string>
 	<key>%@ is already added.</key>
 	<string>%@ is already added.</string>
+	<key>%@ isn't a folder on %@, so the session can't start there. It may have been moved or deleted.</key>
+	<string>%@ isn't a folder on %@, so the session can't start there. It may have been moved or deleted.</string>
+	<key>%@ isn't on the PATH of %@'s login shell, so its sessions listed here can't resume. If it's installed, add its folder to PATH in a startup file that shell reads.</key>
+	<string>%@ isn't on the PATH of %@'s login shell, so its sessions listed here can't resume. If it's installed, add its folder to PATH in a startup file that shell reads.</string>
+	<key>%@ isn't on the PATH of %@'s login shell, so this session can't start. If it's installed, add its folder to PATH in a startup file that shell reads.</key>
+	<string>%@ isn't on the PATH of %@'s login shell, so this session can't start. If it's installed, add its folder to PATH in a startup file that shell reads.</string>
+	<key>%@ printed:</key>
+	<string>%@ printed:</string>
 	<key>%@ tab group</key>
 	<string>%@ tab group</string>
+	<key>%@ wasn't checked: the check can't pass a path with quotes, $, or backslashes to %@.</key>
+	<string>%@ wasn't checked: the check can't pass a path with quotes, $, or backslashes to %@.</string>
 	<key>%@ will permanently delete this session using its native CLI. This cannot be undone.</key>
 	<string>%@ will permanently delete this session using its native CLI. This cannot be undone.</string>
 	<key>%@ · %@ · %@%@</key>
@@ -36,6 +54,14 @@
 	<string>%@ — %@</string>
 	<key>%@%@, %@, %@</key>
 	<string>%@%@, %@, %@</string>
+	<key>%@'s interactive startup files start another program, so CLIs start without them. A PATH set only in those files doesn't reach the CLIs.</key>
+	<string>%@'s interactive startup files start another program, so CLIs start without them. A PATH set only in those files doesn't reach the CLIs.</string>
+	<key>%@'s shell startup starts another program before the app's commands run, so sessions open that program instead of their CLI.</key>
+	<string>%@'s shell startup starts another program before the app's commands run, so sessions open that program instead of their CLI.</string>
+	<key>%@'s tmux server runs tmux %@, but the tmux JustSessions finds is %@. Opening a session in that server can fail until its sessions end and the server starts again.</key>
+	<string>%@'s tmux server runs tmux %@, but the tmux JustSessions finds is %@. Opening a session in that server can fail until its sessions end and the server starts again.</string>
+	<key>%@'s tmux server was started by another tmux version than %@, the one JustSessions finds there, as when tmux is upgraded while sessions run. Its sessions keep running but can't be opened. Reattach with the tmux that started the server, or end its sessions with that tmux and start them again.</key>
+	<string>%@'s tmux server was started by another tmux version than %@, the one JustSessions finds there, as when tmux is upgraded while sessions run. Its sessions keep running but can't be opened. Reattach with the tmux that started the server, or end its sessions with that tmux and start them again.</string>
 	<key>%@, %@</key>
 	<string>%@, %@</string>
 	<key>%@, %@%@%@</key>
@@ -216,6 +242,8 @@
 	<string>Browse and resume sessions on other machines with **Add SSH host…**.</string>
 	<key>Browse…</key>
 	<string>Browse…</string>
+	<key>CLIs run in %@ on %@, so they keep running when a tab closes or the connection drops.</key>
+	<string>CLIs run in %@ on %@, so they keep running when a tab closes or the connection drops.</string>
 	<key>CLIs skip your interactive shell startup, which starts another program</key>
 	<string>CLIs skip your interactive shell startup, which starts another program</string>
 	<key>Can't check</key>
@@ -228,22 +256,32 @@
 	<string>Cancel deletion</string>
 	<key>Changes the chosen theme's colors, in its light or dark version. Your changes stay with the theme when you choose another one. Text is made readable on your colors, so the text color can come out darker or lighter than you chose. Terminals that match the app theme take its background.</key>
 	<string>Changes the chosen theme's colors, in its light or dark version. Your changes stay with the theme when you choose another one. Text is made readable on your colors, so the text color can come out darker or lighter than you chose. Terminals that match the app theme take its background.</string>
+	<key>Check %@</key>
+	<string>Check %@</string>
 	<key>Check Again</key>
 	<string>Check Again</string>
+	<key>Check again</key>
+	<string>Check again</string>
 	<key>Check for updates</key>
 	<string>Check for updates</string>
-	<key>Check shell startup</key>
-	<string>Check shell startup</string>
+	<key>Check host</key>
+	<string>Check host</string>
 	<key>Check that the CLI runs in your usual terminal and has saved a conversation. **New session** offers only the CLIs it finds installed.</key>
 	<string>Check that the CLI runs in your usual terminal and has saved a conversation. **New session** offers only the CLIs it finds installed.</string>
-	<key>Checking shell startup…</key>
-	<string>Checking shell startup…</string>
+	<key>Check this host…</key>
+	<string>Check this host…</string>
+	<key>Check what on the host could have ended this tab, such as its CLI or its folder</key>
+	<string>Check what on the host could have ended this tab, such as its CLI or its folder</string>
+	<key>Checking %@…</key>
+	<string>Checking %@…</string>
 	<key>Checking the folder on %@…</key>
 	<string>Checking the folder on %@…</string>
 	<key>Checking the start command on %@…</key>
 	<string>Checking the start command on %@…</string>
 	<key>Checking the start command…</key>
 	<string>Checking the start command…</string>
+	<key>Checks this host</key>
+	<string>Checks this host</string>
 	<key>Choose</key>
 	<string>Choose</string>
 	<key>Choose **Add SSH host…** at the bottom of the sidebar, then enter `user@hostname` or an alias from `~/.ssh/config`. Your code and CLIs run on the host; its history is cached on this Mac.</key>
@@ -338,12 +376,16 @@
 	<string>Color intensity</string>
 	<key>Colors</key>
 	<string>Colors</string>
+	<key>Commands start in %@'s login shell with its interactive startup files, as in your own terminal.</key>
+	<string>Commands start in %@'s login shell with its interactive startup files, as in your own terminal.</string>
 	<key>Connect again; a CLI still running in tmux on the host is reattached</key>
 	<string>Connect again; a CLI still running in tmux on the host is reattached</string>
 	<key>Connecting to %@…</key>
 	<string>Connecting to %@…</string>
 	<key>Connecting…</key>
 	<string>Connecting…</string>
+	<key>Connection</key>
+	<string>Connection</string>
 	<key>Connects to %@, port %@.</key>
 	<string>Connects to %@, port %@.</string>
 	<key>Connects to %@.</key>
@@ -356,6 +398,10 @@
 	<string>Continue any past session in its own CLI and folder: just double-click it.</string>
 	<key>Copied</key>
 	<string>Copied</string>
+	<key>Copies %@'s sessions to this Mac.</key>
+	<string>Copies %@'s sessions to this Mac.</string>
+	<key>Copies sessions of %@.</key>
+	<string>Copies sessions of %@.</string>
 	<key>Copies the colors once. JustSessions doesn't read iTerm2's settings again.</key>
 	<string>Copies the colors once. JustSessions doesn't read iTerm2's settings again.</string>
 	<key>Copy</key>
@@ -370,10 +416,16 @@
 	<string>Copy conversation</string>
 	<key>Copy project path</key>
 	<string>Copy project path</string>
+	<key>Copy report</key>
+	<string>Copy report</string>
 	<key>Copy saved messages and tool-call summaries as Markdown</key>
 	<string>Copy saved messages and tool-call summaries as Markdown</string>
 	<key>Copy session ID</key>
 	<string>Copy session ID</string>
+	<key>Copy the command</key>
+	<string>Copy the command</string>
+	<key>Copy the report as text, for an issue or for whoever runs the host</key>
+	<string>Copy the report as text, for an issue or for whoever runs the host</string>
 	<key>Copy the selection. Hold ⇧ while dragging to select text.</key>
 	<string>Copy the selection. Hold ⇧ while dragging to select text.</string>
 	<key>Copying %@ sessions (%lld of %lld)…</key>
@@ -532,6 +584,16 @@
 	<string>Forward (⌘]). Right-click to see history.</string>
 	<key>Forward again</key>
 	<string>Forward again</string>
+	<key>Found at %@, but it didn't print its version within %lld seconds.</key>
+	<string>Found at %@, but it didn't print its version within %lld seconds.</string>
+	<key>Found at %@, but it failed when asked for its version, so it may fail to start sessions too.</key>
+	<string>Found at %@, but it failed when asked for its version, so it may fail to start sessions too.</string>
+	<key>Found at %@.</key>
+	<string>Found at %@.</string>
+	<key>Found nothing on %@ that keeps sessions from working.</key>
+	<string>Found nothing on %@ that keeps sessions from working.</string>
+	<key>Found something on %@ that keeps sessions from working; see the problems below.</key>
+	<string>Found something on %@ that keeps sessions from working; see the problems below.</string>
 	<key>Full</key>
 	<string>Full</string>
 	<key>Full Disk Access</key>
@@ -574,6 +636,8 @@
 	<string>Hide until JustSessions opens again</string>
 	<key>Host</key>
 	<string>Host</string>
+	<key>Host check</key>
+	<string>Host check</string>
 	<key>Hosts run Linux or macOS. For Windows, connect to WSL over SSH.</key>
 	<string>Hosts run Linux or macOS. For Windows, connect to WSL over SSH.</string>
 	<key>How it works</key>
@@ -610,6 +674,8 @@
 	<string>JustSessions Website</string>
 	<key>JustSessions and the CLIs in its terminals need it to reach a device on your network, such as an SSH host at a local address. macOS doesn't let apps check it, so look for JustSessions in Privacy &amp; Security &gt; Local Network.</key>
 	<string>JustSessions and the CLIs in its terminals need it to reach a device on your network, such as an SSH host at a local address. macOS doesn't let apps check it, so look for JustSessions in Privacy &amp; Security &gt; Local Network.</string>
+	<key>JustSessions host check: %@</key>
+	<string>JustSessions host check: %@</string>
 	<key>JustSessions quit unexpectedly</key>
 	<string>JustSessions quit unexpectedly</string>
 	<key>JustSessions read the history your CLIs keep and grouped it by project. Nothing was imported or uploaded.</key>
@@ -660,8 +726,12 @@
 	<string>Local Network</string>
 	<key>Log in to %@</key>
 	<string>Log in to %@</string>
+	<key>Logged in to %@.</key>
+	<string>Logged in to %@.</string>
 	<key>Logged in with Connect…</key>
 	<string>Logged in with Connect…</string>
+	<key>Login shell</key>
+	<string>Login shell</string>
 	<key>Make text bigger or smaller with ⌘+ and ⌘−, in terminals and conversations.</key>
 	<string>Make text bigger or smaller with ⌘+ and ⌘−, in terminals and conversations.</string>
 	<key>Makes the 16 colors that shells and many CLIs pick from stronger or softer. Colors a program sets exactly stay as they are.</key>
@@ -766,6 +836,10 @@
 	<string>Not allowed</string>
 	<key>Not asked yet</key>
 	<string>Not asked yet</string>
+	<key>Not found on %@: %@.</key>
+	<string>Not found on %@: %@.</string>
+	<key>Note</key>
+	<string>Note</string>
 	<key>Notifications</key>
 	<string>Notifications</string>
 	<key>Notifications for JustSessions are turned off in System Settings &gt; Notifications.</key>
@@ -826,6 +900,8 @@
 	<string>Optional. Without it, macOS asks about each protected folder, such as Documents or an external drive, the first time a CLI in a terminal opens files there.</string>
 	<key>Organize</key>
 	<string>Organize</string>
+	<key>Other CLIs</key>
+	<string>Other CLIs</string>
 	<key>Paste</key>
 	<string>Paste</string>
 	<key>Path on the host, such as ~/code/app</key>
@@ -858,6 +934,8 @@
 	<string>Previous match (⇧⌘G or ⇧Return)</string>
 	<key>Previous tab</key>
 	<string>Previous tab</string>
+	<key>Problem</key>
+	<string>Problem</string>
 	<key>Project filters are active</key>
 	<string>Project filters are active</string>
 	<key>Project folder</key>
@@ -958,8 +1036,14 @@
 	<string>Right-click a session to rename, pin, export, or delete it. ⌘-click or Shift-click to select several at once.</string>
 	<key>Right-click another tab and choose **New split view with current tab**. Drag between the two views to resize them.</key>
 	<string>Right-click another tab and choose **New split view with current tab**. Drag between the two views to resize them.</string>
+	<key>Run it yourself in Terminal:</key>
+	<string>Run it yourself in Terminal:</string>
+	<key>Run it yourself: %@</key>
+	<string>Run it yourself: %@</string>
 	<key>Running</key>
 	<string>Running</string>
+	<key>Runs on %@ what JustSessions runs there. When a command below fails the same way in your own Terminal, the problem is on %@.</key>
+	<string>Runs on %@ what JustSessions runs there. When a command below fails the same way in your own Terminal, the problem is on %@.</string>
 	<key>SSH alias or user@hostname</key>
 	<string>SSH alias or user@hostname</string>
 	<key>SSH aliases come from `~/.ssh/config`.</key>
@@ -1024,6 +1108,10 @@
 	<string>Separate views</string>
 	<key>Session %lld of %lld</key>
 	<string>Session %lld of %lld</string>
+	<key>Sessions of %@ are copied with python3 on %@, which isn't on its login shell's PATH.</key>
+	<string>Sessions of %@ are copied with python3 on %@, which isn't on its login shell's PATH.</string>
+	<key>Sessions on %@ can work, but see the warnings below.</key>
+	<string>Sessions on %@ can work, but see the warnings below.</string>
 	<key>Sessions on %@ open a shell instead of their CLI, because its shell startup starts another program first. Click for how to fix it.</key>
 	<string>Sessions on %@ open a shell instead of their CLI, because its shell startup starts another program first. Click for how to fix it.</string>
 	<key>Sessions on other machines</key>
@@ -1036,6 +1124,8 @@
 	<string>Settings…</string>
 	<key>Setup requirements</key>
 	<string>Setup requirements</string>
+	<key>Shell startup</key>
+	<string>Shell startup</string>
 	<key>Shell startup help</key>
 	<string>Shell startup help</string>
 	<key>Shell startup in the user guide ↗</key>
@@ -1178,6 +1268,10 @@
 	<string>The Pi session file and its associated folder will move to the macOS Trash.</string>
 	<key>The bottom of the sidebar shows a random tip about something you may not have tried. → shows another, and × hides it until JustSessions opens again.</key>
 	<string>The bottom of the sidebar shows a random tip about something you may not have tried. → shows another, and × hides it until JustSessions opens again.</string>
+	<key>The check of %@'s shell startup didn't finish.</key>
+	<string>The check of %@'s shell startup didn't finish.</string>
+	<key>The check's commands didn't run in %@'s login shell, so nothing else could be checked. The app's commands start the same way, so sessions there can't start either.</key>
+	<string>The check's commands didn't run in %@'s login shell, so nothing else could be checked. The app's commands start the same way, so sessions there can't start either.</string>
 	<key>The folder is listed under %@ in the sidebar, ready for new sessions.</key>
 	<string>The folder is listed under %@ in the sidebar, ready for new sessions.</string>
 	<key>The host needs:</key>
@@ -1210,6 +1304,8 @@
 	<string>This Mac</string>
 	<key>This Mac hasn't connected to this host before. Trust it only if the fingerprint matches the host's.</key>
 	<string>This Mac hasn't connected to this host before. Trust it only if the fingerprint matches the host's.</string>
+	<key>This Mac: %@</key>
+	<string>This Mac: %@</string>
 	<key>This affects all tools in %@, including sessions hidden by the current filter.</key>
 	<string>This affects all tools in %@, including sessions hidden by the current filter.</string>
 	<key>This affects all tools in %lld projects, including sessions hidden by the current filter.</key>
@@ -1248,6 +1344,8 @@
 	<string>Two tabs side by side</string>
 	<key>Undo your last edit to the line, in Claude Code and shells</key>
 	<string>Undo your last edit to the line, in Claude Code and shells</string>
+	<key>Unknown</key>
+	<string>Unknown</string>
 	<key>Unknown error</key>
 	<string>Unknown error</string>
 	<key>Unpin project</key>
@@ -1272,6 +1370,8 @@
 	<string>Waiting for you</string>
 	<key>Want computer use? Add a computer-use MCP server to your CLI, then allow Accessibility in Settings → Permissions.</key>
 	<string>Want computer use? Add a computer-use MCP server to your CLI, then allow Accessibility in Settings → Permissions.</string>
+	<key>Warning</key>
+	<string>Warning</string>
 	<key>Website ↗</key>
 	<string>Website ↗</string>
 	<key>When you close a CLI tab</key>
@@ -1296,6 +1396,8 @@
 	<string>Your sessions, already here</string>
 	<key>Your shell startup keeps CLIs from starting!</key>
 	<string>Your shell startup keeps CLIs from starting!</string>
+	<key>Your start command's program, found at %@.</key>
+	<string>Your start command's program, found at %@.</string>
 	<key>Zoom In</key>
 	<string>Zoom In</string>
 	<key>Zoom Out</key>
@@ -1320,6 +1422,14 @@
 	<string>macOS asks the first time JustSessions needs it.</string>
 	<key>macOS doesn't let apps check this. Look for JustSessions in System Settings.</key>
 	<string>macOS doesn't let apps check this. Look for JustSessions in System Settings.</string>
+	<key>python3 on %@ can't load its sqlite3 module, so sessions of %@ can't be copied.</key>
+	<string>python3 on %@ can't load its sqlite3 module, so sessions of %@ can't be copied.</string>
+	<key>rsync isn't installed on %@, or isn't on the PATH of commands run over ssh, so its sessions can't be copied to this Mac.</key>
+	<string>rsync isn't installed on %@, or isn't on the PATH of commands run over ssh, so its sessions can't be copied to this Mac.</string>
+	<key>tmux isn't installed on %@, so CLIs there run without it: closing a tab or losing the connection ends them.</key>
+	<string>tmux isn't installed on %@, so CLIs there run without it: closing a tab or losing the connection ends them.</string>
+	<key>tmux on %@ answered with an error.</key>
+	<string>tmux on %@ answered with an error.</string>
 	<key>·</key>
 	<string>·</string>
 	<key>⇧-click</key>

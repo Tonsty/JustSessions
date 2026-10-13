@@ -12,4 +12,6 @@ enum ThemeSheetMetrics {
     static let compactWidth: CGFloat = 480
     /// A sheet with several sections, such as New session.
     static let regularWidth: CGFloat = 520
+    /// A sheet that shows what commands printed, such as Check this host….
+    static let wideWidth: CGFloat = 640
 }
