@@ -1,25 +1,25 @@
 import Foundation
 
-/// Moving a tab, or a split's two tabs, from one window's tab bar to another's, as Chrome moves a tab dragged between
-/// windows. It leaves its tab bar as a closed tab does, though a split goes whole, and joins the other bar among its
-/// group's tabs, or as a new group when that bar has none of its group.
+/// Moving a tab, a split's two tabs, or a whole group's tabs from one window's tab bar to another's, as Chrome moves
+/// tabs and groups dragged between windows. They leave their tab bar as closed tabs do, though a split goes whole, and
+/// join the other bar among their group's tabs, or as a new group when that bar has none of their group.
 extension TerminalTabStrip {
-    /// Takes out `tabIDs`, one of the units `movingUnits(inGroup:)` lists: a tab in no split, or a split's two tabs.
-    /// Changes nothing and returns nil for any other set of tabs.
+    /// Takes out `tabIDs`, whole units of one group as `movingUnits(inGroup:)` lists them: a tab in no split, a split's
+    /// two tabs, or several, such as every tab of the group. Changes nothing and returns nil for any other set of tabs.
     mutating func takeOutForAnotherWindow(_ tabIDs: [UUID]) -> DetachedTabStripUnit? {
-        guard let firstTab = tabs.first(where: { tabIDs.contains($0.id) }),
-              let unitTabIDs = movingUnits(inGroup: groupKey(of: firstTab)).first(where: { $0.contains(firstTab.id) }),
-              Set(unitTabIDs) == Set(tabIDs) else { return nil }
-        let unitTabs = tabs.filter { tabIDs.contains($0.id) }
-        let split = split(containing: firstTab.id)
-        let groupKey = split?.groupKey ?? firstTab.projectKey
-        // Unlinked first, so taking out one of its tabs does not send the other back to its project's tabs.
-        self = TerminalTabStrip(tabs: tabs, splits: splits.filter { $0.id != split?.id })
-        for tab in unitTabs { removeTab(tab.id) }
-        return DetachedTabStripUnit(tabs: unitTabs, split: split, groupKey: groupKey)
+        guard let firstTab = tabs.first(where: { tabIDs.contains($0.id) }) else { return nil }
+        let groupKey = groupKey(of: firstTab)
+        let touchedUnits = movingUnits(inGroup: groupKey).filter { $0.contains(where: tabIDs.contains) }
+        guard Set(touchedUnits.joined()) == Set(tabIDs) else { return nil }
+        let leavingTabs = tabs.filter { tabIDs.contains($0.id) }
+        let leavingSplits = splits.filter { split in leavingTabs.contains { split.contains($0.id) } }
+        // Unlinked first, so taking out one of a split's tabs does not send the other back to its project's tabs.
+        self = TerminalTabStrip(tabs: tabs, splits: splits.filter { !leavingSplits.contains($0) })
+        for tab in leavingTabs { removeTab(tab.id) }
+        return DetachedTabStripUnit(tabs: leavingTabs, splits: leavingSplits, groupKey: groupKey)
     }
 
-    /// Puts tabs taken out of another window's tab bar in this one, at `placement`, with their split, if any, showing
+    /// Puts tabs taken out of another window's tab bar in this one, together at `placement`, with their splits showing
     /// in their group.
     mutating func bringIn(_ unit: DetachedTabStripUnit, at placement: TabStripPlacement) {
         var reorderedTabs = tabs
@@ -28,11 +28,10 @@ extension TerminalTabStrip {
             contentsOf: unit.tabs,
             at: TerminalTabOrder.insertionIndex(forProjectKey: unit.groupKey, amongTabProjectKeys: groupKeys)
         )
-        self = TerminalTabStrip(tabs: reorderedTabs, splits: splits + (unit.split.map { [$0] } ?? []))
-        guard let firstTab = unit.tabs.first else { return }
+        self = TerminalTabStrip(tabs: reorderedTabs, splits: splits + unit.splits)
         switch placement {
         case .amongGroupTabs(let place):
-            moveTab(firstTab.id, toPlaceInGroup: place)
+            moveTabs(unit.tabs.map(\.id), toPlaceInGroup: place)
         case .asNewGroup(let place):
             moveGroup(unit.groupKey, toPlace: place)
         }

@@ -32,18 +32,19 @@ struct TerminalTabCloseConfirmationTests {
         try await scenario.pressReturn(in: sheet) { !scenario.isOpen(tab) }
     }
 
-    /// Don't ask again stays in the dialog for a CLI tmux can keep running, and Return with it ticked saves Keep
-    /// running, so later closes keep the CLI running without asking.
+    /// Don't ask again stays in the dialog for a CLI tmux can keep running, naming the tab's host, and Return with it
+    /// ticked saves Keep running for that host only, so later closes there keep the CLI running without asking.
     @Test func returnWithDontAskAgainTickedSavesKeepRunning() async throws {
         let scenario = try CloseConfirmationScenario()
         defer { scenario.remove() }
         let tab = scenario.openTab(provider: .claude, tmuxSessionName: "justsessions-close-confirmation-test")
 
         let sheet = try await scenario.confirmClosing(tab)
-        try scenario.tick("Don't ask again", in: sheet)
+        try scenario.tick("Don't ask again on this Mac", in: sheet)
         try await scenario.pressReturn(in: sheet) { !scenario.isOpen(tab) }
 
-        #expect(scenario.tabCloseChoiceSettingsStore.choice == .keepRunning)
+        #expect(scenario.tabCloseChoiceSettingsStore.choice(for: .thisMac) == .keepRunning)
+        #expect(scenario.tabCloseChoiceSettingsStore.choice(for: .ssh("devbox")) == .askEachTime)
         #expect(scenario.plainTerminalCloseChoiceSettingsStore.choice == .askEachTime)
     }
 
@@ -59,7 +60,7 @@ struct TerminalTabCloseConfirmationTests {
         try await scenario.pressReturn(in: sheet) { !scenario.isOpen(tab) }
 
         #expect(scenario.plainTerminalCloseChoiceSettingsStore.choice == .closeWithoutAsking)
-        #expect(scenario.tabCloseChoiceSettingsStore.choice == .askEachTime)
+        #expect(scenario.tabCloseChoiceSettingsStore.choice(for: .thisMac) == .askEachTime)
     }
 
     @Test func aTabThatCannotKeepRunningOffersNoDontAskAgain() async throws {

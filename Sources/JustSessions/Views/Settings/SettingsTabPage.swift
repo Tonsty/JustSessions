@@ -2,8 +2,9 @@ import SwiftUI
 
 /// The size every Settings page shares, and the margin around its content.
 enum SettingsTabPageMetrics {
-    /// Fits the General and Permissions pages without scrolling. The Appearance page, much taller, scrolls.
-    static let size = CGSize(width: 540, height: 610)
+    /// Fits the Permissions page, and the General page with This Mac and one SSH host, without scrolling. Each further
+    /// SSH host adds a row to General, which then scrolls, as the much taller Appearance page does.
+    static let size = CGSize(width: 540, height: 665)
     static let contentPadding: CGFloat = 24
 }
 

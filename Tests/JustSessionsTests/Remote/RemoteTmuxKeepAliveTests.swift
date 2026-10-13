@@ -36,10 +36,13 @@ struct RemoteTmuxKeepAliveTests {
         #expect(sandbox.hasTmuxSession(tmuxName))
         #expect(RemoteHostStatusProbe.status(inOutput: sandbox.run(RemoteHostStatusProbe.command(on: "devbox"))).tmuxSessionNames == [tmuxName])
 
-        // Opening it again attaches instead of starting the CLI a second time.
+        // Opening it again attaches instead of starting the CLI a second time. The server waits after Esc as tmux
+        // before 3.5 does, until the attach sets it to 10 ms.
+        _ = sandbox.run("tmux set-option -s escape-time 500")
         let secondClient = try sandbox.startClient(command)
         Thread.sleep(forTimeInterval: 1.5)
         #expect(sandbox.launchCount == 1)
+        #expect(sandbox.run("tmux show-options -s escape-time").contains("escape-time 10"))
         secondClient.terminate()
         secondClient.waitUntilExit()
 

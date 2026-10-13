@@ -504,6 +504,8 @@
 	<string>断开连接</string>
 	<key>Don't ask again</key>
 	<string>不再询问</string>
+	<key>Don't ask again on %@</key>
+	<string>在 %@ 上不再询问</string>
 	<key>Don't show tips</key>
 	<string>不再显示提示</string>
 	<key>Done</key>
@@ -514,6 +516,8 @@
 	<string>把标签页拖出标签栏，就能放进单独的窗口。</string>
 	<key>Drop files from Finder onto a terminal on this Mac to paste their paths.</key>
 	<string>把 Finder 里的文件拖到本机终端上，就能输入它们的路径。</string>
+	<key>Each host has its own choice for tabs whose CLI can keep running in tmux there. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.</key>
+	<string>每台主机各有自己的选项，适用于 CLI 可在该主机的 tmux 中保持运行的标签。终端的 shell 总会随标签一起结束。关闭对话框中的“不再询问”也会设置这些选项。</string>
 	<key>Edit</key>
 	<string>编辑</string>
 	<key>End and close this terminal</key>
@@ -1284,8 +1288,6 @@
 	<string>这个回答未被接受。请重试。</string>
 	<key>The Antigravity session database, associated folder, and annotations will move to the macOS Trash. This also removes its entry from Antigravity's local index.</key>
 	<string>Antigravity 会话数据库、关联文件夹和注释将移到 macOS 废纸篓，并从 Antigravity 本地索引中移除。</string>
-	<key>The CLI tab choice is for tabs whose CLI can keep running in tmux. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.</key>
-	<string>CLI 标签的选项适用于 CLI 可在 tmux 中保持运行的标签。终端的 shell 总会随标签一起结束。关闭对话框中的“不再询问”也会设置这些选项。</string>
 	<key>The CLIs and shells running in them will stop.</key>
 	<string>其中运行的 CLI 和 shell 都会停止。</string>
 	<key>The Claude Code session file and its associated folder will move to the macOS Trash. This also removes its entry from Claude Code's local index.</key>

@@ -16,6 +16,7 @@ struct ThemeSurfaceRenderingTests {
         func settingsView(selectedTab: SettingsTab) -> AnyView {
             AnyView(SettingsView(
                 selectedTab: .constant(selectedTab),
+                hosts: [.thisMac],
                 languageStore: AppLanguageStore(userDefaults: settings.userDefaults),
                 tabReopeningSettingsStore: tabReopeningStore,
                 launchAtLoginSettingsStore: LaunchAtLoginSettingsStore(),

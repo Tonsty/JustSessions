@@ -21,6 +21,33 @@ struct ClaudeTranscriptTailTests {
 
         #expect(tail.latestTimestamp == nil)
         #expect(tail.latestCustomTitle == nil)
+        #expect(tail.relocatedWorkingDirectory == nil)
+    }
+
+    /// Claude Code 2.1.296 writes a `relocated` line when `/cd` moves a session, and again with the session's other
+    /// metadata. The last one names the folder the session is in now.
+    @Test func readsTheFolderOfTheLastRelocatedLine() {
+        let tail = ClaudeTranscriptTail(lines: jsonLines([
+            #"{"type":"relocated","sessionId":"s1","relocatedCwd":"/Users/me/first-move"}"#,
+            #"{"type":"user","cwd":"/Users/me/first-move","timestamp":"2026-10-13T10:00:00Z","message":{"content":"Keep going"}}"#,
+            #"{"type":"relocated","sessionId":"s1","relocatedCwd":"/Users/me/second-move"}"#,
+            #"{"type":"user","cwd":"/Users/me/second-move/web","timestamp":"2026-10-13T11:00:00Z","message":{"content":"Build it"}}"#,
+        ]))
+
+        #expect(tail.relocatedWorkingDirectory == "/Users/me/second-move")
+    }
+
+    @Test func aRelocatedLineOlderThanTheTimestampAndTitleIsStillRead() {
+        let tail = ClaudeTranscriptTail(lines: jsonLines([
+            #"{"type":"relocated","sessionId":"s1","relocatedCwd":"/Users/me/other"}"#,
+            #"{"type":"user","cwd":"/Users/me/other","timestamp":"2026-10-13T10:00:00Z","message":{"content":"Keep going"}}"#,
+            #"{"type":"custom-title","customTitle":"Moved session"}"#,
+            #"{"type":"assistant","timestamp":"2026-10-13T10:01:00Z","message":{"content":"Done"}}"#,
+        ]))
+
+        #expect(tail.latestTimestamp == ConversationMetadata.date("2026-10-13T10:01:00Z"))
+        #expect(tail.latestCustomTitle == "Moved session")
+        #expect(tail.relocatedWorkingDirectory == "/Users/me/other")
     }
 
     @Test func onlyTheEndOfALongTranscriptIsRead() throws {
