@@ -1,5 +1,4 @@
 import AppKit
-import Carbon.HIToolbox
 import Testing
 @testable import JustSessions
 
@@ -62,20 +61,4 @@ struct TerminalClipboardImageTests {
         #expect(TerminalClipboardImage(pasteboard: empty) == nil)
     }
 
-    @Test func onlyCommandVIsThePasteKey() {
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 10, height: 10), styleMask: [.titled], backing: .buffered, defer: true
-        )
-        window.isReleasedWhenClosed = false
-        defer { window.close() }
-        func key(_ characters: String, _ modifiers: NSEvent.ModifierFlags) -> NSEvent {
-            SyntheticKey.event(keyCode: kVK_ANSI_V, characters: characters, modifiers: modifiers, window: window)
-        }
-
-        #expect(TerminalImagePaste.isPasteKey(key("v", .command)))
-        #expect(TerminalImagePaste.isPasteKey(key("V", [.command, .capsLock])))
-        #expect(!TerminalImagePaste.isPasteKey(key("v", [.command, .shift])))
-        #expect(!TerminalImagePaste.isPasteKey(key("\u{16}", .control)))
-        #expect(!TerminalImagePaste.isPasteKey(key("v", [])))
-    }
 }

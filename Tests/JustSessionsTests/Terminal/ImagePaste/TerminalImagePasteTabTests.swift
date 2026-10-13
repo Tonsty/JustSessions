@@ -1,23 +1,27 @@
 import AppKit
-import Carbon.HIToolbox
 import Foundation
 import Testing
 @testable import JustSessions
 
-/// An image pasted on a tab, from ⌘V or the menu's Paste to what the tab's CLI receives. Each tab reads a pasteboard of
-/// its own in place of the clipboard, and its process records what it is sent.
+/// An image pasted on a tab, from either menu's Paste to what the tab's CLI receives; ⌘V chooses the Edit menu's. Each
+/// tab reads a pasteboard of its own in place of the clipboard, and its process records what it is sent.
 @MainActor
 struct TerminalImagePasteTabTests {
     enum Trigger: CaseIterable {
-        case menuPaste
-        case commandV
+        case rightClickMenuPaste
+        /// The action the Edit menu's Paste sends, as ⌘V chooses it.
+        case editMenuPaste
+
+        @MainActor
+        func paste(in terminalView: any TabTerminalView) {
+            switch self {
+            case .rightClickMenuPaste: terminalView.paste(terminalView)
+            case .editMenuPaste: NSApp.sendAction(#selector(NSText.paste(_:)), to: terminalView, from: NSMenuItem())
+            }
+        }
     }
 
-    /// SwiftTerm's ⌘V goes through the Edit menu to the same `paste(_:)` as the menu's, which a test can't send it.
-    @Test(arguments: [
-        (TerminalEngine.swiftTerm, Trigger.menuPaste), (TerminalEngine.ghostty, Trigger.menuPaste),
-        (TerminalEngine.ghostty, Trigger.commandV),
-    ])
+    @Test(arguments: TerminalEngine.allCases, Trigger.allCases)
     func onAnSSHHostTheImageIsCopiedThereAndTheCLIGetsItsPath(_ engine: TerminalEngine, _ trigger: Trigger) async throws {
         let folder = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: folder) }
@@ -61,12 +65,7 @@ struct TerminalImagePasteTabTests {
         tab.startIfNeeded()
         try await expectEventually { FileManager.default.fileExists(atPath: receivedInput.path) }
 
-        switch trigger {
-        case .menuPaste:
-            tab.terminalView.paste(tab.terminalView)
-        case .commandV:
-            #expect(tab.terminalView.performKeyEquivalent(with: commandV(in: window)))
-        }
+        trigger.paste(in: tab.terminalView)
 
         let received = { String(decoding: (try? Data(contentsOf: receivedInput)) ?? Data(), as: UTF8.self) }
         try await expectEventually { received().hasSuffix(" ") }
@@ -92,7 +91,7 @@ struct TerminalImagePasteTabTests {
         try await fixture.start(printing: "printf '\\033[?2004h'")
         try await expectEventually { fixture.view.isBracketedPasteOn }
 
-        paste(trigger, in: fixture)
+        trigger.paste(in: fixture.view)
 
         try await expectEventually { !fixture.receivedInput.isEmpty }
         #expect(fixture.receivedInput == "\u{1B}[200~\u{1B}[201~")
@@ -112,7 +111,7 @@ struct TerminalImagePasteTabTests {
         try await expectEventually { FileManager.default.fileExists(atPath: fixture.folder.appendingPathComponent("printed").path) }
         try await Task.sleep(for: .milliseconds(200))
 
-        #expect(fixture.view.performKeyEquivalent(with: commandV(in: fixture.window)))
+        Trigger.editMenuPaste.paste(in: fixture.view)
         fixture.view.sendAsTyped("x")
 
         try await expectEventually { !fixture.receivedInput.isEmpty }
@@ -133,16 +132,4 @@ struct TerminalImagePasteTabTests {
         #expect(fixture.view.imagePaste.handleClipboardImage() == nil)
     }
 
-    private func paste(_ trigger: Trigger, in fixture: GhosttyTabFixture) {
-        switch trigger {
-        case .menuPaste:
-            fixture.view.paste(fixture.view)
-        case .commandV:
-            #expect(fixture.view.performKeyEquivalent(with: commandV(in: fixture.window)))
-        }
-    }
-
-    private func commandV(in window: NSWindow) -> NSEvent {
-        SyntheticKey.event(keyCode: kVK_ANSI_V, characters: "v", modifiers: .command, window: window)
-    }
 }

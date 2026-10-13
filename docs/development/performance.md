@@ -107,6 +107,33 @@ The footprint is what Activity Monitor's Memory column shows. Read the table wit
   - 417 in updating the layer's backing store, which replays those commands. 316 of them rasterized glyphs into the 16-bit RGBA backing store this XDR display gets (`RGBAf16_mark_constmask`, `vCGCompositeConstMask_ARGB16F_vec`).
 - **Ghostty:** the main thread was busy in 28 of 3,459 samples, under 1%: committing the layer's new contents, and handing output on. Ghostty's renderer thread took 29 samples, Metal's command queue 21, Ghostty's output parsing 6, and reading the pseudo-terminal 5. All threads together were busy in 94 samples, against SwiftTerm's 726.
 
+**The libghostty-spm fork, 12 October 2026.** The pin moved to the fork's `2.2.2026100901-justsessions.2`; see [libghostty](build-and-release.md#libghostty). It makes the AppKit view's `paste(_:)` overridable, so a Ghostty tab can paste an image from the Edit menu, and it passes on Ghostty's search counts. The Paste runs only when the user pastes, and the search cases only during a search. The fork downloads the same `libghostty.a`. `TerminalEngineMeasurements` ran on the base (`db2d71d`, upstream `2.2.2026100901`) and on the fork (`90b0d60`), alternating base, fork, base, fork.
+
+**Method:**
+- **Machine:** Apple M4 Max, 14 cores (10 performance, 4 efficiency), 36 GB, macOS 27.0.1.
+- **Build:** release build from `swift test -c release`.
+- **Load:** other builds were running. The load average was 3–13.
+- **Runs:** each figure below is the median of the test's three runs in that round. Memory is one run per round, each in a process of its own.
+
+| Ghostty | Base, round 1 / 2 | Fork, round 1 / 2 |
+| --- | --- | --- |
+| Repaint, 1 tab: process CPU | 5.8% / 5.0% | 4.8% / 5.2% |
+| Repaint, 1 tab: main thread | 1.5% / 1.6% | 1.4% / 1.5% |
+| Repaint, 1 tab: longest main-thread gap | 24.0 / 29.6 ms | 29.7 / 28.3 ms |
+| Repaint, 5 tabs, 1 shown: process CPU | 7.6% / 4.2% | 7.6% / 7.5% |
+| Repaint, 10 tabs, 1 shown: process CPU | 5.8% / 2.9% | 8.9% / 6.0% |
+| Bulk 20 MB: time | 0.19 / 0.20 s | 0.20 / 0.20 s |
+| Bulk 20 MB: process CPU | 356% / 361% | 353% / 353% |
+| Footprint per idle tab | 25.6 / 23.2 MB | 25.6 / 25.2 MB |
+| Footprint added per full tab | 4.9 / 7.4 MB | 5.7 / 5.1 MB |
+| Resident memory added per full tab | 52.1 / 54.5 MB | 52.9 / 52.2 MB |
+
+No difference stands out from the load's noise:
+- **CPU, one tab:** the fork used 4.8–5.2% of a core against the base's 5.0–5.8%, and main-thread CPU within 0.2 points of it.
+- **CPU, hidden tabs:** the fork's medians were higher in three of four cases, but single runs overlap. With 10 tabs, the base's runs spanned 2.3–8.7% and the fork's 5.3–9.6%. The base's 5-tab median fell from 7.6% to 4.2% between its own two rounds.
+- **Memory:** the base's two rounds differed by up to 2.5 MB per tab, and the fork stays within the base's range.
+- **Frames:** every repaint drew 150–151 frames.
+
 ## Work items
 
 | # | Item | Status |
