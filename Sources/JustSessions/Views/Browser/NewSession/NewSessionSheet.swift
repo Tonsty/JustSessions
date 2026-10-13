@@ -7,6 +7,10 @@ struct NewSessionSheet: View {
     @State private var selectedHost: SessionHost
     @State private var projectPath: String
     @State private var isStarting = false
+    @State private var isCreatingMissingFolder = false
+    /// The folder as typed, on its host, when the host reported it missing. Editing the path or switching hosts
+    /// withdraws the offer to create it.
+    @State private var missingFolder: MissingFolder?
     @State private var errorMessage: String?
     /// Start commands being edited, per tool and host, so switching back to a tool shows the edit in progress.
     @State private var editedStartCommands: [StartCommandTarget: String] = [:]
@@ -85,6 +89,10 @@ struct NewSessionSheet: View {
         recentProjects.filter { $0.host == selectedHost }
     }
 
+    private var offersToCreateMissingFolder: Bool {
+        missingFolder == MissingFolder(host: selectedHost, folder: trimmedProjectPath)
+    }
+
     /// Switching hosts keeps the tool when the host has it and suggests the host's most recent project.
     private var hostSelection: Binding<SessionHost> {
         Binding(
@@ -136,18 +144,25 @@ struct NewSessionSheet: View {
                 .id(StartCommandTarget(provider: provider, host: selectedHost))
             }
 
-            projectFolderSection
+            NewSessionProjectFolderSection(
+                projectPath: $projectPath,
+                host: selectedHost,
+                recentProjects: recentProjectsOnSelectedHost,
+                missingFolder: offersToCreateMissingFolder ? trimmedProjectPath : nil
+            )
         } footer: {
             if isStarting && selectedHost != .thisMac {
                 ProgressView().controlSize(.small)
-                Text("Checking the folder on \(selectedHost.displayName)…")
+                Text(isCreatingMissingFolder
+                    ? "Creating the folder on \(selectedHost.displayName)…"
+                    : "Checking the folder on \(selectedHost.displayName)…")
                     .font(ThemeFont.callout)
                     .foregroundStyle(ThemePalette.secondaryText)
             }
             Spacer()
             Button("Cancel") { dismiss() }
                 .keyboardShortcut(.cancelAction)
-            Button(startingKind == .plainTerminal ? "Open terminal" : "Start session", action: start)
+            Button(startButtonTitle, action: start)
                 .buttonStyle(ProviderProminentButtonStyle(tint: startingKind.emphasisTintColor))
                 .keyboardShortcut(.defaultAction)
                 .disabled(trimmedProjectPath.isEmpty || isStarting || isEditingShownStartCommand)
@@ -162,54 +177,44 @@ struct NewSessionSheet: View {
         .dismissesOnClickOutside(item: $errorMessage)
     }
 
-    private var projectFolderSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(selectedHost == .thisMac ? "Project folder" : "Project folder on \(selectedHost.displayName)")
-                .font(ThemeFont.fieldLabel)
-            HStack(spacing: 8) {
-                TextField(
-                    selectedHost == .thisMac ? "Choose or enter a folder" : "Path on the host, such as ~/code/app",
-                    text: $projectPath
-                )
-                .textFieldStyle(ThemedTextFieldStyle())
-                .accessibilityLabel("Project folder")
-                if selectedHost == .thisMac {
-                    Button("Browse…", action: chooseProjectFolder)
-                }
-            }
-            if !recentProjectsOnSelectedHost.isEmpty {
-                Menu("Recent projects") {
-                    ForEach(Array(recentProjectsOnSelectedHost.prefix(12))) { project in
-                        Button("\(project.displayName) — \(project.location.path)") {
-                            projectPath = project.location.path
-                        }
-                    }
-                }
-                .menuStyle(.borderlessButton)
-                .fixedSize()
-            }
+    private var startButtonTitle: LocalizedStringKey {
+        switch (startingKind == .plainTerminal, offersToCreateMissingFolder) {
+        case (true, true): "Create folder and open terminal"
+        case (true, false): "Open terminal"
+        case (false, true): "Create folder and start"
+        case (false, false): "Start session"
         }
     }
 
     private func start() {
-        let request = NewSessionRequest(kind: startingKind, host: selectedHost, folder: trimmedProjectPath)
+        let request = NewSessionRequest(
+            kind: startingKind,
+            host: selectedHost,
+            folder: trimmedProjectPath,
+            creatingMissingFolder: offersToCreateMissingFolder
+        )
         isStarting = true
+        isCreatingMissingFolder = request.creatingMissingFolder
         Task {
             do {
                 try await onStart(request)
                 dismiss()
+            } catch RemoteFolderResolutionError.missingFolder, ThisMacFolderResolutionError.missingFolder {
+                missingFolder = MissingFolder(host: request.host, folder: request.folder)
             } catch {
+                missingFolder = nil
                 errorMessage = error.localizedDescription
             }
             isStarting = false
+            isCreatingMissingFolder = false
         }
     }
+}
 
-    private func chooseProjectFolder() {
-        ProjectFolderPanel.choose(prompt: AppLocalization.string("Choose"), startingAt: projectPath) { chosenFolder in
-            projectPath = chosenFolder
-        }
-    }
+/// A folder the host reported missing, as typed.
+private struct MissingFolder: Equatable {
+    let host: SessionHost
+    let folder: String
 }
 
 /// A tool on a host, whose start command edit the sheet keeps while it is open.

@@ -402,6 +402,10 @@
 	<string>Couldn't find iTerm2's default profile. A dynamic profile can't be imported.</string>
 	<key>Create folder and add</key>
 	<string>Create folder and add</string>
+	<key>Create folder and open terminal</key>
+	<string>Create folder and open terminal</string>
+	<key>Create folder and start</key>
+	<string>Create folder and start</string>
 	<key>Creating the folder on %@…</key>
 	<string>Creating the folder on %@…</string>
 	<key>Customize colors</key>
@@ -1200,6 +1204,8 @@
 	<string>The tour points at the main controls in the window. Afterwards, tips show again the first time you use each part, such as tabs or split view.</string>
 	<key>Theme</key>
 	<string>Theme</string>
+	<key>There is no folder %@ on this Mac. Check the path, or create the folder.</key>
+	<string>There is no folder %@ on this Mac. Check the path, or create the folder.</string>
 	<key>This Mac</key>
 	<string>This Mac</string>
 	<key>This Mac hasn't connected to this host before. Trust it only if the fingerprint matches the host's.</key>

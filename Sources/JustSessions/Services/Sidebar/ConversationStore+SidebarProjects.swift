@@ -84,9 +84,9 @@ extension ConversationStore {
     }
 
     /// From a host heading's +: lists a folder under its host before it has any sessions, or brings it back from the
-    /// archive, and returns its project key. A folder typed for an SSH host is looked up there first, so a missing
-    /// folder is reported, or created when `creatingMissingFolder` is set, and the project is keyed by the path the
-    /// CLIs record. On this Mac the folder panel creates a new folder itself.
+    /// archive, and returns its project key. The folder is looked up on its host first, so a missing folder is
+    /// reported, or created when `creatingMissingFolder` is set, and the project is keyed by the path the CLIs record.
+    /// On this Mac the folder panel creates a new folder itself.
     @discardableResult
     func addProjectToSidebar(
         folder: String,

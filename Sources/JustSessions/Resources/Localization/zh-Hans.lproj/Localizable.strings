@@ -408,6 +408,10 @@
 	<string>找不到 iTerm2 的默认 Profile。动态 Profile 无法导入。</string>
 	<key>Create folder and add</key>
 	<string>创建文件夹并添加</string>
+	<key>Create folder and open terminal</key>
+	<string>创建文件夹并打开终端</string>
+	<key>Create folder and start</key>
+	<string>创建文件夹并开始</string>
 	<key>Creating the folder on %@…</key>
 	<string>正在 %@ 上创建文件夹…</string>
 	<key>Customize colors</key>
@@ -1220,8 +1224,12 @@
 	<string>引导会指出窗口中的主要控件。之后，你第一次用到各个部分时（例如标签页或拆分视图），提示会再次出现。</string>
 	<key>Theme</key>
 	<string>主题</string>
+	<key>There is no folder %@ on %@. Check the path, or create the folder.</key>
+	<string>%2$@ 上没有文件夹 %1$@。请检查路径，或创建该文件夹。</string>
 	<key>There is no folder %@ on %@. Create it to add the project.</key>
 	<string>%2$@ 上没有文件夹 %1$@。创建它即可添加此项目。</string>
+	<key>There is no folder %@ on this Mac. Check the path, or create the folder.</key>
+	<string>此 Mac 上没有文件夹 %@。请检查路径，或创建该文件夹。</string>
 	<key>This Mac</key>
 	<string>此 Mac</string>
 	<key>This Mac hasn't connected to this host before. Trust it only if the fingerprint matches the host's.</key>

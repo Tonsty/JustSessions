@@ -28,12 +28,14 @@ struct AddProjectFromHostHeadingTests {
     @Test func addingAnArchivedFolderRestoresItWithItsSessions() async throws {
         let isolatedUserDefaults = try IsolatedUserDefaults()
         defer { isolatedUserDefaults.removeSuite() }
+        let archivedFolder = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: archivedFolder) }
         let store = ConversationStore(adapters: [], userDefaults: isolatedUserDefaults.userDefaults)
-        let conversation = Conversation.fixture(projectPath: "/work/archived")
+        let conversation = Conversation.fixture(projectPath: archivedFolder.path)
         store.replaceConversations(on: .thisMac, with: [conversation])
         store.removeProjectFromSidebar(conversation.projectDirectoryKey)
 
-        try await store.addProjectToSidebar(folder: "/work/archived", on: .thisMac)
+        try await store.addProjectToSidebar(folder: archivedFolder.path, on: .thisMac)
 
         #expect(store.archivedProjectPaths.isEmpty)
         #expect(store.sidebarProjectGroups.map(\.id) == [conversation.projectDirectoryKey])
