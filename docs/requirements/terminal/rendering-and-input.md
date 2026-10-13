@@ -21,6 +21,7 @@
 | TRM-24 | Each ANSI color stands at least 1.2:1 apart from the background, so a CLI filling cells with an ANSI color equal to the background still shows them. Colors already that far apart are unchanged. | `b55bfac` | `DistinguishableANSIColorsTests` |
 | TRM-25 | A theme change reaches CLIs that follow it: the tab answers `CSI ? 996 n` and sends a report on every color change while subscribed (`CSI ? 2031 h`), without moving the scroll position or selection. On SSH hosts with tmux before 3.6, Claude Code is made to redraw after a light/dark switch. | `d14311d`, `8307649` | `TerminalThemeChangeInTmuxTests`, `TerminalThemeReportingTests`, `UnheardLightDarkChangeTests` |
 | TRM-26 | Tabs on SSH hosts set `COLORTERM=truecolor` for the CLI and tmux. | `a049d60` | `TerminalColorEnvironmentTests` |
+| TRM-27 | Colors 16–255 of the 256-color palette are xterm's in both engines, whatever the theme; only the 16 ANSI colors follow it. SwiftTerm's own default blends them from the 16, which drained the color from Claude Code's text on soft themes such as JustSessions dark. | `02e7fa5` | `Terminal256ColorPaletteRenderingTests`, `GhosttyAppearanceConfigurationTests` |
 
 ## Fonts and zoom
 
