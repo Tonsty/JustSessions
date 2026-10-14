@@ -58,7 +58,7 @@ struct TerminalEngineTabMovingTests {
         defer { sandbox.tearDown() }
         let settings = try IsolatedUserDefaults()
         defer { settings.removeSuite() }
-        try sandbox.writeExecutable(named: "claude", script: "#!/bin/sh\nexec /bin/sleep 60\n")
+        try sandbox.writeExecutable(named: "claude", script: "#!/bin/sh\nexec /bin/sleep 600\n")
         let conversation = Conversation.fixture(projectPath: sandbox.project.path)
         let windowRegistry = WorkspaceWindowRegistry()
         let engineStore = TerminalEngineStore(userDefaults: settings.userDefaults)

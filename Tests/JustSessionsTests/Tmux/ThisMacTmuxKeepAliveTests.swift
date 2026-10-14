@@ -18,7 +18,7 @@ struct ThisMacTmuxKeepAliveTests {
               for argument in "$@"; do echo "argument=$argument"; done
               echo "COLORTERM=$COLORTERM"
             } >> "$CLI_LOG"
-            exec /bin/sleep 60
+            exec /bin/sleep 600
             """)
         let name = "justsessions-claude-keepalive"
         let command = sandbox.server.command(
@@ -72,7 +72,7 @@ struct ThisMacTmuxKeepAliveTests {
     @Test func aSessionIsNamedExactlyNotByPrefix() throws {
         guard let sandbox = try ThisMacTmuxSandbox.make() else { return }
         defer { sandbox.tearDown() }
-        _ = sandbox.tmuxOutput(["-f", "/dev/null", "new-session", "-d", "-s", "justsessions-codex-abcdef", "--", "/bin/sleep", "60"])
+        _ = sandbox.tmuxOutput(["-f", "/dev/null", "new-session", "-d", "-s", "justsessions-codex-abcdef", "--", "/bin/sleep", "600"])
 
         sandbox.server.renameSession(from: "justsessions-codex-abc", to: "justsessions-codex-renamed")
         sandbox.server.killSession(named: "justsessions-codex-abc")

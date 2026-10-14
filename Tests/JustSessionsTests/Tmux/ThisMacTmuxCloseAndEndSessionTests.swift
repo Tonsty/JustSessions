@@ -11,7 +11,7 @@ struct ThisMacTmuxCloseAndEndSessionTests {
     @Test func aSessionsTabClosesAndItsCLIInTmuxEnds() async throws {
         guard let sandbox = try ThisMacTmuxSandbox.make() else { return }
         defer { sandbox.tearDown() }
-        try sandbox.writeExecutable(named: "claude", script: "#!/bin/sh\nexec /bin/sleep 60\n")
+        try sandbox.writeExecutable(named: "claude", script: "#!/bin/sh\nexec /bin/sleep 600\n")
         let conversation = Conversation(
             provider: .claude,
             sessionID: UUID().uuidString.lowercased(),
@@ -50,7 +50,7 @@ struct ThisMacTmuxCloseAndEndSessionTests {
     @Test func aNewSessionsTabNotYetLinkedClosesAndItsTmuxSessionEnds() async throws {
         guard let sandbox = try ThisMacTmuxSandbox.make() else { return }
         defer { sandbox.tearDown() }
-        try sandbox.writeExecutable(named: "codex", script: "#!/bin/sh\nexec /bin/sleep 60\n")
+        try sandbox.writeExecutable(named: "codex", script: "#!/bin/sh\nexec /bin/sleep 600\n")
         let store = ConversationStore(adapters: [], commandResolver: sandbox.resolver, startsBackgroundPolling: false)
         defer { store.closeAllTerminals() }
         store.refreshThisMac()

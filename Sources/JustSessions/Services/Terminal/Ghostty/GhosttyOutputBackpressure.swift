@@ -44,6 +44,11 @@ final class GhosttyOutputBackpressure: @unchecked Sendable {
         lock.withLock { bytesOnTheWayToGhostty } + session.pendingOutputByteCount
     }
 
+    /// Whether a read waits in `waitForRoom()`, for tests.
+    var isWaitingForRoom: Bool {
+        lock.withLock { isWaiting }
+    }
+
     /// Called before each read is handed on; returns once there is room for it. Blocks the calling thread, which must
     /// not be the main thread, while at least the high-water mark waits, until the low-water mark is reached.
     func waitForRoom() {

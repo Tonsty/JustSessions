@@ -11,7 +11,7 @@ struct BundledTmuxMigrationTests {
               let sandbox = try ThisMacTmuxSandbox.make(tmuxPathOverride: installedPath) else { return }
         defer { sandbox.tearDown() }
         let sessionName = "justsessions-claude-migration"
-        _ = sandbox.tmuxOutput(["-f", "/dev/null", "new-session", "-d", "-s", sessionName, "--", "/bin/sleep", "60"])
+        _ = sandbox.tmuxOutput(["-f", "/dev/null", "new-session", "-d", "-s", sessionName, "--", "/bin/sleep", "600"])
         let originalProcessID = try #require(sandbox.server.paneProcessIDsBySessionName()[sessionName])
         let resolver = NativeCLICommandResolver(
             searchDirectories: [sandbox.binaryDirectory.path], inheritedEnvironment: sandbox.environment,
