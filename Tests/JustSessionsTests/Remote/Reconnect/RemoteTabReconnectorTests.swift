@@ -117,6 +117,46 @@ struct RemoteTabReconnectorTests {
         #expect(setup.host.askCount.value == 0)
     }
 
+    /// `ssh` ends with the same status when it couldn't connect or log in; a tab that ended so right after starting
+    /// points at Check host instead.
+    @Test func aTabThatCouldntConnectIsNotReconnected() async throws {
+        let setup = try DroppedTabSetup()
+        defer { setup.tearDown() }
+        let folder = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let couldntConnect = TerminalSession(
+            engine: .swiftTerm,
+            conversation: setup.conversation,
+            provider: .claude,
+            projectPath: setup.conversation.projectPath,
+            action: .resume,
+            displayTitle: "Couldn't connect",
+            command: NativeCLICommand(
+                executablePath: "/bin/sh",
+                arguments: ["-c", "exit \(RemoteHostCommandRunner.connectionFailureExitStatus)"],
+                workingDirectory: folder.path,
+                environment: ["PATH=/usr/bin:/bin"]
+            ),
+            host: .ssh("devbox"),
+            tmuxSessionName: "justsessions-claude-couldnt-connect"
+        )
+        setup.host.answer.update { $0 = ["justsessions-claude-couldnt-connect"] }
+        setup.sandbox.first.openTerminal(couldntConnect)
+        couldntConnect.onProcessFinished = nil
+
+        couldntConnect.startIfNeeded()
+        try await expectEventually { couldntConnect.hasExited }
+        setup.reconnector.tabDropped(couldntConnect)
+        setup.reconnector.tryAgain()
+        setup.clock.advance(by: 2)
+        setup.reconnector.askDueHosts()
+
+        #expect(couldntConnect.exitCode == RemoteHostCommandRunner.connectionFailureExitStatus)
+        #expect(couldntConnect.endedWithErrorSoonAfterStarting)
+        #expect(!couldntConnect.isWaitingToReconnect)
+        #expect(setup.host.askCount.value == 0)
+    }
+
     /// A connection that keeps failing right after it reconnects is left for you, until the Mac wakes or the app
     /// comes forward.
     @Test func aTabThatDropsSoonAfterReconnectingWaitsForTheNextWake() async throws {

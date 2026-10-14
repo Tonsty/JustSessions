@@ -112,10 +112,12 @@ final class TerminalSession: ObservableObject, Identifiable {
     var startsNewSession: Bool { action?.startsNewSession ?? false }
     /// A CLI tab on an SSH host whose `ssh` ended with its connection error, as when the Mac slept, so its CLI may
     /// still run in tmux there. A plain terminal runs outside tmux, and a CLI that ended or a client that detached
-    /// ends `ssh` with another status.
+    /// ends `ssh` with another status. One that ended so right after starting most likely couldn't connect, as when
+    /// the host refused the login, and Check host is the way on.
     var hasDroppedConnectionToTmux: Bool {
         host != .thisMac && provider != nil && tmuxSessionName != nil && hasExited
             && exitCode == RemoteHostCommandRunner.connectionFailureExitStatus && !connectionEndedOnPurpose
+            && !endedWithErrorSoonAfterStarting
     }
 
     init(
