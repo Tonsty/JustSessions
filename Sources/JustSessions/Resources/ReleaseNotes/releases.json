@@ -11,12 +11,16 @@
         "kind": "new",
         "items": [
           {
+            "en": "Claude Code and Codex sessions show the model they used, with Codex's reasoning effort.",
+            "zh-Hans": "Claude Code 和 Codex 会话会显示所用的模型，Codex 还会显示推理强度。"
+          },
+          {
             "en": "Hosts refresh on their own while a window shows: This Mac every minute, SSH hosts every 5 minutes.",
             "zh-Hans": "窗口显示时，主机会自动刷新：这台 Mac 每分钟一次，SSH 主机每 5 分钟一次。"
           },
           {
-            "en": "Drag a tab group's label off the tab bar to move the whole group to a new or another window.",
-            "zh-Hans": "把标签组的名称拖出标签栏，可将整组移到新窗口或另一个窗口。"
+            "en": "End or delete several running sessions at once; their tabs close and their CLIs end first.",
+            "zh-Hans": "可一次结束或删除多个运行中的会话；会先关闭其标签页并结束 CLI。"
           }
         ]
       },
@@ -33,12 +37,8 @@
         "kind": "fixed",
         "items": [
           {
-            "en": "Fixed sessions not starting on SSH hosts whose login shell is fish, or whose CLI is a shell alias.",
-            "zh-Hans": "修复了在登录 shell 为 fish 或 CLI 为 shell 别名的 SSH 主机上无法启动会话的问题。"
-          },
-          {
-            "en": "Small bug fixes.",
-            "zh-Hans": "修复了一些小问题。"
+            "en": "Fixed Shift-← and other modified arrow keys not reaching Codex in SwiftTerm tabs.",
+            "zh-Hans": "修复了 SwiftTerm 标签页中 Shift-← 等组合方向键无法传给 Codex 的问题。"
           }
         ]
       }
