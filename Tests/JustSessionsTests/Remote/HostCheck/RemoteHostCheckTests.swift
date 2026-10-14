@@ -17,8 +17,17 @@ struct RemoteHostCheckTests {
             shellStartupCheck: RemoteShellStartupCheck(run: { _, _, _ in Issue.record("Checked the shell startup"); return nil })
         )
 
-        let outcome = check.check(host: "devbox", programs: [], session: nil, providersWithSessions: [], thisMacSummary: "This Mac")
+        var steps: [HostCheckStep] = []
+        let outcome = check.check(
+            host: "devbox",
+            programs: [],
+            session: nil,
+            providersWithSessions: [],
+            thisMacSummary: "This Mac",
+            startingStep: { steps.append($0) }
+        )
 
+        #expect(steps == [.logIn])
         #expect(outcome.report.findings.map(\.id) == ["connection"])
         #expect(outcome.report.findings.first?.status == .problem)
         #expect(outcome.shellStartupResult == nil)
@@ -62,6 +71,59 @@ struct RemoteHostCheckTests {
         #expect(outcome.report.thisMacSummary == "JustSessions 1.2.10 · macOS 26.0.1")
         let scriptCommand = try #require(recorder.commands.last?.command)
         #expect(scriptCommand.contains("\"$SHELL\" -lc "))
+    }
+
+    /// For the sheet, which shows the step that runs.
+    @Test func tellsOfEachStepAsItStarts() {
+        let recorder = RemoteCommandRecorder()
+        var steps: [HostCheckStep] = []
+        var commandCountByStep: [HostCheckStep: Int] = [:]
+        let check = RemoteHostCheck(
+            runner: recorder.runner(answering: (0, hostCheckScriptOutput(["shell": "/bin/bash", "done": ""]))),
+            connectionCheck: RemoteHostConnectionCheck(runner: recorder.runner(answering: (0, "%OS% :OS\n"))),
+            shellStartupCheck: RemoteShellStartupCheck(run: { _, _, _ in (0, Self.shellStartupWorks) })
+        )
+
+        _ = check.check(
+            host: "devbox",
+            programs: [],
+            session: nil,
+            providersWithSessions: [],
+            thisMacSummary: "This Mac",
+            startingStep: { step in
+                steps.append(step)
+                commandCountByStep[step] = recorder.commands.count
+            }
+        )
+
+        #expect(steps == [.logIn, .shellStartup, .cliLookup, .hostCommand])
+        // Each step is told of before its command runs: the login's, the lookup's, then the script's.
+        #expect(commandCountByStep == [.logIn: 0, .shellStartup: 1, .cliLookup: 1, .hostCommand: 2])
+        #expect(recorder.commands.count == 3)
+    }
+
+    /// A check the app runs on its own takes the kept shell startup result, so it has no such step.
+    @Test func aCheckThatTakesTheKeptShellStartupSkipsItsStep() {
+        let recorder = RemoteCommandRecorder()
+        var steps: [HostCheckStep] = []
+        let check = RemoteHostCheck(
+            runner: recorder.runner(answering: (0, hostCheckScriptOutput(["shell": "/bin/bash", "done": ""]))),
+            connectionCheck: RemoteHostConnectionCheck(runner: recorder.runner(answering: (0, "%OS% :OS\n"))),
+            shellStartupCheck: RemoteShellStartupCheck(run: { _, _, _ in Issue.record("Checked the shell startup"); return nil })
+        )
+
+        _ = check.check(
+            host: "devbox",
+            programs: [],
+            session: nil,
+            providersWithSessions: [],
+            thisMacSummary: "This Mac",
+            keptShellStartupResult: RemoteShellStartupCheckResult(outcome: .interactiveStartupWorks, stoppedAt: nil),
+            checksShellStartup: false,
+            startingStep: { steps.append($0) }
+        )
+
+        #expect(steps == [.logIn, .cliLookup, .hostCommand])
     }
 
     @Test func aScriptThatDoesNotFinishIsAProblem() {

@@ -37,6 +37,8 @@ extension ConversationStore {
         guard var state = hostCheck, !state.isChecking else { return }
         state.runID = UUID()
         state.report = nil
+        state.step = .logIn
+        state.stepStartedAt = .now
         hostCheck = state
         runHostCheck(state)
     }
@@ -54,10 +56,20 @@ extension ConversationStore {
                 programs: programs,
                 session: session,
                 providersWithSessions: providersWithSessions,
-                thisMacSummary: HostCheckThisMacSummary.current()
+                thisMacSummary: HostCheckThisMacSummary.current(),
+                startingStep: { step in
+                    Task { @MainActor in self.showHostCheckStep(step, runID: runID) }
+                }
             )
             await self.finishHostCheck(outcome, host: host, runID: runID)
         }
+    }
+
+    private func showHostCheckStep(_ step: HostCheckStep, runID: UUID) {
+        // A step can arrive after a later one, or after the report.
+        guard let state = hostCheck, state.runID == runID, state.isChecking, step > state.step else { return }
+        hostCheck?.step = step
+        hostCheck?.stepStartedAt = .now
     }
 
     private func finishHostCheck(_ outcome: RemoteHostCheck.Outcome, host: String, runID: UUID) {

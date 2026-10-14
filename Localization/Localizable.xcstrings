@@ -8145,6 +8145,86 @@
           }
         }
       }
+    },
+    "Checking %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查 %@"
+          }
+        }
+      }
+    },
+    "Step %lld of %lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 步，共 %lld 步"
+          }
+        }
+      }
+    },
+    "Waiting": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待中"
+          }
+        }
+      }
+    },
+    "Logging in to %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在登录 %@"
+          }
+        }
+      }
+    },
+    "Checking its shell startup": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查它的 shell 启动配置"
+          }
+        }
+      }
+    },
+    "Looking up each CLI": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在查找各个 CLI"
+          }
+        }
+      }
+    },
+    "Asking about tmux, rsync, and each CLI's version": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在询问 tmux、rsync 和各个 CLI 的版本"
+          }
+        }
+      }
+    },
+    "Asking about tmux, rsync, each CLI's version, and the tab's folder": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在询问 tmux、rsync、各个 CLI 的版本和标签页的文件夹"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

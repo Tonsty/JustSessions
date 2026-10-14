@@ -242,6 +242,10 @@
 	<string>立即请求</string>
 	<key>Ask each time</key>
 	<string>每次询问</string>
+	<key>Asking about tmux, rsync, and each CLI's version</key>
+	<string>正在询问 tmux、rsync 和各个 CLI 的版本</string>
+	<key>Asking about tmux, rsync, each CLI's version, and the tab's folder</key>
+	<string>正在询问 tmux、rsync、各个 CLI 的版本和标签页的文件夹</string>
 	<key>Back</key>
 	<string>后退</string>
 	<key>Back (⌘[). Right-click to see history.</key>
@@ -292,8 +296,12 @@
 	<string>检查主机上可能导致此标签页结束的原因，例如它的 CLI 或文件夹</string>
 	<key>Checked %@ · This Mac: %@</key>
 	<string>检查于 %1$@ · 此 Mac：%2$@</string>
+	<key>Checking %@</key>
+	<string>正在检查 %@</string>
 	<key>Checking %@…</key>
 	<string>正在检查 %@…</string>
+	<key>Checking its shell startup</key>
+	<string>正在检查它的 shell 启动配置</string>
 	<key>Checking the folder on %@…</key>
 	<string>正在检查 %@ 上的文件夹…</string>
 	<key>Checking the start command on %@…</key>
@@ -786,8 +794,12 @@
 	<string>已登录 %@。</string>
 	<key>Logged in with Connect…</key>
 	<string>已通过“连接…”登录</string>
+	<key>Logging in to %@</key>
+	<string>正在登录 %@</string>
 	<key>Login shell</key>
 	<string>登录 shell</string>
+	<key>Looking up each CLI</key>
+	<string>正在查找各个 CLI</string>
 	<key>Make text bigger or smaller with ⌘+ and ⌘−, in terminals and conversations.</key>
 	<string>⌘+ / ⌘− 调整终端和对话的文字大小。</string>
 	<key>Makes the 16 colors that shells and many CLIs pick from stronger or softer. Colors a program sets exactly stay as they are.</key>
@@ -1286,6 +1298,8 @@
 	<string>在此 Mac 的个人文件夹中启动，不在 tmux 中运行，并通过 ssh 连接 %@。</string>
 	<key>Startup</key>
 	<string>启动</string>
+	<key>Step %lld of %lld</key>
+	<string>第 %lld 步，共 %lld 步</string>
 	<key>Stop copying; nothing is typed</key>
 	<string>停止复制，不会输入任何路径</string>
 	<key>Stop deleting after the current session; the rest stay listed</key>
@@ -1468,6 +1482,8 @@
 	<string>用户指南 ↗</string>
 	<key>Version</key>
 	<string>版本</string>
+	<key>Waiting</key>
+	<string>等待中</string>
 	<key>Waiting for you</key>
 	<string>等待我处理</string>
 	<key>Want computer use? Add a computer-use MCP server to your CLI, then allow Accessibility in Settings → Permissions.</key>
