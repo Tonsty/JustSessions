@@ -18,6 +18,7 @@ final class JustSessionsAppDelegate: NSObject, NSApplicationDelegate {
         LaunchCrashReportOffer.offerIfTheLastRunCrashed()
         ZoomInEqualsKey.startForwarding()
         HostAutoRefresher.shared.start()
+        RemoteTabReconnector.shared.start()
         DispatchQueue.global(qos: .utility).async { SSHLoginConnections.closeLoginsOfEndedApps() }
     }
 

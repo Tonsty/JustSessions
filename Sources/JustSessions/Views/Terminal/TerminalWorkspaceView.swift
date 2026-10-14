@@ -30,6 +30,7 @@ struct TerminalWorkspaceView: View {
             if session.hasExited {
                 TerminalEndedBar(
                     exitCode: session.exitCode,
+                    isWaitingToReconnect: session.isWaitingToReconnect,
                     endedWithErrorSoonAfterStarting: session.endedWithErrorSoonAfterStarting,
                     hostProblem: hostProblem(),
                     onCheckHost: onCheckHost,

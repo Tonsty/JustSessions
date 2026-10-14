@@ -66,6 +66,12 @@ final class TerminalSession: ObservableObject, Identifiable {
     /// The tab's CLI finished a turn while the tab was off screen, and you have not looked since. The store keeps
     /// the marks and sets this one; see `ConversationStore+UnseenFinishedTurns`.
     @Published private(set) var hasUnseenFinishedTurn = false
+    /// The tab's connection dropped and the app reconnects it on its own once the host lists its tmux session; see
+    /// `RemoteTabReconnector`.
+    @Published var isWaitingToReconnect = false
+    /// The tab's connection ended because you ended the login it went through, with Disconnect, so it isn't
+    /// reconnected on its own.
+    var connectionEndedOnPurpose = false
 
     private let processObserver: TerminalProcessObserver
     private var hasStarted = false
@@ -104,6 +110,15 @@ final class TerminalSession: ObservableObject, Identifiable {
     }
     /// A New session or Branch tab, whose session id the app learns once the CLI writes it.
     var startsNewSession: Bool { action?.startsNewSession ?? false }
+    /// A CLI tab on an SSH host whose `ssh` ended with its connection error, as when the Mac slept, so its CLI may
+    /// still run in tmux there. A plain terminal runs outside tmux, and a CLI that ended or a client that detached
+    /// ends `ssh` with another status. One that ended so right after starting most likely couldn't connect, as when
+    /// the host refused the login, and Check host is the way on.
+    var hasDroppedConnectionToTmux: Bool {
+        host != .thisMac && provider != nil && tmuxSessionName != nil && hasExited
+            && exitCode == RemoteHostCommandRunner.connectionFailureExitStatus && !connectionEndedOnPurpose
+            && !endedWithErrorSoonAfterStarting
+    }
 
     init(
         engine: TerminalEngine,
@@ -214,6 +229,9 @@ final class TerminalSession: ObservableObject, Identifiable {
         cliActivity = nil
         hasUnseenFinishedTurn = false
         onProcessFinished?()
+        if hasDroppedConnectionToTmux {
+            NotificationCenter.default.post(name: RemoteTabReconnector.connectionDroppedNotification, object: self)
+        }
     }
 
     /// Returns whether the activity changed. An ended CLI keeps none.

@@ -396,6 +396,8 @@
 	<string>Connecting…</string>
 	<key>Connection</key>
 	<string>Connection</string>
+	<key>Connection lost. Reconnecting…</key>
+	<string>Connection lost. Reconnecting…</string>
 	<key>Connects to %@, port %@.</key>
 	<string>Connects to %@, port %@.</string>
 	<key>Connects to %@.</key>

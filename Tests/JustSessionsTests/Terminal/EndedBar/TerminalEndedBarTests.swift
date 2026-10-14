@@ -19,7 +19,12 @@ struct TerminalEndedBarTests {
 
     @Test func aTabOnThisMacHasNoCheckHostToLeadTo() {
         let bar = TerminalEndedBar(
-            exitCode: 1, endedWithErrorSoonAfterStarting: true, hostProblem: nil, onCheckHost: nil, onReconnect: nil
+            exitCode: 1,
+            isWaitingToReconnect: false,
+            endedWithErrorSoonAfterStarting: true,
+            hostProblem: nil,
+            onCheckHost: nil,
+            onReconnect: nil
         )
         #expect(!bar.leadsToCheckHost)
     }
@@ -27,6 +32,7 @@ struct TerminalEndedBarTests {
     private func bar(endedWithErrorSoonAfterStarting: Bool, hostProblem: String?) -> TerminalEndedBar {
         TerminalEndedBar(
             exitCode: 1,
+            isWaitingToReconnect: false,
             endedWithErrorSoonAfterStarting: endedWithErrorSoonAfterStarting,
             hostProblem: hostProblem,
             onCheckHost: {},

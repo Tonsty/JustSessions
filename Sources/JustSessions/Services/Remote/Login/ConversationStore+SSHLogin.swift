@@ -17,6 +17,7 @@ extension ConversationStore {
         sshHostsLoggingIn.remove(host)
         if outcome == .loggedIn {
             for store in storesOfEveryWindow { store.loginOpened(on: host) }
+            NotificationCenter.default.post(name: RemoteTabReconnector.loginOpenedNotification, object: host)
         }
         return outcome
     }
@@ -29,9 +30,14 @@ extension ConversationStore {
         }
     }
 
-    /// Ends the host's login. Its tabs' connections end with it, and their CLIs keep running in tmux. Every window
-    /// that lists the host refreshes it without the login, so a host that needs one offers Connect… at once.
+    /// Ends the host's login. Its tabs' connections end with it, and their CLIs keep running in tmux; those tabs are
+    /// not reconnected on their own. Every window that lists the host refreshes it without the login, so a host that
+    /// needs one offers Connect… at once.
     func disconnect(_ host: String, connections: SSHLoginConnections = .shared) {
+        for tab in storesOfEveryWindow.flatMap(\.terminalSessions)
+        where tab.host == .ssh(host) && RemoteCLICommandBuilder.goesThroughLogin(tab.command) {
+            tab.connectionEndedOnPurpose = true
+        }
         connections.disconnect(host)
         for store in storesOfEveryWindow { store.loginClosed(on: host) }
     }
