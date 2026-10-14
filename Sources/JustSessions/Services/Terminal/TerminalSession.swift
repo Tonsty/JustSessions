@@ -27,6 +27,8 @@ final class TerminalSession: ObservableObject, Identifiable {
     /// For a Branch tab, the session it forked. The CLI runs a new session, so this one is never the tab's own.
     let branchedFromSessionID: String?
     let launchedAt = Date()
+    /// When its process started, which for a tab that waited to be shown is after it was made.
+    private(set) var startedAt: Date?
     /// For a new session or branch linked by appearance: the tool's session ids listed on the host when the tab
     /// started. The first session that appears after that in the same project is this tab's.
     let sessionIDsKnownAtLaunch: Set<String>
@@ -143,6 +145,7 @@ final class TerminalSession: ObservableObject, Identifiable {
     func startIfNeeded() {
         guard !hasStarted && !isClosed && !isWaitingToBeShown else { return }
         hasStarted = true
+        startedAt = Date()
         terminalView.startProcess(
             executable: command.executablePath,
             args: command.arguments,

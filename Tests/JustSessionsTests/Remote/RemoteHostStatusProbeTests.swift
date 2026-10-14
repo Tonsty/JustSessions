@@ -23,6 +23,63 @@ struct RemoteHostStatusProbeTests {
         #expect(status.installedProviders == [.codex, .opencode, .pi])
     }
 
+    /// A shell profile's lines come before the tmux heading, so a name it prints isn't taken for a session.
+    @Test func readsTmuxSessionsBetweenTheirHeadingAndTheCLIs() {
+        let output = """
+            justsessions-codex-new-1a2b3c4d
+            \(RemoteHostStatusProbe.tmuxSessionsHeading)
+            justsessions-claude-01a0cf02-2025-7990-8bb2-80feff2349d4
+            \(RemoteHostStatusProbe.installedCLIsHeading)
+            claude
+
+            """
+
+        let status = RemoteHostStatusProbe.status(inOutput: output)
+
+        #expect(status.tmuxSessionNames == ["justsessions-claude-01a0cf02-2025-7990-8bb2-80feff2349d4"])
+        #expect(status.tmuxServerProblem == nil)
+    }
+
+    /// As after tmux on the host was upgraded while sessions ran.
+    @Test func keepsWhatTmuxPrintedWhenItCantReachItsServer() {
+        let output = """
+            \(RemoteHostStatusProbe.tmuxSessionsHeading)
+            protocol version mismatch (client 8, server 7)
+            \(RemoteHostStatusProbe.installedCLIsHeading)
+            claude
+
+            """
+
+        let status = RemoteHostStatusProbe.status(inOutput: output)
+
+        #expect(status.tmuxSessionNames.isEmpty)
+        #expect(status.tmuxServerProblem == "protocol version mismatch (client 8, server 7)")
+        #expect(status.installedProviders == [.claude])
+    }
+
+    @Test func noTmuxServerRunningIsNoProblem() {
+        let output = """
+            \(RemoteHostStatusProbe.tmuxSessionsHeading)
+            no server running on /tmp/tmux-1000/default
+            \(RemoteHostStatusProbe.installedCLIsHeading)
+
+            """
+
+        #expect(RemoteHostStatusProbe.status(inOutput: output).tmuxServerProblem == nil)
+    }
+
+    /// A profile that prints the message before the heading isn't tmux's answer.
+    @Test func aProfileLineBeforeTheTmuxHeadingIsNoProblem() {
+        let output = """
+            server exited unexpectedly
+            \(RemoteHostStatusProbe.tmuxSessionsHeading)
+            \(RemoteHostStatusProbe.installedCLIsHeading)
+
+            """
+
+        #expect(RemoteHostStatusProbe.status(inOutput: output).tmuxServerProblem == nil)
+    }
+
     @Test func noCLIsBelowTheHeadingMeansNoneAreInstalled() {
         let status = RemoteHostStatusProbe.status(inOutput: RemoteHostStatusProbe.installedCLIsHeading + "\n")
         #expect(status.tmuxSessionNames.isEmpty)
@@ -43,6 +100,29 @@ struct RemoteHostStatusProbeTests {
         )
         #expect(status == nil)
         #expect(recorder.commands.map(\.host) == ["devbox"])
+    }
+
+    /// An SSH connection ends only once nothing holds the command's output open, as `| cat` here, and an older tmux
+    /// server holds a newer client's output open, as the stand-in tmux's `sleep` does.
+    @Test func probeEndsThoughTheTmuxServerKeepsTmuxsOutputOpen() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let bin = root.appendingPathComponent("bin")
+        try FileManager.default.createDirectory(at: bin, withIntermediateDirectories: true)
+        try writeExecutableScript("#!/bin/sh\nshift\nexec /bin/sh -c \"$1\"\n", to: bin.appendingPathComponent("login-shell"))
+        try writeExecutableScript(
+            "#!/bin/sh\necho 'server version is too old for client' >&2\nsleep 15 &\n",
+            to: bin.appendingPathComponent("tmux")
+        )
+
+        let output = BoundedProcessRunner.output(
+            ofExecutable: "/bin/sh",
+            arguments: ["-c", "(\(RemoteHostStatusProbe.command(on: "devbox"))) | cat"],
+            environment: ["HOME": root.path, "SHELL": bin.appendingPathComponent("login-shell").path, "PATH": "\(bin.path):/usr/bin:/bin"],
+            timeout: 10
+        )
+
+        #expect(RemoteHostStatusProbe.status(inOutput: try #require(output)).tmuxServerProblem == "server version is too old for client")
     }
 
     @Test func probeFindsTheCLIsOnTheLoginShellsPath() throws {

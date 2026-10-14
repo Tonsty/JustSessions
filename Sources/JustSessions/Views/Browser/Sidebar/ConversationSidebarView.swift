@@ -237,6 +237,8 @@ struct ConversationSidebarView: View {
                     ),
                     shellStartupCheck: store.shellStartupCheck(on: destination),
                     onCheckHost: { store.checkHost(destination) },
+                    hostCheckProblem: store.hostCheckProblemMessage(on: destination),
+                    onShowHostCheck: { store.showHostCheck(destination) },
                     login: sshHostLogin(destination),
                     onConnect: { [sshLoginPrompter] in
                         store.logInFromHeading(to: destination) { await sshLoginPrompter.ask($0) }

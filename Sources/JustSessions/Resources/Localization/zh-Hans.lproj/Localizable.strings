@@ -16,10 +16,14 @@
 	<string>%@ - 右侧视图</string>
 	<key>%@ Click to check %@.</key>
 	<string>%@ 点按以检查 %@。</string>
+	<key>%@ Click to see what the check found.</key>
+	<string>%@ 点按以查看检查结果。</string>
 	<key>%@ could not be refreshed: %@</key>
 	<string>无法刷新 %@：%@</string>
 	<key>%@ didn't answer the rest of the check within %lld seconds, or the connection dropped.</key>
 	<string>%@ 未在 %lld 秒内回应其余检查，或连接已断开。</string>
+	<key>%@ has a problem: %@</key>
+	<string>%1$@ 有问题：%2$@</string>
 	<key>%@ has not saved this session yet · click to open its terminal</key>
 	<string>%@ 尚未保存此会话 · 点击打开终端</string>
 	<key>%@ has tmux %@. JustSessions needs tmux 2.6 or later to pass Control-B to the CLI and to end a session before deleting it.</key>
@@ -286,6 +290,8 @@
 	<string>检查此主机…</string>
 	<key>Check what on the host could have ended this tab, such as its CLI or its folder</key>
 	<string>检查主机上可能导致此标签页结束的原因，例如它的 CLI 或文件夹</string>
+	<key>Checked %@ · This Mac: %@</key>
+	<string>检查于 %1$@ · 此 Mac：%2$@</string>
 	<key>Checking %@…</key>
 	<string>正在检查 %@…</string>
 	<key>Checking the folder on %@…</key>
@@ -596,12 +602,18 @@
 	<string>在终端中查找。在已关联会话的标签页中，于阅读窗口里查找其对话。</string>
 	<key>Find in this conversation</key>
 	<string>在这段对话中查找</string>
+	<key>Finding the folder on %@…</key>
+	<string>正在查找 %@ 上的文件夹…</string>
 	<key>Finished its turn</key>
 	<string>已完成一轮</string>
 	<key>Finishes its turn</key>
 	<string>完成一轮任务</string>
 	<key>First message</key>
 	<string>第一条消息</string>
+	<key>Fix %@ with an agent</key>
+	<string>让代理修复 %@</string>
+	<key>Fix with agent…</key>
+	<string>让代理修复…</string>
 	<key>Fixed</key>
 	<string>修复</string>
 	<key>Follow System</key>
@@ -842,6 +854,10 @@
 	<string>下一个标签页</string>
 	<key>Next tip</key>
 	<string>下一条提示</string>
+	<key>No CLI found on this Mac.</key>
+	<string>此 Mac 上没有找到 CLI。</string>
+	<key>No CLI on %@ can start; run the agent on this Mac.</key>
+	<string>%@ 上没有可以启动的 CLI；请在此 Mac 上运行代理。</string>
 	<key>No Claude Code, Codex, Antigravity, Pi, or OpenCode session is waiting for you</key>
 	<string>没有等待你处理的 Claude Code、Codex、Antigravity、Pi 或 OpenCode 会话</string>
 	<key>No archived projects</key>
@@ -988,6 +1004,8 @@
 	<string>%@ 上的项目文件夹</string>
 	<key>Projects</key>
 	<string>项目</string>
+	<key>Prompt</key>
+	<string>提示词</string>
 	<key>Put two tabs side by side: right-click a tab for split view.</key>
 	<string>两个标签页可以并排：右键单击标签页选择拆分视图。</string>
 	<key>Quit or restart your Mac: your tabs reopen, and CLIs still in tmux reattach.</key>
@@ -1086,6 +1104,8 @@
 	<string>在终端中自行运行：</string>
 	<key>Run it yourself: %@</key>
 	<string>自行运行：%@</string>
+	<key>Run on</key>
+	<string>运行于</string>
 	<key>Running</key>
 	<string>运行中</string>
 	<key>Runs on %@ what JustSessions runs there. When a command below fails the same way in your own Terminal, the problem is on %@.</key>
@@ -1208,6 +1228,8 @@
 	<string>显示 %@ 的子代理会话</string>
 	<key>Show subagents under the sessions that started them</key>
 	<string>在启动子代理的会话下显示子代理</string>
+	<key>Shows what the check found</key>
+	<string>显示检查结果</string>
 	<key>Sidebar</key>
 	<string>侧栏</string>
 	<key>Sidebar width</key>
@@ -1226,6 +1248,12 @@
 	<string>拆分视图下大小调整手柄（可拖动）</string>
 	<key>Split view across projects</key>
 	<string>跨项目的拆分视图</string>
+	<key>Start</key>
+	<string>开始</string>
+	<key>Start %@</key>
+	<string>启动 %@</string>
+	<key>Start a CLI that reads this report and fixes the problem with you</key>
+	<string>启动一个 CLI，读取此报告并与你一起修复问题</string>
 	<key>Start a native CLI or a plain terminal in a project folder.</key>
 	<string>在项目文件夹中启动原生 CLI 或普通终端。</string>
 	<key>Start a new session in %@</key>
@@ -1244,6 +1272,12 @@
 	<string>开始会话</string>
 	<key>Start something new</key>
 	<string>开始新的工作</string>
+	<key>Starts a CLI whose first message is this report, so it can find out why and fix it with you. It's told to ask you before it ends sessions or changes the host's setup.</key>
+	<string>启动一个 CLI，并把此报告作为它的第一条消息，让它找出原因并与你一起修复。它会被要求在结束会话或更改主机设置之前先征得你的同意。</string>
+	<key>Starts in %@ on %@, outside tmux.</key>
+	<string>在 %2$@ 上的 %1$@ 中启动，不在 tmux 中运行。</string>
+	<key>Starts in your home folder on this Mac, outside tmux, and reaches %@ with ssh.</key>
+	<string>在此 Mac 的个人文件夹中启动，不在 tmux 中运行，并通过 ssh 连接 %@。</string>
 	<key>Startup</key>
 	<string>启动</string>
 	<key>Stop copying; nothing is typed</key>
@@ -1340,6 +1374,10 @@
 	<string>项目仍会保留在侧栏中。</string>
 	<key>The projects will be archived; skipped sessions stay on disk and come back when they are restored.</key>
 	<string>项目将被归档；被跳过的会话仍保留在磁盘上，恢复项目后会重新显示。</string>
+	<key>The prompt ends with these sections of the JustSessions guides:</key>
+	<string>提示词末尾附有 JustSessions 指南中的以下章节：</string>
+	<key>The prompt is too long to send to %@. Leave out a guide section, or shorten the prompt.</key>
+	<string>提示词太长，无法发送到 %@。请去掉一个指南章节，或缩短提示词。</string>
 	<key>The shell and anything still running in it will stop.</key>
 	<string>shell 及其中仍在运行的进程都会停止。</string>
 	<key>The sidebar lists sessions from %@ by host and project. Search matches project names and paths, session titles and IDs, and message text.</key>
@@ -1432,6 +1470,8 @@
 	<string>警告</string>
 	<key>Website ↗</key>
 	<string>网站 ↗</string>
+	<key>What the tab showed when it ended:</key>
+	<string>标签页结束时显示的内容：</string>
 	<key>When you close a CLI tab</key>
 	<string>关闭 CLI 标签时</string>
 	<key>When you close a terminal</key>
@@ -1490,6 +1530,8 @@
 	<string>%@ 上未安装 tmux，因此那里的 CLI 不在 tmux 中运行：关闭标签页或连接断开都会结束它们。</string>
 	<key>tmux on %@ answered with an error.</key>
 	<string>%@ 上的 tmux 返回了错误。</string>
+	<key>tmux on %@ can't reach the tmux server running there, so its sessions can't be opened: %@</key>
+	<string>%1$@ 上的 tmux 无法连接到那里正在运行的 tmux 服务器，因此无法打开其中的会话：%2$@</string>
 	<key>⇧-click</key>
 	<string>⇧ 点击</string>
 	<key>⌘-click</key>

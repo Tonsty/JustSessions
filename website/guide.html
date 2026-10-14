@@ -120,6 +120,7 @@
         <h3 id="ssh-host-check">If a refresh fails or a session won't resume</h3>
         <p>A CLI that fails as it starts leaves what it printed in its tab, with its exit status above it; this needs tmux 3.2 or later on the host.</p>
         <p>Choose <strong>Check this host…</strong> from the host's <strong>⋯</strong> menu, or click <strong>Check host</strong> above a tab that ended. It checks what JustSessions runs on the host, such as <code>rsync</code>, tmux, and each CLI, and changes nothing there. Problems come first; each shows what the host printed and a command to run in Terminal: if it fails the same way there, the problem is on the host. <strong>Copy report</strong> copies it all as text.</p>
+        <p>JustSessions also checks each host on its own: after an app update, once a day, and soon after a tab there ends with an error right after it starts. A problem shows as a warning beside the host's name; click it for the report. <strong>Fix with agent…</strong> in the report starts a CLI, on the host or on this Mac, whose first message is the report and this guide's advice about it. It is told to ask you before it ends sessions or changes the host's setup.</p>
       </section>
 
       <section id="terminal" aria-labelledby="terminal-title">

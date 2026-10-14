@@ -30,6 +30,7 @@ extension ConversationStore {
                 let status = RemoteHostStatusProbe.status(ofHost: host)
                 if let status {
                     await self.setTmuxSessionNames(status.tmuxSessionNames, on: .ssh(host))
+                    await self.setTmuxServerProblem(status.tmuxServerProblem, on: host)
                     if let cliLocations = status.cliLocations {
                         RemoteHostCLILocations.shared.setLocations(cliLocations, on: host)
                         await self.setInstalledProviders(Set(cliLocations.keys), on: .ssh(host))
@@ -94,6 +95,7 @@ extension ConversationStore {
         remoteHostsUsingTmuxPrefix.save(to: userDefaults)
         tabCloseChoiceSettingsStore.forgetSSHHost(host)
         forgetRemoteShellStartup(on: host)
+        forgetHostChecks(on: host)
         hostRefreshStatuses.removeValue(forKey: .ssh(host))
         remoteSessionCopySteps.removeValue(forKey: .ssh(host))
         tmuxSessionNamesByHost.removeValue(forKey: .ssh(host))

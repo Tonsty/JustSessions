@@ -20,6 +20,8 @@
 	<string>%@ - Right view</string>
 	<key>%@ Click to check %@.</key>
 	<string>%@ Click to check %@.</string>
+	<key>%@ Click to see what the check found.</key>
+	<string>%@ Click to see what the check found.</string>
 	<key>%@ could not be refreshed: %@</key>
 	<string>%@ could not be refreshed: %@</string>
 	<key>%@ didn't answer the rest of the check within %lld seconds, or the connection dropped.</key>
@@ -574,12 +576,18 @@
 	<string>Find in the terminal. In a tab linked to a session, find in its conversation in a reading window.</string>
 	<key>Find in this conversation</key>
 	<string>Find in this conversation</string>
+	<key>Finding the folder on %@…</key>
+	<string>Finding the folder on %@…</string>
 	<key>Finished its turn</key>
 	<string>Finished its turn</string>
 	<key>Finishes its turn</key>
 	<string>Finishes its turn</string>
 	<key>First message</key>
 	<string>First message</string>
+	<key>Fix %@ with an agent</key>
+	<string>Fix %@ with an agent</string>
+	<key>Fix with agent…</key>
+	<string>Fix with agent…</string>
 	<key>Fixed</key>
 	<string>Fixed</string>
 	<key>Follow System</key>
@@ -824,6 +832,10 @@
 	<string>Next tab</string>
 	<key>Next tip</key>
 	<string>Next tip</string>
+	<key>No CLI found on this Mac.</key>
+	<string>No CLI found on this Mac.</string>
+	<key>No CLI on %@ can start; run the agent on this Mac.</key>
+	<string>No CLI on %@ can start; run the agent on this Mac.</string>
 	<key>No Claude Code, Codex, Antigravity, Pi, or OpenCode session is waiting for you</key>
 	<string>No Claude Code, Codex, Antigravity, Pi, or OpenCode session is waiting for you</string>
 	<key>No archived projects</key>
@@ -968,6 +980,8 @@
 	<string>Project folder on %@</string>
 	<key>Projects</key>
 	<string>Projects</string>
+	<key>Prompt</key>
+	<string>Prompt</string>
 	<key>Put two tabs side by side: right-click a tab for split view.</key>
 	<string>Put two tabs side by side: right-click a tab for split view.</string>
 	<key>Quit or restart your Mac: your tabs reopen, and CLIs still in tmux reattach.</key>
@@ -1064,6 +1078,8 @@
 	<string>Run it yourself in Terminal:</string>
 	<key>Run it yourself: %@</key>
 	<string>Run it yourself: %@</string>
+	<key>Run on</key>
+	<string>Run on</string>
 	<key>Running</key>
 	<string>Running</string>
 	<key>Runs on %@ what JustSessions runs there. When a command below fails the same way in your own Terminal, the problem is on %@.</key>
@@ -1180,6 +1196,8 @@
 	<string>Show subagent sessions of %@</string>
 	<key>Show subagents under the sessions that started them</key>
 	<string>Show subagents under the sessions that started them</string>
+	<key>Shows what the check found</key>
+	<string>Shows what the check found</string>
 	<key>Sidebar</key>
 	<string>Sidebar</string>
 	<key>Sidebar width</key>
@@ -1198,6 +1216,12 @@
 	<string>Split View Resize Handle (draggable)</string>
 	<key>Split view across projects</key>
 	<string>Split view across projects</string>
+	<key>Start</key>
+	<string>Start</string>
+	<key>Start %@</key>
+	<string>Start %@</string>
+	<key>Start a CLI that reads this report and fixes the problem with you</key>
+	<string>Start a CLI that reads this report and fixes the problem with you</string>
 	<key>Start a native CLI or a plain terminal in a project folder.</key>
 	<string>Start a native CLI or a plain terminal in a project folder.</string>
 	<key>Start a new session in %@</key>
@@ -1214,6 +1238,10 @@
 	<string>Start session</string>
 	<key>Start something new</key>
 	<string>Start something new</string>
+	<key>Starts a CLI whose first message is this report, so it can find out why and fix it with you. It's told to ask you before it ends sessions or changes the host's setup.</key>
+	<string>Starts a CLI whose first message is this report, so it can find out why and fix it with you. It's told to ask you before it ends sessions or changes the host's setup.</string>
+	<key>Starts in your home folder on this Mac, outside tmux, and reaches %@ with ssh.</key>
+	<string>Starts in your home folder on this Mac, outside tmux, and reaches %@ with ssh.</string>
 	<key>Startup</key>
 	<string>Startup</string>
 	<key>Stop copying; nothing is typed</key>
@@ -1310,6 +1338,10 @@
 	<string>The project will stay in the sidebar.</string>
 	<key>The projects will be archived; skipped sessions stay on disk and come back when they are restored.</key>
 	<string>The projects will be archived; skipped sessions stay on disk and come back when they are restored.</string>
+	<key>The prompt ends with these sections of the JustSessions guides:</key>
+	<string>The prompt ends with these sections of the JustSessions guides:</string>
+	<key>The prompt is too long to send to %@. Leave out a guide section, or shorten the prompt.</key>
+	<string>The prompt is too long to send to %@. Leave out a guide section, or shorten the prompt.</string>
 	<key>The shell and anything still running in it will stop.</key>
 	<string>The shell and anything still running in it will stop.</string>
 	<key>The sidebar lists sessions from %@ by host and project. Search matches project names and paths, session titles and IDs, and message text.</key>
@@ -1398,6 +1430,8 @@
 	<string>Warning</string>
 	<key>Website ↗</key>
 	<string>Website ↗</string>
+	<key>What the tab showed when it ended:</key>
+	<string>What the tab showed when it ended:</string>
 	<key>When you close a CLI tab</key>
 	<string>When you close a CLI tab</string>
 	<key>When you close a terminal</key>

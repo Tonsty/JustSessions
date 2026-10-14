@@ -41,6 +41,7 @@ extension ConversationStore {
         applyRemoteHostConversations(hostConversations, host: host)
         if let status {
             setTmuxSessionNames(status.tmuxSessionNames, on: .ssh(host))
+            setTmuxServerProblem(status.tmuxServerProblem, on: host)
             if let installedProviders = status.installedProviders {
                 setInstalledProviders(installedProviders, on: .ssh(host))
             }

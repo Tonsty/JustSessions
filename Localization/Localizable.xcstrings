@@ -86,6 +86,16 @@
         }
       }
     },
+    "%@ Click to see what the check found.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 点按以查看检查结果。"
+          }
+        }
+      }
+    },
     "%@ could not be refreshed: %@": {
       "localizations": {
         "zh-Hans": {
@@ -102,6 +112,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ 未在 %lld 秒内回应其余检查，或连接已断开。"
+          }
+        }
+      }
+    },
+    "%@ has a problem: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ has a problem: %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 有问题：%2$@"
           }
         }
       }
@@ -760,6 +786,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "子代理为启动它的会话运行了此会话。可以在这里阅读，但不能单独继续或删除。"
+          }
+        }
+      }
+    },
+    "A web address always opens in your browser, and a folder in the Finder. An editor opens text files, such as code and Markdown, at the printed line when it's VS Code or an editor built on it; images, PDFs, and other files open in their default app. Right-click a link for every choice.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网址总是在浏览器中打开，文件夹总是在 Finder 中打开。编辑器会打开代码、Markdown 等文本文件；VS Code 及基于它的编辑器会跳到输出里的行号。图片、PDF 和其他文件用默认 App 打开。右键单击链接可以看到所有选项。"
           }
         }
       }
@@ -1606,6 +1642,22 @@
         }
       }
     },
+    "Checked %@ · This Mac: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Checked %1$@ · This Mac: %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查于 %1$@ · 此 Mac：%2$@"
+          }
+        }
+      }
+    },
     "Checking %@…": {
       "localizations": {
         "zh-Hans": {
@@ -2144,6 +2196,16 @@
         }
       }
     },
+    "Color intensity": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "颜色浓淡"
+          }
+        }
+      }
+    },
     "Colors": {
       "localizations": {
         "zh-Hans": {
@@ -2588,6 +2650,26 @@
         }
       }
     },
+    "Create folder and open terminal": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建文件夹并打开终端"
+          }
+        }
+      }
+    },
+    "Create folder and start": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建文件夹并开始"
+          }
+        }
+      }
+    },
     "Creating the folder on %@…": {
       "localizations": {
         "zh-Hans": {
@@ -2814,6 +2896,16 @@
         }
       }
     },
+    "Don't ask again on %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 %@ 上不再询问"
+          }
+        }
+      }
+    },
     "Don't show tips": {
       "localizations": {
         "zh-Hans": {
@@ -2860,6 +2952,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "把 Finder 里的文件拖到本机终端上，就能输入它们的路径。"
+          }
+        }
+      }
+    },
+    "Each host has its own choice for tabs whose CLI can keep running in tmux there. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每台主机各有自己的选项，适用于 CLI 可在该主机的 tmux 中保持运行的标签。终端的 shell 总会随标签一起结束。关闭对话框中的“不再询问”也会设置这些选项。"
           }
         }
       }
@@ -3110,6 +3212,16 @@
         }
       }
     },
+    "File links": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件链接"
+          }
+        }
+      }
+    },
     "Filter project sessions": {
       "localizations": {
         "zh-Hans": {
@@ -3210,6 +3322,16 @@
         }
       }
     },
+    "Finding the folder on %@…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在查找 %@ 上的文件夹…"
+          }
+        }
+      }
+    },
     "Finished its turn": {
       "localizations": {
         "zh-Hans": {
@@ -3236,6 +3358,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "第一条消息"
+          }
+        }
+      }
+    },
+    "Fix %@ with an agent": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "让代理修复 %@"
+          }
+        }
+      }
+    },
+    "Fix with agent…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "让代理修复…"
           }
         }
       }
@@ -4124,6 +4266,16 @@
         }
       }
     },
+    "Makes the 16 colors that shells and many CLIs pick from stronger or softer. Colors a program sets exactly stay as they are.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "调浓或调淡 shell 和许多 CLI 使用的 16 种颜色。程序直接指定的颜色保持不变。"
+          }
+        }
+      }
+    },
     "Markdown (.md)…": {
       "shouldTranslate": false
     },
@@ -4453,6 +4605,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "下一条提示"
+          }
+        }
+      }
+    },
+    "No CLI found on this Mac.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 Mac 上没有找到 CLI。"
+          }
+        }
+      }
+    },
+    "No CLI on %@ can start; run the agent on this Mac.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 上没有可以启动的 CLI；请在此 Mac 上运行代理。"
           }
         }
       }
@@ -4813,6 +4985,16 @@
         }
       }
     },
+    "Open in %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 %@ 中打开"
+          }
+        }
+      }
+    },
     "Open in Finder": {
       "localizations": {
         "zh-Hans": {
@@ -4829,6 +5011,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "在独立阅读窗口中打开"
+          }
+        }
+      }
+    },
+    "Open in its default app": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用默认 App 打开"
           }
         }
       }
@@ -5169,6 +5361,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "项目"
+          }
+        }
+      }
+    },
+    "Prompt": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提示词"
           }
         }
       }
@@ -5677,6 +5879,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "自行运行：%@"
+          }
+        }
+      }
+    },
+    "Run on": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行于"
           }
         }
       }
@@ -6321,6 +6533,16 @@
         }
       }
     },
+    "Shows what the check found": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示检查结果"
+          }
+        }
+      }
+    },
     "Sidebar": {
       "localizations": {
         "zh-Hans": {
@@ -6407,6 +6629,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "跨项目的拆分视图"
+          }
+        }
+      }
+    },
+    "Start": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始"
+          }
+        }
+      }
+    },
+    "Start %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启动 %@"
+          }
+        }
+      }
+    },
+    "Start a CLI that reads this report and fixes the problem with you": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启动一个 CLI，读取此报告并与你一起修复问题"
           }
         }
       }
@@ -6503,6 +6755,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "开始新的工作"
+          }
+        }
+      }
+    },
+    "Starts a CLI whose first message is this report, so it can find out why and fix it with you. It's told to ask you before it ends sessions or changes the host's setup.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启动一个 CLI，并把此报告作为它的第一条消息，让它找出原因并与你一起修复。它会被要求在结束会话或更改主机设置之前先征得你的同意。"
+          }
+        }
+      }
+    },
+    "Starts in %@ on %@, outside tmux.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Starts in %1$@ on %2$@, outside tmux."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 %2$@ 上的 %1$@ 中启动，不在 tmux 中运行。"
+          }
+        }
+      }
+    },
+    "Starts in your home folder on this Mac, outside tmux, and reaches %@ with ssh.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在此 Mac 的个人文件夹中启动，不在 tmux 中运行，并通过 ssh 连接 %@。"
           }
         }
       }
@@ -6987,6 +7275,26 @@
         }
       }
     },
+    "The prompt ends with these sections of the JustSessions guides:": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提示词末尾附有 JustSessions 指南中的以下章节："
+          }
+        }
+      }
+    },
+    "The prompt is too long to send to %@. Leave out a guide section, or shorten the prompt.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提示词太长，无法发送到 %@。请去掉一个指南章节，或缩短提示词。"
+          }
+        }
+      }
+    },
     "The shell and anything still running in it will stop.": {
       "localizations": {
         "zh-Hans": {
@@ -7047,6 +7355,22 @@
         }
       }
     },
+    "There is no folder %@ on %@. Check the path, or create the folder.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "There is no folder %1$@ on %2$@. Check the path, or create the folder."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$@ 上没有文件夹 %1$@。请检查路径，或创建该文件夹。"
+          }
+        }
+      }
+    },
     "There is no folder %@ on %@. Create it to add the project.": {
       "localizations": {
         "en": {
@@ -7059,6 +7383,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%2$@ 上没有文件夹 %1$@。创建它即可添加此项目。"
+          }
+        }
+      }
+    },
+    "There is no folder %@ on this Mac. Check the path, or create the folder.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 Mac 上没有文件夹 %@。请检查路径，或创建该文件夹。"
           }
         }
       }
@@ -7433,6 +7767,16 @@
         }
       }
     },
+    "What the tab showed when it ended:": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标签页结束时显示的内容："
+          }
+        }
+      }
+    },
     "When you close a CLI tab": {
       "localizations": {
         "zh-Hans": {
@@ -7459,6 +7803,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "关闭这个标签页时选择 **保持运行**：CLI 会继续运行，退出 App 后也不会停。单击它的会话即可回来。"
+          }
+        }
+      }
+    },
+    "When you ⌘-click a file": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按住 ⌘ 点击文件时"
           }
         }
       }
@@ -7713,6 +8067,22 @@
         }
       }
     },
+    "tmux on %@ can't reach the tmux server running there, so its sessions can't be opened: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "tmux on %1$@ can't reach the tmux server running there, so its sessions can't be opened: %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 上的 tmux 无法连接到那里正在运行的 tmux 服务器，因此无法打开其中的会话：%2$@"
+          }
+        }
+      }
+    },
     "·": {
       "shouldTranslate": false
     },
@@ -7742,142 +8112,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "⌘ 单击可多选会话，一次全部继续或删除。"
-          }
-        }
-      }
-    },
-    "Color intensity": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "颜色浓淡"
-          }
-        }
-      }
-    },
-    "Makes the 16 colors that shells and many CLIs pick from stronger or softer. Colors a program sets exactly stay as they are.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "调浓或调淡 shell 和许多 CLI 使用的 16 种颜色。程序直接指定的颜色保持不变。"
-          }
-        }
-      }
-    },
-    "There is no folder %@ on this Mac. Check the path, or create the folder.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此 Mac 上没有文件夹 %@。请检查路径，或创建该文件夹。"
-          }
-        }
-      }
-    },
-    "There is no folder %@ on %@. Check the path, or create the folder.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "There is no folder %1$@ on %2$@. Check the path, or create the folder."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%2$@ 上没有文件夹 %1$@。请检查路径，或创建该文件夹。"
-          }
-        }
-      }
-    },
-    "Create folder and start": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "创建文件夹并开始"
-          }
-        }
-      }
-    },
-    "Create folder and open terminal": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "创建文件夹并打开终端"
-          }
-        }
-      }
-    },
-    "Each host has its own choice for tabs whose CLI can keep running in tmux there. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "每台主机各有自己的选项，适用于 CLI 可在该主机的 tmux 中保持运行的标签。终端的 shell 总会随标签一起结束。关闭对话框中的“不再询问”也会设置这些选项。"
-          }
-        }
-      }
-    },
-    "Don't ask again on %@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在 %@ 上不再询问"
-          }
-        }
-      }
-    },
-    "When you ⌘-click a file": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "按住 ⌘ 点击文件时"
-          }
-        }
-      }
-    },
-    "Open in its default app": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "用默认 App 打开"
-          }
-        }
-      }
-    },
-    "Open in %@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在 %@ 中打开"
-          }
-        }
-      }
-    },
-    "File links": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "文件链接"
-          }
-        }
-      }
-    },
-    "A web address always opens in your browser, and a folder in the Finder. An editor opens text files, such as code and Markdown, at the printed line when it's VS Code or an editor built on it; images, PDFs, and other files open in their default app. Right-click a link for every choice.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "网址总是在浏览器中打开，文件夹总是在 Finder 中打开。编辑器会打开代码、Markdown 等文本文件；VS Code 及基于它的编辑器会跳到输出里的行号。图片、PDF 和其他文件用默认 App 打开。右键单击链接可以看到所有选项。"
           }
         }
       }

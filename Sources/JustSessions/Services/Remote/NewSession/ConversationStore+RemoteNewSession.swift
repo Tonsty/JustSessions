@@ -4,19 +4,29 @@ import Foundation
 /// again every few seconds until the tab is linked to its session and that session has a title.
 extension ConversationStore {
     /// A new Claude Code session starts with an id of its own when the host's CLI takes one, and its tmux session
-    /// has that session's name from the start; see `RemoteClaudeSessionIDFlagSupport`.
-    func launchNewRemoteSession(provider: ConversationProvider, host: String, projectPath: String) {
+    /// has that session's name from the start; see `RemoteClaudeSessionIDFlagSupport`. See
+    /// `launchNewSession(provider:in:initialPrompt:runsInTmux:)` for the rest.
+    func launchNewRemoteSession(
+        provider: ConversationProvider,
+        host: String,
+        projectPath: String,
+        initialPrompt: String? = nil,
+        runsInTmux: Bool = true
+    ) {
         let startCommand = customStartCommand(for: provider, on: .ssh(host))
         let preassignedSessionID = provider == .claude
             ? remoteClaudeSessionIDFlagSupport.preassignedSessionID(host: host, startCommand: startCommand)
             : nil
-        let tmuxSessionName = preassignedSessionID.map { TmuxSessionName.forSession(provider: provider, sessionID: $0) }
-            ?? TmuxSessionName.unique(for: provider)
+        let tmuxSessionName = runsInTmux
+            ? preassignedSessionID.map { TmuxSessionName.forSession(provider: provider, sessionID: $0) }
+                ?? TmuxSessionName.unique(for: provider)
+            : nil
         let command = RemoteCLICommandBuilder().command(
             host: host,
             provider: provider,
             projectPath: projectPath,
-            arguments: preassignedSessionID.map { [ClaudeSessionIDFlagSupport.flag, $0] } ?? [],
+            arguments: (preassignedSessionID.map { [ClaudeSessionIDFlagSupport.flag, $0] } ?? [])
+                + (initialPrompt.map(provider.initialPromptArguments) ?? []),
             tmuxSessionName: tmuxSessionName,
             usesHostTmuxPrefix: usesTmuxPrefix(on: .ssh(host)),
             startCommand: startCommand

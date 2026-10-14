@@ -46,8 +46,8 @@ final class ConversationStore {
             followTabStateChanges()
         }
     }
-    /// Each open tab's own changes, which count in `tabStateRevision`; see `followTabStateChanges()`.
-    @ObservationIgnored private var tabStateSubscriptions: [UUID: AnyCancellable] = [:]
+    /// Each open tab's own changes, which count in `tabStateRevision`, and its CLI ending; see `followTabStateChanges()`.
+    @ObservationIgnored private var tabStateSubscriptions: [UUID: [AnyCancellable]] = [:]
     /// The open tabs, in tab bar order. Reading them also reads `tabStateRevision`, so a view that looks at tabs
     /// through the store re-runs when a tab's own state changes, which the store does not see otherwise.
     private(set) var terminalSessions: [TerminalSession] {
@@ -95,6 +95,12 @@ final class ConversationStore {
     var hostsRecheckedShellStartup: Set<String> = []
     /// The host check this window shows, while it runs and once it has a report; see `ConversationStore+HostCheck`.
     var hostCheck: HostCheckSheetState?
+    /// Each SSH host's last host check, which its heading warns of; see `ConversationStore+BackgroundHostCheck`.
+    var keptHostChecks: KeptHostChecks
+    /// What each SSH host's tmux printed at its last refresh when it couldn't reach the tmux server running there.
+    var tmuxServerProblemsByHost: [String: String] = [:]
+    /// SSH hosts whose tab ended soon after it started, for `HostBackgroundChecker` to check.
+    @ObservationIgnored var hostsAskingForBackgroundCheck: Set<String> = []
     /// Each host's last refresh, this Mac's included.
     var hostRefreshStatuses: [SessionHost: HostRefreshStatus] = [:]
     /// SSH hosts whose last refresh asked for a password, a code, or a new host key's approval, so their headings
@@ -213,6 +219,7 @@ final class ConversationStore {
         self.remoteHostsUsingTmuxPrefix = RemoteHostsUsingTmuxPrefix.load(from: userDefaults)
         self.cliStartCommands = CLIStartCommands.load(from: userDefaults)
         self.remoteShellStartupChecks = RemoteShellStartupChecks.load(from: userDefaults)
+        self.keptHostChecks = KeptHostChecks.load(from: userDefaults)
         applyRemoteShellStartups()
         sshHostsLoggedIn = SSHLoginConnections.shared.loggedInHosts
         LoginShellEnvironment.warmUpInBackground()
@@ -657,7 +664,14 @@ final class ConversationStore {
         let openTabIDs = Set(terminalSessionsStorage.map(\.id))
         tabStateSubscriptions = tabStateSubscriptions.filter { openTabIDs.contains($0.key) }
         for tab in terminalSessionsStorage where tabStateSubscriptions[tab.id] == nil {
-            tabStateSubscriptions[tab.id] = tab.objectWillChange.sink { [weak self] _ in self?.noteTabStateChanged() }
+            tabStateSubscriptions[tab.id] = [
+                tab.objectWillChange.sink { [weak self] _ in self?.noteTabStateChanged() },
+                // Not a tab that had ended before it came here, as from another window.
+                tab.$hasExited.dropFirst().filter { $0 }.sink { [weak self, weak tab] _ in
+                    guard let tab else { return }
+                    self?.noteCLIEnded(in: tab)
+                },
+            ]
         }
     }
 
