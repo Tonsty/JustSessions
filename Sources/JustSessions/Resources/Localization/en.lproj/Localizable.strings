@@ -538,6 +538,8 @@
 	<string>Every open tab in one list</string>
 	<key>Exited (%d)</key>
 	<string>Exited (%d)</string>
+	<key>Exited (%d) right after starting</key>
+	<string>Exited (%d) right after starting</string>
 	<key>Expand all groups</key>
 	<string>Expand all groups</string>
 	<key>Expand group</key>
@@ -1150,6 +1152,8 @@
 	<string>Separate views</string>
 	<key>Session %lld of %lld</key>
 	<string>Session %lld of %lld</string>
+	<key>Sessions failing on an SSH host? Right-click it and choose **Check this host…** to see why and fix it with an agent.</key>
+	<string>Sessions failing on an SSH host? Right-click it and choose **Check this host…** to see why and fix it with an agent.</string>
 	<key>Sessions of %@ are copied with python3 on %@, which isn't on its login shell's PATH.</key>
 	<string>Sessions of %@ are copied with python3 on %@, which isn't on its login shell's PATH.</string>
 	<key>Sessions on %@ can work, but see the warnings below.</key>

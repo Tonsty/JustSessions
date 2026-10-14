@@ -38,6 +38,40 @@ struct RemoteTmuxFailedCLITests {
         #expect(!sandbox.hasTmuxSession(tmuxName))
     }
 
+    /// A detached client's session runs on, so the tab ended without an error, though tmux 3.4's client exits with 1
+    /// then; this Mac's tmux may exit with 0.
+    @Test func aClientThatDetachesEndsTheTabWithoutAnError() throws {
+        guard let tmuxDirectory = TmuxSandbox.installedTmuxDirectory else { return }
+        let sandbox = try TmuxSandbox(tmuxDirectory: tmuxDirectory)
+        defer { sandbox.tearDown() }
+        let tmuxName = TmuxSessionName.unique(for: .claude)
+
+        let client = try sandbox.startClient(tabCommand(sandbox, tmuxName))
+        #expect(sandbox.waitUntil { sandbox.launchCount == 1 })
+        _ = sandbox.run("tmux detach-client -s \(ShellQuoting.quoted("=" + tmuxName))")
+        #expect(sandbox.waitUntil { !client.isRunning })
+        client.waitUntilExit()
+
+        #expect(client.terminationStatus == 0)
+        #expect(sandbox.hasTmuxSession(tmuxName))
+    }
+
+    /// As when the host's tmux server crashed or was ended: nothing is left to reattach, and the tab says it failed.
+    @Test func aClientWhoseServerEndsEndsTheTabWithTmuxsStatus() throws {
+        guard let tmuxDirectory = TmuxSandbox.installedTmuxDirectory else { return }
+        let sandbox = try TmuxSandbox(tmuxDirectory: tmuxDirectory)
+        defer { sandbox.tearDown() }
+        let tmuxName = TmuxSessionName.unique(for: .claude)
+
+        let client = try sandbox.startClient(tabCommand(sandbox, tmuxName))
+        #expect(sandbox.waitUntil { sandbox.launchCount == 1 })
+        _ = sandbox.run("tmux kill-server")
+        #expect(sandbox.waitUntil { !client.isRunning })
+        client.waitUntilExit()
+
+        #expect(client.terminationStatus == 1)
+    }
+
     /// As after the tab closed with Keep running: no tab shows the dead pane, so nothing keeps the session.
     @Test func aCLIThatFailsWithNoClientAttachedEndsItsSession() throws {
         guard let tmuxDirectory = TmuxSandbox.installedTmuxDirectory else { return }

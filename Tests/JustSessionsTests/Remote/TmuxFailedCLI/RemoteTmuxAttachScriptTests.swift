@@ -3,7 +3,7 @@ import Testing
 @testable import JustSessions
 
 /// The parts of `RemoteTmuxAttachScript` a real tmux on this Mac can't show: which tmux versions get the options that
-/// keep a failed CLI's pane, and how its captured output is trimmed.
+/// keep a failed CLI's pane, how its captured output is trimmed, and a tmux that can't reach its server.
 struct RemoteTmuxAttachScriptTests {
     /// `remain-on-exit failed` came in tmux 3.2; an older one would show "Bad value" in the tab.
     @Test(arguments: [
@@ -34,6 +34,30 @@ struct RemoteTmuxAttachScriptTests {
         #expect(arguments.hasPrefix("new-session\n-A\n-s\njustsessions-claude-new-1a2b3c4d\nexec claude\n;\nset-option\nstatus\noff\n;\n"))
         #expect(arguments.contains("remain-on-exit") == keepsPane)
         #expect(arguments.contains("pane-died") == keepsPane)
+    }
+
+    /// As after tmux was upgraded on the host while its old server kept running: every tmux command fails at once.
+    @Test func aTmuxThatCantReachItsServerEndsTheTabWithItsStatus() throws {
+        let sandbox = try TmuxSandbox(tmuxDirectory: nil)
+        defer { sandbox.tearDown() }
+        try sandbox.addProgram(named: "tmux", script: """
+            case $1 in
+            -V) echo 'tmux 3.4' ;;
+            *) echo 'protocol version mismatch (client 8, server 7)' >&2; exit 1 ;;
+            esac
+            """)
+        let command = RemoteTmuxAttachScript.command(
+            sessionName: "justsessions-claude-new-1a2b3c4d",
+            paneCommand: "exec claude",
+            sessionOptions: ["set-option status off"]
+        )
+
+        let result = try #require(BoundedProcessRunner.result(
+            ofExecutable: "/bin/sh", arguments: ["-c", command + " 2>&1"], environment: sandbox.environment, timeout: 10
+        ))
+
+        #expect(result.exitStatus == 1)
+        #expect(result.output.contains("protocol version mismatch (client 8, server 7)"))
     }
 
     @Test func capturedOutputLosesTrailingBlanksAndTmuxsDeadPaneLine() {

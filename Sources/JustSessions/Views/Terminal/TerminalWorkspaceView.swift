@@ -15,6 +15,9 @@ struct TerminalWorkspaceView: View {
     let onReconnect: (() -> Void)?
     /// Shown for a remote tab whose command ended; see `ConversationStore+HostCheck`.
     let onCheckHost: (() -> Void)?
+    /// What the remote host's heading warns of, read only once the CLI has ended, so a running tab doesn't follow the
+    /// host's checks; see `TerminalEndedBar`.
+    var hostProblem: () -> String? = { nil }
     /// Called when a click lands on the terminal, before it takes the keyboard.
     let onFocus: () -> Void
     /// Builds the menu a right-click on the terminal shows, with the link under the pointer, if any.
@@ -28,6 +31,8 @@ struct TerminalWorkspaceView: View {
                 TerminalEndedBar(
                     exitCode: session.exitCode,
                     isWaitingToReconnect: session.isWaitingToReconnect,
+                    endedWithErrorSoonAfterStarting: session.endedWithErrorSoonAfterStarting,
+                    hostProblem: hostProblem(),
                     onCheckHost: onCheckHost,
                     onReconnect: onReconnect.map { reconnect in { onFocus(); reconnect() } }
                 )
