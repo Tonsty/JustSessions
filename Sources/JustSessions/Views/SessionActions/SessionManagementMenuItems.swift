@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Rename, pin, copy, reveal, and delete for one session, in its sidebar row's menu and the preview's More menu. A
+/// Rename, pin, move, copy, reveal, and delete for one session, in its sidebar row's menu and the preview's More menu. A
 /// subagent's session is only shared, copied, and revealed: it goes with the session that started it.
 struct SessionManagementMenuItems: View {
     let store: ConversationStore
@@ -16,6 +16,7 @@ struct SessionManagementMenuItems: View {
             Button(isPinned ? "Unpin session" : "Pin session", systemImage: isPinned ? "pin.slash" : "pin") {
                 store.setPinned(!isPinned, conversation: conversation)
             }
+            SessionMoveToFolderMenu(store: store, conversation: conversation)
             Divider()
         }
         ConversationSharingMenuItems(selections: [ConversationExportSelection(conversation: conversation, title: store.title(for: conversation))])
