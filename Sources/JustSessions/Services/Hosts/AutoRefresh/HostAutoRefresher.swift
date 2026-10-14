@@ -2,10 +2,11 @@ import AppKit
 
 /// Refreshes the hosts on their own, as `HostAutoRefreshSchedule` says: checked every 15 seconds while a workspace
 /// window shows on screen, and as soon as the app comes forward. This Mac's scan is shared by every window. An SSH host
-/// is copied by the oldest window, and the others list its copy, so more windows don't mean more copies.
+/// is copied by the oldest window, and the others list its copy, so more windows don't mean more copies. The app's
+/// own host checks run on the same beat; see `HostBackgroundChecker`.
 @MainActor
 final class HostAutoRefresher {
-    static let shared = HostAutoRefresher()
+    static let shared = HostAutoRefresher(backgroundChecker: HostBackgroundChecker())
 
     /// How often the schedule is checked; much shorter than its intervals, so a host is refreshed soon after it is due.
     static let checkInterval: Duration = .seconds(15)
@@ -14,6 +15,8 @@ final class HostAutoRefresher {
     private let isAnyWindowOnScreen: () -> Bool
     /// Starts a window's refresh of an SSH host, as `refreshRemoteHost(_:)` does; tests copy from a local folder.
     private let refreshSSHHost: (ConversationStore, String) -> Task<Void, Never>?
+    /// Nil checks no host on its own, as in tests, which would otherwise log in to their made-up hosts.
+    private let backgroundChecker: HostBackgroundChecker?
     private var schedule = HostAutoRefreshSchedule()
     private var checking: Task<Void, Never>?
     private var activationObserver: (any NSObjectProtocol)?
@@ -21,11 +24,13 @@ final class HostAutoRefresher {
     init(
         registry: WorkspaceWindowRegistry = .shared,
         isAnyWindowOnScreen: (() -> Bool)? = nil,
-        refreshSSHHost: @escaping (ConversationStore, String) -> Task<Void, Never>? = { $0.refreshRemoteHost($1) }
+        refreshSSHHost: @escaping (ConversationStore, String) -> Task<Void, Never>? = { $0.refreshRemoteHost($1) },
+        backgroundChecker: HostBackgroundChecker? = nil
     ) {
         self.registry = registry
         self.isAnyWindowOnScreen = isAnyWindowOnScreen ?? { registry.hasWindowOnScreen }
         self.refreshSSHHost = refreshSSHHost
+        self.backgroundChecker = backgroundChecker
     }
 
     func start() {
@@ -77,5 +82,6 @@ final class HostAutoRefresher {
                 self.schedule.noteResult(on: host, status: oldestStore.hostRefreshStatuses[.ssh(host)])
             }
         }
+        backgroundChecker?.checkDueHost(in: stores, now: now)
     }
 }

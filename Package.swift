@@ -24,7 +24,7 @@ let package = Package(
                 .product(name: "SwiftTerm", package: "SwiftTerm"),
                 .product(name: "GhosttyTerminal", package: "libghostty-spm"),
             ],
-            resources: [.process("Resources/Localization"), .copy("Resources/ReleaseNotes"), .copy("Resources/Fonts")],
+            resources: [.process("Resources/Localization"), .copy("Resources/ReleaseNotes"), .copy("Resources/Fonts"), .copy("Resources/Guides")],
             linkerSettings: [.linkedLibrary("sqlite3")]
         ),
         .testTarget(

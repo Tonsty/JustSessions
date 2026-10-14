@@ -153,13 +153,31 @@ extension ConversationStore {
         }
     }
 
-    /// Opens a tab running a new session of the tool in the folder, on the folder's host.
-    func launchNewSession(provider: ConversationProvider, in location: ProjectLocation) throws {
+    /// Opens a tab running a new session of the tool in the folder, on the folder's host. `initialPrompt` is sent as
+    /// the session's first message; with `runsInTmux` off, the CLI runs in the tab's terminal itself, so it doesn't
+    /// depend on tmux working, as the agent that fixes a host's tmux needs.
+    func launchNewSession(
+        provider: ConversationProvider,
+        in location: ProjectLocation,
+        initialPrompt: String? = nil,
+        runsInTmux: Bool = true
+    ) throws {
         switch location.host {
         case .thisMac:
-            try launchNewSessionOnThisMac(provider: provider, projectPath: location.path)
+            try launchNewSessionOnThisMac(
+                provider: provider,
+                projectPath: location.path,
+                initialPrompt: initialPrompt,
+                runsInTmux: runsInTmux
+            )
         case .ssh(let destination):
-            launchNewRemoteSession(provider: provider, host: destination, projectPath: location.path)
+            launchNewRemoteSession(
+                provider: provider,
+                host: destination,
+                projectPath: location.path,
+                initialPrompt: initialPrompt,
+                runsInTmux: runsInTmux
+            )
         }
     }
 
@@ -172,24 +190,39 @@ extension ConversationStore {
         }
     }
 
-    private func launchNewSessionOnThisMac(provider: ConversationProvider, projectPath: String) throws {
+    private func launchNewSessionOnThisMac(
+        provider: ConversationProvider,
+        projectPath: String,
+        initialPrompt: String?,
+        runsInTmux: Bool
+    ) throws {
         let expandedPath = (projectPath as NSString).expandingTildeInPath
         let standardizedPath = URL(fileURLWithPath: expandedPath).standardizedFileURL.path
+        let startCommand = customStartCommand(for: provider, on: .thisMac)
         let command = try commandResolver.resolveNewSession(
             provider: provider,
             projectPath: standardizedPath,
-            startCommand: customStartCommand(for: provider, on: .thisMac)
+            startCommand: startCommand
         )
-        // Before tmux wraps the command: the flag check runs the CLI, or the start command set for it.
+        // Before tmux wraps the command: the flag check runs the CLI, or the start command set for it. The first
+        // message goes after it, so the check's answer holds for every new session.
         let preassignment = provider == .claude
             ? ClaudeSessionIDFlagSupport.shared.preassigningSessionID(to: command)
             : nil
-        // A session whose id is known up front gets its own tmux name right away.
-        let tabCommand = thisMacTabCommand(
-            running: preassignment?.command ?? command,
-            tmuxSessionName: preassignment.map { TmuxSessionName.forSession(provider: provider, sessionID: $0.sessionID) }
-                ?? TmuxSessionName.unique(for: provider)
+        let promptArguments = initialPrompt.map(provider.initialPromptArguments) ?? []
+        let cliCommand = (preassignment?.command ?? command).appendingArguments(
+            CLIStartCommandLine.customCommand(startCommand) == nil
+                ? promptArguments
+                : provider.argumentsAfterCustomStartCommand(promptArguments)
         )
+        // A session whose id is known up front gets its own tmux name right away.
+        let tabCommand = runsInTmux
+            ? thisMacTabCommand(
+                running: cliCommand,
+                tmuxSessionName: preassignment.map { TmuxSessionName.forSession(provider: provider, sessionID: $0.sessionID) }
+                    ?? TmuxSessionName.unique(for: provider)
+            )
+            : (command: cliCommand, tmuxSessionName: nil)
         let session = TerminalSession(
             engine: terminalEngineStore.engine,
             conversation: nil,

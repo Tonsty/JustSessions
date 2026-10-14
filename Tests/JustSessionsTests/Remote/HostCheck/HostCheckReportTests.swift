@@ -39,6 +39,46 @@ struct HostCheckReportTests {
         #expect(report.warningCount == 1)
     }
 
+    @Test func plainTextEndsWithWhatTheEndedTabShowed() {
+        let report = HostCheckReport(
+            host: "devbox",
+            checkedAt: Date(timeIntervalSince1970: 0),
+            thisMacSummary: "",
+            findings: [HostCheckFinding(id: "rsync", status: .passed, title: "rsync", summary: "Found.")],
+            endedTabScreen: "protocol version mismatch (client 8, server 7)\n\nConnection to devbox closed."
+        )
+
+        let lines = report.plainText.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+
+        #expect(Array(lines.suffix(6)) == [
+            "",
+            "What the tab showed when it ended:",
+            "    protocol version mismatch (client 8, server 7)",
+            "    ",
+            "    Connection to devbox closed.",
+            "",
+        ])
+        // Nothing failed, but the tab's output is something to explain.
+        #expect(report.hasSomethingToFix)
+    }
+
+    /// A missing folder is one session's, so the host's heading doesn't warn of it.
+    @Test func theHostsProblemsLeaveOutTheFolder() {
+        let report = HostCheckReport(
+            host: "devbox",
+            checkedAt: Date(timeIntervalSince1970: 0),
+            thisMacSummary: "",
+            findings: [
+                HostCheckFinding(id: "folder", status: .problem, title: "Folder", summary: ""),
+                HostCheckFinding(id: "tmux", status: .problem, title: "tmux", summary: ""),
+                HostCheckFinding(id: "rsync", status: .passed, title: "rsync", summary: ""),
+            ]
+        )
+        #expect(report.hostProblems.map(\.id) == ["tmux"])
+        #expect(report.hasSomethingToFix)
+        #expect(!HostCheckReport(host: "devbox", checkedAt: .now, thisMacSummary: "", findings: []).hasSomethingToFix)
+    }
+
     @Test func problemsComeBeforeWarningsAndTheRestKeepTheirOrder() {
         let statuses: [HostCheckFinding.Status] = [.passed, .warning, .note, .problem, .passed, .warning]
         let report = HostCheckReport(

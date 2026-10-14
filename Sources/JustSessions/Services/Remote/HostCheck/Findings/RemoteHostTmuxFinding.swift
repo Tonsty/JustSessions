@@ -60,6 +60,14 @@ enum RemoteHostTmuxFinding {
         ), hostOutput: output.text("tmux-version"))
     }
 
+    /// The line of `output` in which a tmux client says it can't reach the running server, as a refresh's
+    /// `tmux list-sessions` prints it; nil when there is none. See `RemoteHostStatusProbe`.
+    static func unreachableServerMessage(in output: String) -> String? {
+        output.split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .first { line in unreachableServerPhrases.contains(where: line.lowercased().contains) }
+    }
+
     /// "3.4" from "tmux 3.4", or "next-3.7" from a build from source.
     static func version(inVersionOutput output: String?) -> String? {
         guard let line = output?.split(separator: "\n").first, line.hasPrefix("tmux ") else { return nil }

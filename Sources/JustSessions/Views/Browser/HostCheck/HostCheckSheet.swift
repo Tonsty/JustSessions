@@ -3,7 +3,8 @@ import SwiftUI
 
 /// Check this host…: what on an SSH host could keep its sessions from working, each finding with what the host
 /// printed and a command to run in your own Terminal, so you can see a problem is on the host and not in the app.
-/// Copy report puts it all as text on the clipboard, for an issue or for whoever runs the host. See
+/// Copy report puts it all as text on the clipboard, for an issue or for whoever runs the host. Fix with agent…
+/// turns the sheet to `HostFixAgentForm`, which starts a CLI to fix what the check found. See
 /// `ConversationStore+HostCheck`.
 struct HostCheckSheet: View {
     let store: ConversationStore
@@ -11,6 +12,10 @@ struct HostCheckSheet: View {
     let presentedState: HostCheckSheetState
     @Environment(\.dismiss) private var dismiss
     @State private var hasCopiedReport = false
+    /// Set while the sheet shows Fix with agent…'s page.
+    @State private var fixAgentDraft: HostFixAgentDraft?
+    @State private var isStartingFixAgent = false
+    @State private var fixAgentStartError: String?
 
     /// The findings scroll in a fixed height, so the sheet keeps its size from the progress to the report.
     private static let findingsHeight: CGFloat = 420
@@ -21,14 +26,25 @@ struct HostCheckSheet: View {
 
     var body: some View {
         ThemeSheetLayout(
-            title: Text("Check \(state.host)"),
-            intro: Text(
-                "Runs on \(state.host) what JustSessions runs there. When a command below fails the same way in your own Terminal, the problem is on \(state.host)."
-            ),
+            title: fixAgentDraft == nil ? Text("Check \(state.host)") : Text("Fix \(state.host) with an agent"),
+            intro: fixAgentDraft == nil
+                ? Text(
+                    "Runs on \(state.host) what JustSessions runs there. When a command below fails the same way in your own Terminal, the problem is on \(state.host)."
+                )
+                : Text("Starts a CLI whose first message is this report, so it can find out why and fix it with you. It's told to ask you before it ends sessions or changes the host's setup."),
             width: ThemeSheetMetrics.wideWidth
         ) {
             Group {
-                if let report = state.report {
+                if let report = state.report, let draftBinding = Binding($fixAgentDraft) {
+                    HostFixAgentForm(
+                        draft: draftBinding,
+                        host: report.host,
+                        providers: { store.hostFixAgentProviders(on: $0, report: report) },
+                        preferredProvider: { store.preferredHostFixAgentProvider(among: $0) },
+                        folder: { store.hostFixAgentFolder(on: $0, for: state, report: report) },
+                        errorMessage: fixAgentStartError
+                    )
+                } else if let report = state.report {
                     reportView(report)
                 } else {
                     VStack(spacing: 8) {
@@ -42,21 +58,77 @@ struct HostCheckSheet: View {
             }
             .frame(height: Self.findingsHeight)
         } footer: {
-            Button(hasCopiedReport ? "Copied" : "Copy report", systemImage: hasCopiedReport ? "checkmark" : "doc.on.doc") {
-                guard let report = state.report else { return }
-                NSPasteboard.general.clearContents()
-                hasCopiedReport = NSPasteboard.general.setString(report.plainText, forType: .string)
+            if let fixAgentDraft {
+                fixAgentFooter(fixAgentDraft)
+            } else {
+                reportFooter
             }
-            .disabled(state.isChecking)
-            .help("Copy the report as text, for an issue or for whoever runs the host")
-            Button("Check again", systemImage: "arrow.clockwise") { store.checkShownHostAgain() }
-                .disabled(state.isChecking)
-            Spacer()
-            Button("Done") { dismiss() }
-                .buttonStyle(ThemeProminentButtonStyle())
-                .keyboardShortcut(.defaultAction)
         }
-        .onChange(of: state.runID) { hasCopiedReport = false }
+        .onChange(of: state.runID) {
+            hasCopiedReport = false
+            fixAgentDraft = nil
+        }
+    }
+
+    @ViewBuilder private var reportFooter: some View {
+        Button(hasCopiedReport ? "Copied" : "Copy report", systemImage: hasCopiedReport ? "checkmark" : "doc.on.doc") {
+            guard let report = state.report else { return }
+            NSPasteboard.general.clearContents()
+            hasCopiedReport = NSPasteboard.general.setString(report.plainText, forType: .string)
+        }
+        .disabled(state.isChecking)
+        .help("Copy the report as text, for an issue or for whoever runs the host")
+        Button("Check again", systemImage: "arrow.clockwise") { store.checkShownHostAgain() }
+            .disabled(state.isChecking)
+        Button("Fix with agent…", systemImage: "wrench.and.screwdriver") {
+            guard let report = state.report else { return }
+            fixAgentStartError = nil
+            fixAgentDraft = store.hostFixAgentDraft(for: state, report: report)
+        }
+        .disabled(state.report?.hasSomethingToFix != true)
+        .help("Start a CLI that reads this report and fixes the problem with you")
+        Spacer()
+        Button("Done") { dismiss() }
+            .buttonStyle(ThemeProminentButtonStyle())
+            .keyboardShortcut(.defaultAction)
+    }
+
+    @ViewBuilder private func fixAgentFooter(_ draft: HostFixAgentDraft) -> some View {
+        if isStartingFixAgent && draft.machine == .checkedHost {
+            ProgressView().controlSize(.small)
+            Text("Finding the folder on \(state.host)…")
+                .font(ThemeFont.callout)
+                .foregroundStyle(ThemePalette.secondaryText)
+        }
+        Spacer()
+        Button("Back") { fixAgentDraft = nil }
+            .keyboardShortcut(.cancelAction)
+            .disabled(isStartingFixAgent)
+        Button(startButtonTitle(draft.provider), action: startFixAgent)
+            .buttonStyle(ProviderProminentButtonStyle(tint: (draft.provider.map(NewSessionKind.cli) ?? .plainTerminal).emphasisTintColor))
+            .keyboardShortcut(.defaultAction)
+            .disabled(draft.provider == nil || isStartingFixAgent
+                || draft.task.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+    }
+
+    private func startButtonTitle(_ provider: ConversationProvider?) -> LocalizedStringKey {
+        guard let provider else { return "Start" }
+        return "Start \(provider.rawValue)"
+    }
+
+    private func startFixAgent() {
+        guard let draft = fixAgentDraft, let report = state.report else { return }
+        isStartingFixAgent = true
+        fixAgentStartError = nil
+        let state = state
+        Task {
+            do {
+                try await store.startHostFixAgent(draft, for: state, report: report)
+            } catch {
+                fixAgentStartError = error.localizedDescription
+            }
+            isStartingFixAgent = false
+        }
     }
 
     private func reportView(_ report: HostCheckReport) -> some View {
@@ -75,12 +147,16 @@ struct HostCheckSheet: View {
                             ThemeDivider()
                         }
                     }
+                    if let endedTabScreen = report.endedTabScreen {
+                        ThemeDivider()
+                        HostCheckEndedTabScreenRow(screenText: endedTabScreen)
+                    }
                 }
             }
             .background(ThemePalette.raisedSurface, in: RoundedRectangle(.card))
             .overlay(RoundedRectangle(.card).stroke(ThemePalette.hairline, lineWidth: 1))
             .clipShape(RoundedRectangle(.card))
-            Text("This Mac: \(report.thisMacSummary)")
+            Text("Checked \(report.checkedAt.formatted(.relative(presentation: .named))) · This Mac: \(report.thisMacSummary)")
                 .font(ThemeFont.detail)
                 .foregroundStyle(ThemePalette.tertiaryText)
                 .lineLimit(1)

@@ -3,6 +3,9 @@ import Foundation
 /// Check this host…: logs in as the app's background commands do, checks the host's shell startup, looks up its CLIs
 /// as a refresh does, then asks the host about everything else in one command; see `RemoteHostCheckScript`. A host
 /// the app can't log in to is not asked anything more. Runs `ssh` several times, so call it off the main actor.
+/// A check the app runs on its own takes the shell startup check's kept result instead of running it again, since
+/// that check runs the host's interactive startup, which can leave what it starts, such as tmux, running there; see
+/// `HostBackgroundChecker`.
 struct RemoteHostCheck: Sendable {
     /// Room for every CLI's version within its own time limit.
     static let scriptTimeout: TimeInterval = 120
@@ -35,12 +38,20 @@ struct RemoteHostCheck: Sendable {
         session: HostCheckSession?,
         providersWithSessions: Set<ConversationProvider>,
         thisMacSummary: String,
+        keptShellStartupResult: RemoteShellStartupCheckResult? = nil,
+        checksShellStartup: Bool = true,
         now: () -> Date = Date.init
     ) -> Outcome {
         var cliLocations: [ConversationProvider: RemoteCLILocation]?
         func outcome(_ findings: [HostCheckFinding], _ shellStartupResult: RemoteShellStartupCheckResult?) -> Outcome {
             Outcome(
-                report: HostCheckReport(host: host, checkedAt: now(), thisMacSummary: thisMacSummary, findings: findings),
+                report: HostCheckReport(
+                    host: host,
+                    checkedAt: now(),
+                    thisMacSummary: thisMacSummary,
+                    findings: findings,
+                    endedTabScreen: session?.endedTabScreen
+                ),
                 shellStartupResult: shellStartupResult,
                 cliLocations: cliLocations
             )
@@ -50,7 +61,8 @@ struct RemoteHostCheck: Sendable {
         var findings = [RemoteHostConnectionFindings.connectionFinding(problem: connectionProblem, host: host)]
         guard connectionProblem == nil else { return outcome(findings, nil) }
 
-        let shellStartupResult = shellStartupCheck.check(host: host)
+        let checkedShellStartup = checksShellStartup ? shellStartupCheck.check(host: host) : nil
+        let shellStartupResult = checkedShellStartup ?? keptShellStartupResult
         let startup = shellStartupResult?.shellStartup ?? RemoteHostShellStartups.shared.startup(on: host)
         findings.append(RemoteHostConnectionFindings.shellStartupFinding(shellStartupResult, host: host, startup: startup))
 
@@ -68,7 +80,7 @@ struct RemoteHostCheck: Sendable {
                     "\(host) didn't answer the rest of the check within \(Int(Self.scriptTimeout)) seconds, or the connection dropped."
                 )
             ))
-            return outcome(findings, shellStartupResult)
+            return outcome(findings, checkedShellStartup)
         }
         let context = RemoteHostCheckContext(
             host: host,
@@ -78,6 +90,6 @@ struct RemoteHostCheck: Sendable {
             providersWithSessions: providersWithSessions
         )
         findings += RemoteHostCheckFindings.findings(in: RemoteHostCheckOutput(result.output), context: context)
-        return outcome(findings, shellStartupResult)
+        return outcome(findings, checkedShellStartup)
     }
 }

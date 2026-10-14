@@ -4,6 +4,13 @@ import Testing
 
 /// The tmux messages here are what tmux 1.8 to 3.6a printed when tried against each other's servers.
 struct RemoteHostTmuxFindingTests {
+    @Test func findsTheLineSayingTheServerCantBeReached() {
+        let output = "justsessions-claude-new-1a2b3c4d\n  Protocol version mismatch (client 8, server 7)\nmore"
+        #expect(RemoteHostTmuxFinding.unreachableServerMessage(in: output) == "Protocol version mismatch (client 8, server 7)")
+        #expect(RemoteHostTmuxFinding.unreachableServerMessage(in: "no server running on /tmp/tmux-1000/default") == nil)
+        #expect(RemoteHostTmuxFinding.unreachableServerMessage(in: "") == nil)
+    }
+
     @Test func noTmuxIsANote() {
         let finding = RemoteHostTmuxFinding.finding(in: hostCheckOutput(["tmux-path": ""]), context: hostCheckContext())
         #expect(finding.status == .note)
