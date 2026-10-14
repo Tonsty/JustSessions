@@ -24,6 +24,8 @@ struct RemoteCLIInvocationTests {
         /// The command of the CLI's parent process: the login shell when it ran an alias or function, or whatever
         /// started the tab's command once the CLI took the shell's place.
         let parentCommand: String
+        /// Which of the programs put beside the CLI ran.
+        let programsRunBesideTheCLI: [String]
     }
 
     @Test(arguments: LoginShell.allCases)
@@ -63,6 +65,16 @@ struct RemoteCLIInvocationTests {
         #expect(launch.arguments == ["--resume", "id with space"])
         #expect(!launch.parentCommand.hasSuffix("bash"))
         #expect(!launch.parentCommand.hasSuffix("zsh"))
+    }
+
+    /// bash has no `functions`, so asking it for one ran a program of that name, or, on Ubuntu, which has none, the
+    /// command-not-found handler, which added about 40 ms to every tab's start.
+    @Test(arguments: LoginShell.allCases)
+    func functionsAreAskedOfTheShellNotOfThePath(shell: LoginShell) throws {
+        let launch = try launch(in: shell, startup: { _ in "" }, cliOnPath: true, programsBesideTheCLI: ["functions"])
+
+        #expect(launch.arguments == ["--resume", "id with space"])
+        #expect(launch.programsRunBesideTheCLI.isEmpty)
     }
 
     @Test func aCLIInAnInstallFolderStartsByItsPathWithItsFolderFirstOnThePath() throws {
@@ -122,11 +134,13 @@ struct RemoteCLIInvocationTests {
 
     /// Starts `claude` with `--resume 'id with space'` in `shell`, whose startup file holds `startup(cliPath)`.
     /// The stand-in is on PATH only when `cliOnPath` is set, by the startup file, as macOS's `path_helper` puts the
-    /// system's folders, which may have a real `claude`, ahead of an inherited PATH.
+    /// system's folders, which may have a real `claude`, ahead of an inherited PATH. Each of `programsBesideTheCLI` is a
+    /// program in the stand-in's folder that notes when it runs.
     private func launch(
         in shell: LoginShell,
         startup: (_ cliPath: String) -> String,
-        cliOnPath: Bool
+        cliOnPath: Bool,
+        programsBesideTheCLI: [String] = []
     ) throws -> Launch {
         let root = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
@@ -142,6 +156,10 @@ struct RemoteCLIInvocationTests {
             "#!/bin/sh\n{ ps -o comm= -p \"$PPID\"; printf '%s\\n' \"$@\"; } > '\(record.path)'\n",
             to: cli
         )
+        let programsRun = root.appendingPathComponent("programs-run")
+        for name in programsBesideTheCLI {
+            try writeExecutableScript("#!/bin/sh\necho '\(name)' >> '\(programsRun.path)'\n", to: cliFolder.appendingPathComponent(name))
+        }
         let pathLine = cliOnPath ? "export PATH='\(cliFolder.path)':\"$PATH\"\n" : ""
         try (pathLine + startup(cli.path) + "\n")
             .write(to: home.appendingPathComponent(shell.startupFileName), atomically: true, encoding: .utf8)
@@ -164,6 +182,12 @@ struct RemoteCLIInvocationTests {
         )
 
         let lines = try String(contentsOf: record, encoding: .utf8).split(separator: "\n").map(String.init)
-        return Launch(arguments: Array(lines.dropFirst()), parentCommand: lines.first?.trimmingCharacters(in: .whitespaces) ?? "")
+        let programsRunBesideTheCLI = (try? String(contentsOf: programsRun, encoding: .utf8))?
+            .split(separator: "\n").map(String.init) ?? []
+        return Launch(
+            arguments: Array(lines.dropFirst()),
+            parentCommand: lines.first?.trimmingCharacters(in: .whitespaces) ?? "",
+            programsRunBesideTheCLI: programsRunBesideTheCLI
+        )
     }
 }
