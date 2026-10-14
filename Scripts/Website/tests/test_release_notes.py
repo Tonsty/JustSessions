@@ -5,6 +5,7 @@ import json
 import sys
 import tempfile
 import unittest
+from html import escape
 from pathlib import Path
 from unittest.mock import patch
 
@@ -25,7 +26,7 @@ class ReleaseNotesTests(unittest.TestCase):
             page = (output_directory / "release-notes.html").read_text()
             for release in load_catalog():
                 self.assertIn(f'id="v{release["version"]}"', page)
-                self.assertIn(release["title"]["en"], page)
+                self.assertIn(escape(release["title"]["en"]), page)
             self.assertEqual(page.count('class="release-latest"'), 1)
             self.assertIn('href="./release-notes.html" aria-current="page"', page)
             self.assertIn("release-notes.html", (output_directory / "sitemap.xml").read_text())
@@ -58,13 +59,13 @@ class ReleaseNotesTests(unittest.TestCase):
             markdown = (output_directory / "release-notes.md").read_text()
             html = (output_directory / "JustSessions.html").read_text()
             self.assertIn(selected["title"]["en"], markdown)
-            self.assertIn(selected["title"]["en"], html)
+            self.assertIn(escape(selected["title"]["en"]), html)
             self.assertNotIn(releases[0]["title"]["en"], markdown)
-            self.assertNotIn(releases[0]["title"]["en"], html)
+            self.assertNotIn(escape(releases[0]["title"]["en"]), html)
             for section in selected["sections"]:
                 for item in section["items"]:
                     self.assertIn(item["en"], markdown)
-                    self.assertIn(item["en"], html)
+                    self.assertIn(escape(item["en"]), html)
 
     def test_editorial_text_cannot_inject_html(self):
         release = copy.deepcopy(load_catalog()[0])
