@@ -3,9 +3,9 @@ import Foundation
 /// Reads `JustSessionsGuideSection`s out of the guides the app ships, so an agent reads the guides of the version
 /// that checked the host.
 enum JustSessionsGuideText {
-    /// The guides in the app's resource bundle; see `Package.swift`.
+    /// The guides are at the top level of the app's resource bundle; see `Package.swift`.
     static var shippedGuidesDirectory: URL? {
-        AppLocalization.resourceBundle.resourceURL?.appendingPathComponent("Guides", isDirectory: true)
+        AppLocalization.resourceBundle.resourceURL
     }
 
     /// The section's text from its heading line up to the next heading of the same or a higher level; nil when the
