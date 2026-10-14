@@ -3,7 +3,10 @@ import Testing
 @testable import JustSessions
 
 /// What the app sends an SSH host's tmux, by the version `tmux -V` names, through a stand-in tmux that records it. Each
-/// version's answers were tried against real tmux 1.8 to 3.6a; see `RemoteTmuxGeneration`.
+/// version's answers were tried against real tmux 1.8 to 3.6a; see `RemoteTmuxGeneration`. One case at a time: together
+/// they start hundreds of short processes, and at once those held up tests that time their own, such as
+/// `RemoteHostCheckScriptTests`.
+@Suite(.serialized)
 struct RemoteTmuxOlderVersionsTests {
     private static let sessionName = "justsessions-claude-new-1a2b3c4d"
 
