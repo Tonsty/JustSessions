@@ -8,12 +8,14 @@ struct RemoteTmuxOlderVersionsTests {
     private static let sessionName = "justsessions-claude-new-1a2b3c4d"
 
     /// Older tmux has no `mouse`, no `None` key, or fails on `allow-passthrough`; one failing option would show an
-    /// error in the tab and skip the options after it.
+    /// error in the tab and skip the options after it. Before 2.4, `xterm-keys` is off unless turned on.
     @Test(arguments: [
-        ("tmux 1.8", "set-option status off ; set-option mode-mouse on ; set-option -s escape-time 10 ; set-option prefix C-M-S-IC ; set-option prefix2 C-M-S-IC"),
-        ("tmux 2.0", "set-option status off ; set-option mode-mouse on ; set-option -s escape-time 10 ; set-option prefix C-M-S-IC ; set-option prefix2 C-M-S-IC"),
-        ("tmux 2.1", "set-option status off ; set-option mouse on ; set-option -wq allow-passthrough on ; set-option -s escape-time 10 ; set-option prefix C-M-S-IC ; set-option prefix2 C-M-S-IC"),
-        ("tmux 2.2", "set-option status off ; set-option mouse on ; set-option -wq allow-passthrough on ; set-option -s escape-time 10 ; set-option prefix None ; set-option prefix2 None"),
+        ("tmux 1.8", "set-option status off ; set-option mode-mouse on ; set-option -w xterm-keys on ; set-option -s escape-time 10 ; set-option prefix C-M-S-IC ; set-option prefix2 C-M-S-IC"),
+        ("tmux 2.0", "set-option status off ; set-option mode-mouse on ; set-option -w xterm-keys on ; set-option -s escape-time 10 ; set-option prefix C-M-S-IC ; set-option prefix2 C-M-S-IC"),
+        ("tmux 2.1", "set-option status off ; set-option mouse on ; set-option -w xterm-keys on ; set-option -wq allow-passthrough on ; set-option -s escape-time 10 ; set-option prefix C-M-S-IC ; set-option prefix2 C-M-S-IC"),
+        ("tmux 2.2", "set-option status off ; set-option mouse on ; set-option -w xterm-keys on ; set-option -wq allow-passthrough on ; set-option -s escape-time 10 ; set-option prefix None ; set-option prefix2 None"),
+        ("tmux 2.3", "set-option status off ; set-option mouse on ; set-option -w xterm-keys on ; set-option -wq allow-passthrough on ; set-option -s escape-time 10 ; set-option prefix None ; set-option prefix2 None"),
+        ("tmux 2.4", "set-option status off ; set-option mouse on ; set-option -wq allow-passthrough on ; set-option -s escape-time 10 ; set-option prefix None ; set-option prefix2 None"),
         ("tmux 3.1c", "set-option status off ; set-option mouse on ; set-option -wq allow-passthrough on ; set-option -s escape-time 10 ; set-option prefix None ; set-option prefix2 None"),
         ("tmux 3.4", "set-option status off ; set-option mouse on ; set-option -wq allow-passthrough on ; set-option -s escape-time 10 ; set-option prefix None ; set-option prefix2 None ; set-option -w remain-on-exit failed ; set-hook pane-died"),
     ])

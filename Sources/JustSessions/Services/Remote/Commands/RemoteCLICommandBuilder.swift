@@ -140,6 +140,7 @@ struct RemoteCLICommandBuilder {
         // tmux 3.5 and later give them anyway. Older tmux gets what it understands; see `RemoteTmuxGeneration`.
         func sessionOptions(for tmux: RemoteTmuxGeneration) -> [String] {
             ["set-option status off", "set-option \(tmux.mouseOption) on"]
+                + (tmux.needsXtermKeys ? ["set-option -w xterm-keys on"] : [])
                 + (tmux.skipsUnknownQuietOptions ? ["set-option -wq allow-passthrough on"] : [])
                 + ["set-option -s escape-time 10"]
                 + RemoteTmuxPrefixOptions.setOptionCommands(usingHostPrefix: usesHostTmuxPrefix, unusedKey: tmux.unusedPrefixKey)

@@ -3,14 +3,16 @@ import Foundation
 /// The tmux versions an SSH host may run, as far as they differ in what a JustSessions session uses. Commands for the
 /// host's tmux ask it `tmux -V` and give each version only what it understands; `caseStatement(_:)` writes that.
 /// tmux 1.8, the first with `new-session -A`, is the oldest that can run a session. Each difference here was tried
-/// against tmux 1.8, 1.9a, 2.0 to 2.7, 3.0a, 3.2a, 3.4, and 3.6a.
+/// against tmux 1.8, 1.9a, 2.0 to 2.7, 3.0a, 3.2a, 3.4, and 3.6a, and the keys also over SSH against 1.8 and 3.4.
 enum RemoteTmuxGeneration: CaseIterable {
     /// tmux 1.8 to 2.0. The mouse option is `mode-mouse`. A target has no `=` asking for exactly one session's name,
     /// and before 2.0 `set-option -q` still fails on an option tmux doesn't know, which skips the commands after it.
     case before2_1
     /// tmux 2.1, which has `mouse` and `=`, but no `None` key to turn a prefix off.
     case version2_1
-    /// tmux 2.2 to 3.1, which can't keep a failed CLI's pane (`remain-on-exit failed`).
+    /// tmux 2.2 and 2.3, whose `xterm-keys` is still off by default.
+    case before2_4
+    /// tmux 2.4 to 3.1, which can't keep a failed CLI's pane (`remain-on-exit failed`).
     case before3_2
     /// tmux 3.2 and later, and any version `tmux -V` names otherwise, such as `next-3.7` or `openbsd-7.6`.
     case current
@@ -20,6 +22,7 @@ enum RemoteTmuxGeneration: CaseIterable {
         switch self {
         case .before2_1: #""tmux "[01].* | "tmux 2.0"*"#
         case .version2_1: #""tmux 2.1"*"#
+        case .before2_4: #""tmux 2."[23]*"#
         case .before3_2: #""tmux 2."* | "tmux 3."[01] | "tmux 3."[01][a-z]"#
         case .current: "*"
         }
@@ -27,6 +30,15 @@ enum RemoteTmuxGeneration: CaseIterable {
 
     /// The option that lets the mouse wheel scroll the tab, through tmux's copy mode.
     var mouseOption: String { self == .before2_1 ? "mode-mouse" : "mouse" }
+
+    /// Whether the window needs `xterm-keys on`, off by default before tmux 2.4, for Shift, Option, or Control with an
+    /// arrow, Home, or End to reach the CLI: without it, Shift-Left reached it as Left.
+    var needsXtermKeys: Bool {
+        switch self {
+        case .before2_1, .version2_1, .before2_4: true
+        case .before3_2, .current: false
+        }
+    }
 
     /// Whether `set-option -q` skips an option this tmux doesn't know, as `allow-passthrough` before tmux 3.3.
     var skipsUnknownQuietOptions: Bool { self != .before2_1 }
@@ -36,7 +48,7 @@ enum RemoteTmuxGeneration: CaseIterable {
     var unusedPrefixKey: String {
         switch self {
         case .before2_1, .version2_1: "C-M-S-IC"
-        case .before3_2, .current: "None"
+        case .before2_4, .before3_2, .current: "None"
         }
     }
 
