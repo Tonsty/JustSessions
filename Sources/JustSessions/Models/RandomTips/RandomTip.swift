@@ -8,6 +8,7 @@ enum RandomTip: String, CaseIterable {
     case reopenTabs
     case unseenTurn
     case sshHosts
+    case checkSSHHost
     case splitView
     case dragIntoSplitView
     case selectSeveralSessions

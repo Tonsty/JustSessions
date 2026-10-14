@@ -4,10 +4,6 @@ import Foundation
 /// heading before a session fails; `HostBackgroundChecker` decides when. Every check's report is kept across launches
 /// and shown in every window; the heading warns of its problems, see `SidebarHostCheckProblemWarning`.
 extension ConversationStore {
-    /// A tab on an SSH host whose CLI ended with an error this soon after it started asks for its host to be checked,
-    /// as when tmux there can't reach its server and the tab ends at once.
-    static let cliEndedSoonAfterStartingInterval: TimeInterval = 30
-
     /// Starts a check of the host that shows no sheet; its task ends once the report is kept.
     @discardableResult
     func checkHostInBackground(_ host: String) -> Task<Void, Never>? {
@@ -70,12 +66,10 @@ extension ConversationStore {
         return "\(firstProblem.title): \(firstProblem.summary)"
     }
 
-    /// See `followTabStateChanges()`.
+    /// A tab on an SSH host whose CLI ended with an error soon after it started asks for its host to be checked; see
+    /// `TerminalSession.endedWithErrorSoonAfterStarting` and `followTabStateChanges()`.
     func noteCLIEnded(in tab: TerminalSession) {
-        guard let host = tab.host.sshDestination, !tab.isPlainTerminal,
-              let exitCode = tab.exitCode, exitCode != 0,
-              let startedAt = tab.startedAt,
-              Date.now.timeIntervalSince(startedAt) < Self.cliEndedSoonAfterStartingInterval else { return }
+        guard let host = tab.host.sshDestination, !tab.isPlainTerminal, tab.endedWithErrorSoonAfterStarting else { return }
         hostsAskingForBackgroundCheck.insert(host)
     }
 }

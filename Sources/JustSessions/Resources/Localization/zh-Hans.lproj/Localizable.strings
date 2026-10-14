@@ -560,6 +560,8 @@
 	<string>所有标签页都在这里</string>
 	<key>Exited (%d)</key>
 	<string>已退出（%d）</string>
+	<key>Exited (%d) right after starting</key>
+	<string>启动后立即退出（%d）</string>
 	<key>Expand all groups</key>
 	<string>展开所有标签组</string>
 	<key>Expand group</key>
@@ -1176,6 +1178,8 @@
 	<string>取消拆分视图</string>
 	<key>Session %lld of %lld</key>
 	<string>会话 %lld / %lld</string>
+	<key>Sessions failing on an SSH host? Right-click it and choose **Check this host…** to see why and fix it with an agent.</key>
+	<string>SSH 主机上的会话出问题了？右键单击主机，选择 **检查此主机…** 查看原因，再让代理修复。</string>
 	<key>Sessions of %@ are copied with python3 on %@, which isn't on its login shell's PATH.</key>
 	<string>%@ 的会话需要用 %@ 上的 python3 复制，但它不在登录 shell 的 PATH 中。</string>
 	<key>Sessions on %@ can work, but see the warnings below.</key>

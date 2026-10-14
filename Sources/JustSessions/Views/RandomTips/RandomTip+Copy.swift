@@ -17,6 +17,8 @@ extension RandomTip {
             "A blue dot means a CLI finished a turn you haven't seen yet."
         case .sshHosts:
             "Browse and resume sessions on other machines with **Add SSH host…**."
+        case .checkSSHHost:
+            "Sessions failing on an SSH host? Right-click it and choose **Check this host…** to see why and fix it with an agent."
         case .splitView:
             "Put two tabs side by side: right-click a tab for split view."
         case .dragIntoSplitView:
