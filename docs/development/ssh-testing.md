@@ -159,6 +159,26 @@ sudo install -m 600 -o winsim -g winsim /home/ubuntu/.ssh/authorized_keys /home/
 
 Use the `x64` archive on an Intel Mac's VM. Give the user an alias like `justsessions-test` with `User winsim`, then check that `ssh justsessions-test-windows 'echo %OS% $env:OS'` prints `%OS%` and `Windows_NT`. Adding the alias says it runs Windows; **Add anyway** lists it with the same note on its heading.
 
+## Hosts with an older tmux
+
+Hosts run tmux from 1.8 on, and each version gets only the tmux commands it understands; `RemoteTmuxGeneration` lists where versions differ. A change to those commands needs a host with the oldest tmux too, since tmux skips every command after one it rejects. A container with tmux built from source and `sshd` on a local port works as one, with no change to `~/.ssh/config`:
+
+```sh
+version=1.8
+docker run -d --init --name tmux-$version -p 127.0.0.1:2222:22 ubuntu:18.04 sleep infinity
+docker exec tmux-$version bash -c "set -e
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -qq && apt-get install -y -qq build-essential libevent-dev libncurses5-dev curl openssh-server python3
+cd /tmp && curl -fsSL https://github.com/tmux/tmux/releases/download/$version/tmux-$version.tar.gz | tar xz && cd tmux-$version
+./configure --build=\$(uname -m)-unknown-linux-gnu && make && make install
+mkdir -p /run/sshd /root/.ssh && /usr/sbin/sshd"
+docker exec -i tmux-$version sh -c 'cat > /root/.ssh/authorized_keys' < ~/.ssh/id_ed25519.pub
+ssh-keygen -R '[127.0.0.1]:2222' 2>/dev/null; ssh-keyscan -p 2222 127.0.0.1 >> ~/.ssh/known_hosts
+ssh ssh://root@127.0.0.1:2222 tmux -V
+```
+
+These build tmux 1.8, the oldest supported; other releases build the same way. `--build` lets an old release's `configure` build on arm64. Afterwards, remove the container and run `ssh-keygen -R '[127.0.0.1]:2222'`.
+
 ## Manual checks for an SSH change
 
 Run the checks relevant to the change and record the result of each:
@@ -172,6 +192,7 @@ Run the checks relevant to the change and record the result of each:
 | Refreshing on its own | With the app's window on screen, a session started on the host from Terminal is listed within about 5 minutes, without clicking Refresh, and coming back to the app after 5 minutes refreshes the host. With two windows open, only one `rsync` runs per refresh (`ps`), and both list the session. A host that is off waits longer after each failure. |
 | Typing and Esc | With a tab open on the VM, `ps` shows its `ssh` with `-o ObscureKeystrokeTiming=no`, as does a Connect… login's `[mux]` master. `ssh justsessions-test tmux show-options -s escape-time` prints `escape-time 10`, and Esc stops Claude Code at once. |
 | Shift and arrows | `JUSTSESSIONS_LIVE_SSH_HOST=justsessions-test swift test --filter LiveSSHTmuxModifiedNavigationKeyTests` passes for both engines: arrows, Home, and End with Shift, Option, or Control reach a CLI in the VM's tmux as xterm sends them. |
+| Older tmux | With `JUSTSESSIONS_LIVE_SSH_HOST=ssh://root@127.0.0.1:2222` for a [tmux 1.8 host](#hosts-with-an-older-tmux), `LiveSSHTmuxModifiedNavigationKeyTests` passes too. A tab there shows no tmux error, Ctrl-B reaches the CLI, and the wheel scrolls. `tmux show-options` lists `prefix C-M-S-IC`, and `tmux show-window-options` lists `mode-mouse on` and `xterm-keys on`. |
 | Windows host | Adding the PowerShell user says it runs Windows and points to WSL; **Add anyway** shows the same on its heading, and no shell startup check runs for it. |
 | Discovery and refresh | The installed provider is offered; the new session appears under the remote project and its preview matches the remote history. |
 | Launch and resume | New sessions and resumed sessions run in the VM's project, including its space-containing path. Branch only where the provider supports it. |
