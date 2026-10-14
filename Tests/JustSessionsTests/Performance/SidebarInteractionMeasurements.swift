@@ -214,7 +214,7 @@ final class SidebarPerfHarness {
             SidebarPerfBrowserHarness(store: store, controls: controls)
                 .defaultAppStorage(sandbox.userDefaults)
         ))
-        window = NSWindow(
+        window = PointerClearWindow(
             contentRect: NSRect(x: 0, y: 0, width: 1400, height: 900),
             styleMask: [.titled, .closable, .resizable, .fullSizeContentView],
             backing: .buffered,
@@ -224,7 +224,8 @@ final class SidebarPerfHarness {
         window.contentView = hostingView
         window.center()
         // Clear of the pointer, which stays where the person running the tests left it: a row under it would mount
-        // its hover menus, which the at-rest view counts and the scenarios don't expect.
+        // its hover menus, which the at-rest view counts and the scenarios don't expect. On a screen not much wider
+        // than the window, that takes it partly off screen; see `PointerClearWindow`.
         let pointer = NSEvent.mouseLocation
         if window.frame.contains(pointer) {
             window.setFrameOrigin(NSPoint(x: pointer.x + 1, y: window.frame.minY))
@@ -626,4 +627,12 @@ private func appendToPerfLog(_ line: String) {
     defer { try? handle.close() }
     _ = try? handle.seekToEnd()
     try? handle.write(contentsOf: Data((line + "\n").utf8))
+}
+
+/// A window AppKit leaves where it is put. AppKit otherwise pulls a titled window back on screen, which on a 1728-point
+/// screen put the 1400-point harness back under a pointer left at x 494.
+private final class PointerClearWindow: NSWindow {
+    override func constrainFrameRect(_ frameRect: NSRect, to screen: NSScreen?) -> NSRect {
+        frameRect
+    }
 }
