@@ -1,6 +1,7 @@
 import Foundation
 
-/// A section of JustSessions' own guides, `docs/guides` in the repository, which the app ships in `Resources/Guides`.
+/// A section of JustSessions' own guides, `docs/guides` in the repository, which the app ships through the
+/// `Resources/Guides` link.
 /// The agent that fixes what a host check found reads the sections about what the check found; see
 /// `JustSessionsGuideText` and `HostFixAgentPrompt`.
 struct JustSessionsGuideSection: Hashable, Sendable, Identifiable {

@@ -24,7 +24,10 @@ let package = Package(
                 .product(name: "SwiftTerm", package: "SwiftTerm"),
                 .product(name: "GhosttyTerminal", package: "libghostty-spm"),
             ],
-            resources: [.process("Resources/Localization"), .copy("Resources/ReleaseNotes"), .copy("Resources/Fonts"), .copy("Resources/Guides")],
+            // `Resources/Guides` links to `docs/guides`. The native build system, which the release workflow's tests
+            // use, would `.copy` the link itself, leading nowhere in the bundle; `.process` copies the guides, to the
+            // bundle's top level, with either build system.
+            resources: [.process("Resources/Localization"), .copy("Resources/ReleaseNotes"), .copy("Resources/Fonts"), .process("Resources/Guides")],
             linkerSettings: [.linkedLibrary("sqlite3")]
         ),
         .testTarget(
