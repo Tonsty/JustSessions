@@ -22,6 +22,25 @@ struct HostCheckStoreTests {
         #expect(RemoteHostShellStartups.shared.startup(on: host) == .loginOnly)
     }
 
+    @Test func showsEachStepAsTheCheckReachesIt() async throws {
+        let gate = CheckGate()
+        let scriptGate = CheckGate()
+        let (store, settings, host) = try makeStore(gate: gate, scriptGate: scriptGate)
+        defer { cleanUp(settings, host) }
+
+        store.checkHost(host)
+
+        #expect(store.hostCheck?.step == .logIn)
+        let loginStartedAt = try #require(store.hostCheck?.stepStartedAt)
+        gate.open()
+        try await expectEventually { store.hostCheck?.step == .hostCommand }
+        #expect(store.hostCheck?.isChecking == true)
+        #expect(try #require(store.hostCheck?.stepStartedAt) >= loginStartedAt)
+        scriptGate.open()
+        try await expectEventually { store.hostCheck?.report != nil }
+        #expect(store.hostCheck?.step == .hostCommand)
+    }
+
     @Test func checkAgainReplacesTheReportAndAClosedSheetStaysClosed() async throws {
         let gate = CheckGate()
         let (store, settings, host) = try makeStore(gate: gate)
@@ -34,6 +53,7 @@ struct HostCheckStoreTests {
         gate.close()
         store.checkShownHostAgain()
         #expect(store.hostCheck?.isChecking == true)
+        #expect(store.hostCheck?.step == .logIn)
         #expect(store.hostCheck?.runID != firstRunID)
         store.hostCheck = nil
         gate.open()
@@ -60,6 +80,7 @@ struct HostCheckStoreTests {
 
     private func makeStore(
         gate: CheckGate,
+        scriptGate: CheckGate? = nil,
         saved outcome: RemoteShellStartupCheckResult.Outcome? = nil,
         shellStartupOutput: String = "__JUSTSESSIONS_SHELL_STARTUP_OK__\r\n"
     ) throws -> (ConversationStore, IsolatedUserDefaults, String) {
@@ -71,7 +92,10 @@ struct HostCheckStoreTests {
                 .save(to: settings.userDefaults)
         }
         let remoteHostCheck = RemoteHostCheck(
-            runner: RemoteHostCommandRunner { _, _, _ in (0, hostCheckScriptOutput(["shell": "/bin/bash"])) },
+            runner: RemoteHostCommandRunner { _, command, _ in
+                if !command.contains(RemoteHostStatusProbe.installFoldersHeading) { scriptGate?.waitUntilOpen() }
+                return (0, hostCheckScriptOutput(["shell": "/bin/bash"]))
+            },
             connectionCheck: RemoteHostConnectionCheck(runner: RemoteHostCommandRunner { _, _, _ in
                 gate.waitUntilOpen()
                 return (0, "%OS% :OS\n")
@@ -101,7 +125,8 @@ struct HostCheckStoreTests {
     }
 }
 
-/// Holds each host check at its login until opened, and counts those logins and the store's own shell startup checks.
+/// Holds each host check at its login, or at its script, until opened, and counts the checks it held and the store's
+/// own shell startup checks.
 private final class CheckGate: @unchecked Sendable {
     private let condition = NSCondition()
     private var isOpen = false

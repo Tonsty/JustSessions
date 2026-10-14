@@ -232,6 +232,10 @@
 	<string>Ask Now</string>
 	<key>Ask each time</key>
 	<string>Ask each time</string>
+	<key>Asking about tmux, rsync, and each CLI's version</key>
+	<string>Asking about tmux, rsync, and each CLI's version</string>
+	<key>Asking about tmux, rsync, each CLI's version, and the tab's folder</key>
+	<string>Asking about tmux, rsync, each CLI's version, and the tab's folder</string>
 	<key>A−</key>
 	<string>A−</string>
 	<key>Back</key>
@@ -280,8 +284,12 @@
 	<string>Check this host…</string>
 	<key>Check what on the host could have ended this tab, such as its CLI or its folder</key>
 	<string>Check what on the host could have ended this tab, such as its CLI or its folder</string>
+	<key>Checking %@</key>
+	<string>Checking %@</string>
 	<key>Checking %@…</key>
 	<string>Checking %@…</string>
+	<key>Checking its shell startup</key>
+	<string>Checking its shell startup</string>
 	<key>Checking the folder on %@…</key>
 	<string>Checking the folder on %@…</string>
 	<key>Checking the start command on %@…</key>
@@ -762,8 +770,12 @@
 	<string>Logged in to %@.</string>
 	<key>Logged in with Connect…</key>
 	<string>Logged in with Connect…</string>
+	<key>Logging in to %@</key>
+	<string>Logging in to %@</string>
 	<key>Login shell</key>
 	<string>Login shell</string>
+	<key>Looking up each CLI</key>
+	<string>Looking up each CLI</string>
 	<key>Make text bigger or smaller with ⌘+ and ⌘−, in terminals and conversations.</key>
 	<string>Make text bigger or smaller with ⌘+ and ⌘−, in terminals and conversations.</string>
 	<key>Makes the 16 colors that shells and many CLIs pick from stronger or softer. Colors a program sets exactly stay as they are.</key>
@@ -1250,6 +1262,8 @@
 	<string>Starts in your home folder on this Mac, outside tmux, and reaches %@ with ssh.</string>
 	<key>Startup</key>
 	<string>Startup</string>
+	<key>Step %lld of %lld</key>
+	<string>Step %lld of %lld</string>
 	<key>Stop copying; nothing is typed</key>
 	<string>Stop copying; nothing is typed</string>
 	<key>Stop deleting after the current session; the rest stay listed</key>
@@ -1428,6 +1442,8 @@
 	<string>User guide ↗</string>
 	<key>Version</key>
 	<string>Version</string>
+	<key>Waiting</key>
+	<string>Waiting</string>
 	<key>Waiting for you</key>
 	<string>Waiting for you</string>
 	<key>Want computer use? Add a computer-use MCP server to your CLI, then allow Accessibility in Settings → Permissions.</key>

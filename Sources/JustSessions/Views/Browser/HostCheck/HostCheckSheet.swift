@@ -48,13 +48,12 @@ struct HostCheckSheet: View {
                 } else if let report = state.report {
                     reportView(report)
                 } else {
-                    VStack(spacing: 8) {
-                        ProgressView().controlSize(.small)
-                        Text("Checking \(state.host)…")
-                            .font(ThemeFont.callout)
-                            .foregroundStyle(ThemePalette.secondaryText)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    HostCheckProgressView(
+                        host: state.host,
+                        step: state.step,
+                        stepStartedAt: state.stepStartedAt,
+                        checksTabFolder: state.session != nil
+                    )
                 }
             }
             .frame(height: Self.findingsHeight)
