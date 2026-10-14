@@ -1,5 +1,50 @@
 [
   {
+    "version": "1.2.12",
+    "publishedOn": "2026-10-14",
+    "title": {
+      "en": "SSH tabs reconnect on their own",
+      "zh-Hans": "SSH 标签页自动重连"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "SSH tabs in tmux reconnect on their own after their connection drops, such as while your Mac sleeps.",
+            "zh-Hans": "tmux 中的 SSH 标签页在连接断开（如 Mac 睡眠）后会自动重连。"
+          },
+          {
+            "en": "SSH hosts are checked in the background; problems show beside the host's name and above its ended tabs.",
+            "zh-Hans": "SSH 主机会在后台自动检查，问题会显示在主机名旁及其已结束的标签页上方。"
+          },
+          {
+            "en": "A host check that finds a problem offers Fix with agent…, which starts a CLI to fix it.",
+            "zh-Hans": "主机检查发现问题时会提供「让代理修复…」，启动一个 CLI 来修复。"
+          }
+        ]
+      },
+      {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "Tabs dragged out of the bar no longer slide back first; their new window opens under the pointer.",
+            "zh-Hans": "拖出标签栏的标签页不再先滑回原位，新窗口直接在指针下打开。"
+          }
+        ]
+      },
+      {
+        "kind": "fixed",
+        "items": [
+          {
+            "en": "Small bug fixes.",
+            "zh-Hans": "修复了一些小问题。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.11",
     "publishedOn": "2026-10-13",
     "title": {
