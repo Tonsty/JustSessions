@@ -28,8 +28,8 @@
 	<string>%@ didn't answer the rest of the check within %lld seconds, or the connection dropped.</string>
 	<key>%@ has not saved this session yet · click to open its terminal</key>
 	<string>%@ has not saved this session yet · click to open its terminal</string>
-	<key>%@ has tmux %@. JustSessions needs tmux 2.6 or later to pass Control-B to the CLI and to end a session before deleting it.</key>
-	<string>%@ has tmux %@. JustSessions needs tmux 2.6 or later to pass Control-B to the CLI and to end a session before deleting it.</string>
+	<key>%@ has tmux %@. JustSessions needs tmux 1.8 or later to open sessions in it.</key>
+	<string>%@ has tmux %@. JustSessions needs tmux 1.8 or later to open sessions in it.</string>
 	<key>%@ is a folder on %@.</key>
 	<string>%@ is a folder on %@.</string>
 	<key>%@ is already added.</key>

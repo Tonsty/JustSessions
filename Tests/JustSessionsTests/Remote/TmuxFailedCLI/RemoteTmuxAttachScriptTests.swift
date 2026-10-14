@@ -25,7 +25,7 @@ struct RemoteTmuxAttachScriptTests {
         let command = RemoteTmuxAttachScript.command(
             sessionName: "justsessions-claude-new-1a2b3c4d",
             paneCommand: "exec claude",
-            sessionOptions: ["set-option status off", "set-option mouse on"]
+            sessionOptions: { _ in ["set-option status off", "set-option mouse on"] }
         )
 
         _ = sandbox.run(command)
@@ -49,7 +49,7 @@ struct RemoteTmuxAttachScriptTests {
         let command = RemoteTmuxAttachScript.command(
             sessionName: "justsessions-claude-new-1a2b3c4d",
             paneCommand: "exec claude",
-            sessionOptions: ["set-option status off"]
+            sessionOptions: { _ in ["set-option status off"] }
         )
 
         let result = try #require(BoundedProcessRunner.result(

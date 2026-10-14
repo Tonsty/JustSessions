@@ -1,11 +1,12 @@
 import Foundation
 
-/// What the host's tmux means for its sessions. The app sends the host's tmux the same commands whatever its version,
-/// so this tells when that tmux can't follow them: one older than 2.6 lacks the `prefix None` and exact `=name` targets
-/// they use, and a tmux client of another version than the running server can't reach it, as after an upgrade while
-/// sessions ran. Both were tried against tmux 1.8 to 3.6a.
+/// What the host's tmux means for its sessions. The app gives each tmux version the commands it understands, from tmux
+/// 1.8 on (see `RemoteTmuxGeneration`), so this tells when that tmux can't run them: one older than 1.8 has no
+/// `new-session -A` to start or attach to a session, and a tmux client of another version than the running server
+/// can't reach it, as after an upgrade while sessions ran. Both were tried against tmux 1.8 to 3.6a. A server older
+/// than 2.4 doesn't know `#{version}` and prints nothing for it, so its version isn't compared.
 enum RemoteHostTmuxFinding {
-    static let oldestSupportedVersion = (major: 2, minor: 6)
+    static let oldestSupportedVersion = (major: 1, minor: 8)
 
     /// What a tmux client prints when the running server is of a version it can't talk to.
     static let unreachableServerPhrases = [
@@ -42,8 +43,8 @@ enum RemoteHostTmuxFinding {
             ), hostOutput: serverOutput)
         }
         if let clientVersion, isOlderThanSupported(clientVersion) {
-            return finding(.warning, AppLocalization.string(
-                "\(host) has tmux \(clientVersion). JustSessions needs tmux 2.6 or later to pass Control-B to the CLI and to end a session before deleting it."
+            return finding(.problem, AppLocalization.string(
+                "\(host) has tmux \(clientVersion). JustSessions needs tmux 1.8 or later to open sessions in it."
             ), hostOutput: output.text("tmux-version"))
         }
         let serverRuns = output.exitStatus("tmux-server-exit") == 0

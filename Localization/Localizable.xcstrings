@@ -142,12 +142,12 @@
         }
       }
     },
-    "%@ has tmux %@. JustSessions needs tmux 2.6 or later to pass Control-B to the CLI and to end a session before deleting it.": {
+    "%@ has tmux %@. JustSessions needs tmux 1.8 or later to open sessions in it.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ 上的 tmux 版本为 %@。JustSessions 需要 tmux 2.6 或更高版本，才能把 Control-B 传给 CLI，并在删除会话前结束它。"
+            "value": "%@ 上的 tmux 版本为 %@。JustSessions 需要 tmux 1.8 或更高版本，才能在其中打开会话。"
           }
         }
       }

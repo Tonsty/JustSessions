@@ -58,13 +58,24 @@ struct RemoteHostTmuxFindingTests {
         #expect(finding.summary.contains("3.4"))
     }
 
-    @Test(arguments: ["tmux 1.8", "tmux 2.1", "tmux 2.5"])
-    func aTmuxOlderThanTwoPointSixIsAWarning(version: String) {
+    /// tmux before 1.8 has no `new-session -A`, so no session opens.
+    @Test(arguments: ["tmux 1.6", "tmux 1.7"])
+    func aTmuxOlderThanOnePointEightIsAProblem(version: String) {
         let finding = RemoteHostTmuxFinding.finding(
             in: tmuxOutput(client: version, server: "no server running on /tmp/tmux-1000/default", serverExit: 1),
             context: hostCheckContext()
         )
-        #expect(finding.status == .warning)
+        #expect(finding.status == .problem)
+    }
+
+    /// A server before tmux 2.4 prints nothing for `#{version}`, as tmux 1.8 to 2.3 did, which is no other version.
+    @Test(arguments: ["tmux 1.8", "tmux 2.1", "tmux 2.3"])
+    func anOlderTmuxPassesThoughItsServerGivesNoVersion(version: String) {
+        let finding = RemoteHostTmuxFinding.finding(
+            in: tmuxOutput(client: version, server: "", serverExit: 0),
+            context: hostCheckContext()
+        )
+        #expect(finding.status == .passed)
     }
 
     @Test func anotherErrorIsAWarningWithWhatTmuxPrinted() {
@@ -80,9 +91,11 @@ struct RemoteHostTmuxFindingTests {
         #expect(RemoteHostTmuxFinding.version(inVersionOutput: "tmux 3.6a") == "3.6a")
         #expect(RemoteHostTmuxFinding.version(inVersionOutput: "tmux next-3.7") == "next-3.7")
         #expect(RemoteHostTmuxFinding.version(inVersionOutput: "bash: tmux: command not found") == nil)
-        #expect(RemoteHostTmuxFinding.isOlderThanSupported("2.5"))
-        #expect(RemoteHostTmuxFinding.isOlderThanSupported("1.10"))
-        #expect(!RemoteHostTmuxFinding.isOlderThanSupported("2.6"))
+        #expect(RemoteHostTmuxFinding.isOlderThanSupported("1.7"))
+        #expect(RemoteHostTmuxFinding.isOlderThanSupported("0.9"))
+        #expect(!RemoteHostTmuxFinding.isOlderThanSupported("1.8"))
+        #expect(!RemoteHostTmuxFinding.isOlderThanSupported("1.10"))
+        #expect(!RemoteHostTmuxFinding.isOlderThanSupported("2.5"))
         #expect(!RemoteHostTmuxFinding.isOlderThanSupported("next-3.7"))
         #expect(!RemoteHostTmuxFinding.isOlderThanSupported("master"))
     }

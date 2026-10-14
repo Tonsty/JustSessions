@@ -8,11 +8,12 @@ enum RemoteTmuxPrefixOptions {
     static let optionNames = ["prefix", "prefix2"]
 
     /// tmux `set-option` commands for the session `target` names, or without one for the session of the command
-    /// they follow.
-    static func setOptionCommands(usingHostPrefix: Bool, target: String? = nil) -> [String] {
+    /// they follow. `unusedKey` is the host's tmux's key that no one presses, a shell word; see
+    /// `RemoteTmuxGeneration.unusedPrefixKey`.
+    static func setOptionCommands(usingHostPrefix: Bool, target: String? = nil, unusedKey: String) -> [String] {
         let targetArguments = target.map { " -t \($0)" } ?? ""
         return optionNames.map { name in
-            usingHostPrefix ? "set-option\(targetArguments) -u \(name)" : "set-option\(targetArguments) \(name) None"
+            usingHostPrefix ? "set-option\(targetArguments) -u \(name)" : "set-option\(targetArguments) \(name) \(unusedKey)"
         }
     }
 }

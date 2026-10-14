@@ -26,8 +26,8 @@
 	<string>%1$@ 有问题：%2$@</string>
 	<key>%@ has not saved this session yet · click to open its terminal</key>
 	<string>%@ 尚未保存此会话 · 点击打开终端</string>
-	<key>%@ has tmux %@. JustSessions needs tmux 2.6 or later to pass Control-B to the CLI and to end a session before deleting it.</key>
-	<string>%@ 上的 tmux 版本为 %@。JustSessions 需要 tmux 2.6 或更高版本，才能把 Control-B 传给 CLI，并在删除会话前结束它。</string>
+	<key>%@ has tmux %@. JustSessions needs tmux 1.8 or later to open sessions in it.</key>
+	<string>%@ 上的 tmux 版本为 %@。JustSessions 需要 tmux 1.8 或更高版本，才能在其中打开会话。</string>
 	<key>%@ is a folder on %@.</key>
 	<string>%@ 是 %@ 上的文件夹。</string>
 	<key>%@ is already added.</key>
