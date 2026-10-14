@@ -49,6 +49,19 @@ struct TabTerminalLifecycleTests {
 
         try await expectEventually { fixture.tab.hasExited }
         #expect(fixture.tab.exitCode == 3)
+        #expect(fixture.tab.endedWithErrorSoonAfterStarting)
+    }
+
+    @Test(arguments: TerminalEngine.allCases)
+    func aProcessThatEndsWithoutAnErrorDidNotFailToStart(_ engine: TerminalEngine) async throws {
+        let fixture = try TabTerminalFixture(engine: engine, script: "exit 0")
+        defer { fixture.tearDown() }
+
+        fixture.tab.startIfNeeded()
+
+        try await expectEventually { fixture.tab.hasExited }
+        #expect(fixture.tab.exitCode == 0)
+        #expect(!fixture.tab.endedWithErrorSoonAfterStarting)
     }
 
     @Test(arguments: TerminalEngine.allCases)

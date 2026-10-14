@@ -59,6 +59,8 @@ final class TerminalSession: ObservableObject, Identifiable {
     @Published private(set) var hasExited = false
     /// How the CLI ended: a failed CLI's own status in tmux on this Mac, and otherwise the tab's process's.
     @Published private(set) var exitCode: Int32?
+    /// When the CLI ended, once it has.
+    private(set) var exitedAt: Date?
     /// What the tab's CLI is doing, while it runs and tells; see `ConversationStore+CLIActivitySync`.
     @Published private(set) var cliActivity: CLIActivity?
     /// The tab's CLI finished a turn while the tab was off screen, and you have not looked since. The store keeps
@@ -77,6 +79,14 @@ final class TerminalSession: ObservableObject, Identifiable {
         tmuxSessionName == nil ? processID : tmuxPaneProcessID ?? 0
     }
     var isPlainTerminal: Bool { provider == nil }
+    /// A CLI that ended with an error this soon after it started most likely couldn't start, as when tmux on its SSH
+    /// host can't reach its server and the tab ends at once.
+    static let endedSoonAfterStartingInterval: TimeInterval = 30
+    /// The CLI ended with an error within `endedSoonAfterStartingInterval` of starting.
+    var endedWithErrorSoonAfterStarting: Bool {
+        guard let exitCode, exitCode != 0, let startedAt, let exitedAt else { return false }
+        return exitedAt.timeIntervalSince(startedAt) < Self.endedSoonAfterStartingInterval
+    }
     /// The tmux session on this Mac still showing the tab's failed CLI, whose pane tmux keeps while the tab's client is
     /// attached. Nil once the client has gone, and for any other tab.
     var tmuxSessionKeptForEndedCLI: String? {
@@ -199,6 +209,7 @@ final class TerminalSession: ObservableObject, Identifiable {
     private func cliEnded(exitCode: Int32?) {
         sshFileDrop?.cancel()
         self.exitCode = exitCode
+        exitedAt = Date()
         hasExited = true
         cliActivity = nil
         hasUnseenFinishedTurn = false

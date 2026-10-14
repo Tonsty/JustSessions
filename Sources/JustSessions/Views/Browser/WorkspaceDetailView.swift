@@ -75,6 +75,7 @@ struct WorkspaceDetailView: View {
                             isActive: isActive,
                             onReconnect: session.host == .thisMac ? nil : { store.reconnectRemoteTerminal(session.id) },
                             onCheckHost: session.host == .thisMac ? nil : { store.checkHost(ofTerminal: session.id) },
+                            hostProblem: { session.host.sshDestination.flatMap(store.hostCheckProblemMessage(on:)) },
                             onFocus: { store.selectTerminal(session.id) },
                             makeContextMenu: { linkUnderPointer in
                                 TerminalContextMenu(

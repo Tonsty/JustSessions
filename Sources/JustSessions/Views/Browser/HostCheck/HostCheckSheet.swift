@@ -3,9 +3,9 @@ import SwiftUI
 
 /// Check this host…: what on an SSH host could keep its sessions from working, each finding with what the host
 /// printed and a command to run in your own Terminal, so you can see a problem is on the host and not in the app.
-/// Copy report puts it all as text on the clipboard, for an issue or for whoever runs the host. Fix with agent…
-/// turns the sheet to `HostFixAgentForm`, which starts a CLI to fix what the check found. See
-/// `ConversationStore+HostCheck`.
+/// Copy report puts it all as text on the clipboard, for an issue or for whoever runs the host. Fix with agent…, the
+/// sheet's main button when the report has something to fix, turns the sheet to `HostFixAgentForm`, which starts a CLI
+/// to fix what the check found. See `ConversationStore+HostCheck`.
 struct HostCheckSheet: View {
     let store: ConversationStore
     /// The check as the sheet opened; the store's has its report once the check finishes.
@@ -17,7 +17,8 @@ struct HostCheckSheet: View {
     @State private var isStartingFixAgent = false
     @State private var fixAgentStartError: String?
 
-    /// The findings scroll in a fixed height, so the sheet keeps its size from the progress to the report.
+    /// The progress and the report take one fixed height, so the sheet keeps its size from one to the other; the
+    /// findings scroll once they don't fit.
     private static let findingsHeight: CGFloat = 420
 
     private var state: HostCheckSheetState {
@@ -80,17 +81,23 @@ struct HostCheckSheet: View {
         .help("Copy the report as text, for an issue or for whoever runs the host")
         Button("Check again", systemImage: "arrow.clockwise") { store.checkShownHostAgain() }
             .disabled(state.isChecking)
-        Button("Fix with agent…", systemImage: "wrench.and.screwdriver") {
-            guard let report = state.report else { return }
-            fixAgentStartError = nil
-            fixAgentDraft = store.hostFixAgentDraft(for: state, report: report)
-        }
-        .disabled(state.report?.hasSomethingToFix != true)
-        .help("Start a CLI that reads this report and fixes the problem with you")
         Spacer()
-        Button("Done") { dismiss() }
+        // A report with something to fix leads to fixing it.
+        if let report = state.report, report.hasSomethingToFix {
+            Button("Done") { dismiss() }
+                .keyboardShortcut(.cancelAction)
+            Button("Fix with agent…", systemImage: "wrench.and.screwdriver") {
+                fixAgentStartError = nil
+                fixAgentDraft = store.hostFixAgentDraft(for: state, report: report)
+            }
             .buttonStyle(ThemeProminentButtonStyle())
             .keyboardShortcut(.defaultAction)
+            .help("Start a CLI that reads this report and fixes the problem with you")
+        } else {
+            Button("Done") { dismiss() }
+                .buttonStyle(ThemeProminentButtonStyle())
+                .keyboardShortcut(.defaultAction)
+        }
     }
 
     @ViewBuilder private func fixAgentFooter(_ draft: HostFixAgentDraft) -> some View {
@@ -139,29 +146,37 @@ struct HostCheckSheet: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             .font(ThemeFont.body.weight(.medium))
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    ForEach(report.findingsMostImportantFirst) { finding in
-                        HostCheckFindingRow(finding: finding, host: report.host)
-                        if finding.id != report.findingsMostImportantFirst.last?.id {
-                            ThemeDivider()
-                        }
-                    }
-                    if let endedTabScreen = report.endedTabScreen {
-                        ThemeDivider()
-                        HostCheckEndedTabScreenRow(screenText: endedTabScreen)
-                    }
-                }
+            // The card ends with its last row, and scrolls only once its rows don't fit.
+            ViewThatFits(in: .vertical) {
+                findingsList(report)
+                ScrollView { findingsList(report) }
             }
             .background(ThemePalette.raisedSurface, in: RoundedRectangle(.card))
             .overlay(RoundedRectangle(.card).stroke(ThemePalette.hairline, lineWidth: 1))
             .clipShape(RoundedRectangle(.card))
+            .layoutPriority(1)
             Text("Checked \(report.checkedAt.formatted(.relative(presentation: .named))) · This Mac: \(report.thisMacSummary)")
                 .font(ThemeFont.detail)
                 .foregroundStyle(ThemePalette.tertiaryText)
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .textSelection(.enabled)
+            Spacer(minLength: 0)
+        }
+    }
+
+    private func findingsList(_ report: HostCheckReport) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(report.findingsMostImportantFirst) { finding in
+                HostCheckFindingRow(finding: finding, host: report.host)
+                if finding.id != report.findingsMostImportantFirst.last?.id {
+                    ThemeDivider()
+                }
+            }
+            if let endedTabScreen = report.endedTabScreen {
+                ThemeDivider()
+                HostCheckEndedTabScreenRow(screenText: endedTabScreen)
+            }
         }
     }
 
