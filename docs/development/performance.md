@@ -187,10 +187,11 @@ No difference stands out from the load's noise:
 | 23 | [Show N more under each project](#23-show-n-more-under-each-project) | Measured, no change |
 | 24 | [A growing Codex session's search text was read in full on every change](#24-a-growing-codex-sessions-search-text-was-read-in-full-on-every-change) | Done: issue #56 |
 | 25 | [What a tab switch still costs](#25-what-a-tab-switch-still-costs) | Done: #218 and this change |
-| 26 | [Typing in an SSH tab](#26-typing-in-an-ssh-tab) | Done: this change |
-| 27 | [Typing in a Rename dialog](#27-typing-in-a-rename-dialog) | Done: this change |
 | 26 | [Refreshing hosts on their own](#26-refreshing-hosts-on-their-own) | Measured on the test VM; done |
+| 27 | [Typing in a Rename dialog](#27-typing-in-a-rename-dialog) | Done: this change |
 | 28 | [Dragging a tab or a group along the tab bar](#28-dragging-a-tab-or-a-group-along-the-tab-bar) | Done: this change |
+| 29 | [Typing in an SSH tab](#29-typing-in-an-ssh-tab) | Done: #235 |
+| 30 | [Starting a CLI in an SSH tab ran bash's command-not-found handler](#30-starting-a-cli-in-an-ssh-tab-ran-bashs-command-not-found-handler) | Done: this change |
 
 ### 1. Timestamp parsing
 
@@ -669,28 +670,6 @@ With an accessibility client (`/tmp/perf-switch.sh`, which presses the tabs thro
 
 **Limits:** the VM runs on the same Mac, so the timing has no real network latency and little data. A distant host or one with a large history takes longer per copy; none was timed.
 
-### 26. Typing in an SSH tab
-
-**Question:** typing in an SSH tab lags. How much of the lag is the app's, and how much the network's?
-
-**Evidence:** each keystroke goes from the tab through `ssh` to the host, through its tmux to the CLI, and back. The tab's own share is small (PERF-82: about 1.9 ms p50 keystroke-to-echo on this Mac). Two more waits came from settings, not from the network:
-
-- OpenSSH 9.5 and later send a terminal's keystrokes in batches every 20 ms, with fake keystrokes for a while after typing stops (`ObscureKeystrokeTiming`), so that someone watching the network can't time each key. macOS 27's OpenSSH 10.3 has it on by default.
-- tmux before 3.5 waits 500 ms after Esc to see whether a longer key sequence follows (`escape-time`). Ubuntu 24.04 ships tmux 3.4. This Mac's tmux already sets 10 ms; a tab's tmux on a host didn't.
-
-When a tab goes through a Connect… login, its keystrokes are sent by the login's master, so the master's setting decides. With the master at the default, a tab passing `ObscureKeystrokeTiming=no` itself still took 3–10 ms at p50, against about 1 ms with the master's off.
-
-**Change:** tabs and the Connect… master pass `ObscureKeystrokeTiming=no` (SSH-28) where this Mac's `ssh` takes it; an `ssh` older than 9.5 would refuse to connect with it. A tab's tmux sets `escape-time 10` on every attach (SSH-86).
-
-**Measured:** the command a tab runs, written by the app's `RemoteCLICommandBuilder` with `cat` in place of the CLI, run in a pseudo-terminal against the Multipass VM (Ubuntu 24.04, tmux 3.4), from a Mac with OpenSSH 10.3. Each of 30 keystrokes was timed until its echo came back, and each of 8 Esc presses until the pane's `^[` came back. "Main" is the same command with the option and `escape-time` taken out; each run started a fresh tmux server on the VM. Runs alternated main, change, main, change; the load average was 7 to 11.
-
-| Build | Keystroke to echo, p50 / p90 | Esc to echo, p50 | Server's `escape-time` |
-| --- | --- | --- | --- |
-| Main | 15.0 / 24.7 ms, 20.0 / 77.2 ms | 516, 530 ms | 500 |
-| This change | 1.3 / 1.9 ms, 1.7 / 53.9 ms | 46, 48 ms | 10 |
-
-**Limits:** the VM runs on this Mac, so its round trip is under a millisecond; over a real network the round trip comes on top of what remains, and nothing here hides it. Only showing typed keys before the host answers, as mosh does, could; that would need both engines to draw guesses and take them back. The app's GUI tab and a live Connect… login were not timed; the Connect… numbers above are from `ssh` run by hand with the same options. No macOS host was tested.
-
 ### 27. Typing in a Rename dialog
 
 **Evidence:** typing in a session's Rename dialog lagged. The name being typed was `ContentView`'s own state, so every keystroke ran `ContentView`'s body. That builds `ConversationBrowserView` with closures SwiftUI can't compare, so the whole browser and sidebar redrew, as tab switches did before item 25.
@@ -759,6 +738,38 @@ What is left of a group's move is the layout and drawing of the shifted groups.
 **Smoothness:** on main, tabs dragged off the bar slid back into their places just before they left. The window opened to carry them showed with the system's opening animation wherever SwiftUI put it, before it moved under the pointer and before its bar had laid the tabs out. Now the tabs hide where they were drawn, and the window opens out of sight with no animation and shows once its bar has laid them out under the pointer (TAB-65). `TabDraggingBetweenWindowsTests` checks that the new window arrives out of sight with no animation, and gets its animation back. The look on screen was not checked: the Mac was locked.
 
 **Limits:** one Mac. The times include SwiftUI's layout and AppKit's drawing into the window, not the compositor's frame. The cross-window figures used the app's window order, not the window server's hit test, on both builds.
+
+### 29. Typing in an SSH tab
+
+**Question:** typing in an SSH tab lags. How much of the lag is the app's, and how much the network's?
+
+**Evidence:** each keystroke goes from the tab through `ssh` to the host, through its tmux to the CLI, and back. The tab's own share is small (PERF-82: about 1.9 ms p50 keystroke-to-echo on this Mac). Two more waits came from settings, not from the network:
+
+- OpenSSH 9.5 and later send a terminal's keystrokes in batches every 20 ms, with fake keystrokes for a while after typing stops (`ObscureKeystrokeTiming`), so that someone watching the network can't time each key. macOS 27's OpenSSH 10.3 has it on by default.
+- tmux before 3.5 waits 500 ms after Esc to see whether a longer key sequence follows (`escape-time`). Ubuntu 24.04 ships tmux 3.4. This Mac's tmux already sets 10 ms; a tab's tmux on a host didn't.
+
+When a tab goes through a Connect… login, its keystrokes are sent by the login's master, so the master's setting decides. With the master at the default, a tab passing `ObscureKeystrokeTiming=no` itself still took 3–10 ms at p50, against about 1 ms with the master's off.
+
+**Change:** tabs and the Connect… master pass `ObscureKeystrokeTiming=no` (SSH-28) where this Mac's `ssh` takes it; an `ssh` older than 9.5 would refuse to connect with it. A tab's tmux sets `escape-time 10` on every attach (SSH-86).
+
+**Measured:** the command a tab runs, written by the app's `RemoteCLICommandBuilder` with `cat` in place of the CLI, run in a pseudo-terminal against the Multipass VM (Ubuntu 24.04, tmux 3.4), from a Mac with OpenSSH 10.3. Each of 30 keystrokes was timed until its echo came back, and each of 8 Esc presses until the pane's `^[` came back. "Main" is the same command with the option and `escape-time` taken out; each run started a fresh tmux server on the VM. Runs alternated main, change, main, change; the load average was 7 to 11.
+
+| Build | Keystroke to echo, p50 / p90 | Esc to echo, p50 | Server's `escape-time` |
+| --- | --- | --- | --- |
+| Main | 15.0 / 24.7 ms, 20.0 / 77.2 ms | 516, 530 ms | 500 |
+| This change | 1.3 / 1.9 ms, 1.7 / 53.9 ms | 46, 48 ms | 10 |
+
+**Limits:** the VM runs on this Mac, so its round trip is under a millisecond; over a real network the round trip comes on top of what remains, and nothing here hides it. Only showing typed keys before the host answers, as mosh does, could; that would need both engines to draw guesses and take them back. The app's GUI tab and a live Connect… login were not timed; the Connect… numbers above are from `ssh` run by hand with the same options. No macOS host was tested.
+
+### 30. Starting a CLI in an SSH tab ran bash's command-not-found handler
+
+**Evidence:** a tab on an SSH host whose login shell finds the CLI asks that shell for a fish function of the CLI's name before starting it (SSH-87, #236). bash has no `functions`, so it looked for a program by that name. Ubuntu's `/etc/bash.bashrc` sets a command-not-found handler for interactive shells, so the handler ran before the CLI did, in every tab's start and reconnect.
+
+**Change:** the tab's command asks `builtin functions`, which asks only the shell. fish and zsh answer as before; bash and dash look for no program. `RemoteCLIInvocationTests` puts a `functions` program on the PATH and checks that it doesn't run.
+
+**Measured:** the test VM (Multipass, Ubuntu 24.04, bash 5.2.21), in one interactive login shell of a user with the CLI on the PATH, as a tab's command starts. The check ran 20 times each way, alternating: with `functions` it took a median of 39.5 ms (38.2–47.1), with `builtin functions` 0.6 ms (0.6–0.8). Both ended with status 0, so the CLI would take the shell's place. The tab's whole command, as the app writes it, then ran in tmux on the VM: with bash and with fish the CLI's parent was the tmux server, and with a fish function of the CLI's name the function ran.
+
+**Limits:** one host, on the same Mac. A host whose bash has no command-not-found handler saved only the PATH lookup. No macOS host was tested; zsh ran on this Mac only, in `RemoteCLIInvocationTests`.
 
 ## How to profile
 
