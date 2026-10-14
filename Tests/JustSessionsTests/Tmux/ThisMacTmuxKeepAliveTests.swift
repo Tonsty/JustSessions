@@ -10,8 +10,6 @@ struct ThisMacTmuxKeepAliveTests {
         guard let sandbox = try ThisMacTmuxSandbox.make() else { return }
         defer { sandbox.tearDown() }
         let log = sandbox.root.appendingPathComponent("cli.log")
-        // The CLI sleeps until the test ends its session or the sandbox's server: on the release runner this test has
-        // taken over two minutes.
         let cli = try sandbox.writeExecutable(named: "claude", script: """
             #!/bin/sh
             {
@@ -74,7 +72,7 @@ struct ThisMacTmuxKeepAliveTests {
     @Test func aSessionIsNamedExactlyNotByPrefix() throws {
         guard let sandbox = try ThisMacTmuxSandbox.make() else { return }
         defer { sandbox.tearDown() }
-        _ = sandbox.tmuxOutput(["-f", "/dev/null", "new-session", "-d", "-s", "justsessions-codex-abcdef", "--", "/bin/sleep", "60"])
+        _ = sandbox.tmuxOutput(["-f", "/dev/null", "new-session", "-d", "-s", "justsessions-codex-abcdef", "--", "/bin/sleep", "600"])
 
         sandbox.server.renameSession(from: "justsessions-codex-abc", to: "justsessions-codex-renamed")
         sandbox.server.killSession(named: "justsessions-codex-abc")

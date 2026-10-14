@@ -69,7 +69,7 @@ struct ThisMacTmuxFailedCLITests {
 
     @Test func aFailedCLIKeepsItsOutputAndStatusUntilItsTabResumesIt() async throws {
         guard let fixture = try Fixture(cli: """
-            if [ -e "$HOME/failed-once" ]; then echo CLI_RUNNING; exec /bin/sleep 60; fi
+            if [ -e "$HOME/failed-once" ]; then echo CLI_RUNNING; exec /bin/sleep 600; fi
             /usr/bin/touch "$HOME/failed-once"
             echo "error: unknown option --bogus" >&2
             exit 2

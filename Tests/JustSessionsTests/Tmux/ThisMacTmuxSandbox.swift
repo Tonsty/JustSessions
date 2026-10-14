@@ -53,6 +53,9 @@ struct ThisMacTmuxSandbox {
         NativeCLICommandResolver(searchDirectories: [binaryDirectory.path], inheritedEnvironment: environment)
     }
 
+    /// A stand-in CLI the test needs running sleeps 600 seconds, so it runs until the test or `tearDown()` ends it.
+    /// On the release runner a test can take minutes, and a CLI that ended on its own timer would end its tmux
+    /// session in the middle of the test.
     @discardableResult
     func writeExecutable(named name: String, script: String) throws -> URL {
         try writeExecutableScript(script, to: binaryDirectory.appendingPathComponent(name))

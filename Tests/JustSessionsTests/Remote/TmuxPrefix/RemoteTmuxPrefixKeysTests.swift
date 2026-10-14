@@ -42,7 +42,7 @@ struct RemoteTmuxPrefixKeysTests {
         #expect(prefixKeys(of: tmuxName) == ["C-a", "C-q"])
 
         // Going back to no prefix leaves the host's own tmux sessions alone.
-        _ = sandbox.run("tmux new-session -d -s mine 'sleep 60'")
+        _ = sandbox.run("tmux new-session -d -s mine 'sleep 600'")
         _ = sandbox.run(RemoteTmuxCommands.setPrefixOptionsCommand(usingHostPrefix: false, on: "devbox"))
         #expect(prefixKeys(of: tmuxName) == ["None", "None"])
         #expect(prefixKeys(of: "mine") == ["C-a", "C-q"])

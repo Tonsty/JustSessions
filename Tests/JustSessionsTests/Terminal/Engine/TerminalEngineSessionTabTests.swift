@@ -118,7 +118,7 @@ struct TerminalEngineSessionTabTests {
         defer { sandbox.tearDown() }
         let settings = try IsolatedUserDefaults()
         defer { settings.removeSuite() }
-        try sandbox.writeExecutable(named: "claude", script: "#!/bin/sh\necho RESUMED_IN_TMUX\nexec /bin/sleep 60\n")
+        try sandbox.writeExecutable(named: "claude", script: "#!/bin/sh\necho RESUMED_IN_TMUX\nexec /bin/sleep 600\n")
         let conversation = Conversation.fixture(projectPath: sandbox.project.path)
         let store = ConversationStore(
             adapters: [StaticConversationAdapter(discoveredConversations: [conversation])],

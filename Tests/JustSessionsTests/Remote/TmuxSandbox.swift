@@ -37,7 +37,8 @@ struct TmuxSandbox {
             try writeExecutableScript("#!/bin/sh\nshift\nexec /bin/sh -c \"$1\"\n", to: bin.appendingPathComponent("login-shell"))
         }
         recordLaunch = "{ pwd -P; printf '%s\\n' \"$@\"; } >> '\(launchLog.path)'"
-        try writeExecutableScript("#!/bin/sh\n\(recordLaunch)\nexec sleep 60\n", to: bin.appendingPathComponent("claude"))
+        // It runs until a test or `tearDown()` ends it, as `ThisMacTmuxSandbox.writeExecutable` says.
+        try writeExecutableScript("#!/bin/sh\n\(recordLaunch)\nexec sleep 600\n", to: bin.appendingPathComponent("claude"))
         if let tmuxConfiguration {
             try tmuxConfiguration.write(to: root.appendingPathComponent(".tmux.conf"), atomically: true, encoding: .utf8)
         }
