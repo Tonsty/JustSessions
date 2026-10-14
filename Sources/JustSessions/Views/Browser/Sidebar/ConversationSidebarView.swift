@@ -87,6 +87,13 @@ struct ConversationSidebarView: View {
         Set(projects.flatMap { $0.conversations.map(\.id) })
     }
 
+    /// The session of the tab shown, whose row is highlighted through the tab; none while a filter leaves its row out.
+    private var listedConversationIDShownThroughTab: String? {
+        guard let conversationID = store.selectedTerminal?.conversation?.id,
+              listedConversationIDs.contains(conversationID) else { return nil }
+        return conversationID
+    }
+
     var selectedConversations: [Conversation] {
         // Nothing selected is the common case, and this runs on every render, so it skips the walk of every row.
         guard !sessionSelection.selectedConversationIDs.isEmpty else { return [] }
@@ -289,9 +296,11 @@ struct ConversationSidebarView: View {
             onSelectConversation(conversation)
         } else if modifiers.contains(.shift) {
             isSidebarListFocused = true
+            sessionSelection.selectRowShownThroughTabWhileNothingIsSelected(listedConversationIDShownThroughTab)
             sessionSelection.selectRange(to: conversation.id, in: visibleConversationIDs)
         } else if modifiers.contains(.command) {
             isSidebarListFocused = true
+            sessionSelection.selectRowShownThroughTabWhileNothingIsSelected(listedConversationIDShownThroughTab)
             sessionSelection.toggle(conversation.id)
         } else {
             onSelectConversation(conversation)

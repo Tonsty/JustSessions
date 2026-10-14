@@ -28,6 +28,13 @@ struct SessionMultiSelection: Equatable {
         anchorConversationID = conversationID
     }
 
+    /// Clicking a running session shows its tab and highlights its row through the tab rather than selecting it. While
+    /// no row is selected, that row counts as selected, so a ⌘- or Shift-click that follows adds to it.
+    mutating func selectRowShownThroughTabWhileNothingIsSelected(_ conversationIDShownThroughTab: String?) {
+        guard selectedConversationIDs.isEmpty, let conversationIDShownThroughTab else { return }
+        selectOnly(conversationIDShownThroughTab)
+    }
+
     mutating func selectRange(to conversationID: String, in orderedConversationIDs: [String]) {
         guard let anchorConversationID,
               let anchorIndex = orderedConversationIDs.firstIndex(of: anchorConversationID),

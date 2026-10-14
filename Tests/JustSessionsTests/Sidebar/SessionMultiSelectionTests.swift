@@ -39,6 +39,36 @@ struct SessionMultiSelectionTests {
         #expect(selection.anchorConversationID == "e")
     }
 
+    @Test func rowShownThroughTabStartsShiftAndCommandClicksWhileNothingIsSelected() {
+        // Clicking a running session clears the selection and shows its tab, which highlights its row.
+        var shiftSelection = SessionMultiSelection()
+        shiftSelection.selectOnly("a")
+        shiftSelection.clear()
+        shiftSelection.selectRowShownThroughTabWhileNothingIsSelected("b")
+        shiftSelection.selectRange(to: "d", in: orderedConversationIDs)
+        #expect(shiftSelection.selectedConversationIDs == ["b", "c", "d"])
+        #expect(shiftSelection.anchorConversationID == "b")
+
+        var commandSelection = SessionMultiSelection()
+        commandSelection.selectRowShownThroughTabWhileNothingIsSelected("b")
+        commandSelection.toggle("e")
+        #expect(commandSelection.selectedConversationIDs == ["b", "e"])
+    }
+
+    @Test func rowShownThroughTabLeavesAnExistingSelectionAlone() {
+        var selection = SessionMultiSelection()
+        selection.selectOnly("a")
+        selection.toggle("c")
+        selection.selectRowShownThroughTabWhileNothingIsSelected("e")
+        #expect(selection.selectedConversationIDs == ["a", "c"])
+        #expect(selection.anchorConversationID == "c")
+
+        var selectionWithoutTab = SessionMultiSelection()
+        selectionWithoutTab.selectRowShownThroughTabWhileNothingIsSelected(nil)
+        selectionWithoutTab.selectRange(to: "c", in: orderedConversationIDs)
+        #expect(selectionWithoutTab.selectedConversationIDs == ["c"])
+    }
+
     @Test func onlySelectedRowIsNamedWhenExactlyOneIsSelected() {
         var selection = SessionMultiSelection()
         #expect(selection.onlySelectedConversationID == nil)
