@@ -10,6 +10,8 @@ struct ThisMacTmuxKeepAliveTests {
         guard let sandbox = try ThisMacTmuxSandbox.make() else { return }
         defer { sandbox.tearDown() }
         let log = sandbox.root.appendingPathComponent("cli.log")
+        // The CLI sleeps until the test ends its session or the sandbox's server: on the release runner this test has
+        // taken over two minutes.
         let cli = try sandbox.writeExecutable(named: "claude", script: """
             #!/bin/sh
             {
@@ -18,7 +20,7 @@ struct ThisMacTmuxKeepAliveTests {
               for argument in "$@"; do echo "argument=$argument"; done
               echo "COLORTERM=$COLORTERM"
             } >> "$CLI_LOG"
-            exec /bin/sleep 60
+            exec /bin/sleep 600
             """)
         let name = "justsessions-claude-keepalive"
         let command = sandbox.server.command(

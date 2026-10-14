@@ -142,11 +142,11 @@ struct RemoteTabReconnectorTests {
         )
         setup.host.answer.update { $0 = ["justsessions-claude-couldnt-connect"] }
         setup.sandbox.first.openTerminal(couldntConnect)
-        couldntConnect.onProcessFinished = nil
 
         couldntConnect.startIfNeeded()
-        try await expectEventually { couldntConnect.hasExited }
-        setup.reconnector.tabDropped(couldntConnect)
+        // It ends at once, as `ssh` that can't connect does within seconds. The real exit can reach the tab much later
+        // on a busy machine: on the release runner it took over 30 seconds, no longer right after starting.
+        setup.end(couldntConnect, exitCode: RemoteHostCommandRunner.connectionFailureExitStatus)
         setup.reconnector.tryAgain()
         setup.clock.advance(by: 2)
         setup.reconnector.askDueHosts()
