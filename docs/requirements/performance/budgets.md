@@ -16,6 +16,7 @@ Measurement suites live in `Tests/JustSessionsTests/Performance/` and record onl
 | PERF-04 | Session rows sit in the sidebar's lazy list one by one, so an expanded project builds only rows in sight. One activity change re-runs about 24 project and 24 session rows, the same at 300 and 2,000 sessions. | `2b6e892`, `4deeb13` | `SidebarInteractionMeasurements` |
 | PERF-05 | The store doesn't publish when nothing changed, including unchanged CLI activity and the notification bell's wait times. | `b48e8af`, `4deeb13`, `3e0b7b1` | `SidebarStoreObservationTests`, `WaitingForYouStartTimesSyncTests` |
 | PERF-06 | Dragging the sidebar divider does no conversation work, and a width change under a point causes no relayout. | `9e6c11c`, `8c199d4` | `SidebarResizeHandleTests` |
+| PERF-07 | A pointer move while a tab or a group is dragged along the tab bar re-runs only the shifts of the items in its row, and nothing in another window; a tab's body runs only as the dragged item passes another. On a 1,400-point bar of 18 tabs, a move takes about 0.3 ms for a tab and 1.5 ms for a group, against 0.7 and 3.2 ms when the tabs re-ran. | `bf44b56b` | `TabBarDragMeasurements`, `TabBarDragDisplayTests` |
 
 ## Discovery and refresh
 
