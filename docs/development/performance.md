@@ -190,6 +190,7 @@ No difference stands out from the load's noise:
 | 26 | [Typing in an SSH tab](#26-typing-in-an-ssh-tab) | Done: this change |
 | 27 | [Typing in a Rename dialog](#27-typing-in-a-rename-dialog) | Done: this change |
 | 26 | [Refreshing hosts on their own](#26-refreshing-hosts-on-their-own) | Measured on the test VM; done |
+| 28 | [Dragging a tab or a group along the tab bar](#28-dragging-a-tab-or-a-group-along-the-tab-bar) | Done: this change |
 
 ### 1. Timestamp parsing
 
@@ -719,6 +720,46 @@ Moving them showed an older bug: reopening a dialog on the same session or proje
 - typing replaced the selected name, as before.
 
 **Limits:** one Mac, 4 tabs and about 35 projects listed; the stall on main grows with the sidebar.
+
+### 28. Dragging a tab or a group along the tab bar
+
+**Evidence:** each move of the pointer during a drag along the bar re-ran far more than moved. The drag was `@State` of the tab's group section, or of the tab bar for a group, so every move re-ran that view and every tab in it. A drag held in another window's bar was `TabDragBetweenWindows.shownDrag`, `@Published` on an object that every window's tab bar, group sections and split sections observed, so every move re-ran every window's bar.
+
+**Change:**
+- `TabBarDragDisplay` holds a drag in two observed properties. `placement`, which the tabs, groups and bar read, changes only as the drag starts or ends or the dragged item passes another. `drag` changes with every move, and only each item's `tabBarDragShift` reads it, so a move re-runs only the shifts.
+- Each window has its own `TabBarDragDisplays` for tabs dragged in from another window, one display per group, so a move there re-runs only that bar.
+- `TabBarDrag` works out the items' leading edges once, not on every read.
+
+**Measured:** Apple M4 Max (10 performance and 4 efficiency cores, 36 GB), macOS 27.0.1, Xcode 27.0 (Swift 6.4). Release builds of main `07e575d9` and this change, three runs each, alternating.
+
+Body runs and time per pointer move, from a temporary probe:
+- **Probe:** a log line at the start of the bodies of `WorkspaceTabBar`, `TerminalTabGroupSection`, `TerminalTabGroupLabel`, `TerminalTab`, `TerminalSplitAcrossProjectsSection` and the shift.
+- **Windows:** 1,400 × 300 points, each bar holding 3 groups of 6 tabs.
+- **Moves:** 59 moves of 3 points, sent through `NSApp.sendEvent`, each followed by every window's layout and drawing.
+- **The cross-window drag:** starts in a window of 4 tabs, goes down off its bar, then along the bar of a second window. A third window sits aside, and a fourth opens to carry the tab.
+- **Locked screen:** the Mac was locked, so on both builds the probe found the window under the pointer from the app's window order instead of the window server's hit test.
+
+| Drag | Main: bodies per move | Main: median move | This change: bodies per move | This change: median move |
+| --- | --- | --- | --- | --- |
+| A tab among its group's 6 | 6 tabs, the group's section and label | 0.7, 0.7, 0.7 ms | 6 shifts, 0.2–0.3 tabs | 0.3, 0.3, 0.3 ms |
+| A group by its label | 18 tabs, 3 sections and labels, the bar | 2.1, 2.7, 2.9 ms | 3 shifts, 0.3 tabs | 0.9, 0.9, 0.9 ms |
+| A tab into another window's bar | 40 tabs, 8 sections and labels, all 4 windows' bars, the window aside's 3 sections included | 3.8, 3.6, 3.6 ms | 7 shifts, 0.2 tabs, nothing in another window | 0.4, 0.4, 0.4 ms |
+
+With this change a tab's body runs only as the dragged item passes another, which is the 0.2–0.3 per move.
+
+`TabBarDragMeasurements`, with the probe taken out: the bar alone in a window out of sight, 1,400 points wide with its 18 tabs narrowed to fit, 3 drags of 120 moves of 3 points per run, each move followed by the window's layout and drawing. Each drag passes other tabs or groups, and the suite fails if one moved nothing.
+
+| Drag | Main: median (p90) per run | This change: median (p90) per run |
+| --- | --- | --- |
+| A tab among its group's 6 | 0.67 (1.22), 0.67 (1.47), 0.66 (1.49) ms | 0.29 (0.90), 0.29 (0.97), 0.29 (0.78) ms |
+| A group by its label | 3.18 (3.98), 2.91 (3.77), 3.48 (4.30) ms | 1.32 (2.73), 1.46 (2.62), 1.66 (2.73) ms |
+
+What is left of a group's move is the layout and drawing of the shifted groups.
+
+**Smoothness:** on main, tabs dragged off the bar slid back into their places just before they left. The window opened to carry them showed with the system's opening animation wherever SwiftUI put it, before it moved under the pointer and before its bar had laid the tabs out. Now the tabs hide where they were drawn, and the window opens out of sight with no animation and shows once its bar has laid them out under the pointer (TAB-65). `TabDraggingBetweenWindowsTests` checks that the new window arrives out of sight with no animation, and gets its animation back. The look on screen was not checked: the Mac was locked.
+
+**Limits:** one Mac. The times include SwiftUI's layout and AppKit's drawing into the window, not the compositor's frame. The cross-window figures used the app's window order, not the window server's hit test, on both builds.
+
 ## How to profile
 
 Attach to a running copy, so you keep your windows and sessions. Record in chunks, so you can analyze finished chunks while still using the app:
@@ -747,3 +788,4 @@ Or open the trace in Instruments. Keep these points in mind:
   - `TranscriptInteractionMeasurements`: scrolling, hit testing, and opening Find in a 240- and 640-entry transcript, with SwiftUI's accessibility off and on. Run it with `JUSTSESSIONS_PERF=1 swift test -c release --filter TranscriptInteractionMeasurements`.
   - `OpenCodeTranscriptPagingMeasurements`: paging through OpenCode sessions of 1,000 and 10,000 messages, and reading them for message search.
   - `TranscriptImageDecodingMeasurements`: opening one, two, or four readers of a session full of screenshots, then opening it again.
+  - `TabBarDragMeasurements`: one pointer move while a tab, or a group by its label, is dragged along a bar of 18 tabs in 3 groups.

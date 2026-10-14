@@ -8,7 +8,7 @@ import SwiftUI
 /// windows, see `TabDragBetweenWindows`.
 struct TerminalSplitAcrossProjectsSection: View {
     let store: ConversationStore
-    @ObservedObject private var tabDragBetweenWindows = TabDragBetweenWindows.shared
+    private var tabDragBetweenWindows: TabDragBetweenWindows { .shared }
     @Environment(\.tabHoverCards) private var hoverCards
     let split: TerminalSplit
     /// The split's two tabs, the left pane's first.

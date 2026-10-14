@@ -39,7 +39,8 @@ final class WorkspaceWindowRegistry {
     }
 
     /// The window the store's views show in, once SwiftUI has put them in one. A new window goes to the oldest
-    /// waiting hand-over, once SwiftUI has finished putting it on screen.
+    /// waiting hand-over, once SwiftUI has finished putting it on screen, and stays out of sight until then, with no
+    /// opening animation, wherever SwiftUI put it.
     func setWindow(_ window: NSWindow?, for store: ConversationStore) {
         guard let index = workspaces.firstIndex(where: { $0.store === store }) else { return }
         workspaces[index].window = window
@@ -47,7 +48,13 @@ final class WorkspaceWindowRegistry {
         workspaces[index].hasHadWindow = true
         guard !windowHandOvers.isEmpty else { return }
         let handOver = windowHandOvers.removeFirst()
-        DispatchQueue.main.async { handOver(store, window) }
+        let animationBehavior = window.animationBehavior
+        window.animationBehavior = .none
+        window.alphaValue = 0
+        DispatchQueue.main.async {
+            window.animationBehavior = animationBehavior
+            handOver(store, window)
+        }
     }
 
     /// Whether any workspace window shows on screen: not minimized, hidden, or covered whole.
@@ -69,8 +76,9 @@ final class WorkspaceWindowRegistry {
         return nil
     }
 
-    /// Opens a workspace window and hands its store and window to `handOver` before it has any tabs. Returns false
-    /// when no window has handed over SwiftUI's `openWindow` yet.
+    /// Opens a workspace window and hands its store and window to `handOver` before it has any tabs, out of sight
+    /// (its `alphaValue` 0) for `handOver` to place and show. Returns false when no window has handed over SwiftUI's
+    /// `openWindow` yet.
     @discardableResult
     func openWindow(handingOverTo handOver: @escaping (ConversationStore, NSWindow) -> Void) -> Bool {
         guard let openWorkspaceWindow else { return false }

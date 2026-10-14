@@ -7,7 +7,6 @@ import SwiftUI
 /// label drags the whole group, which the tab bar moves, and which goes on between windows once dragged off the bar.
 struct TerminalTabGroupSection: View {
     let store: ConversationStore
-    @ObservedObject private var tabDragBetweenWindows = TabDragBetweenWindows.shared
     @Environment(\.tabHoverCards) private var hoverCards
     let group: TerminalTabGroup<TerminalSession>
     let color: ThemeColor
@@ -28,7 +27,9 @@ struct TerminalTabGroupSection: View {
 
     @State private var hoveredTabID: UUID?
     /// The tab, or split, being dragged among the group's tabs and splits, each named by its tabs' ids.
-    @State private var tabDrag: TabBarDrag<[UUID]>?
+    @State private var tabDrag = TabBarDragDisplay<[UUID]>()
+
+    private var tabDragBetweenWindows: TabDragBetweenWindows { .shared }
 
     var body: some View {
         let hiddenTabs = isCollapsed ? group.tabs : []
@@ -38,9 +39,14 @@ struct TerminalTabGroupSection: View {
         // catches up; see the `onChange` below. Tabs dragged in from another window, such as a whole group's, move
         // together as one.
         let groupKey = group.projectDirectoryKey
-        let currentTabDrag = isCollapsed ? nil : (tabDrag ?? tabDragBetweenWindows.tabDrag(in: store, groupKey: groupKey))
-            .flatMap { $0.itemIDs == store.tabStrip.movingUnits(inGroup: groupKey, keepingTogether: $0.draggedID) ? $0 : nil }
-        let tabIDsInSight = currentTabDrag.map { Array($0.orderedItemIDs.joined()) } ?? shownTabs.map(\.id)
+        let dragDisplays = tabDragBetweenWindows.dragDisplays(in: store)
+        let tabDragsInGroup = [tabDrag, dragDisplays.amongTabs(ofGroup: groupKey)]
+        let shownTabDrag = isCollapsed ? nil : tabDragsInGroup.first { display in
+            guard let placement = display.placement else { return false }
+            return placement.itemIDs == store.tabStrip.movingUnits(inGroup: groupKey, keepingTogether: placement.draggedID)
+        }
+        let tabDragPlacement = shownTabDrag?.placement
+        let tabIDsInSight = tabDragPlacement.map { Array($0.orderedItemIDs.joined()) } ?? shownTabs.map(\.id)
         let projectName = store.projectDisplayName(forProjectPath: group.projectDirectoryKey)
         HStack(spacing: 0) {
             TerminalTabGroupLabel(
@@ -71,8 +77,7 @@ struct TerminalTabGroupSection: View {
             ForEach(shownTabs, id: \.id) { session in
                 let split = store.split(containing: session.id)
                 let movingUnit = movingUnits.first { $0.contains(session.id) } ?? [session.id]
-                let dragItem = currentTabDrag?.itemIDs.first { $0.contains(session.id) } ?? movingUnit
-                let isDragged = currentTabDrag?.draggedID == dragItem
+                let dragItem = tabDragPlacement?.itemIDs.first { $0.contains(session.id) } ?? movingUnit
                 TerminalTab(
                     session: session,
                     projectDisplayName: store.projectDisplayName(forProjectPath: session.projectDirectoryKey),
@@ -94,10 +99,8 @@ struct TerminalTabGroupSection: View {
                 )
                 .tabHoverCardAnchor(.tab(session.id))
                 .id(session.id)
-                .offset(x: currentTabDrag?.offset(of: dragItem) ?? 0)
-                // The tabs the dragged one passes slide over; it follows the pointer itself.
-                .animation(isDragged ? nil : TabBarDragMetrics.slideAnimation, value: currentTabDrag?.targetIndex)
-                .zIndex(isDragged ? 1 : 0)
+                .tabBarDragShift(of: dragItem, in: shownTabDrag)
+                .opacity(dragDisplays.leavingTabIDs.contains(session.id) ? 0 : 1)
                 .tabBarDrag(
                     onChanged: { dragTab(session.id, by: $0, from: $1, among: movingUnits) },
                     onEnded: { dropDraggedTab(session.id) }
@@ -106,7 +109,7 @@ struct TerminalTabGroupSection: View {
             }
         }
         .tabBarGroupCoordinateSpace()
-        .onChange(of: movingUnits) { tabDrag = nil }
+        .onChange(of: movingUnits) { tabDrag.show(nil) }
         .background(alignment: .bottom) {
             // Opaque, so it meets the selected tab's outline without a brighter seam where the two overlap.
             Capsule()
@@ -149,25 +152,29 @@ struct TerminalTabGroupSection: View {
             of: store,
             from: startLocation
         ) else {
-            tabDrag = nil
+            // Leaving for a window of their own, the tabs stay hidden where they were drawn until they go, so nothing
+            // slides back meanwhile.
+            if !tabDragBetweenWindows.dragDisplays(in: store).leavingTabIDs.contains(tabID) { tabDrag.show(nil) }
             return
         }
-        if tabDrag?.draggedID.contains(tabID) != true {
+        var drag = tabDrag.drag
+        if drag?.draggedID.contains(tabID) != true {
             let widths = movingUnits.map { $0.map(width(ofTab:)).reduce(0, +) }
-            tabDrag = TabBarDrag(dragging: movingUnit, among: movingUnits, widths: widths, spacing: 0)
+            drag = TabBarDrag(dragging: movingUnit, among: movingUnits, widths: widths, spacing: 0)
         }
-        tabDrag?.translation = translation
+        drag?.translation = translation
+        tabDrag.show(drag)
     }
 
     /// Moves the dragged tab to where it was let go, unless a tab of the group opened or closed meanwhile, and shows
     /// it, as a click on it would.
     private func dropDraggedTab(_ tabID: UUID) {
         tabDragBetweenWindows.endDragInTabBar()
-        guard let tabDrag else { return }
-        let stillMatches = tabDrag.itemIDs == store.tabStrip.movingUnits(inGroup: group.projectDirectoryKey)
+        guard let drag = tabDrag.drag else { return }
+        let stillMatches = drag.itemIDs == store.tabStrip.movingUnits(inGroup: group.projectDirectoryKey)
         withAnimation(TabBarDragMetrics.slideAnimation) {
-            if stillMatches { store.moveTab(tabID, toPlaceInGroup: tabDrag.targetIndex) }
-            self.tabDrag = nil
+            if stillMatches { store.moveTab(tabID, toPlaceInGroup: drag.targetIndex) }
+            tabDrag.show(nil)
         }
         store.selectTerminal(tabID)
     }
