@@ -223,6 +223,12 @@ final class SidebarPerfHarness {
         window.isReleasedWhenClosed = false
         window.contentView = hostingView
         window.center()
+        // Clear of the pointer, which stays where the person running the tests left it: a row under it would mount
+        // its hover menus, which the at-rest view counts and the scenarios don't expect.
+        let pointer = NSEvent.mouseLocation
+        if window.frame.contains(pointer) {
+            window.setFrameOrigin(NSPoint(x: pointer.x + 1, y: window.frame.minY))
+        }
         window.orderFrontRegardless()
         try await settle()
     }
