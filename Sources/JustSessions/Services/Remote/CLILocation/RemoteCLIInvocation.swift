@@ -9,7 +9,9 @@ enum RemoteCLIInvocation {
     /// process is the CLI's. An alias or function, which `exec` can't run, runs in the shell, with the alias's
     /// arguments. `command -v` gives a path only for a program no alias or function of bash, zsh, or dash stands in
     /// front of; fish's skips functions, where fish aliases live, so `functions` is asked too. Other shells have no
-    /// `functions`, or one that prints only the functions `command -v` already named.
+    /// `functions`, or one that prints only the functions `command -v` already named. `builtin` asks only the shell:
+    /// bash would look for a `functions` program, and on Ubuntu its command-not-found handler then added about 40 ms
+    /// to every tab's start.
     static func startCommand(
         executableName: String,
         location: RemoteCLILocation,
@@ -21,7 +23,7 @@ enum RemoteCLIInvocation {
         switch location {
         case .loginShell:
             return "cd \(folder) && command -v \(executableName) 2>/dev/null | grep -q \"^/\""
-                + " && functions \(executableName) 2>/dev/null | grep -c . | grep -qx 0"
+                + " && builtin functions \(executableName) 2>/dev/null | grep -c . | grep -qx 0"
                 + " && exec \(executableName)\(arguments)"
                 // `cd` again in case the line above stopped before it; quietly, as it already said why it failed.
                 + "; cd \(folder) 2>/dev/null && \(executableName)\(arguments)"

@@ -10,7 +10,7 @@ struct RemoteCLICommandBuilderTests {
         #expect(command.executablePath == "/usr/bin/ssh")
         #expect(command.arguments.first == "-t")
         #expect(command.arguments.dropLast().last == "devbox")
-        #expect(command.arguments.last == #"exec /usr/bin/env JUSTSESSIONS=1 COLORTERM=truecolor "$SHELL" -lic 'cd '\''/home/me/api'\'' && command -v codex 2>/dev/null | grep -q "^/" && functions codex 2>/dev/null | grep -c . | grep -qx 0 && exec codex '\''resume'\'' '\''abc'\''; cd '\''/home/me/api'\'' 2>/dev/null && codex '\''resume'\'' '\''abc'\'''"#)
+        #expect(command.arguments.last == #"exec /usr/bin/env JUSTSESSIONS=1 COLORTERM=truecolor "$SHELL" -lic 'cd '\''/home/me/api'\'' && command -v codex 2>/dev/null | grep -q "^/" && builtin functions codex 2>/dev/null | grep -c . | grep -qx 0 && exec codex '\''resume'\'' '\''abc'\''; cd '\''/home/me/api'\'' 2>/dev/null && codex '\''resume'\'' '\''abc'\'''"#)
         #expect(command.environment.contains("SSH_AUTH_SOCK=/tmp/agent"))
         #expect(command.environment.contains("TERM=xterm-256color"))
         #expect(!command.environment.contains { $0.hasPrefix("NO_COLOR=") })

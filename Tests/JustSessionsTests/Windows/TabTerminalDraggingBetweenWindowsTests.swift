@@ -44,6 +44,49 @@ struct TabTerminalDraggingBetweenWindowsTests {
         tab.terminalView.keyDown(with: SyntheticKey.event(keyCode: 36, characters: "\r", window: second.window))
         try await expectEventually { screenText(of: tab.terminalView).contains("GOT:moved") }
     }
+
+    /// The window a tab went to can build its view of the terminal before the window it left takes its own down.
+    /// Taking it down left the terminal with no click, menu, or link handling: a click didn't select its tab, a
+    /// right-click showed no app menu, and ⌘-click opened no link, until something redrew the tab.
+    @Test(arguments: TerminalEngine.allCases)
+    func aDraggedTabsTerminalKeepsItsClickMenuAndLinkHandling(engine: TerminalEngine) async throws {
+        let first = try WorkspaceWindow()
+        let second = try WorkspaceWindow()
+        defer {
+            first.close()
+            second.close()
+        }
+        let tab = first.openEchoingTab(engine: engine)
+        try await first.show()
+        try await second.show()
+
+        let tabs = try #require(first.store.takeOutTabsForAnotherWindow([tab.id]))
+        second.store.bringInTabsFromAnotherWindow(tabs, at: .asNewGroup(0), selecting: tab.id)
+        try await second.settleLayout()
+        try await first.settleLayout()
+
+        #expect(tab.terminalView.window === second.window)
+        #expect(tab.terminalView.onFocus != nil)
+        #expect(tab.terminalView.makeContextMenu != nil)
+        #expect(tab.terminalView.onOpenLink != nil)
+    }
+
+    /// Those closures hold the tab, so a closed tab's terminal lets go of them, or it would never be freed.
+    @Test(arguments: TerminalEngine.allCases)
+    func aClosedTabsTerminalLetsGoOfItsHandling(engine: TerminalEngine) async throws {
+        let window = try WorkspaceWindow()
+        defer { window.close() }
+        let tab = window.openEchoingTab(engine: engine)
+        try await window.show()
+        #expect(tab.terminalView.onOpenLink != nil)
+
+        window.store.closeTerminal(tab.id)
+        try await window.settleLayout()
+
+        #expect(tab.terminalView.onFocus == nil)
+        #expect(tab.terminalView.makeContextMenu == nil)
+        #expect(tab.terminalView.onOpenLink == nil)
+    }
 }
 
 /// A workspace window: a store of its own and its detail view in a window that is never shown.

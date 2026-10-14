@@ -43,8 +43,11 @@ struct EmbeddedTerminalView: NSViewRepresentable {
     }
 
     /// The tab's session holds its terminal, and these closures hold the session, so a closed tab's terminal would
-    /// otherwise never be freed: for Ghostty, a GPU surface and its scrollback.
+    /// otherwise never be freed: for Ghostty, a GPU surface and its scrollback. A terminal another view already took,
+    /// as when its tab moved to another window and that window built its view before this one went, keeps the closures
+    /// that view set.
     static func dismantleNSView(_ insetView: TerminalInsetView, coordinator: Coordinator) {
+        if let host = insetView.terminalView.superview, host !== insetView { return }
         insetView.terminalView.onFocus = nil
         insetView.terminalView.makeContextMenu = nil
         insetView.terminalView.onOpenLink = nil
