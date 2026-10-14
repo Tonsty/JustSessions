@@ -27,6 +27,7 @@ struct TerminalWorkspaceView: View {
             if session.hasExited {
                 TerminalEndedBar(
                     exitCode: session.exitCode,
+                    isWaitingToReconnect: session.isWaitingToReconnect,
                     onCheckHost: onCheckHost,
                     onReconnect: onReconnect.map { reconnect in { onFocus(); reconnect() } }
                 )

@@ -410,6 +410,8 @@
 	<string>正在连接…</string>
 	<key>Connection</key>
 	<string>连接</string>
+	<key>Connection lost. Reconnecting…</key>
+	<string>连接已断开，正在重新连接…</string>
 	<key>Connects to %@, port %@.</key>
 	<string>连接到 %@，端口 %@。</string>
 	<key>Connects to %@.</key>

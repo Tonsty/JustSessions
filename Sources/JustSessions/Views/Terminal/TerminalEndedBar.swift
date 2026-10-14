@@ -1,16 +1,19 @@
 import SwiftUI
 
 /// Above a tab's terminal once its CLI has ended: how it ended and, for a remote tab, a way to check the host, as
-/// when its session failed to resume, and to connect again.
+/// when its session failed to resume, and to connect again. A remote tab whose connection dropped says it reconnects
+/// on its own while it waits for its host; see `RemoteTabReconnector`.
 struct TerminalEndedBar: View {
     let exitCode: Int32?
+    let isWaitingToReconnect: Bool
     let onCheckHost: (() -> Void)?
     let onReconnect: (() -> Void)?
 
     var body: some View {
         HStack(spacing: 12) {
             Group {
-                if let exitCode { Text("Exited (\(exitCode))") }
+                if isWaitingToReconnect { Text("Connection lost. Reconnecting…") }
+                else if let exitCode { Text("Exited (\(exitCode))") }
                 else { Text("Ended") }
             }
             .font(ThemeFont.caption)

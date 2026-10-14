@@ -133,7 +133,7 @@
       <section id="terminal-persistence" aria-labelledby="tmux-title">
         <h2 id="tmux-title">Keep work running with tmux</h2>
         <p>The app includes tmux for this Mac. Direct <code>swift run</code> builds need tmux 3.3+. SSH hosts need their own tmux. Choose <strong>Keep running</strong> when closing a local tab, then select its session to reattach.</p>
-        <p>Quitting the app leaves tmux sessions running. Remote tmux sessions survive SSH disconnections. Keep the machine awake; without tmux, closing the tab ends its process. Plain project terminals do not use tmux.</p>
+        <p>Quitting the app leaves tmux sessions running. Remote tmux sessions survive SSH disconnections, such as your Mac sleeping, and their tabs reconnect on their own once the host answers again. Keep the machine awake; without tmux, closing the tab ends its process. Plain project terminals do not use tmux.</p>
         <p>The app's tmux sessions have no prefix key, so every key reaches the CLI. To use your own tmux prefix on an SSH host, point at the host's heading, click its <strong>⋯</strong>, and choose <strong>Use this host's tmux prefix</strong>.</p>
       </section>
 

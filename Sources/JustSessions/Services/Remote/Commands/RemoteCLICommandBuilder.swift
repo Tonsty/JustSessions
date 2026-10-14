@@ -75,11 +75,7 @@ struct RemoteCLICommandBuilder {
     /// closed since, and Connect… may have opened another, or the first, since the tab opened.
     func withCurrentLogin(_ command: NativeCLICommand, host: String) -> NativeCLICommand {
         var arguments = command.arguments
-        // `sshCommand` puts a login's options right after `-t`.
-        if arguments.count > 5, Array(arguments[1...3]) == ["-o", "ControlMaster=no", "-o"],
-           arguments[4].hasPrefix("ControlPath=") {
-            arguments.removeSubrange(1...4)
-        }
+        if Self.goesThroughLogin(command) { arguments.removeSubrange(1...4) }
         arguments.insert(contentsOf: loginConnections.connectionOptions(for: host), at: 1)
         return NativeCLICommand(
             executablePath: command.executablePath,
@@ -87,6 +83,14 @@ struct RemoteCLICommandBuilder {
             workingDirectory: command.workingDirectory,
             environment: command.environment
         )
+    }
+
+    /// Whether a tab's command connects through a login made with Connect…, whose options `sshCommand` puts right
+    /// after `-t`.
+    static func goesThroughLogin(_ command: NativeCLICommand) -> Bool {
+        let arguments = command.arguments
+        return arguments.count > 5 && Array(arguments[1...3]) == ["-o", "ControlMaster=no", "-o"]
+            && arguments[4].hasPrefix("ControlPath=")
     }
 
     /// What the tab's login shells on the host set for the CLI and for tmux. `ssh` gives the host the tab's `TERM` but
