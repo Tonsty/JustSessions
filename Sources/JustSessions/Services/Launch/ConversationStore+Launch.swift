@@ -43,7 +43,14 @@ extension ConversationStore {
 
     /// A new tab opens with `engine` rather than the engine chosen now when given, as a tab moving here from another
     /// window keeps the engine it had there. A session started again in its ended tab keeps that tab's engine.
-    func launch(_ conversation: Conversation, action: ConversationAction, engine: TerminalEngine? = nil) {
+    /// `appendedArguments` go after the action's own, as Move to's first message does; a tab that already runs the
+    /// session is shown without them.
+    func launch(
+        _ conversation: Conversation,
+        action: ConversationAction,
+        engine: TerminalEngine? = nil,
+        appendedArguments: [String] = []
+    ) {
         guard !isDeletionPending(for: conversation) else { return }
         guard action != .branch || conversation.provider.supportsBranchFromLauncher else { return }
         if action == .resume, let runningTerminal = runningTerminal(for: conversation) {
@@ -54,7 +61,12 @@ extension ConversationStore {
         if action == .resume, showRunningTerminalInAnotherWindow(for: conversation) { return }
         do {
             let endedTab = action == .resume ? endedTerminal(for: conversation) : nil
-            guard let session = try makeTerminal(for: conversation, action: action, engine: engine ?? endedTab?.engine) else { return }
+            guard let session = try makeTerminal(
+                for: conversation,
+                action: action,
+                engine: engine ?? endedTab?.engine,
+                appendedArguments: appendedArguments
+            ) else { return }
             if let endedTab {
                 restartEndedTerminal(endedTab, with: session)
             } else {
@@ -93,15 +105,21 @@ extension ConversationStore {
     }
 
     /// A tab that runs the session's CLI, not opened yet; nil when no adapter reads the session's tool. It opens with
-    /// `engine`, or else the engine chosen now.
+    /// `engine`, or else the engine chosen now. `appendedArguments` go after the action's own.
     func makeTerminal(
         for conversation: Conversation,
         action: ConversationAction,
         startsOnceShown: Bool = false,
-        engine: TerminalEngine? = nil
+        engine: TerminalEngine? = nil,
+        appendedArguments: [String] = []
     ) throws -> TerminalSession? {
         guard let adapter = adapter(for: conversation.provider) else { return nil }
-        let (command, tmuxSessionName) = try launchCommand(for: conversation, action: action, adapter: adapter)
+        let (command, tmuxSessionName) = try launchCommand(
+            for: conversation,
+            action: action,
+            adapter: adapter,
+            appendedArguments: appendedArguments
+        )
         // A branch runs a fork with a session id of its own, so its tab waits for that session like a
         // new session's tab does; see new session discovery.
         let isBranch = action == .branch
@@ -129,7 +147,8 @@ extension ConversationStore {
     private func launchCommand(
         for conversation: Conversation,
         action: ConversationAction,
-        adapter: any ConversationAdapter
+        adapter: any ConversationAdapter,
+        appendedArguments: [String]
     ) throws -> (command: NativeCLICommand, tmuxSessionName: String?) {
         let tmuxSessionName = tmuxSessionName(forLaunching: conversation, action: action)
         let startCommand = customStartCommand(for: conversation.provider, on: conversation.host)
@@ -137,14 +156,14 @@ extension ConversationStore {
         case .thisMac:
             let command = try commandResolver.resolve(
                 conversation: conversation, action: action, adapter: adapter, startCommand: startCommand
-            )
+            ).appendingArguments(appendedArguments)
             return thisMacTabCommand(running: command, tmuxSessionName: tmuxSessionName)
         case .ssh(let destination):
             let command = RemoteCLICommandBuilder().command(
                 host: destination,
                 provider: conversation.provider,
                 projectPath: conversation.projectPath,
-                arguments: adapter.arguments(for: conversation, action: action),
+                arguments: adapter.arguments(for: conversation, action: action) + appendedArguments,
                 tmuxSessionName: tmuxSessionName,
                 usesHostTmuxPrefix: usesTmuxPrefix(on: conversation.host),
                 startCommand: startCommand

@@ -316,6 +316,8 @@
 	<string>在侧边栏底部选择 **添加 SSH 主机…**，然后输入 `user@hostname` 或 `~/.ssh/config` 中的别名。代码和 CLI 在主机上运行，它的历史记录会缓存到这台 Mac。</string>
 	<key>Choose a session in the sidebar to read its conversation.</key>
 	<string>在侧栏中选择一个会话，阅读其对话内容。</string>
+	<key>Choose folder…</key>
+	<string>选择文件夹…</string>
 	<key>Choose or enter a folder</key>
 	<string>选择或输入文件夹</string>
 	<key>Claude Code, Antigravity, and Pi sessions move to the Trash; Codex, Kiro CLI, and OpenCode sessions are permanently deleted.</key>
@@ -822,8 +824,12 @@
 	<string>移到这里</string>
 	<key>Move Tab to This Window</key>
 	<string>将标签页移至此窗口</string>
+	<key>Move here</key>
+	<string>移到这里</string>
 	<key>Move tab into split view</key>
 	<string>将标签页移至拆分视图</string>
+	<key>Move to</key>
+	<string>移动到</string>
 	<key>Name</key>
 	<string>名称</string>
 	<key>Needs my input, such as a permission prompt</key>

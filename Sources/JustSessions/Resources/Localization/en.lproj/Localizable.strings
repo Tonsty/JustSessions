@@ -304,6 +304,8 @@
 	<string>Choose **Add SSH host…** at the bottom of the sidebar, then enter `user@hostname` or an alias from `~/.ssh/config`. Your code and CLIs run on the host; its history is cached on this Mac.</string>
 	<key>Choose a session in the sidebar to read its conversation.</key>
 	<string>Choose a session in the sidebar to read its conversation.</string>
+	<key>Choose folder…</key>
+	<string>Choose folder…</string>
 	<key>Choose or enter a folder</key>
 	<string>Choose or enter a folder</string>
 	<key>Claude Code, Antigravity, and Pi sessions move to the Trash; Codex, Kiro CLI, and OpenCode sessions are permanently deleted.</key>
@@ -800,8 +802,12 @@
 	<string>Move Here</string>
 	<key>Move Tab to This Window</key>
 	<string>Move Tab to This Window</string>
+	<key>Move here</key>
+	<string>Move here</string>
 	<key>Move tab into split view</key>
 	<string>Move tab into split view</string>
+	<key>Move to</key>
+	<string>Move to</string>
 	<key>Name</key>
 	<string>Name</string>
 	<key>Needs my input, such as a permission prompt</key>

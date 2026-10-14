@@ -1738,6 +1738,16 @@
         }
       }
     },
+    "Choose folder…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择文件夹…"
+          }
+        }
+      }
+    },
     "Choose or enter a folder": {
       "localizations": {
         "zh-Hans": {
@@ -4389,12 +4399,32 @@
         }
       }
     },
+    "Move here": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移到这里"
+          }
+        }
+      }
+    },
     "Move tab into split view": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "将标签页移至拆分视图"
+          }
+        }
+      }
+    },
+    "Move to": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移动到"
           }
         }
       }
