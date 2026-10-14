@@ -2,11 +2,13 @@ import AppKit
 import SwiftUI
 
 /// Drags tabs between windows, as Chrome does. A tab, or a split's two tabs, dragged off its window's tab bar leaves
-/// the window, and a new window of the same size carries it, the tab staying under the pointer. Over another window's
-/// tab bar, that window takes it, and it follows the pointer there among its group's tabs, or as a group of its own
-/// among the groups; dragged off again, the window carrying it comes back. Let go, it stays where it is, selected, its
-/// window in front. A window's only tabs carry their window from the start, and the window closes once another window
-/// takes them. Their terminals and CLIs carry on throughout; see `ConversationStore+TabsBetweenWindows`.
+/// the window, and a new window of the same size carries it, the tab staying under the pointer. The tab hides from the
+/// bar at once, and the new window shows, with no opening animation, once it has laid the tab out under the pointer.
+/// Over another window's tab bar, that window takes it, and it follows the pointer there among its group's tabs, or as
+/// a group of its own among the groups; dragged off again, the window carrying it comes back. Let go, it stays where it
+/// is, selected, its window in front. A window's only tabs carry their window from the start, and the window closes
+/// once another window takes them. Their terminals and CLIs carry on throughout; see
+/// `ConversationStore+TabsBetweenWindows`.
 ///
 /// A group dragged by its label goes the same way with all its tabs, as Chrome drags a tab group: off the bar into a
 /// window of its own, or into another window's bar as a group of its own, or among that window's tabs of its project.
@@ -21,19 +23,57 @@ import SwiftUI
 /// The tab bar a drag starts in follows it until the pointer leaves the bar; see `TerminalTabGroupSection`. From then
 /// on the drag follows the pointer here, since the view the drag started on goes away with the tab. Back over its bar
 /// from its window's terminals, the bar follows the drag again.
+///
+/// The tab bar holding the tabs draws them through its window's `TabBarDragDisplays`, so a move of the pointer re-runs
+/// only that bar's shifts of the tabs or groups, and no other window's bar.
 @MainActor
-final class TabDragBetweenWindows: ObservableObject {
+final class TabDragBetweenWindows {
     static let shared = TabDragBetweenWindows()
 
     /// The dragged tabs as the tab bar holding them draws them, following the pointer.
-    enum ShownDrag: Equatable {
+    @MainActor
+    private enum ShownDrag {
         /// Among their group's tabs and splits.
-        case amongGroupTabs(storeID: ObjectIdentifier, groupKey: String, drag: TabBarDrag<[UUID]>)
+        case amongGroupTabs(groupKey: String, display: TabBarDragDisplay<[UUID]>, drag: TabBarDrag<[UUID]>)
         /// As their own group, among the groups.
-        case amongGroups(storeID: ObjectIdentifier, drag: TabBarDrag<String>)
+        case amongGroups(display: TabBarDragDisplay<String>, drag: TabBarDrag<String>)
+
+        var displayID: ObjectIdentifier {
+            switch self {
+            case .amongGroupTabs(_, let display, _): ObjectIdentifier(display)
+            case .amongGroups(let display, _): ObjectIdentifier(display)
+            }
+        }
+
+        func draw() {
+            switch self {
+            case .amongGroupTabs(_, let display, let drag): display.show(drag)
+            case .amongGroups(let display, let drag): display.show(drag)
+            }
+        }
+
+        func erase() {
+            switch self {
+            case .amongGroupTabs(_, let display, _): display.show(nil)
+            case .amongGroups(let display, _): display.show(nil)
+            }
+        }
     }
 
-    @Published private(set) var shownDrag: ShownDrag?
+    /// Drawn in its display, and taken out of the one it was drawn in before, if another.
+    private var shownDrag: ShownDrag? {
+        didSet {
+            if let oldValue, oldValue.displayID != shownDrag?.displayID { oldValue.erase() }
+            shownDrag?.draw()
+        }
+    }
+
+    private struct WindowDragDisplays {
+        weak var store: ConversationStore?
+        let displays: TabBarDragDisplays
+    }
+
+    private var dragDisplaysByStore: [ObjectIdentifier: WindowDragDisplays] = [:]
     let layouts = TabBarLayouts()
     let splitDropTargets = TerminalSplitDropTargets()
 
@@ -95,18 +135,16 @@ final class TabDragBetweenWindows: ObservableObject {
 
     // MARK: - Tab bars
 
-    /// The drag of the tabs among `groupKey`'s tabs, while `store`'s tab bar holds them there. Its dragged item is all
-    /// the dragged tabs, together, which may be a whole group's from another window.
-    func tabDrag(in store: ConversationStore, groupKey: String) -> TabBarDrag<[UUID]>? {
-        guard case .amongGroupTabs(let storeID, let shownGroupKey, let tabDrag) = shownDrag,
-              storeID == ObjectIdentifier(store), shownGroupKey == groupKey else { return nil }
-        return tabDrag
-    }
-
-    /// The drag of the tabs' group among the groups, while `store`'s tab bar holds them as a group of their own.
-    func groupDrag(in store: ConversationStore) -> TabBarDrag<String>? {
-        guard case .amongGroups(let storeID, let groupDrag) = shownDrag, storeID == ObjectIdentifier(store) else { return nil }
-        return groupDrag
+    /// Where `store`'s tab bar draws tabs dragged in from another window while it holds them. A display's dragged
+    /// item among a group's tabs is all the dragged tabs, together, which may be a whole group's.
+    func dragDisplays(in store: ConversationStore) -> TabBarDragDisplays {
+        let storeID = ObjectIdentifier(store)
+        if let windowDisplays = dragDisplaysByStore[storeID], windowDisplays.store === store { return windowDisplays.displays }
+        // A closed window's displays go once another window asks for its own.
+        dragDisplaysByStore = dragDisplaysByStore.filter { $0.value.store != nil }
+        let displays = TabBarDragDisplays()
+        dragDisplaysByStore[storeID] = WindowDragDisplays(store: store, displays: displays)
+        return displays
     }
 
     /// Follows tabs dragged in their window's tab bar, from `startLocation` in the window. Returns false once the drag
@@ -225,6 +263,8 @@ final class TabDragBetweenWindows: ObservableObject {
             self.drag?.stage = .inStartingBar
             return false
         }
+        // Hidden where they were drawn, rather than sliding back into their places just before they go.
+        dragDisplays(in: drag.startingStore).leavingTabIDs = Set(drag.tabIDs)
         startFollowingPointer()
         return true
     }
@@ -236,6 +276,7 @@ final class TabDragBetweenWindows: ObservableObject {
             carrier.window.close()
             return
         }
+        dragDisplays(in: drag.startingStore).leavingTabIDs = []
         carrier.window.setFrame(CGRect(origin: carrier.window.frame.origin, size: drag.windowSize), display: false)
         carrier.store.bringInTabsFromAnotherWindow(tabs, at: .asNewGroup(0), selecting: drag.grabbedTabID)
         drag.carrier = carrier
@@ -266,7 +307,8 @@ final class TabDragBetweenWindows: ObservableObject {
     }
 
     /// Over another window's tab bar, the tabs join it; over a window's terminals that can show them, the carrier hides
-    /// while that window highlights where they would show; anywhere else, the carrier follows the pointer, in sight.
+    /// while that window highlights where they would show; anywhere else, the carrier follows the pointer, in sight
+    /// once its tab bar has laid the tabs out under the pointer. A window opened to carry them shows only then.
     private func followCarriedTabs(to pointer: CGPoint) {
         guard let drag else { return }
         let workspace = workspace(at: pointer, besides: drag.carrier?.window)
@@ -279,11 +321,14 @@ final class TabDragBetweenWindows: ObservableObject {
             splitDropTargets.show(nil)
             self.drag?.stage = .carried
             moveCarrier(to: pointer)
-            if let carrier = drag.carrier, carrier.window.alphaValue == 0 {
-                carrier.window.alphaValue = 1
-                carrier.window.orderFront(nil)
-            }
+            if let carrier = drag.carrier, tabsSpan(in: carrier.store) != nil { showCarrier(carrier) }
         }
+    }
+
+    private func showCarrier(_ carrier: Workspace) {
+        guard carrier.window.alphaValue == 0 else { return }
+        carrier.window.alphaValue = 1
+        carrier.window.orderFront(nil)
     }
 
     /// Tabs still in the window they started in stay there while over its terminals, go back to its tab bar's drag over
@@ -362,6 +407,10 @@ final class TabDragBetweenWindows: ObservableObject {
     }
 
     private func endDrag() {
+        if let drag {
+            let startingDisplays = dragDisplays(in: drag.startingStore)
+            if !startingDisplays.leavingTabIDs.isEmpty { startingDisplays.leavingTabIDs = [] }
+        }
         if let eventMonitor { NSEvent.removeMonitor(eventMonitor) }
         eventMonitor = nil
         drag = nil
@@ -498,7 +547,7 @@ final class TabDragBetweenWindows: ObservableObject {
               let groupKey = holder.store.terminalSessions.first(where: { $0.id == drag.grabbedTabID }).map(holder.store.tabGroupKey(of:)) else { return }
         let layout = layouts.layout(of: holder.store)
         let strip = holder.store.tabStrip
-        let storeID = ObjectIdentifier(holder.store)
+        let displays = dragDisplays(in: holder.store)
         let translation = drag.grab.translation(
             pointerX: holder.window.convertPoint(fromScreen: pointer).x,
             tabsLeadingEdge: tabsSpan.minX
@@ -510,7 +559,7 @@ final class TabDragBetweenWindows: ObservableObject {
             var tabDrag = units.first { Set($0) == Set(drag.tabIDs) }
                 .flatMap { TabBarDrag(dragging: $0, among: units, widths: widths, spacing: 0) }
             tabDrag?.translation = translation
-            nextShownDrag = tabDrag.map { .amongGroupTabs(storeID: storeID, groupKey: groupKey, drag: $0) }
+            nextShownDrag = tabDrag.map { .amongGroupTabs(groupKey: groupKey, display: displays.amongTabs(ofGroup: groupKey), drag: $0) }
         } else {
             let groupKeys = strip.groupKeysInOrder
             var groupDrag = TabBarDrag(
@@ -520,9 +569,9 @@ final class TabDragBetweenWindows: ObservableObject {
                 spacing: WorkspaceTabMetrics.groupSpacing
             )
             groupDrag?.translation = translation
-            nextShownDrag = groupDrag.map { .amongGroups(storeID: storeID, drag: $0) }
+            nextShownDrag = groupDrag.map { .amongGroups(display: displays.amongGroups, drag: $0) }
         }
-        if shownDrag != nextShownDrag { shownDrag = nextShownDrag }
+        shownDrag = nextShownDrag
     }
 
     /// Where the dragged tabs lay out in the store's tab bar, once it has.
@@ -551,7 +600,11 @@ final class TabDragBetweenWindows: ObservableObject {
         case .inStartingBar, .waitingForCarrier:
             break
         case .carried:
-            drag.carrier?.window.makeKeyAndOrderFront(nil)
+            if let carrier = drag.carrier {
+                // Let go before its tab bar laid the tabs out, it shows where it is.
+                showCarrier(carrier)
+                carrier.window.makeKeyAndOrderFront(nil)
+            }
         case .inTabBar(let store):
             if let window = drag.registry.window(of: store) {
                 showDrag(in: Workspace(store: store, window: window), at: drag.pointer)
@@ -572,7 +625,7 @@ final class TabDragBetweenWindows: ObservableObject {
         let strip = store.tabStrip
         withAnimation(TabBarDragMetrics.slideAnimation) {
             switch shownDrag {
-            case .amongGroupTabs(_, let groupKey, let tabDrag)
+            case .amongGroupTabs(let groupKey, _, let tabDrag)
                 where tabDrag.itemIDs == strip.movingUnits(inGroup: groupKey, keepingTogether: drag.tabIDs):
                 store.moveTabs(drag.tabIDs, toPlaceInGroup: tabDrag.targetIndex)
             case .amongGroups(_, let groupDrag) where groupDrag.itemIDs == strip.groupKeysInOrder:

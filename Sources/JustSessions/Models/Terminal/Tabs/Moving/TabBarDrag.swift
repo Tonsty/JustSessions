@@ -16,6 +16,8 @@ struct TabBarDrag<ItemID: Hashable>: Equatable {
     var translation: CGFloat = 0
 
     private let draggedIndex: Int
+    /// Each item's leading edge as the drag began, from the row's leading edge, in the order of `itemIDs`.
+    private let leadingEdges: [CGFloat]
 
     /// Nil unless the dragged item is in the row and every item has a width.
     init?(dragging draggedID: ItemID, among itemIDs: [ItemID], widths: [CGFloat], spacing: CGFloat) {
@@ -25,13 +27,24 @@ struct TabBarDrag<ItemID: Hashable>: Equatable {
         self.widths = widths
         self.spacing = spacing
         self.draggedIndex = draggedIndex
+        var leadingEdge: CGFloat = 0
+        leadingEdges = widths.map { width in
+            defer { leadingEdge += width + spacing }
+            return leadingEdge
+        }
+    }
+
+    /// Whether the two drags put every item in the same place, however far the pointer has moved within it.
+    func placesItemsAlike(_ other: TabBarDrag) -> Bool {
+        draggedID == other.draggedID && itemIDs == other.itemIDs && widths == other.widths && spacing == other.spacing
+            && targetIndex == other.targetIndex
     }
 
     /// Where the dragged item lands, among every item: past each item whose middle its leading edge, on the way left,
     /// or its trailing edge, on the way right, has passed. An edge rather than its middle, so an item wider than a
     /// neighbor at the end of the row still passes it before reaching the end.
     var targetIndex: Int {
-        let draggedLeadingEdge = leadingEdge(ofItemAt: draggedIndex) + keptTranslation
+        let draggedLeadingEdge = leadingEdges[draggedIndex] + keptTranslation
         let draggedTrailingEdge = draggedLeadingEdge + widths[draggedIndex]
         let itemsStayingBefore = itemIDs.indices.prefix(draggedIndex).filter { middle(ofItemAt: $0) <= draggedLeadingEdge }
         let itemsPassedAfter = itemIDs.indices.suffix(from: draggedIndex + 1).filter { middle(ofItemAt: $0) < draggedTrailingEdge }
@@ -61,17 +74,12 @@ struct TabBarDrag<ItemID: Hashable>: Equatable {
 
     /// The translation held so the dragged item goes no further than either end of the row.
     private var keptTranslation: CGFloat {
-        let startEdge = leadingEdge(ofItemAt: draggedIndex)
+        let startEdge = leadingEdges[draggedIndex]
         let rowWidth = widths.reduce(0, +) + spacing * CGFloat(max(widths.count - 1, 0))
         return min(max(translation, -startEdge), rowWidth - widths[draggedIndex] - startEdge)
     }
 
-    /// The item's leading edge as the drag began, from the row's leading edge.
-    private func leadingEdge(ofItemAt index: Int) -> CGFloat {
-        widths.prefix(index).reduce(0, +) + spacing * CGFloat(index)
-    }
-
     private func middle(ofItemAt index: Int) -> CGFloat {
-        leadingEdge(ofItemAt: index) + widths[index] / 2
+        leadingEdges[index] + widths[index] / 2
     }
 }

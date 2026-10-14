@@ -85,6 +85,25 @@ final class TabBarWindowFixture {
         try await settle()
     }
 
+    /// Presses at `x`, moves the pointer along the bar `stepCount` times by `stepDistance`, and lets go. Returns how long
+    /// each move took with the layout and drawing it forced, as the window's next frame would draw it.
+    func timedDrag(fromX x: CGFloat, stepCount: Int, by stepDistance: CGFloat) async throws -> [Duration] {
+        try await send(.leftMouseDown, atX: x)
+        var durations: [Duration] = []
+        for step in 1...stepCount {
+            let event = try event(.leftMouseDragged, atX: x + stepDistance * CGFloat(step))
+            durations.append(ContinuousClock().measure {
+                NSApp.sendEvent(event)
+                hostingView?.layoutSubtreeIfNeeded()
+                window.displayIfNeeded()
+            })
+            try await Task.sleep(for: .milliseconds(2))
+        }
+        try await send(.leftMouseUp, atX: x + stepDistance * CGFloat(stepCount))
+        try await settle()
+        return durations
+    }
+
     func press(atX x: CGFloat) async throws {
         try await send(.leftMouseDown, atX: x)
     }
@@ -130,6 +149,14 @@ final class TabBarWindowFixture {
     func middle(ofTab tabID: UUID) throws -> CGFloat {
         let (leadingEdge, width) = try tabSpan(tabID)
         return leadingEdge + width / 2 - 10
+    }
+
+    /// The middle of the tab's select button where the bar laid it out, also once its tabs narrow to fit.
+    func middleAsLaidOut(ofTab tabID: UUID) throws -> CGFloat {
+        let tab = try #require(store.terminalSessions.first { $0.id == tabID })
+        let layout = TabDragBetweenWindows.shared.layouts.layout(of: store)
+        let span = try #require(layout.span(ofTabs: [tabID], inGroup: store.tabGroupKey(of: tab)))
+        return span.midX - 10
     }
 
     func middle(ofCloseButtonOf tabID: UUID) throws -> CGFloat {

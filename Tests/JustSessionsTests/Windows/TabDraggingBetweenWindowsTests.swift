@@ -149,8 +149,9 @@ struct TabDraggingBetweenWindowsTests {
         #expect(!registry.openWindow { _, _ in })
     }
 
-    /// The window that opens next goes to the oldest hand-over, once SwiftUI has put it on screen; a window already
-    /// open takes none, even as SwiftUI puts its views in it again.
+    /// The window that opens next goes to the oldest hand-over, once SwiftUI has put it on screen, out of sight and
+    /// with no opening animation until then; a window already open takes none, even as SwiftUI puts its views in it
+    /// again.
     @Test func aNewWindowGoesToTheWaitingHandOver() async throws {
         let sandbox = try TwoWindowSandbox()
         defer { sandbox.tearDown() }
@@ -168,11 +169,16 @@ struct TabDraggingBetweenWindowsTests {
         registry.setWindow(openWindow, for: sandbox.first)
         let newWindow = NSWindow()
         newWindow.isReleasedWhenClosed = false
+        newWindow.animationBehavior = .documentWindow
         registry.setWindow(newWindow, for: sandbox.second)
         #expect(handedOver.isEmpty)
+        #expect(newWindow.alphaValue == 0)
+        #expect(newWindow.animationBehavior == .none)
+        #expect(openWindow.alphaValue == 1)
 
         try await expectEventually { !handedOver.isEmpty }
         #expect(handedOver.count == 1)
+        #expect(newWindow.animationBehavior == .documentWindow)
         #expect(handedOver.first?.0 === sandbox.second)
         #expect(handedOver.first?.1 === newWindow)
         #expect(registry.window(of: sandbox.second) === newWindow)
