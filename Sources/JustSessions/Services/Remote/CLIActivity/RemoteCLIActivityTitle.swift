@@ -1,13 +1,14 @@
 import Foundation
 
-/// The title a Claude Code, Pi, or OpenCode tab's tmux session on an SSH host gives the tab: what the CLI does, after
-/// `titlePrefix`, as the host keeps it in `optionName`. Claude Code's relay sets it from the CLI's record in the host's
-/// live registry (`RemoteClaudeActivityRelay`), and Pi's and OpenCode's extensions from what they report on this Mac
+/// The title a Claude Code, Pi, OpenCode, or Kiro CLI tab's tmux session on an SSH host gives the tab: what the CLI
+/// does, after `titlePrefix`, as the host keeps it in `optionName`. Claude Code's relay sets it from the CLI's record in
+/// the host's live registry (`RemoteClaudeActivityRelay`), Kiro CLI's relay from its turn markers there
+/// (`RemoteKiroActivityRelay`), and Pi's and OpenCode's extensions from what they report on this Mac
 /// (`RemoteLiveSessionReporting`). Until it is set, as before the CLI says anything, the title is the CLI's own, except
 /// that tmux 2.6 shows the prefix alone. The app shows neither; it only reads what the CLI does from it.
 enum RemoteCLIActivityTitle {
     /// The CLIs whose tmux session shows it.
-    static let providers: Set<ConversationProvider> = [.claude, .pi, .opencode]
+    static let providers: Set<ConversationProvider> = [.claude, .pi, .opencode, .kiro]
     /// A window option of the tab's tmux session, holding `<state>:<what it waits for>`.
     static let optionName = "@justsessions-activity"
     static let titlePrefix = "justsessions-activity:"
@@ -15,7 +16,8 @@ enum RemoteCLIActivityTitle {
     static let titleFormat = "#{?\(optionName),\(titlePrefix)#{\(optionName)},#T}"
 
     /// Nil for any other title, and for a state this app does not know: Claude Code's states as
-    /// `ClaudeLiveSessionRecord` reads them, Pi's and OpenCode's as `LiveSessionReport` does.
+    /// `ClaudeLiveSessionRecord` reads them, Pi's and OpenCode's as `LiveSessionReport` does, Kiro CLI's as
+    /// `KiroTurnMarkers` names them.
     static func activity(inTerminalTitle title: String, of provider: ConversationProvider) -> CLIActivity? {
         guard title.hasPrefix(titlePrefix) else { return nil }
         let value = title.dropFirst(titlePrefix.count)
@@ -25,7 +27,8 @@ enum RemoteCLIActivityTitle {
         switch provider {
         case .claude: return ClaudeLiveSessionRecord.activity(status: state, waitingFor: reason)
         case .pi, .opencode: return LiveSessionReport.activity(named: state, waitingFor: reason)
-        case .codex, .antigravity, .kiro: return nil
+        case .kiro: return KiroTurnMarkers.activity(named: state)
+        case .codex, .antigravity: return nil
         }
     }
 }

@@ -4,7 +4,8 @@ import Foundation
 /// the tab through a relay; Codex in its terminal title, on this Mac and on an SSH host, and otherwise its session
 /// file shows whether a turn is under way, and Codex's background server whether it waits for you; an Antigravity
 /// conversation database shows both. Pi and OpenCode say so through the extension the app starts them with, which on
-/// an SSH host tells the tab through its title. Kiro CLI, and CLIs whose process or file is not known yet, give nil.
+/// an SSH host tells the tab through its title. Kiro CLI marks its turns in a folder (`KiroTurnMarkers`), which on an
+/// SSH host reaches the tab through a relay too. CLIs whose process or file is not known yet give nil.
 struct CLIActivityReader: Sendable {
     let claudeRegistry: ClaudeLiveSessionRegistry
     let codexTurnTracker: CodexRolloutTurnTracker
@@ -12,6 +13,7 @@ struct CLIActivityReader: Sendable {
     let liveSessionReporting: LiveSessionReporting?
     /// Nil where the app leaves Codex's background server alone, as in tests and `swift run`.
     var codexWaitReader: CodexAppServerWaitReader? = nil
+    var kiroTurnMarkers = KiroTurnMarkers()
 
     /// One activity per probe, in order. Stops following the Codex files of CLIs that are no longer probed.
     func activities(for probes: [CLIActivityProbe]) -> [CLIActivity?] {
@@ -98,7 +100,16 @@ struct CLIActivityReader: Sendable {
             if let activity = remoteActivity(of: probe) { return activity }
             return liveSessionReporting?.report(forProcessID: probe.processID)?.activity
         case .kiro:
-            return nil
+            // On an SSH host, the relay puts it in the title.
+            if let activity = remoteActivity(of: probe) { return activity }
+            guard probe.processID > 0, let processIDsWithATurn = kiroTurnMarkers.processIDsWithATurn() else { return nil }
+            // A marker names Kiro's TUI, below the `kiro-cli` the tab started.
+            let tree = processTree ?? .ofRunningProcesses()
+            processTree = tree
+            return KiroTurnMarkers.activity(
+                processIDsWithATurn: processIDsWithATurn,
+                cliProcessIDs: tree.processIDs(rootedAt: probe.processID)
+            )
         }
     }
 
