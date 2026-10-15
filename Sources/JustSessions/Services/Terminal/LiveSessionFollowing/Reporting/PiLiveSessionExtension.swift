@@ -9,20 +9,25 @@ import Foundation
 /// an extension shows, such as a permission gate, with the prompt's title as `waitingFor`; Pi itself asks no
 /// permission for tool calls. Earlier versions never fire `agent_settled`, so the extension leaves `activity` out
 /// rather than report a run that never ends.
+///
+/// On an SSH host, where the app can't read its reports, it tells the tab through tmux; see `LiveSessionTmuxActivity`.
 enum PiLiveSessionExtension {
     static let fileName = "justsessions-live-session.js"
 
     static let source = #"""
         // JustSessions starts Pi with this extension and rewrites this file when the app changes it. It tells the app
-        // which session this Pi is in, so the app's tab follows /new, /resume, /fork, and /clone, and whether Pi is
-        // working, waiting on you, or done with its turn.
+        // which session this Pi is in, so the tab in the app follows /new, /resume, /fork, and /clone, and whether Pi
+        // is working, waiting on you, or done with its turn.
+        import { execFile } from "node:child_process";
         import { mkdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
         import { join } from "node:path";
 
+        \#(LiveSessionTmuxActivity.javascript)
+
         export default function (pi) {
-          const directory = process.env.JUSTSESSIONS_LIVE_SESSION_REPORTS;
-          if (!directory) return;
-          const reportFile = join(directory, `${process.pid}.json`);
+          const directory = process.env.\#(LiveSessionReporting.reportsDirectoryVariable);
+          if (!directory && !showInTmux) return;
+          const reportFile = directory ? join(directory, `${process.pid}.json`) : undefined;
           // Pi 0.80.4 added agent_settled together with registerEntryRenderer.
           const reportsActivity = typeof pi.registerEntryRenderer === "function";
           let session;
@@ -37,6 +42,8 @@ enum PiLiveSessionExtension {
               report.activity = waitingPrompt ? "waiting" : isRunning ? "working" : "idle";
               if (waitingPrompt?.title) report.waitingFor = waitingPrompt.title;
             }
+            showInTmux?.(report.activity, report.waitingFor);
+            if (!reportFile) return;
             try {
               mkdirSync(directory, { recursive: true });
               writeFileSync(`${reportFile}.partial`, JSON.stringify(report));
@@ -77,7 +84,7 @@ enum PiLiveSessionExtension {
           });
 
           pi.on("session_shutdown", (event) => {
-            if (event.reason !== "quit") return;
+            if (event.reason !== "quit" || !reportFile) return;
             try {
               rmSync(reportFile, { force: true });
             } catch {}

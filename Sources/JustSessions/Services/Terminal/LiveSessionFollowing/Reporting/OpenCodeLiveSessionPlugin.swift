@@ -9,6 +9,8 @@ import Foundation
 /// with `waitingFor` saying which; "working" while OpenCode's status for the session is busy or retrying; and "idle"
 /// otherwise. The plugin reads these from the TUI's own state, as the TUI shows them. A subagent's session on screen
 /// reports the activity of the top-level session that started it, the one the app lists.
+///
+/// On an SSH host, where the app can't read its reports, it tells the tab through tmux; see `LiveSessionTmuxActivity`.
 enum OpenCodeLiveSessionPlugin {
     static let fileName = "justsessions-live-session.js"
     static let tuiConfigurationVariable = "OPENCODE_TUI_CONFIG"
@@ -23,17 +25,20 @@ enum OpenCodeLiveSessionPlugin {
 
     static let source = #"""
         // JustSessions starts OpenCode with this TUI plugin and rewrites this file when the app changes it. It tells the
-        // app which session this OpenCode shows, so the app's tab follows /new and the sessions you open, and whether
-        // OpenCode is working, waiting on you, or done with its turn.
+        // app which session this OpenCode shows, so the tab in the app follows /new and the sessions you open, and
+        // whether OpenCode is working, waiting on you, or done with its turn.
+        import { execFile } from "node:child_process";
         import { mkdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
         import { join } from "node:path";
+
+        \#(LiveSessionTmuxActivity.javascript)
 
         export default {
           id: "justsessions-live-session",
           tui: async (api) => {
-            const directory = process.env.JUSTSESSIONS_LIVE_SESSION_REPORTS;
-            if (!directory) return;
-            const reportFile = join(directory, `${process.pid}.json`);
+            const directory = process.env.\#(LiveSessionReporting.reportsDirectoryVariable);
+            if (!directory && !showInTmux) return;
+            const reportFile = directory ? join(directory, `${process.pid}.json`) : undefined;
             const reportsActivity = typeof api.event?.on === "function"
               && ["get", "status", "permission", "question"].every((name) => typeof api.state?.session?.[name] === "function");
             // Sessions that asked for a permission or an answer while the plugin ran; a subagent's asks in its own.
@@ -63,12 +68,10 @@ enum OpenCodeLiveSessionPlugin {
             const report = () => {
               const route = api.route.current;
               const sessionId = route.name === "session" ? route.params?.sessionID ?? null : null;
-              const json = JSON.stringify({
-                pid: process.pid,
-                sessionId,
-                ...(sessionId && reportsActivity ? activity(topLevelSessionId(sessionId)) : {}),
-              });
-              if (json === reportedJSON) return;
+              const sessionActivity = sessionId && reportsActivity ? activity(topLevelSessionId(sessionId)) : {};
+              showInTmux?.(sessionActivity.activity, sessionActivity.waitingFor);
+              const json = JSON.stringify({ pid: process.pid, sessionId, ...sessionActivity });
+              if (!reportFile || json === reportedJSON) return;
               try {
                 mkdirSync(directory, { recursive: true });
                 writeFileSync(`${reportFile}.partial`, json);
@@ -96,6 +99,7 @@ enum OpenCodeLiveSessionPlugin {
             api.lifecycle.onDispose(() => {
               clearInterval(timer);
               for (const unsubscribe of unsubscribers) unsubscribe?.();
+              if (!reportFile) return;
               try {
                 rmSync(reportFile, { force: true });
               } catch {}

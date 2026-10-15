@@ -28,7 +28,7 @@ struct ClaudeLiveSessionRecord: Sendable, Equatable {
     /// Claude Code writes `status` "busy" while it works on a turn, and "waiting" while something such as a
     /// permission prompt waits on you, with `waitingFor` saying what, such as "input needed". Between turns it writes
     /// "idle", or "shell" while a shell command it started in the background still runs. A record on an SSH host
-    /// reaches the tab through its relay; see `RemoteClaudeActivityTitle`.
+    /// reaches the tab through its relay; see `RemoteCLIActivityTitle`.
     static func activity(status: String?, waitingFor: String?) -> CLIActivity? {
         switch status {
         case "busy":
