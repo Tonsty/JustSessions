@@ -77,6 +77,19 @@ struct TmuxSandbox {
         return process
     }
 
+    /// Starts `command` as `startClient` does, writing what the terminal is sent to `outputFile` as it goes.
+    func startClient(_ command: String, recordingOutputTo outputFile: URL) throws -> Process {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/script")
+        process.arguments = ["-q", "-F", outputFile.path, "/bin/sh", "-c", command]
+        process.environment = environment
+        process.standardInput = Pipe()
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        try process.run()
+        return process
+    }
+
     /// Runs `command` in a terminal, as `startClient` does, until it exits, and returns what the terminal was sent.
     func runClient(_ command: String) throws -> (exitStatus: Int32, output: String) {
         let outputFile = root.appendingPathComponent("client-\(UUID().uuidString.prefix(8)).log")

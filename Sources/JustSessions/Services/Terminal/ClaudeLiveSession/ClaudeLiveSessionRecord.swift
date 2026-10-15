@@ -15,7 +15,7 @@ struct ClaudeLiveSessionRecord: Sendable, Equatable {
               ConversationMetadata.isValidSessionID(sessionID) else { return nil }
         self.sessionID = sessionID
         self.userChosenName = Self.userChosenName(from: object)
-        self.activity = Self.activity(from: object)
+        self.activity = Self.activity(status: object["status"] as? String, waitingFor: object["waitingFor"] as? String)
     }
 
     /// `/rename` marks the name with `nameSource` "user"; derived or unmarked names are not a deliberate title.
@@ -27,13 +27,14 @@ struct ClaudeLiveSessionRecord: Sendable, Equatable {
 
     /// Claude Code writes `status` "busy" while it works on a turn, and "waiting" while something such as a
     /// permission prompt waits on you, with `waitingFor` saying what, such as "input needed". Between turns it writes
-    /// "idle", or "shell" while a shell command it started in the background still runs.
-    private static func activity(from object: [String: Any]) -> CLIActivity? {
-        switch object["status"] as? String {
+    /// "idle", or "shell" while a shell command it started in the background still runs. A record on an SSH host
+    /// reaches the tab through its relay; see `RemoteClaudeActivityTitle`.
+    static func activity(status: String?, waitingFor: String?) -> CLIActivity? {
+        switch status {
         case "busy":
             return .working
         case "waiting":
-            return .needsInput(reportedReason: object["waitingFor"] as? String)
+            return .needsInput(reportedReason: waitingFor)
         case "idle", "shell":
             return .idle
         default:

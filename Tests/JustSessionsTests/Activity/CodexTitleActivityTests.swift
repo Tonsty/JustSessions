@@ -69,9 +69,10 @@ struct CodexTitleActivityTests {
         #expect(activities == [.needsInput(reason: nil), .idle, .working, .working])
     }
 
-    /// Only Codex on an SSH host tells what it does, and only through its title: the copy of its session file on this
-    /// Mac is only as new as the host's last refresh.
-    @Test func onAnSSHHostOnlyACodexTabIsAskedAndOnlyItsTitle() {
+    /// On an SSH host, Codex tells what it does only through its title: the copy of its session file on this Mac is
+    /// only as new as the host's last refresh. Claude Code there tells through its relay's title, and no other CLI
+    /// tells; see `RemoteClaudeActivityTitleTests`.
+    @Test func onAnSSHHostACodexTabIsAskedOnlyItsTitle() {
         let codexTab = Self.makeTab(for: .fixture(provider: .codex, projectPath: "/srv/app", host: .ssh("devbox")))
         codexTab.updateTerminalTitle("⠧ Working | \(Self.cutThreadID)")
         let probe = codexTab.cliActivityProbe
@@ -80,10 +81,6 @@ struct CodexTitleActivityTests {
         #expect(probe?.sessionFile == nil)
         #expect(probe?.sessionID == nil)
 
-        for provider in ConversationProvider.allCases where provider != .codex {
-            let tab = Self.makeTab(for: .fixture(provider: provider, projectPath: "/srv/app", host: .ssh("devbox")))
-            #expect(tab.cliActivityProbe == nil, "\(provider)")
-        }
     }
 
     @Test func aCodexTabOnAnSSHHostShowsItsTurnsAndNotifies() async throws {

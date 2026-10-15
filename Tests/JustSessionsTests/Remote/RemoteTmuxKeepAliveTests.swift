@@ -24,9 +24,9 @@ struct RemoteTmuxKeepAliveTests {
         #expect(sandbox.hasTmuxSession(tmuxName))
         let options = sandbox.run("tmux show-options -t \(ShellQuoting.quoted(tmuxName))")
         #expect(options.contains("status off"))
-        // The title the CLI gives its pane reaches the tab, where Codex says what it does; see `CodexTitleActivity`.
+        // The title reaches the tab, where Claude Code's relay says what the CLI does; see `RemoteClaudeActivityRelay`.
         #expect(options.contains("set-titles on"))
-        #expect(options.contains(##"set-titles-string "#T""##) || options.contains("set-titles-string #T"))
+        #expect(options.contains("set-titles-string \"\(RemoteClaudeActivityTitle.titleFormat)\""))
         #expect(options.contains("mouse on"))
         #expect(options.contains("prefix None"))
         #expect(options.contains("prefix2 None"))
