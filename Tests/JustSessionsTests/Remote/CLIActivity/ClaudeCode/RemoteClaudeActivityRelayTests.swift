@@ -23,7 +23,7 @@ struct RemoteClaudeActivityRelayTests {
         ]
         for (record, activity) in records {
             try Self.setRecord(record, in: sandbox)
-            #expect(sandbox.waitUntil { Self.lastActivity(inTerminalOutput: output) == activity }, "\(record)")
+            #expect(sandbox.waitUntil { TerminalTitlesSent.lastActivity(inOutputFile: output, of: .claude) == activity }, "\(record)")
         }
     }
 
@@ -63,7 +63,7 @@ struct RemoteClaudeActivityRelayTests {
 
         // The relay sets the option only when the record changes, and a new one would set it at once.
         let target = ShellQuoting.quoted("=" + tmuxName + ":")
-        _ = sandbox.run("tmux set-option -w -t \(target) \(RemoteClaudeActivityTitle.optionName) left-alone")
+        _ = sandbox.run("tmux set-option -w -t \(target) \(RemoteCLIActivityTitle.optionName) left-alone")
         let secondClient = try sandbox.startClient(tabCommand(sandbox, tmuxName: tmuxName))
         defer { secondClient.terminate() }
         #expect(sandbox.waitUntil { sandbox.run("tmux list-clients -t \(target)").contains("/dev/") })
@@ -110,16 +110,9 @@ struct RemoteClaudeActivityRelayTests {
         try fields.write(to: sandbox.root.appendingPathComponent("claude-record"), atomically: true, encoding: .utf8)
     }
 
-    /// What the last title tmux gave the tab says the CLI does.
-    private static func lastActivity(inTerminalOutput output: URL) -> CLIActivity? {
-        let text = (try? Data(contentsOf: output)).map { String(decoding: $0, as: UTF8.self) } ?? ""
-        let titles = text.matches(of: /\x1B\][02];([^\x07\x1B]*)/).map { String($0.output.1) }
-        return titles.last.flatMap(RemoteClaudeActivityTitle.activity(inTerminalTitle:))
-    }
-
     private static func relayedRecord(of tmuxName: String, in sandbox: TmuxSandbox) -> String {
         let target = ShellQuoting.quoted("=" + tmuxName + ":")
-        return sandbox.run("tmux show-options -wqv -t \(target) \(RemoteClaudeActivityTitle.optionName)")
+        return sandbox.run("tmux show-options -wqv -t \(target) \(RemoteCLIActivityTitle.optionName)")
             .trimmingCharacters(in: .newlines)
     }
 

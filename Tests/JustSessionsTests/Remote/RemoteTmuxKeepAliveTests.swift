@@ -26,7 +26,7 @@ struct RemoteTmuxKeepAliveTests {
         #expect(options.contains("status off"))
         // The title reaches the tab, where Claude Code's relay says what the CLI does; see `RemoteClaudeActivityRelay`.
         #expect(options.contains("set-titles on"))
-        #expect(options.contains("set-titles-string \"\(RemoteClaudeActivityTitle.titleFormat)\""))
+        #expect(options.contains("set-titles-string \"\(RemoteCLIActivityTitle.titleFormat)\""))
         #expect(options.contains("mouse on"))
         #expect(options.contains("prefix None"))
         #expect(options.contains("prefix2 None"))

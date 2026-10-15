@@ -330,8 +330,8 @@
 	<string>Claude Code、Antigravity 和 Pi 会话将移到废纸篓；Codex、Kiro CLI 和 OpenCode 会话将被永久删除。</string>
 	<key>Claude Code, Antigravity, and Pi sessions on this Mac move to the Trash. Codex, Kiro CLI, and OpenCode sessions and all sessions on SSH hosts are permanently deleted.</key>
 	<string>本机的 Claude Code、Antigravity 和 Pi 会话将移到废纸篓。Codex、Kiro CLI、OpenCode 会话和 SSH 主机上的所有会话将被永久删除。</string>
-	<key>Claude Code, Codex, Antigravity, Pi, and OpenCode on this Mac, and Claude Code and Codex on an SSH host, notify you when they finish a turn or need your input, unless you are looking at their tab. Choose which in General. The bell at the top of the sidebar always lists the sessions waiting for you.</key>
-	<string>这台 Mac 上的 Claude Code、Codex、Antigravity、Pi 和 OpenCode，以及 SSH 主机上的 Claude Code 和 Codex，完成一轮回复或需要你输入时会通知你，正在查看其标签页时除外。可在通用设置中选择通知哪些情况。侧边栏顶部的铃铛会一直列出等你处理的会话。</string>
+	<key>Claude Code, Codex, Antigravity, Pi, and OpenCode on this Mac, and Claude Code, Codex, Pi, and OpenCode on an SSH host, notify you when they finish a turn or need your input, unless you are looking at their tab. Choose which in General. The bell at the top of the sidebar always lists the sessions waiting for you.</key>
+	<string>这台 Mac 上的 Claude Code、Codex、Antigravity、Pi 和 OpenCode，以及 SSH 主机上的 Claude Code、Codex、Pi 和 OpenCode，完成一轮回复或需要你输入时会通知你，正在查看其标签页时除外。可在通用设置中选择通知哪些情况。侧边栏顶部的铃铛会一直列出等你处理的会话。</string>
 	<key>Clear filters</key>
 	<string>清除筛选</string>
 	<key>Clear the selection, or close search</key>
@@ -1330,8 +1330,8 @@
 	<string>%@ 的子代理</string>
 	<key>Subagents</key>
 	<string>子代理</string>
-	<key>Supports local Claude Code, Codex, Antigravity, Pi, and OpenCode, including sessions running in tmux without an open tab, and Claude Code and Codex in a tab on an SSH host. Sessions you are viewing do not notify you. Click a notification to open its session.</key>
-	<string>支持本机的 Claude Code、Codex、Antigravity、Pi 和 OpenCode，包括在 tmux 中运行但未打开标签的会话，以及 SSH 主机上已打开标签的 Claude Code 和 Codex。正在查看的会话不发送通知。点击通知可打开会话。</string>
+	<key>Supports local Claude Code, Codex, Antigravity, Pi, and OpenCode, including sessions running in tmux without an open tab, and Claude Code, Codex, Pi, and OpenCode in a tab on an SSH host. Sessions you are viewing do not notify you. Click a notification to open its session.</key>
+	<string>支持本机的 Claude Code、Codex、Antigravity、Pi 和 OpenCode，包括在 tmux 中运行但未打开标签的会话，以及 SSH 主机上已打开标签的 Claude Code、Codex、Pi 和 OpenCode。正在查看的会话不发送通知。点击通知可打开会话。</string>
 	<key>Swap with left view</key>
 	<string>与左侧视图交换</string>
 	<key>Swap with right view</key>

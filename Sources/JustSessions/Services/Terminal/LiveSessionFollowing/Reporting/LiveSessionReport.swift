@@ -15,14 +15,17 @@ struct LiveSessionReport: Sendable, Equatable {
               (object["pid"] as? NSNumber)?.int32Value == processID else { return nil }
         sessionID = object["sessionId"] as? String
         sessionFile = (object["sessionFile"] as? String).flatMap { $0.hasPrefix("/") ? URL(fileURLWithPath: $0) : nil }
-        activity = sessionID == nil ? nil : Self.activity(from: object)
+        activity = sessionID == nil
+            ? nil
+            : Self.activity(named: object["activity"] as? String, waitingFor: object["waitingFor"] as? String)
     }
 
-    /// The extensions write `activity` "working", "waiting" with `waitingFor` saying on what, or "idle".
-    private static func activity(from object: [String: Any]) -> CLIActivity? {
-        switch object["activity"] as? String {
+    /// The extensions write `activity` "working", "waiting" with `waitingFor` saying on what, or "idle". On an SSH host
+    /// they put it in the tab's title instead; see `RemoteCLIActivityTitle`.
+    static func activity(named name: String?, waitingFor: String?) -> CLIActivity? {
+        switch name {
         case "working": .working
-        case "waiting": .needsInput(reportedReason: object["waitingFor"] as? String)
+        case "waiting": .needsInput(reportedReason: waitingFor)
         case "idle": .idle
         default: nil
         }

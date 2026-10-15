@@ -1,9 +1,8 @@
 import Foundation
 
 /// Once a second, reads what each CLI on this Mac is doing: every tab's, and every session's whose CLI runs in tmux
-/// with no tab open. A Codex or Claude Code tab on an SSH host tells through its terminal title; see
-/// `CodexTitleActivity` and `RemoteClaudeActivityTitle`. A session
-/// whose CLI ended in tmux stops counting as running then, without waiting for a refresh. A CLI that just finished its
+/// with no tab open. A Codex, Claude Code, Pi, or OpenCode tab on an SSH host tells through its terminal title; see
+/// `CodexTitleActivity` and `RemoteCLIActivityTitle`. A session whose CLI ended in tmux stops counting as running then, without waiting for a refresh. A CLI that just finished its
 /// turn or stopped to wait on you gets a notification, and one that finished its turn out of view stays marked until
 /// you look.
 extension ConversationStore {

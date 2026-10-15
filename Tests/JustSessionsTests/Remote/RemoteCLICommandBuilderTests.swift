@@ -89,8 +89,22 @@ struct RemoteCLICommandBuilderTests {
         let relayLine = "records=${CLAUDE_CONFIG_DIR:-$HOME/.claude}/sessions"
 
         #expect(inTmux.contains(relayLine) == (provider == .claude))
-        #expect(inTmux.contains(RemoteClaudeActivityTitle.titleFormat) == (provider == .claude))
+        #expect(inTmux.contains(RemoteCLIActivityTitle.titleFormat) == RemoteCLIActivityTitle.providers.contains(provider))
         #expect(!direct.contains(relayLine))
+    }
+
+    /// Pi and OpenCode tell what they do through the app's extension, which their tmux session writes to the host;
+    /// see `RemoteLiveSessionReporting`. A host without tmux, which passes no title, gets no extension.
+    @Test(arguments: ConversationProvider.allCases)
+    func onlyPiAndOpenCodesTmuxSessionsWriteTheExtension(provider: ConversationProvider) {
+        let inTmux = RemoteCLICommandBuilder.remoteCommand(
+            provider: provider, projectPath: "/home/me/api", arguments: [], tmuxSessionName: "justsessions-abc"
+        )
+        let direct = RemoteCLICommandBuilder.remoteCommand(provider: provider, projectPath: "/home/me/api", arguments: [])
+
+        #expect(inTmux.contains(RemoteLiveSessionReporting.folder) == (provider == .pi || provider == .opencode))
+        #expect(!direct.contains(RemoteLiveSessionReporting.folder))
+        #expect(!direct.contains(LiveSessionTmuxActivity.optionVariable))
     }
 
     /// `ssh` leaves the tab's `COLORTERM` behind, so the command sets it again for the CLI; see

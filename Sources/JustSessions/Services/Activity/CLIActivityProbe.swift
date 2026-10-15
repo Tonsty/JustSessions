@@ -10,18 +10,19 @@ struct CLIActivityProbe: Sendable {
     /// The session's id, which names a Codex thread on Codex's background server; nil while it is unknown.
     var sessionID: String? = nil
     /// The title the CLI last gave its tab's terminal, where Codex says what it is doing; see `CodexTitleActivity`. On
-    /// an SSH host, a Claude Code's relay puts what its registry there says in it; see `RemoteClaudeActivityTitle`.
+    /// an SSH host, the tab's tmux session puts what Claude Code, Pi, or OpenCode does in it; see
+    /// `RemoteCLIActivityTitle`.
     var terminalTitle: String? = nil
 }
 
 extension TerminalSession {
-    /// Nil for a plain terminal, which runs no CLI, and for a tab on an SSH host whose CLI is neither Codex nor Claude
-    /// Code: its process and files are out of reach. Those two tell there only through the title, which tmux on the
-    /// host passes to the tab; the copy of a session file on this Mac is only as new as the host's last refresh.
+    /// Nil for a plain terminal, which runs no CLI, and for a tab on an SSH host whose CLI is Antigravity or Kiro CLI:
+    /// its process and files are out of reach. The others tell there only through the title, which tmux on the host
+    /// passes to the tab; the copy of a session file on this Mac is only as new as the host's last refresh.
     var cliActivityProbe: CLIActivityProbe? {
         guard let provider else { return nil }
         guard host == .thisMac else {
-            guard provider == .codex || provider == .claude else { return nil }
+            guard provider == .codex || RemoteCLIActivityTitle.providers.contains(provider) else { return nil }
             return CLIActivityProbe(provider: provider, processID: 0, sessionFile: nil, terminalTitle: terminalTitle)
         }
         return CLIActivityProbe(

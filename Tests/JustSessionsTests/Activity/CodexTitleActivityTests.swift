@@ -70,8 +70,8 @@ struct CodexTitleActivityTests {
     }
 
     /// On an SSH host, Codex tells what it does only through its title: the copy of its session file on this Mac is
-    /// only as new as the host's last refresh. Claude Code there tells through its relay's title, and no other CLI
-    /// tells; see `RemoteClaudeActivityTitleTests`.
+    /// only as new as the host's last refresh. Claude Code, Pi, and OpenCode there tell through the title of the tab's
+    /// tmux session, and no other CLI tells; see `RemoteCLIActivityTitleTests`.
     @Test func onAnSSHHostACodexTabIsAskedOnlyItsTitle() {
         let codexTab = Self.makeTab(for: .fixture(provider: .codex, projectPath: "/srv/app", host: .ssh("devbox")))
         codexTab.updateTerminalTitle("⠧ Working | \(Self.cutThreadID)")

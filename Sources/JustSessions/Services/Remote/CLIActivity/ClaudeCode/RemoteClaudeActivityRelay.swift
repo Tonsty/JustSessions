@@ -4,7 +4,7 @@ import Foundation
 /// host, `~/.claude/sessions/<pid>.json` (see `ClaudeLiveSessionRecord`), and its terminal title stays `✳ <topic>`
 /// through a turn. So a tab's tmux session starts this relay beside the CLI. Once a second it reads the record whose
 /// `tmux` entry names the relay's pane, as `<session>:<window id>.<pane id>`, and when its `status` or `waitingFor`
-/// changes, sets them as the window option the session's title shows; see `RemoteClaudeActivityTitle`. tmux passes
+/// changes, sets them as the window option the session's title shows; see `RemoteCLIActivityTitle`. tmux passes
 /// that title on to the tab over the tab's own connection, as it passes Codex's.
 ///
 /// The pane's login shell starts it before the CLI, so it sees a `CLAUDE_CONFIG_DIR` the host's startup files set. It
@@ -34,7 +34,7 @@ enum RemoteClaudeActivityRelay {
             case $json in *'"waitingFor":"'*) reason=${json#*'"waitingFor":"'} ;; esac
             activity=${status%%'"'*}:${reason%%'"'*}
             if [ "$activity" != "$shown" ]; then
-              tmux set-option -wq -t "$TMUX_PANE" \#(RemoteClaudeActivityTitle.optionName) "$activity" \; refresh-client -S
+              tmux set-option -wq -t "$TMUX_PANE" \#(RemoteCLIActivityTitle.optionName) "$activity" \; refresh-client -S
               shown=$activity
             fi
             ;;

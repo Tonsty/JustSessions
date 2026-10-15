@@ -20,6 +20,11 @@ enum CLIStartCommandLine {
 
     /// What an SSH host's login shell runs: `env <command> 'argument'…`. `env` is found on the host's PATH.
     static func remoteInvocation(startCommand: String, arguments: [String]) -> String {
-        (["env", startCommand] + arguments.map(ShellQuoting.quoted)).joined(separator: " ")
+        remoteInvocation(startCommand: startCommand, quotedArguments: arguments.map(ShellQuoting.quoted))
+    }
+
+    /// As `remoteInvocation(startCommand:arguments:)`, with arguments already written as words for the login shell.
+    static func remoteInvocation(startCommand: String, quotedArguments: [String]) -> String {
+        (["env", startCommand] + quotedArguments).joined(separator: " ")
     }
 }

@@ -114,29 +114,34 @@ struct RemoteCLICommandBuilder {
     ) -> String {
         // Codex says which thread it is in, and what it is doing, only in its terminal title, and only when asked, as
         // on this Mac; see `CodexThreadTitle` and `CodexTitleActivity`.
-        let titleArguments = provider == .codex ? CodexThreadTitle.launchArguments : []
-        let directCommand = CLIStartCommandLine.customCommand(startCommand).map {
-            let invocation = CLIStartCommandLine.remoteInvocation(
-                startCommand: $0,
-                arguments: titleArguments + provider.argumentsAfterCustomStartCommand(arguments)
+        let titleArguments = provider == .codex ? CodexThreadTitle.launchArguments.map(ShellQuoting.quoted) : []
+        // Starts the CLI with these words, already quoted, in front of the app's arguments.
+        func cliStartCommand(after quotedLeadingArguments: [String]) -> String {
+            CLIStartCommandLine.customCommand(startCommand).map {
+                let invocation = CLIStartCommandLine.remoteInvocation(
+                    startCommand: $0,
+                    quotedArguments: quotedLeadingArguments
+                        + provider.argumentsAfterCustomStartCommand(arguments).map(ShellQuoting.quoted)
+                )
+                return "cd \(ShellQuoting.quoted(projectPath)) && exec \(invocation)"
+            } ?? RemoteCLIInvocation.startCommand(
+                executableName: provider.executableName,
+                location: cliLocation,
+                projectPath: projectPath,
+                quotedArguments: quotedLeadingArguments + arguments.map(ShellQuoting.quoted)
             )
-            return "cd \(ShellQuoting.quoted(projectPath)) && exec \(invocation)"
-        } ?? RemoteCLIInvocation.startCommand(
-            executableName: provider.executableName,
-            location: cliLocation,
-            projectPath: projectPath,
-            quotedArguments: (titleArguments + arguments).map(ShellQuoting.quoted)
-        )
-        func inLoginShell(_ command: String) -> String {
-            shellStartup.command(running: command, environment: terminalEnvironment)
+        }
+        let directCommand = cliStartCommand(after: titleArguments)
+        func inLoginShell(_ command: String, environment: [String] = []) -> String {
+            shellStartup.command(running: command, environment: terminalEnvironment + environment)
         }
         guard let tmuxSessionName else { return inLoginShell(directCommand) }
         // `-A` attaches when the session already runs, and the options after it are set again on every attach.
         // The status line and mouse settings make it look and scroll like the CLI on its own, and with no prefix
         // key Ctrl-B reaches the CLI, unless the host uses its own; see `RemoteTmuxPrefixOptions`. `set-titles` passes
-        // the title the CLI gives its pane (`#T`) on to the tab, where Codex says what it is doing, and Claude Code's
-        // relay what its registry says (`RemoteClaudeActivityRelay`); it comes before
-        // `mouse`, which tmux before 2.1 rejects along with every option after it. Passthrough lets
+        // the title the CLI gives its pane (`#T`) on to the tab, where Codex says what it is doing; Claude Code's relay,
+        // and Pi's and OpenCode's extensions, put what they do in front of it (`RemoteCLIActivityTitle`). It comes
+        // before `mouse`, which tmux before 2.1 rejects along with every option after it. Passthrough lets
         // a CLI's copy reach this Mac's clipboard: OpenCode sends OSC 52 wrapped for tmux, which tmux 3.3 and later
         // drop with it off, and its unwrapped OSC 52 only with the server-wide `set-clipboard on`. Older tmux always
         // passes it, and `-q` skips the option there. These are options of this session and its window only; the
@@ -144,16 +149,30 @@ struct RemoteCLICommandBuilder {
         // such as Ubuntu 24.04's 3.4, waits 500 ms after Esc to see whether a longer key sequence follows, so Esc
         // reached the CLI half a second late. The host's other sessions get 10 ms too, as tmux 3.5 and later give
         // them anyway.
-        let titleFormat = provider == .claude ? RemoteClaudeActivityTitle.titleFormat : "#T"
+        let titleFormat = RemoteCLIActivityTitle.providers.contains(provider) ? RemoteCLIActivityTitle.titleFormat : "#T"
         let sessionOptions = [
             "set-option status off", "set-option set-titles on", "set-option set-titles-string '\(titleFormat)'",
             "set-option mouse on", "set-option -wq allow-passthrough on", "set-option -s escape-time 10",
         ]
             + RemoteTmuxPrefixOptions.setOptionCommands(usingHostPrefix: usesHostTmuxPrefix)
-        let paneCommand = provider == .claude ? "\(RemoteClaudeActivityRelay.launchCommand); \(directCommand)" : directCommand
+        let paneCommand = switch provider {
+        case .claude:
+            inLoginShell("\(RemoteClaudeActivityRelay.launchCommand); \(directCommand)")
+        case .pi, .opencode:
+            RemoteLiveSessionReporting.command(
+                for: provider,
+                reporting: inLoginShell(
+                    cliStartCommand(after: titleArguments + RemoteLiveSessionReporting.quotedArguments(for: provider)),
+                    environment: RemoteLiveSessionReporting.environment(for: provider)
+                ),
+                otherwise: inLoginShell(directCommand)
+            )
+        case .codex, .antigravity, .kiro:
+            inLoginShell(directCommand)
+        }
         let tmuxCommand = RemoteTmuxAttachScript.command(
             sessionName: tmuxSessionName,
-            paneCommand: inLoginShell(paneCommand),
+            paneCommand: paneCommand,
             sessionOptions: sessionOptions
         )
         // The login shell may be fish, which has no `if …; then …; fi`; `&&` and `;` read the same in both. When tmux
