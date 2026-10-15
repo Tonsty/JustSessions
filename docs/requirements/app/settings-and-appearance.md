@@ -7,7 +7,7 @@
 | ID | Requirement | Origin | Related tests |
 | --- | --- | --- | --- |
 | SET-01 | Settings is a sheet on the workspace window, not a window of its own. It opens from the sidebar footer, the app menu, or ⌘,; the menu uses the frontmost workspace window (also while a reading window has focus) and opens one when none is open. It closes with Done or a click outside. | `2c3e9c9` | `AppWideSheetPresentersTests` |
-| SET-02 | Pages switch with a segmented control at the top: General, Appearance, Permissions, Help. Every page shares one size (`SettingsTabPage.size`) and scrolls inside it, so the sheet never changes size between pages or with the terminal font. | `2c3e9c9`, `ad34ae9`, `f333697`, `b20f964` | `SettingsTabPageSizeTests`, `SettingsTabSwitcherTests` |
+| SET-02 | Pages switch with a segmented control at the top: General, Appearance, Permissions, Help. Every page shares one size (`SettingsTabPage.size`) and scrolls inside it, so the sheet never changes size between pages or with the terminal font. Its width follows the interface size (SET-47); its height doesn't. | `2c3e9c9`, `ad34ae9`, `f333697`, `b20f964`, `265ca5b` | `SettingsTabPageSizeTests`, `SettingsTabSwitcherTests` |
 | SET-03 | An open Settings or Help sheet never blocks Quit or Sparkle's Install and Relaunch. Other sheets keep their normal protection. | `a00ee5a` | `SettingsSheetTerminationTests` |
 
 ## General
@@ -30,6 +30,7 @@
 | SET-44 | Text stays readable on customized colors: a text color is made readable once; a surface that text can't stay readable on is refused with a note; any text color and going back to a theme's own color are always accepted. Terminals and the tab bar take color picks once picking pauses. | `efbc8df`, `ab06a47` | `AppThemeCustomizationTests`, `AppThemeReadabilityTests` |
 | SET-45 | Selected sidebar rows and hovered group labels are opaque blends the theme computes, not translucent fills, so P3 displays don't lighten them below 4.5:1. | `16246c3` | `ThemeSurfaceRenderingTests` |
 | SET-46 | Tab group colors come from the theme's palette and stay readable in every theme. | `39ee03b` | `TabGroupPaletteTests` |
+| SET-47 | **Interface size** (90% to 150% in steps of 10%, default 100%) scales the app's own text, symbols, and the sizes that hold them in every window at once, as soon as it changes: the sidebar, tabs, preview, sheets, Settings, cards, and popovers. Terminals keep their own font size (TRM-42) and the conversation its reading text size (RDR-40). The sidebar's saved width is at 100% and shows at the interface size; sheet, card, and Settings page widths scale too. The tab bar keeps its height, so the tabs stay level with the window's buttons and the title bar's controls; its text and the tabs' widths scale. The system's own controls take the control size nearest the interface size: small at 90%, large from 120%, extra large from 140%. macOS ignores SwiftUI's Dynamic Type, so the app scales its type itself. | `265ca5b` | `InterfaceSizeTests`; rendered at 90%, 100%, 125%, and 150% |
 
 ## Permissions
 
