@@ -22,6 +22,6 @@ extension ConversationStore {
         guard canMoveSession(conversation),
               ProjectLocation(host: conversation.host, path: folderPath).key != conversation.projectDirectoryKey
         else { return }
-        launch(conversation, action: .resume, appendedArguments: conversation.provider.moveToFolderArguments(folderPath))
+        resume(conversation, appendedArguments: conversation.provider.moveToFolderArguments(folderPath))
     }
 }

@@ -13,7 +13,7 @@ struct SelectedSessionsContextMenu: View {
         let archivedCount = selectedConversations.filter { store.archivedSessions.isArchived(conversationID: $0.id) }.count
 
         Button("Resume \(resumableCount) sessions", systemImage: "play") {
-            store.launch(selectedConversations, action: .resume)
+            store.resume(selectedConversations)
         }
         .disabled(resumableCount == 0)
         Button("Branch \(branchableCount) sessions", systemImage: "arrow.triangle.branch") {

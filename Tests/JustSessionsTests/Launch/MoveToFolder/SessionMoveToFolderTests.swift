@@ -25,6 +25,20 @@ struct SessionMoveToFolderTests {
         #expect(remoteCommand.contains("/cd /home/me/web app"))
     }
 
+    @Test func movingAnArchivedSessionUnarchivesIt() throws {
+        let settings = try IsolatedUserDefaults()
+        defer { settings.removeSuite() }
+        let session = Conversation.fixture(provider: .claude, projectPath: "/home/me/api", host: Self.host)
+        let store = Self.makeStore(listing: [session], userDefaults: settings.userDefaults)
+        defer { store.closeAllTerminals() }
+        store.setArchived(true, conversations: [session])
+
+        store.moveSession(session, toFolder: "/home/me/web app")
+
+        #expect(store.terminalSessions.only?.conversation?.id == session.id)
+        #expect(!store.archivedSessions.isArchived(conversationID: session.id))
+    }
+
     @Test func aSessionWhoseCLIRunsIsNotMoved() throws {
         let settings = try IsolatedUserDefaults()
         defer { settings.removeSuite() }

@@ -19,7 +19,7 @@
 | SBF-21 | **Running** lists sessions whose CLI runs in a tab of any window or in tmux after its tab closed, on this Mac or on an SSH host as of its last refresh. | `66e5e05` | `RunningSessionsFilterTests` |
 | SBF-22 | **Waiting for you** lists sessions stopped for your answer or done with a turn you haven't seen, including new sessions' tabs. Empty projects hide while a status filter is on. | `8ddfcf5` | `WaitingForYouTests` |
 | SBF-23 | The recent filter moves an aging session out within a minute. | `4878267` | `FilteredSidebarProjectionTests` |
-| SBF-24 | Archived sessions (DEL-33) are left out of the Projects list, its search, and the menu's other counts. **Show archived · N** is off in each new window; turning it on lists them with the others, each with an archive box after its title, and Clear filters turns it off. | `4e97aec` | `ArchivedSessionsTests`, `SidebarProjectFilteringTests` |
+| SBF-24 | Archived sessions (DEL-33) are left out of the Projects list, its search, and the menu's other counts, under **Running** and **Waiting for you** too, even while their CLI runs; their tabs stay. **Show archived · N** is off in each new window; turning it on lists them with the others, each with an archive box after its title, and Clear filters turns it off. | `4e97aec` | `ArchivedSessionsTests`, `SidebarProjectFilteringTests` |
 
 ## Pins and names
 
