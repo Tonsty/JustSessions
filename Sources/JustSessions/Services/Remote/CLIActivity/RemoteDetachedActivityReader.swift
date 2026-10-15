@@ -48,6 +48,9 @@ final class RemoteDetachedActivityReader {
         self.currentDate = currentDate
     }
 
+    /// The reader's clock, by which a listing's times are taken; the store notes sessions by it too, so they compare.
+    var now: Date { currentDate() }
+
     /// The host's last listing, unless it is too old to tell anything.
     func listing(of host: String) -> Listing? {
         guard let listing = listings[host],

@@ -152,7 +152,8 @@ extension ConversationStore {
     /// Keeps when each such session was first seen with no tab, and forgets the others.
     private func noteRemoteSessionsDetached(_ sessions: [DetachedRemoteTmuxSession]) {
         let keys = Set(sessions.map(\.key))
-        let now = Date()
+        // By the reader's clock, which its listings' times are taken by.
+        let now = remoteDetachedActivityReader.now
         remoteDetachedSince = remoteDetachedSince.filter { keys.contains($0.key) }
         for key in keys where remoteDetachedSince[key] == nil { remoteDetachedSince[key] = now }
     }
