@@ -10,7 +10,7 @@ struct RemoteCLICommandBuilderTests {
         #expect(command.executablePath == "/usr/bin/ssh")
         #expect(command.arguments.first == "-t")
         #expect(command.arguments.dropLast().last == "devbox")
-        #expect(command.arguments.last == #"exec /usr/bin/env JUSTSESSIONS=1 COLORTERM=truecolor "$SHELL" -lic 'cd '\''/home/me/api'\'' && command -v codex 2>/dev/null | grep -q "^/" && builtin functions codex 2>/dev/null | grep -c . | grep -qx 0 && exec codex '\''resume'\'' '\''abc'\''; cd '\''/home/me/api'\'' 2>/dev/null && codex '\''resume'\'' '\''abc'\'''"#)
+        #expect(command.arguments.last == #"exec /usr/bin/env JUSTSESSIONS=1 COLORTERM=truecolor "$SHELL" -lic 'cd '\''/home/me/api'\'' && command -v codex 2>/dev/null | grep -q "^/" && builtin functions codex 2>/dev/null | grep -c . | grep -qx 0 && exec codex '\''-c'\'' '\''tui.terminal_title=["activity","run-state","thread-id"]'\'' '\''resume'\'' '\''abc'\''; cd '\''/home/me/api'\'' 2>/dev/null && codex '\''-c'\'' '\''tui.terminal_title=["activity","run-state","thread-id"]'\'' '\''resume'\'' '\''abc'\'''"#)
         #expect(command.environment.contains("SSH_AUTH_SOCK=/tmp/agent"))
         #expect(command.environment.contains("TERM=xterm-256color"))
         #expect(!command.environment.contains { $0.hasPrefix("NO_COLOR=") })
@@ -45,6 +45,36 @@ struct RemoteCLICommandBuilderTests {
         let lines = output.split(separator: "\n").map(String.init)
         #expect(lines.first?.hasSuffix("/Bob's paper v2") == true)
         #expect(Array(lines.dropFirst()) == ["--resume", "id with space"])
+    }
+
+    /// As on this Mac, Codex is asked to say in its terminal title what it does, which tmux on the host passes to the
+    /// tab; see `CodexTitleActivity`. A start command of your own gets the same, and other CLIs get nothing.
+    @Test(arguments: [nil, "codex --full-auto"])
+    func codexOnTheHostIsAskedForItsTitle(startCommand: String?) throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let bin = root.appendingPathComponent("bin")
+        try FileManager.default.createDirectory(at: bin, withIntermediateDirectories: true)
+        try writeExecutableScript("#!/bin/sh\nshift\nexec /bin/sh -c \"$1\"\n", to: bin.appendingPathComponent("login-shell"))
+        for name in ["codex", "claude"] {
+            try writeExecutableScript("#!/bin/sh\nprintf '%s\\n' \"$@\"\n", to: bin.appendingPathComponent(name))
+        }
+        func receivedArguments(_ provider: ConversationProvider, startCommand: String?) throws -> [String] {
+            let remoteCommand = RemoteCLICommandBuilder.remoteCommand(
+                provider: provider, projectPath: root.path, arguments: ["resume", "abc"], startCommand: startCommand
+            )
+            let output = try #require(BoundedProcessRunner.output(
+                ofExecutable: "/bin/sh",
+                arguments: ["-c", remoteCommand],
+                environment: ["SHELL": bin.appendingPathComponent("login-shell").path, "PATH": bin.path + ":/usr/bin:/bin"],
+                timeout: 10
+            ))
+            return output.split(separator: "\n").map(String.init)
+        }
+
+        let codexArguments = try receivedArguments(.codex, startCommand: startCommand)
+        #expect(codexArguments == (startCommand == nil ? [] : ["--full-auto"]) + CodexThreadTitle.launchArguments + ["resume", "abc"])
+        #expect(try receivedArguments(.claude, startCommand: startCommand.map { _ in "claude --verbose" }) == (startCommand == nil ? [] : ["--verbose"]) + ["resume", "abc"])
     }
 
     /// `ssh` leaves the tab's `COLORTERM` behind, so the command sets it again for the CLI; see

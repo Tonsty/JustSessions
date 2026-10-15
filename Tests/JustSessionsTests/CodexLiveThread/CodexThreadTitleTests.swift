@@ -32,7 +32,7 @@ struct CodexThreadTitleTests {
         }
     }
 
-    @Test func launchArgumentsAskCodexForTheThreadIDInTheTitle() {
-        #expect(CodexThreadTitle.launchArguments == ["-c", #"tui.terminal_title=["thread-id"]"#])
+    @Test func launchArgumentsAskCodexForWhatItDoesAndTheThreadIDInTheTitle() {
+        #expect(CodexThreadTitle.launchArguments == ["-c", #"tui.terminal_title=["activity","run-state","thread-id"]"#])
     }
 }
