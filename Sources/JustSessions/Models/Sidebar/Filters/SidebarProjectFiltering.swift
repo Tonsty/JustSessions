@@ -2,19 +2,35 @@ import Foundation
 
 enum SidebarProjectFiltering {
     /// Truly empty projects remain available for new sessions, except while only sessions whose CLI runs or waits on
-    /// you are listed. A populated project hidden by session filters must not be mistaken for an empty project.
+    /// you are listed. A populated project hidden by session filters must not be mistaken for an empty project. A
+    /// project whose every session is archived counts as empty while archived sessions are hidden, as it would after
+    /// deleting them, so archiving sessions never hides their project.
     static func projects(
         _ projects: [ProjectConversationGroup],
         providerFilter: ConversationProviderFilter,
         recencyFilter: SessionRecencyFilter,
         statusFilter: SessionStatusFilter = .all,
+        archiveFilter: SessionArchiveFilter = .hideArchived,
+        archived: ArchivedSessions = ArchivedSessions(),
         running: SessionsRunning = SessionsRunning(),
         waiting: SessionsWaitingForYou = SessionsWaitingForYou(),
         now: Date = .now
     ) -> [ProjectConversationGroup] {
         let filteredProjects: [ProjectConversationGroup] = projects.compactMap { project in
-            guard project.sessionCount > 0 else { return statusFilter == .all ? project : nil }
-            let conversations = project.conversations.filter {
+            let unarchivedConversations = project.conversations.filter { archiveFilter.includes($0, archived: archived) }
+            guard !unarchivedConversations.isEmpty || !project.pendingNewSessions.isEmpty else {
+                guard statusFilter == .all else { return nil }
+                return unarchivedConversations.count == project.conversations.count
+                    ? project
+                    : ProjectConversationGroup(
+                        projectPath: project.projectPath,
+                        displayName: project.displayName,
+                        pinnedPlace: project.pinnedPlace,
+                        conversations: [],
+                        pendingNewSessions: []
+                    )
+            }
+            let conversations = unarchivedConversations.filter {
                 providerFilter.includes($0.provider) && recencyFilter.includes($0, now: now)
                     && statusFilter.includes($0, running: running, waiting: waiting)
             }

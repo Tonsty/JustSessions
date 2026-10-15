@@ -166,4 +166,39 @@ struct SidebarProjectFilteringTests {
             sourceFile: URL(fileURLWithPath: "/tmp/\(sessionID).jsonl")
         )
     }
+
+    @Test func aProjectWhoseEverySessionIsArchivedStaysAsAnEmptyProject() {
+        let archivedOnly = Conversation.fixture(provider: .claude, projectPath: "/work/archived")
+        let archivedInMixed = Conversation.fixture(provider: .claude, projectPath: "/work/mixed")
+        let keptInMixed = Conversation.fixture(provider: .codex, projectPath: "/work/mixed")
+        let projects = ProjectConversationGroup.grouped(
+            [archivedOnly, archivedInMixed, keptInMixed],
+            retainedProjectPaths: ["/work/archived", "/work/mixed"]
+        )
+        let archived = ArchivedSessions(archivedConversationIDs: [archivedOnly.id, archivedInMixed.id])
+
+        let hidden = SidebarProjectFiltering.projects(
+            projects, providerFilter: .all, recencyFilter: .all, archived: archived
+        )
+        #expect(hidden.map(\.id) == ["/work/mixed", "/work/archived"])
+        #expect(hidden.map(\.sessionCount) == [1, 0])
+        #expect(hidden.first?.conversations.map(\.id) == [keptInMixed.id])
+
+        // Like any empty project, it hides while a status filter is on.
+        let running = SidebarProjectFiltering.projects(
+            projects,
+            providerFilter: .all,
+            recencyFilter: .all,
+            statusFilter: .running,
+            archived: archived,
+            running: SessionsRunning(conversationIDs: [archivedOnly.id, keptInMixed.id])
+        )
+        #expect(running.map(\.id) == ["/work/mixed"])
+
+        let shown = SidebarProjectFiltering.projects(
+            projects, providerFilter: .all, recencyFilter: .all, archiveFilter: .showArchived, archived: archived
+        )
+        #expect(Set(shown.map(\.id)) == ["/work/archived", "/work/mixed"])
+        #expect(shown.flatMap(\.conversations).count == 3)
+    }
 }

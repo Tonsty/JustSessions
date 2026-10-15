@@ -82,6 +82,22 @@
 			<string>%lld sessions</string>
 		</dict>
 	</dict>
+	<key>Archive %lld sessions</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@value@</string>
+		<key>value</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>Archive %lld session</string>
+			<key>other</key>
+			<string>Archive %lld sessions</string>
+		</dict>
+	</dict>
 	<key>Branch %lld sessions</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
@@ -240,6 +256,22 @@
 			<string>Show %lld subagent session</string>
 			<key>other</key>
 			<string>Show %lld subagent sessions</string>
+		</dict>
+	</dict>
+	<key>Unarchive %lld sessions</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@value@</string>
+		<key>value</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>Unarchive %lld session</string>
+			<key>other</key>
+			<string>Unarchive %lld sessions</string>
 		</dict>
 	</dict>
 </dict>

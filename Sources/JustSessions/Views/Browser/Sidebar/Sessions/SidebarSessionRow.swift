@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// A session under its project: tool icon and title, then a pin and either its CLI's status or how long ago it was active.
+/// A session under its project: tool icon and title, then a pin, an archive box, and either its CLI's status or how long ago it was active.
 /// The status gives way to a ⋯ while the pointer is over the row, which opens the same menu as a right-click.
 struct SidebarSessionRow: View {
     let store: ConversationStore
@@ -37,6 +37,7 @@ struct SidebarSessionRow: View {
         let statusSource = store.sessionRowStatusSource(of: conversation)
         let isHighlighted = sessionSelection.contains(conversation.id) || tabs.contains { $0.id == store.selectedTerminalID }
         let isPinned = store.pinnedItems.isPinned(conversationID: conversation.id)
+        let isArchived = store.archivedSessions.isArchived(conversationID: conversation.id)
         let statusDescription = statusSource.map(statusDescription(of:))
 
         Button {
@@ -50,6 +51,7 @@ struct SidebarSessionRow: View {
                     HStack(spacing: 4) {
                         Text(title)
                         if isPinned { PinnedIndicator() }
+                        if isArchived { ArchivedIndicator() }
                     }
                 },
                 detail: messageMatch.map { SidebarSessionMessageSnippet(snippet: $0.snippet) }
@@ -59,7 +61,7 @@ struct SidebarSessionRow: View {
         }
         .buttonStyle(ThemePlainButtonStyle(showsHover: false))
         .help("\(title) · \(conversation.provider.rawValue) · \(SidebarSessionDateText.shared.text(for: conversation.updatedAt))\(statusDescription.map { " · \($0)" } ?? "")")
-        .accessibilityLabel("\(title), \(conversation.provider.rawValue)\(isPinned ? ", pinned" : "")\(statusDescription.map { ", \($0)" } ?? "")")
+        .accessibilityLabel("\(title), \(conversation.provider.rawValue)\(isPinned ? ", pinned" : "")\(isArchived ? ", archived" : "")\(statusDescription.map { ", \($0)" } ?? "")")
         .overlay(alignment: .leading) {
             if subagentCount > 0 {
                 SubagentDisclosureButton(

@@ -210,6 +210,8 @@
 	<string>归档 %lld 个项目并删除 1 个会话</string>
 	<key>Archive %lld projects and delete all sessions (%lld)…</key>
 	<string>归档 %1$lld 个项目并删除所有会话（%2$lld）…</string>
+	<key>Archive %lld sessions</key>
+	<string>归档 %lld 个会话</string>
 	<key>Archive and delete sessions…</key>
 	<string>归档并删除会话…</string>
 	<key>Archive project</key>
@@ -226,10 +228,14 @@
 	<string>归档所选项目</string>
 	<key>Archive selected projects and delete their sessions</key>
 	<string>归档所选项目并删除其会话</string>
+	<key>Archive session</key>
+	<string>归档会话</string>
 	<key>Archive the selected projects and delete their sessions, ending those that still run first</key>
 	<string>归档所选项目并删除其会话，仍在运行的会先结束</string>
 	<key>Archive the selected projects; keep sessions and open terminals</key>
 	<string>归档所选项目；保留会话和已打开的终端</string>
+	<key>Archived</key>
+	<string>已归档</string>
 	<key>Archived projects</key>
 	<string>已归档的项目</string>
 	<key>Archived projects (%lld)…</key>
@@ -1240,6 +1246,8 @@
 	<string>显示侧栏</string>
 	<key>Show a tip in the sidebar each time JustSessions opens</key>
 	<string>每次打开 JustSessions 时在侧栏显示一条提示</string>
+	<key>Show archived</key>
+	<string>显示已归档</string>
 	<key>Show explanation</key>
 	<string>查看说明</string>
 	<key>Show in Other Window</key>
@@ -1464,6 +1472,10 @@
 	<string>**分支** 从副本开新会话，原会话保持不变。</string>
 	<key>Two tabs side by side</key>
 	<string>两个标签页并排显示</string>
+	<key>Unarchive %lld sessions</key>
+	<string>取消归档 %lld 个会话</string>
+	<key>Unarchive session</key>
+	<string>取消归档会话</string>
 	<key>Undo your last edit to the line, in Claude Code and shells</key>
 	<string>在 Claude Code 和 shell 中撤销对这一行的上一次编辑</string>
 	<key>Unknown</key>

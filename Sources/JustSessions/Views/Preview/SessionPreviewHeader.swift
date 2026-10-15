@@ -58,6 +58,7 @@ struct SessionPreviewHeader: View {
     private var sessionTitle: some View {
         let title = store.title(for: conversation)
         let isPinned = store.pinnedItems.isPinned(conversationID: conversation.id)
+        let isArchived = store.archivedSessions.isArchived(conversationID: conversation.id)
 
         return HStack(alignment: .center, spacing: 12) {
             conversation.provider.iconImage(size: 15)
@@ -73,6 +74,7 @@ struct SessionPreviewHeader: View {
                         .lineLimit(1)
                         .truncationMode(.tail)
                     if isPinned { PinnedIndicator(size: .control) }
+                    if isArchived { ArchivedIndicator(size: .control) }
                 }
                 HStack(spacing: 5) {
                     Text(conversation.provider.rawValue)
