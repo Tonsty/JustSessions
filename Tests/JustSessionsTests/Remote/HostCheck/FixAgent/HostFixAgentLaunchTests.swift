@@ -50,8 +50,9 @@ struct HostFixAgentLaunchTests {
         try FileManager.default.createDirectory(at: project, withIntermediateDirectories: true)
         // A login shell that runs the command it is given, as `$SHELL -lic '<command>'` would.
         try writeExecutableScript("#!/bin/sh\nshift\nexec /bin/sh -c \"$1\"\n", to: bin.appendingPathComponent("login-shell"))
+        // The prompt comes last, after the arguments that ask Codex for its title; see `CodexThreadTitle`.
         try writeExecutableScript(
-            "#!/bin/sh\nprintf '%s' \"$1\" > \(ShellQuoting.quoted(received.path))\n",
+            "#!/bin/sh\nfor argument; do last=$argument; done\nprintf '%s' \"$last\" > \(ShellQuoting.quoted(received.path))\n",
             to: bin.appendingPathComponent("codex")
         )
         let prompt = "Fix devbox's tmux.\n\n- Run `tmux ls` and \"$SHELL\"; don't \\ guess!\n* $(whoami) ${HOME} 100%"

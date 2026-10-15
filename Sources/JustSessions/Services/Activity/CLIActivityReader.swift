@@ -1,9 +1,10 @@
 import Foundation
 
-/// Tells what CLIs running on this Mac are doing. Claude Code says so in its live process registry; a Codex session
-/// file shows whether a turn is under way, and Codex's background server whether it waits for you; an Antigravity
-/// conversation database shows both. Pi and OpenCode say so through the extension the app starts them with. Kiro
-/// CLI, and CLIs whose process or file is not known yet, give nil.
+/// Tells what running CLIs are doing. Claude Code says so in its live process registry; Codex in its terminal title,
+/// on this Mac and on an SSH host, and otherwise its session file shows whether a turn is under way, and Codex's
+/// background server whether it waits for you; an Antigravity conversation database shows both. Pi and OpenCode say
+/// so through the extension the app starts them with. Kiro CLI, and CLIs whose process or file is not known yet,
+/// give nil.
 struct CLIActivityReader: Sendable {
     let claudeRegistry: ClaudeLiveSessionRegistry
     let codexTurnTracker: CodexRolloutTurnTracker
@@ -75,6 +76,9 @@ struct CLIActivityReader: Sendable {
             processTree = tree
             return claudeRegistry.firstRecord(amongProcessIDs: tree.processIDs(rootedAt: probe.processID))?.activity
         case .codex:
+            // Codex's own word, when its title has one; see `CodexTitleActivity`. A Codex too old to give it, or one
+            // that hasn't yet, is read from its session file.
+            if let activity = probe.terminalTitle.flatMap(CodexTitleActivity.activity(inTerminalTitle:)) { return activity }
             guard let sessionFile = probe.sessionFile else { return nil }
             return Self.codexActivity(
                 turnState: codexTurnTracker.turnState(ofRolloutFile: sessionFile),

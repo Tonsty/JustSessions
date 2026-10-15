@@ -112,17 +112,20 @@ struct RemoteCLICommandBuilder {
         shellStartup: RemoteShellStartup = .interactive,
         cliLocation: RemoteCLILocation = .loginShell
     ) -> String {
+        // Codex says which thread it is in, and what it is doing, only in its terminal title, and only when asked, as
+        // on this Mac; see `CodexThreadTitle` and `CodexTitleActivity`.
+        let titleArguments = provider == .codex ? CodexThreadTitle.launchArguments : []
         let directCommand = CLIStartCommandLine.customCommand(startCommand).map {
             let invocation = CLIStartCommandLine.remoteInvocation(
                 startCommand: $0,
-                arguments: provider.argumentsAfterCustomStartCommand(arguments)
+                arguments: titleArguments + provider.argumentsAfterCustomStartCommand(arguments)
             )
             return "cd \(ShellQuoting.quoted(projectPath)) && exec \(invocation)"
         } ?? RemoteCLIInvocation.startCommand(
             executableName: provider.executableName,
             location: cliLocation,
             projectPath: projectPath,
-            quotedArguments: arguments.map(ShellQuoting.quoted)
+            quotedArguments: (titleArguments + arguments).map(ShellQuoting.quoted)
         )
         func inLoginShell(_ command: String) -> String {
             shellStartup.command(running: command, environment: terminalEnvironment)
@@ -130,7 +133,9 @@ struct RemoteCLICommandBuilder {
         guard let tmuxSessionName else { return inLoginShell(directCommand) }
         // `-A` attaches when the session already runs, and the options after it are set again on every attach.
         // The status line and mouse settings make it look and scroll like the CLI on its own, and with no prefix
-        // key Ctrl-B reaches the CLI, unless the host uses its own; see `RemoteTmuxPrefixOptions`. Passthrough lets
+        // key Ctrl-B reaches the CLI, unless the host uses its own; see `RemoteTmuxPrefixOptions`. `set-titles` passes
+        // the title the CLI gives its pane (`#T`) on to the tab, where Codex says what it is doing; it comes before
+        // `mouse`, which tmux before 2.1 rejects along with every option after it. Passthrough lets
         // a CLI's copy reach this Mac's clipboard: OpenCode sends OSC 52 wrapped for tmux, which tmux 3.3 and later
         // drop with it off, and its unwrapped OSC 52 only with the server-wide `set-clipboard on`. Older tmux always
         // passes it, and `-q` skips the option there. These are options of this session and its window only; the
@@ -139,8 +144,8 @@ struct RemoteCLICommandBuilder {
         // reached the CLI half a second late. The host's other sessions get 10 ms too, as tmux 3.5 and later give
         // them anyway.
         let sessionOptions = [
-            "set-option status off", "set-option mouse on", "set-option -wq allow-passthrough on",
-            "set-option -s escape-time 10",
+            "set-option status off", "set-option set-titles on", "set-option set-titles-string '#T'",
+            "set-option mouse on", "set-option -wq allow-passthrough on", "set-option -s escape-time 10",
         ]
             + RemoteTmuxPrefixOptions.setOptionCommands(usingHostPrefix: usesHostTmuxPrefix)
         let tmuxCommand = RemoteTmuxAttachScript.command(
