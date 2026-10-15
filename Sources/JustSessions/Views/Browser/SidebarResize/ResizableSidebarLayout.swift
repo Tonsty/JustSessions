@@ -8,8 +8,9 @@ struct ResizableSidebarLayout<Sidebar: View, Detail: View>: View {
     private let minimumDetailWidth: CGFloat = 600
     private let dividerWidth: CGFloat = 1
 
-    /// The width at the default interface size: the sidebar shows it at the interface size, so its rows hold as much of
-    /// their titles at every size. A width saved before the interface size could change was saved at the default.
+    /// The width at the default interface size: the sidebar shows it at a larger interface size, so its rows hold as
+    /// much of their titles, and as it is at a smaller one, which shows more of them. A width saved before the interface
+    /// size could change was saved at the default.
     @AppStorage("conversationSidebarWidth") private var savedSidebarWidth = 248.0
     @State private var draggingSidebarWidth: CGFloat?
 
@@ -25,11 +26,13 @@ struct ResizableSidebarLayout<Sidebar: View, Detail: View>: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let interfaceScale = InterfaceScale.factor
-            let minimumSidebarWidth = InterfaceScale.points(200)
+            // Never narrower than at the default size: below it, the header's spacing, which doesn't shrink, would leave
+            // no room for the app's name.
+            let interfaceScale = max(InterfaceScale.factor, 1)
+            let minimumSidebarWidth = 200 * interfaceScale
             let maximumSidebarWidth = max(
                 minimumSidebarWidth,
-                min(InterfaceScale.points(480), geometry.size.width - minimumDetailWidth - dividerWidth)
+                min(480 * interfaceScale, geometry.size.width - minimumDetailWidth - dividerWidth)
             )
             // Rounded so a saved fractional width or a fractional window-derived maximum cannot put the divider
             // and the sidebar's text on sub-pixel offsets.
