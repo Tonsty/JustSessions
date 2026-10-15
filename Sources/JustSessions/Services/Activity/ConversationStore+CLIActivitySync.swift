@@ -2,9 +2,10 @@ import Foundation
 
 /// Once a second, reads what each CLI on this Mac is doing: every tab's, and every session's whose CLI runs in tmux
 /// with no tab open. A Codex, Claude Code, Pi, or OpenCode tab on an SSH host tells through its terminal title; see
-/// `CodexTitleActivity` and `RemoteCLIActivityTitle`. A session whose CLI ended in tmux stops counting as running then, without waiting for a refresh. A CLI that just finished its
-/// turn or stopped to wait on you gets a notification, and one that finished its turn out of view stays marked until
-/// you look.
+/// `CodexTitleActivity` and `RemoteCLIActivityTitle`. Such a session on an SSH host with no tab open is read from its
+/// host every few seconds instead; see `RemoteDetachedActivityReader`. A session whose CLI ended in tmux stops counting
+/// as running then, without waiting for a refresh. A CLI that just finished its turn or stopped to wait on you gets a
+/// notification, and one that finished its turn out of view stays marked until you look.
 extension ConversationStore {
     /// A session on this Mac whose CLI runs in tmux with no tab open.
     private struct DetachedTmuxSession {
@@ -12,6 +13,12 @@ extension ConversationStore {
         let tmuxSessionName: String
         /// Unknown when the tab it ran in closed before its process was found.
         let paneProcessID: Int32?
+    }
+
+    /// A session on an SSH host whose CLI runs in tmux with no tab open in any window.
+    private struct DetachedRemoteTmuxSession {
+        let conversation: Conversation
+        let key: RemoteTmuxSessionKey
     }
 
     func startCLIActivitySync(interval: Duration = .seconds(1)) {
@@ -26,7 +33,11 @@ extension ConversationStore {
             tab.isRunning ? tab.cliActivityProbe.map { (tab: tab, probe: $0) } : nil
         }
         let detachedSessions = detachedThisMacTmuxSessions()
-        guard !probedTabs.isEmpty || !detachedSessions.isEmpty || !detachedCLIActivities.isEmpty else {
+        let detachedRemoteSessions = detachedRemoteTmuxSessions()
+        noteRemoteSessionsDetached(detachedRemoteSessions)
+        askHosts(of: detachedRemoteSessions)
+        guard !probedTabs.isEmpty || !detachedSessions.isEmpty || !detachedRemoteSessions.isEmpty
+                || !detachedCLIActivities.isEmpty else {
             followAttention(after: [])
             return
         }
@@ -75,6 +86,23 @@ extension ConversationStore {
             ))
             if let activity { detachedActivities[detachedSession.conversation.id] = activity }
         }
+        for detachedSession in detachedRemoteSessions {
+            let key = detachedSession.key
+            let listing = remoteDetachedActivityReader.listing(of: key.host)
+            // A listing asked for after the session was known to run with no tab, which leaves it out: its CLI ended.
+            if let listing, listing.panes.panesBySessionName[key.tmuxSessionName] == nil,
+               let since = remoteDetachedSince[key], listing.askedAt > since {
+                tmuxSessionNamesByHost[.ssh(key.host)]?.remove(key.tmuxSessionName)
+                remoteDetachedSince[key] = nil
+                continue
+            }
+            let activity = listing?.panes.activity(of: detachedSession.conversation.provider, inSession: key.tmuxSessionName)
+            observations.append(SessionActivityObservation(
+                source: .detachedTmux(conversationID: detachedSession.conversation.id),
+                activity: activity
+            ))
+            if let activity { detachedActivities[detachedSession.conversation.id] = activity }
+        }
         if detachedCLIActivities != detachedActivities { detachedCLIActivities = detachedActivities }
         followAttention(after: observations)
         // Project rows sum up their tabs through the store, which does not see a tab's own changes. Other windows'
@@ -90,6 +118,43 @@ extension ConversationStore {
         notifyOfSessionsWantingAttention(events)
         noteUnseenFinishedTurns(after: observations, events: events)
         noteWaitingForYouStartTimes(after: observations)
+    }
+
+    /// Listed sessions of SSH hosts that run in tmux, as of the host's last refresh or the closing of their tab, with no
+    /// running tab in any window.
+    private func detachedRemoteTmuxSessions() -> [DetachedRemoteTmuxSession] {
+        let conversationIDsWithRunningTab = Set(terminalSessions.filter(\.isRunning).compactMap { $0.conversation?.id })
+            .union(runningTerminalsInOtherWindows.keys)
+        var sessions: [DetachedRemoteTmuxSession] = []
+        for (sessionHost, runningNames) in tmuxSessionNamesByHost {
+            guard let host = sessionHost.sshDestination else { continue }
+            for name in runningNames.sorted() {
+                guard let session = TmuxSessionName.session(named: name),
+                      let conversation = conversations.first(where: {
+                          $0.host == sessionHost && $0.provider == session.provider && $0.sessionID == session.sessionID
+                      }),
+                      !conversationIDsWithRunningTab.contains(conversation.id) else { continue }
+                let key = RemoteTmuxSessionKey(host: host, tmuxSessionName: name)
+                sessions.append(DetachedRemoteTmuxSession(conversation: conversation, key: key))
+            }
+        }
+        return sessions
+    }
+
+    /// Asks the hosts of these sessions what their CLIs do, except one that needs Connect…, which no background command
+    /// reaches. Each is asked only when due; see `RemoteDetachedActivityReader`.
+    private func askHosts(of sessions: [DetachedRemoteTmuxSession]) {
+        for host in Set(sessions.map(\.key.host)) where !sshHostsNeedingLogIn.contains(host) {
+            remoteDetachedActivityReader.askIfDue(host)
+        }
+    }
+
+    /// Keeps when each such session was first seen with no tab, and forgets the others.
+    private func noteRemoteSessionsDetached(_ sessions: [DetachedRemoteTmuxSession]) {
+        let keys = Set(sessions.map(\.key))
+        let now = Date()
+        remoteDetachedSince = remoteDetachedSince.filter { keys.contains($0.key) }
+        for key in keys where remoteDetachedSince[key] == nil { remoteDetachedSince[key] = now }
     }
 
     /// Listed sessions of this Mac that run in tmux, as of the last refresh, with no running tab in any window. The
