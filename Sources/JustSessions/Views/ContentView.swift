@@ -11,6 +11,7 @@ struct ContentView: View {
     @State private var recencyFilter: SessionRecencyFilter = .all
     @State private var providerFilter: ConversationProviderFilter = .all
     @State private var statusFilter: SessionStatusFilter = .all
+    @State private var archiveFilter: SessionArchiveFilter = .hideArchived
     @State private var renamingConversation: Conversation?
     @State private var renamingProject: ProjectConversationGroup?
     /// How many times a Rename dialog opened; see `RenameDialogs.openCount`.
@@ -29,6 +30,7 @@ struct ContentView: View {
             recencyFilter: $recencyFilter,
             providerFilter: $providerFilter,
             statusFilter: $statusFilter,
+            archiveFilter: $archiveFilter,
             onRename: {
                 renameDialogOpenCount += 1
                 renamingConversation = $0

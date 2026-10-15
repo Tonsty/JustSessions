@@ -5,7 +5,7 @@ extension ConversationStore {
         sidebarProjection.conversations
     }
 
-    /// Includes saved empty projects; provider, recency, status, and search filters are applied by the browser.
+    /// Includes saved empty projects; provider, recency, status, archive, and search filters are applied by the browser.
     var sidebarProjectGroups: [ProjectConversationGroup] {
         sidebarProjection.projectGroups
     }
@@ -15,6 +15,7 @@ extension ConversationStore {
         providerFilter: ConversationProviderFilter,
         recencyFilter: SessionRecencyFilter,
         statusFilter: SessionStatusFilter = .all,
+        archiveFilter: SessionArchiveFilter = .hideArchived,
         searchText: String,
         messageMatchConversationIDs: Set<String> = []
     ) -> FilteredSidebarProjection {
@@ -25,6 +26,8 @@ extension ConversationStore {
             providerFilter: providerFilter,
             recencyFilter: recencyFilter,
             statusFilter: statusFilter,
+            archiveFilter: archiveFilter,
+            archived: archivedSessions,
             running: sessionsRunning,
             waiting: sessionsWaitingForYou,
             searchText: searchText,

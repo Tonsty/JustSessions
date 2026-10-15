@@ -516,12 +516,14 @@ private struct SidebarPerfBrowserHarness: View {
                 recencyFilter: $controls.recencyFilter,
                 providerFilter: $controls.providerFilter,
                 statusFilter: .constant(.all),
+                archiveFilter: .constant(.hideArchived),
                 sessionSelection: $controls.sessionSelection,
                 projects: filteredProjection.projects,
                 allSessionCount: filteredProjection.allSessionCount,
                 recentSessionCount: filteredProjection.recentSessionCount,
                 runningSessionCount: filteredProjection.runningSessionCount,
                 waitingSessionCount: filteredProjection.waitingSessionCount,
+                archivedSessionCount: filteredProjection.archivedSessionCount,
                 onNewSession: {},
                 onSelectConversation: { conversation in
                     if store.showRunningCLI(for: conversation) {

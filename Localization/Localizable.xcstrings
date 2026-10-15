@@ -384,7 +384,7 @@
         }
       }
     },
-    "%@, %@%@%@": {
+    "%@, %@%@%@%@": {
       "shouldTranslate": false
     },
     "%@, %@, open terminal, not saved yet": {
@@ -1221,6 +1221,34 @@
         }
       }
     },
+    "Archive %lld sessions": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Archive %lld session"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Archive %lld sessions"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "归档 %lld 个会话"
+          }
+        }
+      }
+    },
     "Archive and delete sessions…": {
       "localizations": {
         "zh-Hans": {
@@ -1301,6 +1329,16 @@
         }
       }
     },
+    "Archive session": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "归档会话"
+          }
+        }
+      }
+    },
     "Archive the selected projects and delete their sessions, ending those that still run first": {
       "localizations": {
         "zh-Hans": {
@@ -1317,6 +1355,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "归档所选项目；保留会话和已打开的终端"
+          }
+        }
+      }
+    },
+    "Archived": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已归档"
           }
         }
       }
@@ -6533,6 +6581,16 @@
         }
       }
     },
+    "Show archived": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示已归档"
+          }
+        }
+      }
+    },
     "Show explanation": {
       "localizations": {
         "zh-Hans": {
@@ -7663,6 +7721,44 @@
           "stringUnit": {
             "state": "translated",
             "value": "两个标签页并排显示"
+          }
+        }
+      }
+    },
+    "Unarchive %lld sessions": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Unarchive %lld session"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Unarchive %lld sessions"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消归档 %lld 个会话"
+          }
+        }
+      }
+    },
+    "Unarchive session": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消归档会话"
           }
         }
       }

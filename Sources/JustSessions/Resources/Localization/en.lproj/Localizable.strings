@@ -66,8 +66,8 @@
 	<string>%@'s tmux server was started by another tmux version than %@, the one JustSessions finds there, as when tmux is upgraded while sessions run. Its sessions keep running but can't be opened. Reattach with the tmux that started the server, or end its sessions with that tmux and start them again.</string>
 	<key>%@, %@</key>
 	<string>%@, %@</string>
-	<key>%@, %@%@%@</key>
-	<string>%@, %@%@%@</string>
+	<key>%@, %@%@%@%@</key>
+	<string>%@, %@%@%@%@</string>
 	<key>%@, %@, open terminal, not saved yet</key>
 	<string>%@, %@, open terminal, not saved yet</string>
 	<key>%lld</key>
@@ -216,10 +216,14 @@
 	<string>Archive selected projects</string>
 	<key>Archive selected projects and delete their sessions</key>
 	<string>Archive selected projects and delete their sessions</string>
+	<key>Archive session</key>
+	<string>Archive session</string>
 	<key>Archive the selected projects and delete their sessions, ending those that still run first</key>
 	<string>Archive the selected projects and delete their sessions, ending those that still run first</string>
 	<key>Archive the selected projects; keep sessions and open terminals</key>
 	<string>Archive the selected projects; keep sessions and open terminals</string>
+	<key>Archived</key>
+	<string>Archived</string>
 	<key>Archived projects</key>
 	<string>Archived projects</string>
 	<key>Archived projects (%lld)…</key>
@@ -1208,6 +1212,8 @@
 	<string>Show Sidebar</string>
 	<key>Show a tip in the sidebar each time JustSessions opens</key>
 	<string>Show a tip in the sidebar each time JustSessions opens</string>
+	<key>Show archived</key>
+	<string>Show archived</string>
 	<key>Show explanation</key>
 	<string>Show explanation</string>
 	<key>Show in Other Window</key>
@@ -1424,6 +1430,8 @@
 	<string>Try another direction without touching the original: **Branch** a session.</string>
 	<key>Two tabs side by side</key>
 	<string>Two tabs side by side</string>
+	<key>Unarchive session</key>
+	<string>Unarchive session</string>
 	<key>Undo your last edit to the line, in Claude Code and shells</key>
 	<string>Undo your last edit to the line, in Claude Code and shells</string>
 	<key>Unknown</key>

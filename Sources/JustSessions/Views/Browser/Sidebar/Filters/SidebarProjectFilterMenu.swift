@@ -1,20 +1,29 @@
 import SwiftUI
 
-/// Status, time, and tool filters apply only to the project library, never to open terminals.
+/// Status, time, tool, and archive filters apply only to the project library, never to open terminals.
 struct SidebarProjectFilterMenu: View {
     @Binding var recencyFilter: SessionRecencyFilter
     @Binding var providerFilter: ConversationProviderFilter
     @Binding var statusFilter: SessionStatusFilter
+    @Binding var archiveFilter: SessionArchiveFilter
     /// Tools installed on a host or with listed sessions; the menu offers only these.
     let offeredProviders: Set<ConversationProvider>
     let allSessionCount: Int
     let recentSessionCount: Int
     let runningSessionCount: Int
     let waitingSessionCount: Int
+    let archivedSessionCount: Int
     @Environment(\.self) private var environment
 
     private var isFiltering: Bool {
-        recencyFilter != .all || providerFilter.provider != nil || statusFilter != .all
+        recencyFilter != .all || providerFilter.provider != nil || statusFilter != .all || archiveFilter != .hideArchived
+    }
+
+    private var showsArchived: Binding<Bool> {
+        Binding(
+            get: { archiveFilter == .showArchived },
+            set: { archiveFilter = $0 ? .showArchived : .hideArchived }
+        )
     }
 
     /// Running and Waiting for you each list by the CLI's status, so turning one on turns the other off.
@@ -57,12 +66,18 @@ struct SidebarProjectFilterMenu: View {
             }
             .pickerStyle(.inline)
             .labelsHidden()
+            Divider()
+            // Archived sessions stay out of the list until asked for, like archived projects.
+            Toggle(isOn: showsArchived) {
+                Text("Show archived") + Text(verbatim: " · \(archivedSessionCount.formatted())")
+            }
             if isFiltering {
                 Divider()
                 Button("Clear filters") {
                     recencyFilter = .all
                     providerFilter = .all
                     statusFilter = .all
+                    archiveFilter = .hideArchived
                 }
             }
         } label: {
@@ -83,7 +98,7 @@ struct SidebarProjectFilterMenu: View {
         )
         .overlay(alignment: .topTrailing) {
             // The tool's icon takes the chip, so a dot tells that another filter is on too.
-            if recencyFilter == .recent || statusFilter != .all, filteredProvider != nil {
+            if recencyFilter == .recent || statusFilter != .all || archiveFilter != .hideArchived, filteredProvider != nil {
                 Circle().fill(.foreground).frame(width: 4, height: 4)
             }
         }

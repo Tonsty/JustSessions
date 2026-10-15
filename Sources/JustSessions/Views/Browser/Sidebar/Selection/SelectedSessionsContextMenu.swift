@@ -10,6 +10,7 @@ struct SelectedSessionsContextMenu: View {
         let resumableCount = selectedConversations.filter { store.canLaunch($0, action: .resume) }.count
         let branchableCount = selectedConversations.filter { store.canLaunch($0, action: .branch) }.count
         let endableCount = selectedConversations.filter(store.canEndSession).count
+        let archivedCount = selectedConversations.filter { store.archivedSessions.isArchived(conversationID: $0.id) }.count
 
         Button("Resume \(resumableCount) sessions", systemImage: "play") {
             store.launch(selectedConversations, action: .resume)
@@ -22,6 +23,18 @@ struct SelectedSessionsContextMenu: View {
         if endableCount > 0 {
             Button("End \(endableCount) sessions", systemImage: "stop.circle", role: .destructive) {
                 store.endSessions(selectedConversations)
+            }
+        }
+        Divider()
+        // Show archived lists archived and other sessions together, so a selection can hold both.
+        if archivedCount < selectedConversations.count {
+            Button("Archive \(selectedConversations.count - archivedCount) sessions", systemImage: "archivebox") {
+                store.setArchived(true, conversations: selectedConversations)
+            }
+        }
+        if archivedCount > 0 {
+            Button("Unarchive \(archivedCount) sessions", systemImage: "tray.and.arrow.up") {
+                store.setArchived(false, conversations: selectedConversations)
             }
         }
         Divider()

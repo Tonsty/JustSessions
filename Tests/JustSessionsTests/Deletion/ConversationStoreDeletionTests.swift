@@ -5,7 +5,7 @@ import Testing
 /// Deleting from the store: what leaves the list, what stays, and what the user is told.
 @MainActor
 struct ConversationStoreDeletionTests {
-    @Test func deletingASessionForgetsItsCustomTitleAndPin() async throws {
+    @Test func deletingASessionForgetsItsCustomTitlePinAndArchiving() async throws {
         let sandbox = try DeletionSandbox()
         defer { sandbox.remove() }
         let deleted = try sandbox.savedConversation(title: "Deleted")
@@ -15,6 +15,7 @@ struct ConversationStoreDeletionTests {
             store.rename(conversation, to: "Custom \(conversation.suggestedTitle)")
             store.setPinned(true, conversation: conversation)
         }
+        store.setArchived(true, conversations: [deleted, kept])
 
         store.delete(deleted)
         #expect(store.isDeletionPending(for: deleted))
@@ -29,6 +30,7 @@ struct ConversationStoreDeletionTests {
         #expect(savedTitles.customTitlesByConversationID == [kept.id: "Custom Kept"])
         #expect(!savedPins.isPinned(conversationID: deleted.id))
         #expect(savedPins.isPinned(conversationID: kept.id))
+        #expect(ArchivedSessions.load(from: sandbox.userDefaults).archivedConversationIDs == [kept.id])
     }
 
     @Test func aRefusedDeletionShowsTheToolsReasonAndKeepsTheSession() async throws {

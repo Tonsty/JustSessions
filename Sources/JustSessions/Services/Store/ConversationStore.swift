@@ -39,6 +39,7 @@ final class ConversationStore {
     private(set) var titleAliases: ConversationTitleAliases
     private(set) var projectDisplayNames: ProjectDisplayNames
     private(set) var pinnedItems: PinnedItems
+    private(set) var archivedSessions: ArchivedSessions
     var sidebarProjectList: SidebarProjectList
     private var terminalSessionsStorage: [TerminalSession] = [] {
         didSet {
@@ -214,6 +215,7 @@ final class ConversationStore {
         self.titleAliases = ConversationTitleAliases.load(from: userDefaults)
         self.projectDisplayNames = ProjectDisplayNames.load(from: userDefaults)
         self.pinnedItems = PinnedItems.load(from: userDefaults)
+        self.archivedSessions = ArchivedSessions.load(from: userDefaults)
         self.sidebarProjectList = SidebarProjectList.load(from: userDefaults)
         self.remoteHostList = RemoteHostList.load(from: userDefaults)
         self.remoteHostsUsingTmuxPrefix = RemoteHostsUsingTmuxPrefix.load(from: userDefaults)
@@ -344,6 +346,15 @@ final class ConversationStore {
     func setPinned(_ isPinned: Bool, conversation: Conversation) {
         pinnedItems.setPinned(isPinned, conversationID: conversation.id)
         pinnedItems.save(to: userDefaults)
+    }
+
+    /// Archiving only hides the sessions from the Projects list; files, open tabs, names, and pins are kept.
+    func setArchived(_ isArchived: Bool, conversations: [Conversation]) {
+        var updatedArchive = archivedSessions
+        updatedArchive.setArchived(isArchived, conversationIDs: conversations.map(\.id))
+        guard updatedArchive != archivedSessions else { return }
+        archivedSessions = updatedArchive
+        archivedSessions.save(to: userDefaults)
     }
 
     /// From a drag in the sidebar: pins the project if it is not pinned yet, at `placement` among the pinned ones.
@@ -630,7 +641,7 @@ final class ConversationStore {
         startQueuedDeletion()
     }
 
-    /// Takes the deleted sessions off the list in one change, and forgets their custom titles and pins.
+    /// Takes the deleted sessions off the list in one change, and forgets their custom titles, pins, and archiving.
     private func removeDeletedConversations(_ deleted: [Conversation]) {
         guard !deleted.isEmpty else { return }
         let deletedIDs = Set(deleted.map(\.id))
@@ -647,6 +658,12 @@ final class ConversationStore {
         if remainingPinnedItems != pinnedItems {
             pinnedItems = remainingPinnedItems
             pinnedItems.save(to: userDefaults)
+        }
+        var remainingArchive = archivedSessions
+        remainingArchive.setArchived(false, conversationIDs: deletedIDs)
+        if remainingArchive != archivedSessions {
+            archivedSessions = remainingArchive
+            archivedSessions.save(to: userDefaults)
         }
     }
 
