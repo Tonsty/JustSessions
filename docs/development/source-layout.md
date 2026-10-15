@@ -49,7 +49,7 @@ Application paths below are relative to `Sources/JustSessions/`. Tests live in `
 - `Services/Hosts/ThisMacFolder/`: checks a folder typed for a new session or project on this Mac, and creates a missing one once the sheet's offer is taken; `Services/Remote/NewSession/RemoteFolderResolver` does the same on an SSH host.
 - `Services/Hosts/InstalledCLIs/`: which CLIs each host has, so new sessions offer only those.
 - `Services/Hosts/AutoRefresh/`: refreshes the hosts on their own while a workspace window shows on screen: this Mac every minute, each SSH host every 5 minutes, less often after failures, and when the app comes forward. The oldest window copies an SSH host.
-- `Services/Launch/`: CLI executable resolution and process environment.
+- `Services/Launch/`: CLI executable resolution and process environment, and resuming a session, which takes an archived one out of the archive.
 - `Services/Launch/PlainTerminal/`: opens a plain terminal, a login shell in a project folder that is no session.
 - `Services/Launch/MoveToFolder/`, `Models/Conversations/MoveToFolder/`, `Views/SessionActions/MoveToFolder/`: a Claude Code session's **Move to**, which resumes it with Claude Code's `/cd <folder>` as its first message, so the CLI moves the session; and the projects the menu offers.
 - `Services/Launch/StartCommand/`: runs a start command of your own through a shell, on this Mac and on SSH hosts, with the app's arguments after it; `env` then runs the CLI in the shell's place, so the tab's process is still the CLI's. `Check/` reads a command before it is kept, without running it, and looks up its program where the CLI runs. The New session sheet's field, locked until Edit, is in `Views/Browser/NewSession/StartCommand/`.

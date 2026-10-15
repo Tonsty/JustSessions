@@ -311,7 +311,7 @@ struct ConversationSidebarView: View {
         } else {
             onSelectConversation(conversation)
             if NSApp.currentEvent?.clickCount == 2, store.canLaunch(conversation, action: .resume) {
-                store.launch(conversation, action: .resume)
+                store.resume(conversation)
             }
         }
     }

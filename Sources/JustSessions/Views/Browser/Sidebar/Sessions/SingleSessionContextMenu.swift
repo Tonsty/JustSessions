@@ -26,7 +26,7 @@ struct SingleSessionContextMenu: View {
             }
         } else if openTab == nil {
             Button("Resume", systemImage: "play") {
-                store.launch(conversation, action: .resume)
+                store.resume(conversation)
             }
             .disabled(!store.canLaunch(conversation, action: .resume))
         }

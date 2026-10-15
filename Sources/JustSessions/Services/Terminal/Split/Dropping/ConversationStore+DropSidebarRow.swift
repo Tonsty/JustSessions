@@ -32,8 +32,10 @@ extension ConversationStore {
             showDroppedTabInSplit(tabID, on: side)
         case (.session(let conversation), .wholeArea):
             // As a double-click on it does: it resumes, in its own tab if one is open here.
-            launch(conversation, action: .resume)
+            resume(conversation)
         case (.session(let conversation), .split(let side)):
+            // Resumed too, so it leaves the archive also when its tab is already open.
+            unarchiveResumableSessions([conversation])
             showDroppedSessionInSplit(conversation, on: side)
         }
     }

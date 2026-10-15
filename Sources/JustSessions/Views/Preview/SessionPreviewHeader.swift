@@ -136,7 +136,7 @@ struct SessionPreviewHeader: View {
 
     @ViewBuilder
     private var launchActions: some View {
-        Button("Resume", systemImage: "play.fill") { store.launch(conversation, action: .resume) }
+        Button("Resume", systemImage: "play.fill") { store.resume(conversation) }
             .buttonStyle(ProviderProminentButtonStyle(tint: conversation.provider.emphasisTintColor))
             .disabled(!store.canLaunch(conversation, action: .resume))
             .onboardingTourStop(.resume)
