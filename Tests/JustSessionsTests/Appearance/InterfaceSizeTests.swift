@@ -32,50 +32,47 @@ struct InterfaceSizeTests {
     }
 
     @Test func sizesFollowTheInterfaceSizeToTheHalfPoint() {
-        defer { InterfaceSizeStore.shared.setScale(1.0) }
-        #expect(InterfaceScale.points(28) == 28)
-        #expect(InterfaceScale.controlSize == .regular)
-
-        InterfaceSizeStore.shared.setScale(1.3)
-        #expect(InterfaceScale.points(28) == 36.5)
-        #expect(InterfaceScale.points(7) == 9)
-        #expect(InterfaceScale.controlSize == .large)
-        InterfaceSizeStore.shared.setScale(1.5)
-        #expect(InterfaceScale.controlSize == .extraLarge)
-        InterfaceSizeStore.shared.setScale(0.9)
-        #expect(InterfaceScale.points(28) == 25)
-        #expect(InterfaceScale.controlSize == .small)
+        #expect(InterfaceScale.points(28, at: 1.0) == 28)
+        #expect(InterfaceScale.points(28, at: 1.3) == 36.5)
+        #expect(InterfaceScale.points(7, at: 1.3) == 9)
+        #expect(InterfaceScale.points(28, at: 0.9) == 25)
+        #expect(InterfaceScale.controlSize(at: 0.9) == .small)
+        #expect(InterfaceScale.controlSize(at: 1.0) == .regular)
+        #expect(InterfaceScale.controlSize(at: 1.1) == .regular)
+        #expect(InterfaceScale.controlSize(at: 1.3) == .large)
+        #expect(InterfaceScale.controlSize(at: 1.5) == .extraLarge)
+        // Tests run beside others that draw the app's views, so none changes the app's own size.
+        #expect(InterfaceSizeStore.shared.scale == InterfaceSizeStore.defaultScale)
     }
 
-    /// A view on screen that sets its text in `ThemeFont`, or takes its font from the window's root, redraws larger when
-    /// the interface size changes, with nothing else telling it to.
+    /// A view on screen whose body sets its text in the theme's scaled font redraws larger when its store's size
+    /// changes, with nothing else telling it to. The store is the test's own, read through the same path the app's
+    /// tokens read the shared one, so other tests keep drawing at the default size.
     @Test func textOnScreenGrowsWhenTheInterfaceSizeChanges() async throws {
-        defer { InterfaceSizeStore.shared.setScale(1.0) }
-        InterfaceSizeStore.shared.setScale(1.0)
-        let tokenText = NSHostingView(rootView: CalloutLabel())
-        let rootText = NSHostingView(rootView: Text("Appearance").fixedSize().appTheme(from: .shared))
+        let settings = try IsolatedUserDefaults()
+        defer { settings.removeSuite() }
+        let store = InterfaceSizeStore(userDefaults: settings.userDefaults)
+        let label = NSHostingView(rootView: ScaledLabel(store: store))
         let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 400, height: 200), styleMask: [.borderless], backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
-        let container = NSView(frame: window.contentLayoutRect)
-        container.addSubview(tokenText)
-        container.addSubview(rootText)
-        window.contentView = container
+        window.contentView = label
         defer { window.close() }
-        let tokenWidth = tokenText.fittingSize.width, rootWidth = rootText.fittingSize.width
+        let width = label.fittingSize.width
 
-        InterfaceSizeStore.shared.setScale(1.5)
-        for _ in 0..<10 where tokenText.fittingSize.width < tokenWidth * 1.4 {
+        store.setScale(1.5)
+        for _ in 0..<10 where label.fittingSize.width < width * 1.4 {
             try await Task.sleep(for: .milliseconds(20))
         }
 
-        #expect(tokenText.fittingSize.width > tokenWidth * 1.4)
-        #expect(rootText.fittingSize.width > rootWidth * 1.4)
+        #expect(label.fittingSize.width > width * 1.4)
     }
 }
 
-/// Reads `ThemeFont` in its body, as the app's views do.
-private struct CalloutLabel: View {
+/// Reads the theme's scaled font in its body, as the app's views read `ThemeFont`'s tokens.
+private struct ScaledLabel: View {
+    let store: InterfaceSizeStore
+
     var body: some View {
-        Text("Fix the login redirect loop").font(ThemeFont.callout).fixedSize()
+        Text("Fix the login redirect loop").font(ThemeFont.scaled(12, in: store)).fixedSize()
     }
 }

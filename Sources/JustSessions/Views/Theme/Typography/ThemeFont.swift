@@ -28,8 +28,8 @@ enum ThemeFont {
         scaled(size.rawValue, weight: weight)
     }
 
-    /// The system font at `size` points at the interface size.
-    private static func scaled(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        .system(size: size * InterfaceScale.factor, weight: weight)
+    /// The system font at `size` points at the interface size of `store`, which only tests change from the app's own.
+    static func scaled(_ size: CGFloat, weight: Font.Weight = .regular, in store: InterfaceSizeStore = .shared) -> Font {
+        .system(size: size * InterfaceScale.factor(of: store), weight: weight)
     }
 }
