@@ -5,10 +5,11 @@ struct ResizableSidebarLayout<Sidebar: View, Detail: View>: View {
     let sidebar: Sidebar
     let detail: Detail
 
-    private let minimumSidebarWidth: CGFloat = 200
     private let minimumDetailWidth: CGFloat = 600
     private let dividerWidth: CGFloat = 1
 
+    /// The width at the default interface size: the sidebar shows it at the interface size, so its rows hold as much of
+    /// their titles at every size. A width saved before the interface size could change was saved at the default.
     @AppStorage("conversationSidebarWidth") private var savedSidebarWidth = 248.0
     @State private var draggingSidebarWidth: CGFloat?
 
@@ -24,14 +25,16 @@ struct ResizableSidebarLayout<Sidebar: View, Detail: View>: View {
 
     var body: some View {
         GeometryReader { geometry in
+            let interfaceScale = InterfaceScale.factor
+            let minimumSidebarWidth = InterfaceScale.points(200)
             let maximumSidebarWidth = max(
                 minimumSidebarWidth,
-                min(480, geometry.size.width - minimumDetailWidth - dividerWidth)
+                min(InterfaceScale.points(480), geometry.size.width - minimumDetailWidth - dividerWidth)
             )
             // Rounded so a saved fractional width or a fractional window-derived maximum cannot put the divider
             // and the sidebar's text on sub-pixel offsets.
             let sidebarWidth = min(
-                max((draggingSidebarWidth ?? CGFloat(savedSidebarWidth)).rounded(), minimumSidebarWidth),
+                max((draggingSidebarWidth ?? CGFloat(savedSidebarWidth) * interfaceScale).rounded(), minimumSidebarWidth),
                 maximumSidebarWidth
             ).rounded(.down)
 
@@ -67,7 +70,7 @@ struct ResizableSidebarLayout<Sidebar: View, Detail: View>: View {
                         maximumWidth: maximumSidebarWidth,
                         onChange: { draggingSidebarWidth = $0 },
                         onCommit: { newWidth in
-                            savedSidebarWidth = Double(newWidth)
+                            savedSidebarWidth = Double(newWidth / interfaceScale)
                             draggingSidebarWidth = nil
                         }
                     )

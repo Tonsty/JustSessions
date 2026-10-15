@@ -45,7 +45,7 @@ struct ThemeSegmentedPicker<Value: Hashable>: View {
                 .lineLimit(1)
                 .padding(.horizontal, 10)
                 .frame(maxWidth: .infinity)
-                .frame(height: 22)
+                .frame(height: InterfaceScale.points(22))
                 .background {
                     if isSelected {
                         RoundedRectangle(.small)

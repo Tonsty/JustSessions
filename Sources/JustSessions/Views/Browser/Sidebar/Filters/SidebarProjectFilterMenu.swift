@@ -91,7 +91,7 @@ struct SidebarProjectFilterMenu: View {
         .menuIndicator(.hidden)
         .fixedSize()
         .foregroundStyle(filteredProvider?.tintColor ?? Color(ThemePalette.secondaryText.resolve(in: environment)))
-        .frame(width: 26, height: 26)
+        .frame(width: InterfaceScale.points(26), height: InterfaceScale.points(26))
         .background(
             filteredProvider.map { AnyShapeStyle($0.tintColor.opacity(0.15)) } ?? AnyShapeStyle(ThemePalette.trackFill),
             in: RoundedRectangle(.control)
@@ -99,7 +99,7 @@ struct SidebarProjectFilterMenu: View {
         .overlay(alignment: .topTrailing) {
             // The tool's icon takes the chip, so a dot tells that another filter is on too.
             if recencyFilter == .recent || statusFilter != .all || archiveFilter != .hideArchived, filteredProvider != nil {
-                Circle().fill(.foreground).frame(width: 4, height: 4)
+                Circle().fill(.foreground).frame(width: InterfaceScale.points(4), height: InterfaceScale.points(4))
             }
         }
         .help(isFiltering ? "Project filters are active" : "Filter project sessions")

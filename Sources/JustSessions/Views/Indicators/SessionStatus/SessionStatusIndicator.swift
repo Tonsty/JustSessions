@@ -15,7 +15,7 @@ struct SessionStatusIndicator: View {
 
     var body: some View {
         glyph
-            .frame(width: 10, height: 10)
+            .frame(width: InterfaceScale.points(10), height: InterfaceScale.points(10))
             .help(description ?? status.summary)
             .accessibilityElement()
             .accessibilityLabel(description ?? status.summary)

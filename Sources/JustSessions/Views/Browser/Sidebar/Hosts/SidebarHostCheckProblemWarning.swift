@@ -12,7 +12,7 @@ struct SidebarHostCheckProblemWarning: View {
         Button(action: onShowHostCheck) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundStyle(ThemePalette.warning)
-                .frame(width: 14, height: 20)
+                .frame(width: InterfaceScale.points(14), height: InterfaceScale.points(20))
                 .contentShape(Rectangle())
         }
         .buttonStyle(ThemePressButtonStyle())

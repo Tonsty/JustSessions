@@ -31,7 +31,7 @@ struct TerminalTabGroupLabel: View {
                 Text(projectName)
                     .lineLimit(1)
                     .truncationMode(.middle)
-                    .frame(maxWidth: 140)
+                    .frame(maxWidth: InterfaceScale.points(140))
                 if isCollapsed && hiddenTabCount > 0 {
                     Text("\(hiddenTabCount)")
                         .monospacedDigit()

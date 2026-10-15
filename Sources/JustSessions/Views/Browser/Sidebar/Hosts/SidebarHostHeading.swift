@@ -33,7 +33,7 @@ struct SidebarHostHeading: View {
             Image(systemName: host.symbolName)
                 .font(ThemeFont.glyph(.control, weight: .medium))
                 .foregroundStyle(ThemePalette.tertiaryText)
-                .frame(width: 14)
+                .frame(width: InterfaceScale.points(14))
             Group {
                 if host == .thisMac { Text("This Mac") }
                 else { Text(verbatim: host.displayName) }
@@ -81,7 +81,7 @@ struct SidebarHostHeading: View {
         .font(ThemeFont.caption.weight(.semibold))
         .padding(.leading, 18)
         .padding(.trailing, 16)
-        .frame(height: 20)
+        .frame(height: InterfaceScale.points(20))
         .contentShape(Rectangle())
         .onHover { isHovered = $0 }
         .help(helpText)

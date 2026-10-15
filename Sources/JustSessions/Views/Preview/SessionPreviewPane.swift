@@ -53,7 +53,7 @@ struct SessionPreviewPane: View {
                         Text("No session selected")
                     } icon: {
                         JustSessionsMark()
-                            .frame(width: 56, height: 48)
+                            .frame(width: InterfaceScale.points(56), height: InterfaceScale.points(48))
                     }
                 } description: {
                     Text("Choose a session in the sidebar to read its conversation.")

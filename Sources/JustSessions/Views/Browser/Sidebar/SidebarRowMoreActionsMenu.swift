@@ -24,7 +24,7 @@ struct SidebarRowMoreActionsMenu<MenuItems: View>: View {
 struct SidebarRowMoreActionsLabel: View {
     var body: some View {
         Image(systemName: "ellipsis")
-            .frame(width: 20, height: 20)
+            .frame(width: InterfaceScale.points(20), height: InterfaceScale.points(20))
             .contentShape(Rectangle())
     }
 }

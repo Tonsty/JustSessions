@@ -3,6 +3,7 @@ import Testing
 @testable import JustSessions
 
 /// As in Chrome, the first hover card waits less the narrower the tabs are, since their titles are cut more.
+@MainActor
 struct TabHoverCardDelayTests {
     @Test func narrowestTabsWaitTheLeast() {
         #expect(TabHoverCardDelay.beforeShowing(tabWidth: WorkspaceTabMetrics.minimumWidth) == .milliseconds(300))
