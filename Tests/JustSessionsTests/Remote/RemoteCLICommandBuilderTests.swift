@@ -77,6 +77,22 @@ struct RemoteCLICommandBuilderTests {
         #expect(try receivedArguments(.claude, startCommand: startCommand.map { _ in "claude --verbose" }) == (startCommand == nil ? [] : ["--verbose"]) + ["resume", "abc"])
     }
 
+    /// Claude Code says what it does only in its registry on the host, so its tmux session starts a relay that puts
+    /// it in the tab's title; see `RemoteClaudeActivityRelay`. Other CLIs' sessions pass the CLI's title on as it is,
+    /// and a host without tmux, which passes no title, starts no relay.
+    @Test(arguments: ConversationProvider.allCases)
+    func onlyClaudeCodesTmuxSessionStartsTheRelay(provider: ConversationProvider) {
+        let inTmux = RemoteCLICommandBuilder.remoteCommand(
+            provider: provider, projectPath: "/home/me/api", arguments: [], tmuxSessionName: "justsessions-abc"
+        )
+        let direct = RemoteCLICommandBuilder.remoteCommand(provider: provider, projectPath: "/home/me/api", arguments: [])
+        let relayLine = "records=${CLAUDE_CONFIG_DIR:-$HOME/.claude}/sessions"
+
+        #expect(inTmux.contains(relayLine) == (provider == .claude))
+        #expect(inTmux.contains(RemoteClaudeActivityTitle.titleFormat) == (provider == .claude))
+        #expect(!direct.contains(relayLine))
+    }
+
     /// `ssh` leaves the tab's `COLORTERM` behind, so the command sets it again for the CLI; see
     /// `RemoteCLICommandBuilder.terminalEnvironment`.
     @Test func cliOnTheHostKnowsTheTabShowsTruecolor() throws {

@@ -1,6 +1,7 @@
 import Foundation
 
-/// Tells what running CLIs are doing. Claude Code says so in its live process registry; Codex in its terminal title,
+/// Tells what running CLIs are doing. Claude Code says so in its live process registry, which on an SSH host reaches
+/// the tab through a relay; Codex in its terminal title,
 /// on this Mac and on an SSH host, and otherwise its session file shows whether a turn is under way, and Codex's
 /// background server whether it waits for you; an Antigravity conversation database shows both. Pi and OpenCode say
 /// so through the extension the app starts them with. Kiro CLI, and CLIs whose process or file is not known yet,
@@ -69,6 +70,10 @@ struct CLIActivityReader: Sendable {
     ) -> CLIActivity? {
         switch probe.provider {
         case .claude:
+            // On an SSH host, its record there, which the relay puts in the title; see `RemoteClaudeActivityTitle`.
+            if let activity = probe.terminalTitle.flatMap(RemoteClaudeActivityTitle.activity(inTerminalTitle:)) {
+                return activity
+            }
             guard probe.processID > 0 else { return nil }
             if let record = claudeRegistry.record(forProcessID: probe.processID) { return record.activity }
             // The registry names the real CLI's process, which a wrapper script starts as its child.

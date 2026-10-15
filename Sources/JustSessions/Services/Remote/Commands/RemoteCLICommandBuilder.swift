@@ -134,7 +134,8 @@ struct RemoteCLICommandBuilder {
         // `-A` attaches when the session already runs, and the options after it are set again on every attach.
         // The status line and mouse settings make it look and scroll like the CLI on its own, and with no prefix
         // key Ctrl-B reaches the CLI, unless the host uses its own; see `RemoteTmuxPrefixOptions`. `set-titles` passes
-        // the title the CLI gives its pane (`#T`) on to the tab, where Codex says what it is doing; it comes before
+        // the title the CLI gives its pane (`#T`) on to the tab, where Codex says what it is doing, and Claude Code's
+        // relay what its registry says (`RemoteClaudeActivityRelay`); it comes before
         // `mouse`, which tmux before 2.1 rejects along with every option after it. Passthrough lets
         // a CLI's copy reach this Mac's clipboard: OpenCode sends OSC 52 wrapped for tmux, which tmux 3.3 and later
         // drop with it off, and its unwrapped OSC 52 only with the server-wide `set-clipboard on`. Older tmux always
@@ -143,14 +144,16 @@ struct RemoteCLICommandBuilder {
         // such as Ubuntu 24.04's 3.4, waits 500 ms after Esc to see whether a longer key sequence follows, so Esc
         // reached the CLI half a second late. The host's other sessions get 10 ms too, as tmux 3.5 and later give
         // them anyway.
+        let titleFormat = provider == .claude ? RemoteClaudeActivityTitle.titleFormat : "#T"
         let sessionOptions = [
-            "set-option status off", "set-option set-titles on", "set-option set-titles-string '#T'",
+            "set-option status off", "set-option set-titles on", "set-option set-titles-string '\(titleFormat)'",
             "set-option mouse on", "set-option -wq allow-passthrough on", "set-option -s escape-time 10",
         ]
             + RemoteTmuxPrefixOptions.setOptionCommands(usingHostPrefix: usesHostTmuxPrefix)
+        let paneCommand = provider == .claude ? "\(RemoteClaudeActivityRelay.launchCommand); \(directCommand)" : directCommand
         let tmuxCommand = RemoteTmuxAttachScript.command(
             sessionName: tmuxSessionName,
-            paneCommand: inLoginShell(directCommand),
+            paneCommand: inLoginShell(paneCommand),
             sessionOptions: sessionOptions
         )
         // The login shell may be fish, which has no `if …; then …; fi`; `&&` and `;` read the same in both. When tmux
