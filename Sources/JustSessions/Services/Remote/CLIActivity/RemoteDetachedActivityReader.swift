@@ -22,8 +22,11 @@ final class RemoteDetachedActivityReader {
 
     struct Listing: Equatable {
         let panes: RemoteTmuxPanes
-        /// When the host was asked for it.
+        /// When the host was asked for it, so a session it leaves out ran with no tab before then; see
+        /// `ConversationStore.remoteDetachedSince`.
         let askedAt: Date
+        /// When the answer came, which may be much later while the app is busy; its age counts from then.
+        let answeredAt: Date
     }
 
     private let listPanes: @Sendable (String) -> RemoteTmuxPanes?
@@ -48,7 +51,7 @@ final class RemoteDetachedActivityReader {
     /// The host's last listing, unless it is too old to tell anything.
     func listing(of host: String) -> Listing? {
         guard let listing = listings[host],
-              currentDate().timeIntervalSince(listing.askedAt) < Self.longestUseOfAListing else { return nil }
+              currentDate().timeIntervalSince(listing.answeredAt) < Self.longestUseOfAListing else { return nil }
         return listing
     }
 
@@ -83,6 +86,6 @@ final class RemoteDetachedActivityReader {
             return
         }
         failedAt[host] = nil
-        listings[host] = Listing(panes: panes, askedAt: askedAt)
+        listings[host] = Listing(panes: panes, askedAt: askedAt, answeredAt: currentDate())
     }
 }

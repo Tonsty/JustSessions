@@ -86,6 +86,7 @@ struct RemoteDetachedActivityTests {
 
         await reader.ask("devbox")
         #expect(reader.listing(of: "devbox")?.askedAt == now)
+        #expect(reader.listing(of: "devbox")?.answeredAt == now)
         reader.askIfDue("devbox")
         #expect(calls.count == 1)
 
@@ -102,9 +103,28 @@ struct RemoteDetachedActivityTests {
         now += RemoteDetachedActivityReader.retryAfterFailure
         answer.set(answers.removeFirst())
         reader.askIfDue("devbox")
-        try? await Task.sleep(for: .milliseconds(300))
+        // It asks in the background, which can take a while when the whole suite runs.
+        for _ in 0..<200 where reader.listing(of: "devbox") == nil { try? await Task.sleep(for: .milliseconds(50)) }
         #expect(calls.count == 3)
         #expect(reader.listing(of: "devbox") != nil)
+    }
+
+    /// While the app is busy, an answer can come long after the host was asked; it is as new as its answer.
+    @Test func aListingIsAsNewAsItsAnswer() async {
+        var now = Date(timeIntervalSince1970: 1_000)
+        let asked = CallCounter(), answer = DispatchSemaphore(value: 0)
+        let reader = RemoteDetachedActivityReader(listPanes: { _ in
+            asked.increment()
+            answer.wait()
+            return RemoteTmuxPanes(panesBySessionName: [:])
+        }, currentDate: { now })
+        let asking = Task { await reader.ask("devbox") }
+        while asked.count == 0 { try? await Task.sleep(for: .milliseconds(10)) }
+        now += RemoteDetachedActivityReader.longestUseOfAListing + 5
+        answer.signal()
+        await asking.value
+        #expect(reader.listing(of: "devbox") != nil)
+        #expect(reader.listing(of: "devbox")?.askedAt == Date(timeIntervalSince1970: 1_000))
     }
 
     // MARK: The activity sync
