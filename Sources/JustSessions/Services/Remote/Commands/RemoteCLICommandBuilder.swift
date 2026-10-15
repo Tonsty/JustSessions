@@ -139,8 +139,9 @@ struct RemoteCLICommandBuilder {
         // `-A` attaches when the session already runs, and the options after it are set again on every attach.
         // The status line and mouse settings make it look and scroll like the CLI on its own, and with no prefix
         // key Ctrl-B reaches the CLI, unless the host uses its own; see `RemoteTmuxPrefixOptions`. `set-titles` passes
-        // the title the CLI gives its pane (`#T`) on to the tab, where Codex says what it is doing; Claude Code's relay,
-        // and Pi's and OpenCode's extensions, put what they do in front of it (`RemoteCLIActivityTitle`). It comes
+        // the title the CLI gives its pane (`#T`) on to the tab, where Codex says what it is doing; Claude Code's and
+        // Kiro CLI's relays, and Pi's and OpenCode's extensions, put what they do in front of it
+        // (`RemoteCLIActivityTitle`). It comes
         // before `mouse`, which tmux before 2.1 rejects along with every option after it. Passthrough lets
         // a CLI's copy reach this Mac's clipboard: OpenCode sends OSC 52 wrapped for tmux, which tmux 3.3 and later
         // drop with it off, and its unwrapped OSC 52 only with the server-wide `set-clipboard on`. Older tmux always
@@ -158,6 +159,8 @@ struct RemoteCLICommandBuilder {
         let paneCommand = switch provider {
         case .claude:
             inLoginShell("\(RemoteClaudeActivityRelay.launchCommand); \(directCommand)")
+        case .kiro:
+            inLoginShell("\(RemoteKiroActivityRelay.launchCommand); \(directCommand)")
         case .pi, .opencode:
             RemoteLiveSessionReporting.command(
                 for: provider,
@@ -167,7 +170,7 @@ struct RemoteCLICommandBuilder {
                 ),
                 otherwise: inLoginShell(directCommand)
             )
-        case .codex, .antigravity, .kiro:
+        case .codex, .antigravity:
             inLoginShell(directCommand)
         }
         let tmuxCommand = RemoteTmuxAttachScript.command(

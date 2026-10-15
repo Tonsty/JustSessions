@@ -1826,12 +1826,12 @@
         }
       }
     },
-    "Claude Code, Codex, Antigravity, Pi, and OpenCode on this Mac, and Claude Code, Codex, Pi, and OpenCode on an SSH host, notify you when they finish a turn or need your input, unless you are looking at their tab. Choose which in General. The bell at the top of the sidebar always lists the sessions waiting for you.": {
+    "Claude Code, Codex, Pi, OpenCode, and Kiro CLI on this Mac or an SSH host, and Antigravity on this Mac, notify you when they finish a turn or need your input, unless you are looking at their tab. Choose which in General. The bell at the top of the sidebar always lists the sessions waiting for you.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这台 Mac 上的 Claude Code、Codex、Antigravity、Pi 和 OpenCode，以及 SSH 主机上的 Claude Code、Codex、Pi 和 OpenCode，完成一轮回复或需要你输入时会通知你，正在查看其标签页时除外。可在通用设置中选择通知哪些情况。侧边栏顶部的铃铛会一直列出等你处理的会话。"
+            "value": "这台 Mac 或 SSH 主机上的 Claude Code、Codex、Pi、OpenCode 和 Kiro CLI，以及这台 Mac 上的 Antigravity，完成一轮回复或需要你输入时会通知你，正在查看其标签页时除外。可在通用设置中选择通知哪些情况。侧边栏顶部的铃铛会一直列出等你处理的会话。"
           }
         }
       }
@@ -7003,12 +7003,12 @@
         }
       }
     },
-    "Supports local Claude Code, Codex, Antigravity, Pi, and OpenCode, including sessions running in tmux without an open tab, and Claude Code, Codex, Pi, and OpenCode in a tab on an SSH host. Sessions you are viewing do not notify you. Click a notification to open its session.": {
+    "Supports Claude Code, Codex, Pi, OpenCode, and Kiro CLI on this Mac or an SSH host, and Antigravity on this Mac, including sessions running in tmux without an open tab. Sessions you are viewing do not notify you. Click a notification to open its session.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "支持本机的 Claude Code、Codex、Antigravity、Pi 和 OpenCode，包括在 tmux 中运行但未打开标签的会话，以及 SSH 主机上已打开标签的 Claude Code、Codex、Pi 和 OpenCode。正在查看的会话不发送通知。点击通知可打开会话。"
+            "value": "支持这台 Mac 或 SSH 主机上的 Claude Code、Codex、Pi、OpenCode 和 Kiro CLI，以及这台 Mac 上的 Antigravity，包括在 tmux 中运行但未打开标签的会话。正在查看的会话不发送通知。点击通知可打开会话。"
           }
         }
       }

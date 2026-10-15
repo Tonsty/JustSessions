@@ -59,7 +59,7 @@ struct RemoteCLIActivityTitleTests {
         }
     }
 
-    @Test func onAnSSHHostAClaudeCodePiOrOpenCodeTabIsAskedOnlyItsTitle() {
+    @Test func onAnSSHHostAClaudeCodePiOpenCodeOrKiroTabIsAskedOnlyItsTitle() {
         for provider in RemoteCLIActivityTitle.providers {
             let tab = Self.makeTab(for: .fixture(provider: provider, projectPath: "/srv/app", host: .ssh("devbox")))
             tab.updateTerminalTitle(Self.prefix + "idle:")
@@ -70,10 +70,8 @@ struct RemoteCLIActivityTitleTests {
             #expect(probe?.sessionFile == nil)
         }
 
-        for provider in [ConversationProvider.antigravity, .kiro] {
-            let tab = Self.makeTab(for: .fixture(provider: provider, projectPath: "/srv/app", host: .ssh("devbox")))
-            #expect(tab.cliActivityProbe == nil, "\(provider)")
-        }
+        let antigravityTab = Self.makeTab(for: .fixture(provider: .antigravity, projectPath: "/srv/app", host: .ssh("devbox")))
+        #expect(antigravityTab.cliActivityProbe == nil)
     }
 
     @Test func aClaudeCodeTabOnAnSSHHostShowsItsTurnsNotifiesAndStaysMarkedUnseen() async throws {

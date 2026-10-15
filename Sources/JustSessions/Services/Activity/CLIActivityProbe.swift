@@ -16,9 +16,9 @@ struct CLIActivityProbe: Sendable {
 }
 
 extension TerminalSession {
-    /// Nil for a plain terminal, which runs no CLI, and for a tab on an SSH host whose CLI is Antigravity or Kiro CLI:
-    /// its process and files are out of reach. The others tell there only through the title, which tmux on the host
-    /// passes to the tab; the copy of a session file on this Mac is only as new as the host's last refresh.
+    /// Nil for a plain terminal, which runs no CLI, and for a tab on an SSH host whose CLI is Antigravity: its process
+    /// and files are out of reach. The others tell there only through the title, which tmux on the host passes to the
+    /// tab; the copy of a session file on this Mac is only as new as the host's last refresh.
     var cliActivityProbe: CLIActivityProbe? {
         guard let provider else { return nil }
         guard host == .thisMac else {
