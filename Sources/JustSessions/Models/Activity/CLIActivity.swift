@@ -2,8 +2,8 @@ import Foundation
 
 /// What a running CLI is doing, as far as it tells: Claude Code in its live process registry, Codex in its terminal
 /// title, or in its session file and through its background server, Antigravity in its conversation database, Pi and
-/// OpenCode through the app's extension, and Kiro CLI in its turn markers. A CLI that tells nothing, such as
-/// Antigravity on an SSH host, or a Kiro CLI too old to mark its turns, has no activity; it only runs.
+/// OpenCode through the app's extension, and Kiro CLI in its turn markers. A CLI that tells nothing, such as a Kiro
+/// CLI too old to mark its turns, or Antigravity on an SSH host without `python3`, has no activity; it only runs.
 enum CLIActivity: Equatable, Sendable {
     /// Working on a turn.
     case working
