@@ -119,9 +119,14 @@ final class ConversationStore {
     /// The tools whose CLI each host has, as of the host's last refresh; a host not checked yet is missing.
     /// See `ConversationStore+InstalledCLIs`.
     var installedProvidersByHost: [SessionHost: Set<ConversationProvider>] = [:]
-    /// What the CLI of each session running in tmux on this Mac with no tab open is doing, by conversation id.
-    /// A tab's own CLI is on the tab; see `TerminalSession.cliActivity`.
+    /// What the CLI of each session running in tmux with no tab open is doing, on this Mac or an SSH host, by
+    /// conversation id. A tab's own CLI is on the tab; see `TerminalSession.cliActivity`.
     var detachedCLIActivities: [String: CLIActivity] = [:]
+    /// Reads what such sessions on SSH hosts do; shared by every window. Tests set theirs.
+    @ObservationIgnored var remoteDetachedActivityReader = RemoteDetachedActivityReader.shared
+    /// When each session on an SSH host was first seen running in tmux with no tab, by `host` and tmux name, so only a
+    /// later listing of the host that leaves it out says its CLI ended.
+    @ObservationIgnored var remoteDetachedSince: [RemoteTmuxSessionKey: Date] = [:]
     /// The CLI of each tmux session on this Mac, by session name, as of the last refresh or the closing of its tab.
     var thisMacTmuxPaneProcessIDs: [String: Int32] = [:]
     /// Renames and kills of tmux sessions, in order per host; see `ConversationStore+Tmux`.
