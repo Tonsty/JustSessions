@@ -95,7 +95,8 @@ struct EveryToolStartCommandTests {
             timeout: 10
         ))
 
-        #expect(output.split(separator: "\n").map(String.init) == toolCase.ownWords + toolCase.resumeArguments)
+        let titleArguments = toolCase.provider == .codex ? CodexThreadTitle.launchArguments : []
+        #expect(output.split(separator: "\n").map(String.init) == toolCase.ownWords + titleArguments + toolCase.resumeArguments)
     }
 
     /// Writes a stand-in for the tool's CLI in `~/tools`, and returns the start command that runs it.
