@@ -329,9 +329,8 @@ final class ConversationStore {
     }
 
     func rename(_ conversation: Conversation, to proposedTitle: String) {
-        titleAliases.rename(conversation, to: proposedTitle)
-        titleAliases.save(to: userDefaults)
-        synchronizeTerminalTitles()
+        changeSavedCustomization(\.titleAliases) { $0.rename(conversation, to: proposedTitle) }
+        for store in storesSharingCustomizations { store.synchronizeTerminalTitles() }
     }
 
     func projectDisplayName(forProjectPath projectPath: String) -> String {
@@ -339,39 +338,51 @@ final class ConversationStore {
     }
 
     func renameProject(_ projectPath: String, to proposedName: String) {
-        projectDisplayNames.rename(projectPath: projectPath, to: proposedName)
-        projectDisplayNames.save(to: userDefaults)
+        changeSavedCustomization(\.projectDisplayNames) { $0.rename(projectPath: projectPath, to: proposedName) }
     }
 
     func setPinned(_ isPinned: Bool, projectPath: String) {
-        pinnedItems.setPinned(isPinned, projectPath: projectPath)
-        pinnedItems.save(to: userDefaults)
+        changeSavedCustomization(\.pinnedItems) { $0.setPinned(isPinned, projectPath: projectPath) }
     }
 
     func setPinned(_ isPinned: Bool, conversation: Conversation) {
-        pinnedItems.setPinned(isPinned, conversationID: conversation.id)
-        pinnedItems.save(to: userDefaults)
+        changeSavedCustomization(\.pinnedItems) { $0.setPinned(isPinned, conversationID: conversation.id) }
     }
 
     /// Archiving only hides the sessions from the Projects list; files, open tabs, names, and pins are kept.
     func setArchived(_ isArchived: Bool, conversations: [Conversation]) {
-        var updatedArchive = archivedSessions
-        updatedArchive.setArchived(isArchived, conversationIDs: conversations.map(\.id))
-        guard updatedArchive != archivedSessions else { return }
-        archivedSessions = updatedArchive
-        archivedSessions.save(to: userDefaults)
+        changeSavedCustomization(\.archivedSessions) { $0.setArchived(isArchived, conversationIDs: conversations.map(\.id)) }
     }
 
     /// From a drag in the sidebar: pins the project if it is not pinned yet, at `placement` among the pinned ones.
     func movePinnedProject(_ projectPath: String, to placement: PinnedPlacement) {
-        pinnedItems.movePinnedProject(projectPath, to: placement)
-        pinnedItems.save(to: userDefaults)
+        changeSavedCustomization(\.pinnedItems) { $0.movePinnedProject(projectPath, to: placement) }
     }
 
     /// From a drag in the sidebar: pins the session if it is not pinned yet, at `placement` among the pinned ones.
     func movePinnedConversation(_ conversationID: String, to placement: PinnedPlacement) {
-        pinnedItems.movePinnedConversation(conversationID, to: placement)
-        pinnedItems.save(to: userDefaults)
+        changeSavedCustomization(\.pinnedItems) { $0.movePinnedConversation(conversationID, to: placement) }
+    }
+
+    /// Changes a name, pin, or archiving, which every workspace window shares. The change starts from what is saved,
+    /// not from this window's copy: another window may have changed it since this one loaded it, and saving this
+    /// window's copy lost that change. Every window then shows the result.
+    private func changeSavedCustomization<Customization: SavedCustomization>(
+        _ customization: ReferenceWritableKeyPath<ConversationStore, Customization>,
+        _ change: (inout Customization) -> Void
+    ) {
+        let saved = Customization.load(from: userDefaults)
+        var updated = saved
+        change(&updated)
+        if updated != saved { updated.save(to: userDefaults) }
+        for store in storesSharingCustomizations where store[keyPath: customization] != updated {
+            store[keyPath: customization] = updated
+        }
+    }
+
+    /// This window's store and the other windows' that keep their settings in the same place.
+    private var storesSharingCustomizations: [ConversationStore] {
+        [self] + windowRegistry.stores.filter { $0 !== self && $0.userDefaults === userDefaults }
     }
 
     // MARK: - Deletion
@@ -652,24 +663,13 @@ final class ConversationStore {
         let deletedIDs = Set(deleted.map(\.id))
         conversations.removeAll { deletedIDs.contains($0.id) }
 
-        var remainingTitleAliases = titleAliases
-        for conversationID in deletedIDs { remainingTitleAliases.removeTitle(forConversationID: conversationID) }
-        if remainingTitleAliases != titleAliases {
-            titleAliases = remainingTitleAliases
-            titleAliases.save(to: userDefaults)
+        changeSavedCustomization(\.titleAliases) { aliases in
+            for conversationID in deletedIDs { aliases.removeTitle(forConversationID: conversationID) }
         }
-        var remainingPinnedItems = pinnedItems
-        for conversationID in deletedIDs { remainingPinnedItems.setPinned(false, conversationID: conversationID) }
-        if remainingPinnedItems != pinnedItems {
-            pinnedItems = remainingPinnedItems
-            pinnedItems.save(to: userDefaults)
+        changeSavedCustomization(\.pinnedItems) { pins in
+            for conversationID in deletedIDs { pins.setPinned(false, conversationID: conversationID) }
         }
-        var remainingArchive = archivedSessions
-        remainingArchive.setArchived(false, conversationIDs: deletedIDs)
-        if remainingArchive != archivedSessions {
-            archivedSessions = remainingArchive
-            archivedSessions.save(to: userDefaults)
-        }
+        changeSavedCustomization(\.archivedSessions) { $0.setArchived(false, conversationIDs: deletedIDs) }
     }
 
     // MARK: - Tabs

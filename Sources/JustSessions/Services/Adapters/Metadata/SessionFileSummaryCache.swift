@@ -57,13 +57,18 @@ final class SessionFileSummaryCache<Summary: Sendable & Codable>: @unchecked Sen
 
     /// The summary kept for `file` if the file has not changed since, or else what `read` makes of it now.
     func summary(of file: URL, read: (URL) -> Summary?) -> Summary? {
+        summary(ofGrowingFile: file) { file, _ in read(file) }
+    }
+
+    /// For a file its CLI only adds to: when `file` changed, `read` gets the summary kept for it, if there is one, to
+    /// read on from. `read` checks the file still starts with what that summary read.
+    func summary(ofGrowingFile file: URL, read: (URL, Summary?) -> Summary?) -> Summary? {
         // Taken before reading: a write landing during the read then shows as a change at the next refresh.
-        guard let fingerprint = Fingerprint(file: file) else { return read(file) }
+        guard let fingerprint = Fingerprint(file: file) else { return read(file, nil) }
         let path = file.path
-        if let entry = lock.withLock({ loadSnapshotIfNeeded(); return entriesByPath[path] }), entry.fingerprint == fingerprint {
-            return entry.summary
-        }
-        let summary = read(file)
+        let entry = lock.withLock { loadSnapshotIfNeeded(); return entriesByPath[path] }
+        if let entry, entry.fingerprint == fingerprint { return entry.summary }
+        let summary = read(file, entry?.summary)
         lock.withLock {
             entriesByPath[path] = Entry(fingerprint: fingerprint, summary: summary)
             needsSaving = true

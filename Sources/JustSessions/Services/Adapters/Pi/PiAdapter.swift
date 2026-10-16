@@ -16,12 +16,15 @@ struct PiAdapter: ConversationAdapter {
     /// Shared by every Pi adapter, this Mac's and each SSH host's mirror, which keep their files apart. Subagents' files
     /// can be large and are rarely written to once their run ends.
     private static let subagentSessions = SessionFileSummaryCache<PiSubagentSession>(persistenceFile: SessionSummaryCacheLocation.file(named: "pi-subagents"))
+    /// Each session's `/name`, read on from where the last refresh stopped; see `PiSessionNameScan`.
+    private static let sessionNames = SessionFileSummaryCache<PiSessionNameScan>(persistenceFile: SessionSummaryCacheLocation.file(named: "pi-session-names"))
 
     /// Each session, then the sessions its subagents ran in.
     func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
         try cancellation.checkCancellation()
         var subagentFiles: [URL] = []
-        let conversations = PiSessionsDirectory.sessionFiles(in: sessionsDirectory).flatMap { file -> [Conversation] in
+        let sessionFiles = PiSessionsDirectory.sessionFiles(in: sessionsDirectory)
+        let conversations = sessionFiles.flatMap { file -> [Conversation] in
             guard !cancellation.isCancelled, let conversation = conversation(in: file) else { return [] }
             let subagents = PiSubagentSessions.find(startedBy: file, sessionID: conversation.sessionID) { subagentFile in
                 Self.subagentSessions.summary(of: subagentFile, read: PiSubagentSession.init(file:))
@@ -31,6 +34,7 @@ struct PiAdapter: ConversationAdapter {
         }
         try cancellation.checkCancellation()
         Self.subagentSessions.forgetFiles(in: sessionsDirectory, except: subagentFiles)
+        Self.sessionNames.forgetFiles(in: sessionsDirectory, except: sessionFiles)
         return conversations
     }
 
@@ -55,7 +59,8 @@ struct PiAdapter: ConversationAdapter {
               file.deletingPathExtension().lastPathComponent.hasSuffix("_\(sessionID)"),
               let projectPath = header["cwd"] as? String, projectPath.hasPrefix("/") else { return nil }
         let title = ConversationMetadata.cleanTitle(
-            PiSessionTitle.latestName(in: file) ?? PiSessionTitle.firstUserPrompt(in: file),
+            Self.sessionNames.summary(ofGrowingFile: file) { PiSessionNameScan.scan($0, continuing: $1) }?.latestName
+                ?? PiSessionTitle.firstUserPrompt(in: file),
             fallback: ConversationMetadata.untitledConversationTitle
         )
         return Conversation(
