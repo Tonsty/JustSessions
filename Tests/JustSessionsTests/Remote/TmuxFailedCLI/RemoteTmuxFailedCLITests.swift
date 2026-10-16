@@ -5,6 +5,7 @@ import Testing
 /// A remote tab's CLI that fails in tmux leaves what it printed in the tab, and its status; see
 /// `RemoteTmuxAttachScript`. Runs the tab's command against a real tmux on this Mac, with a private tmux server and
 /// home folder, and stand-ins for the host's login shell and CLI. Skipped where tmux is not installed.
+@Suite(.oneTmuxSandboxAtATime)
 struct RemoteTmuxFailedCLITests {
     @Test func aCLIThatFailsAtOnceLeavesWhatItPrintedAndItsStatus() throws {
         guard let tmuxDirectory = TmuxSandbox.installedTmuxDirectory else { return }

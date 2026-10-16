@@ -4,6 +4,7 @@ import Testing
 
 /// Runs the remote tab's command and the command a new choice sends against a real tmux on this Mac, whose
 /// `~/.tmux.conf` sets both prefix keys. Skipped where tmux is not installed.
+@Suite(.oneTmuxSandboxAtATime)
 struct RemoteTmuxPrefixKeysTests {
     @Test func sessionHasNoPrefixKeysUntilTheHostUsesItsOwnAndEachAttachSetsTheChoiceAgain() throws {
         guard let tmuxDirectory = TmuxSandbox.installedTmuxDirectory else { return }

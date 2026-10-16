@@ -6,6 +6,7 @@ import Testing
 /// title; see `RemoteClaudeActivityRelay`. Runs the tab's command against a real tmux on this Mac, with a private tmux
 /// server and home folder, and a `claude` stand-in that keeps a record as Claude Code 2.1.300 does on Linux. Skipped
 /// where tmux is not installed.
+@Suite(.oneTmuxSandboxAtATime)
 struct RemoteClaudeActivityRelayTests {
     @Test func theTabsTitleSaysWhatTheCLIsRecordSays() throws {
         guard let tmuxDirectory = TmuxSandbox.installedTmuxDirectory else { return }

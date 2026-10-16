@@ -4,6 +4,7 @@ import Testing
 
 /// The parts of `RemoteTmuxAttachScript` a real tmux on this Mac can't show: which tmux versions get the options that
 /// keep a failed CLI's pane, how its captured output is trimmed, and a tmux that can't reach its server.
+@Suite(.oneTmuxSandboxAtATime)
 struct RemoteTmuxAttachScriptTests {
     /// `remain-on-exit failed` came in tmux 3.2; an older one would show "Bad value" in the tab.
     @Test(arguments: [

@@ -16,6 +16,10 @@ struct GhosttyTabOutputTests {
         fixture.view.setWorkspaceActive(false)
         let total = 16 << 20
         try await fixture.start(printing: Self.producer(writing: total))
+        // A process can take long to start on a busy machine, which the main thread shouldn't wait out blocked: on the
+        // release runner, it blocked for its whole 20 seconds with nothing written.
+        try await expectEventually { Self.hasStarted(in: fixture) }
+        fixture.signal("write")
 
         // The main thread is busy, as when it draws or lays out for a long time.
         let written = Self.bytesWrittenOnceTheProcessStops(in: fixture)
@@ -132,10 +136,13 @@ struct GhosttyTabOutputTests {
         Thread.sleep(forTimeInterval: seconds)
     }
 
-    /// Writes `total` bytes of lines in 64 KiB writes, then `PRODUCER-DONE`, keeping the count written in `progress`.
+    /// Once it has started and been signalled `write`, writes `total` bytes of lines in 64 KiB writes, then
+    /// `PRODUCER-DONE`, keeping the count written in `progress`.
     private static func producer(writing total: Int) -> String {
         #"""
         /usr/bin/perl -e '
+            open(my $started, ">", "started") or die; close $started;
+            select(undef, undef, undef, 0.01) until -e "write";
             my $chunk = (("x" x 1023) . "\r\n") x 64;
             my $written = 0;
             while ($written < \#(total)) {
@@ -147,6 +154,10 @@ struct GhosttyTabOutputTests {
             syswrite(STDOUT, "PRODUCER-DONE");
         '
         """#
+    }
+
+    private static func hasStarted(in fixture: GhosttyTabFixture) -> Bool {
+        FileManager.default.fileExists(atPath: fixture.folder.appendingPathComponent("started").path)
     }
 
     private static func progress(in fixture: GhosttyTabFixture) -> Int {

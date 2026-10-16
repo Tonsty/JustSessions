@@ -4,6 +4,7 @@ import Testing
 
 /// Runs the commands against a real tmux on this Mac, with a private tmux server and home folder, and stand-ins for
 /// the host's login shell and CLI; see `TmuxSandbox`. Skipped where tmux is not installed.
+@Suite(.oneTmuxSandboxAtATime)
 struct RemoteTmuxEndingBeforeDeletionTests {
     /// The CLI takes a second to exit after its terminal hangs up, as a CLI saving on exit might.
     @Test func endingTheSessionReturnsOnceItsCLIHasExited() throws {

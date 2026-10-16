@@ -7,6 +7,7 @@ import Testing
 /// private tmux server and home folder, and an `agy` stand-in that keeps a database as Antigravity CLI 1.3.6 does: its
 /// `steps`, and an `executor_metadata` row naming each ended turn's last step. On this Mac the relay finds the database
 /// with `lsof`; Linux's `/proc` was checked live. Skipped where tmux or `python3` is missing.
+@Suite(.oneTmuxSandboxAtATime)
 struct RemoteAntigravityActivityRelayTests {
     @Test func readsTheNamesTheRelayKeeps() {
         #expect(RemoteAntigravityActivityRelay.activity(named: "working") == .working)

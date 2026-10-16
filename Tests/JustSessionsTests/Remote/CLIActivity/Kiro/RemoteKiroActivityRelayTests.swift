@@ -6,6 +6,7 @@ import Testing
 /// see `RemoteKiroActivityRelay`. Runs the tab's command against a real tmux on this Mac, with a private tmux server and
 /// home folder, and a `kiro-cli` stand-in that marks its turns as Kiro CLI 2.31.1 does: in a marker named after its TUI,
 /// a child process. Skipped where tmux is not installed.
+@Suite(.oneTmuxSandboxAtATime)
 struct RemoteKiroActivityRelayTests {
     @Test func theTabsTitleSaysWhetherTheCLIHasATurnUnderWay() throws {
         guard let tmuxDirectory = TmuxSandbox.installedTmuxDirectory else { return }
