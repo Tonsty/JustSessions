@@ -28,7 +28,7 @@ struct SidebarSearchField: View {
         }
         .font(ThemeFont.callout)
         .padding(.horizontal, 9)
-        .frame(height: 28)
+        .frame(height: InterfaceScale.points(28))
         .background(ThemePalette.raisedSurface, in: RoundedRectangle(.control))
         .overlay(RoundedRectangle(.control).strokeBorder(ThemePalette.hairline))
         .padding(.horizontal, 12)

@@ -47,7 +47,7 @@ struct HostCheckProgressView: View {
                 }
             }
             .font(ThemeFont.body)
-            .frame(width: 16, height: 16)
+            .frame(width: InterfaceScale.points(16), height: InterfaceScale.points(16))
             Text(title(of: rowStep))
                 .font(ThemeFont.callout)
                 .foregroundStyle(rowStep > step ? ThemePalette.tertiaryText : ThemePalette.ink)

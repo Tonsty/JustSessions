@@ -18,7 +18,7 @@ struct SidebarHostRefreshButton: View {
                     Image(systemName: "arrow.clockwise")
                         .font(ThemeFont.glyph(.control, weight: .medium))
                         .foregroundStyle(ThemePalette.secondaryText)
-                        .frame(width: 16, height: 20)
+                        .frame(width: InterfaceScale.points(16), height: InterfaceScale.points(20))
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(ThemePlainButtonStyle(cornerRadius: .small))
@@ -27,7 +27,7 @@ struct SidebarHostRefreshButton: View {
                 .accessibilityLabel(refreshAccessibilityLabel)
             }
         }
-        .frame(width: 16, height: 20)
+        .frame(width: InterfaceScale.points(16), height: InterfaceScale.points(20))
         .accessibilityIdentifier(host.sshDestination.map { "sidebar.refreshHost.ssh.\($0)" } ?? "sidebar.refreshHost.thisMac")
     }
 

@@ -25,7 +25,7 @@ struct SidebarOpenTabGroupHeading: View {
     var isHoveredForTests: Bool? = nil
     private var hovered: Bool { isHoveredForTests ?? isHovered }
 
-    static let height: CGFloat = 24
+    static var height: CGFloat { InterfaceScale.points(24) }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -36,7 +36,7 @@ struct SidebarOpenTabGroupHeading: View {
                         .foregroundStyle(color)
                         .rotationEffect(.degrees(isCollapsed ? 0 : 90))
                         .animation(ThemeMotion.disclosure, value: isCollapsed)
-                        .frame(width: 14)
+                        .frame(width: InterfaceScale.points(14))
                     HStack(spacing: 5) {
                         Text(verbatim: projectName)
                             .foregroundStyle(color)

@@ -4,6 +4,7 @@ import CoreGraphics
 /// narrow together as more open, each title cut shorter, down to the narrowest width. Past that, the bar scrolls.
 /// A split's two tabs together take one tab's place, each half as wide, as Chrome's split tabs are, until they are as
 /// narrow as split tabs get; then each split keeps that width and the other tabs share what is left.
+@MainActor
 enum WorkspaceTabWidth {
     /// One width for every shown tab in no split.
     /// - Parameters:

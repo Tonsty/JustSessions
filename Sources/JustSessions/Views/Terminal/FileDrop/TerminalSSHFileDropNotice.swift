@@ -6,7 +6,7 @@ import SwiftUI
 struct TerminalSSHFileDropNotice: View {
     @ObservedObject var fileDrop: TerminalSSHFileDrop
 
-    static let maximumWidth: CGFloat = 320
+    static var maximumWidth: CGFloat { InterfaceScale.points(320) }
     static let marginFromTerminalEdges: CGFloat = 12
 
     var body: some View {
@@ -81,7 +81,7 @@ struct TerminalSSHFileDropNotice: View {
                     Image(systemName: "xmark")
                         .font(ThemeFont.glyph(.control, weight: .semibold))
                         .foregroundStyle(ThemePalette.secondaryText)
-                        .frame(width: 22, height: 22)
+                        .frame(width: InterfaceScale.points(22), height: InterfaceScale.points(22))
                         .contentShape(Circle())
                 }
                 .buttonStyle(ThemePlainButtonStyle(cornerRadius: nil))

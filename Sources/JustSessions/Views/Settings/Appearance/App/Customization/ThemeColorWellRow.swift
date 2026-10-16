@@ -30,7 +30,7 @@ struct ThemeColorWellRow: View {
                     Image(systemName: "arrow.uturn.backward")
                         .font(ThemeFont.detail)
                         .foregroundStyle(ThemePalette.secondaryText)
-                        .frame(width: 20, height: 20)
+                        .frame(width: InterfaceScale.points(20), height: InterfaceScale.points(20))
                 }
                 .buttonStyle(ThemePlainButtonStyle())
                 .help("Use the theme's own color")

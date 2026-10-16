@@ -3951,6 +3951,16 @@
         }
       }
     },
+    "Interface size": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "界面大小"
+          }
+        }
+      }
+    },
     "It didn't print its version within %lld seconds.": {
       "localizations": {
         "zh-Hans": {

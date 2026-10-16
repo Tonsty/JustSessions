@@ -15,7 +15,7 @@ struct SidebarShowMoreSessionsRow: View {
                 .foregroundStyle(ThemePalette.secondaryText)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .frame(height: 28)
+                .frame(height: InterfaceScale.points(28))
                 .padding(.leading, SidebarSessionRowMetrics.leadingPadding(indentLevel: 0) + SidebarSessionRowMetrics.iconWidth + 8)
                 .padding(.trailing, SidebarSessionRowMetrics.trailingPadding)
                 .contentShape(Rectangle())

@@ -12,7 +12,7 @@ struct SidebarSSHHostMoreActionsMenu: View {
             Image(systemName: "ellipsis")
                 .font(ThemeFont.glyph(.control, weight: .bold))
                 .foregroundStyle(ThemePalette.secondaryText)
-                .frame(width: 16, height: 16)
+                .frame(width: InterfaceScale.points(16), height: InterfaceScale.points(16))
                 .contentShape(Rectangle())
         }
         .menuStyle(.button)

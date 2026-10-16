@@ -30,6 +30,6 @@ struct ProjectHoverActions<MenuItems: View>: View {
     /// 20-point glyph, and `.fixedSize()` lets the menus take their labels' 14-point height.
     static var placeholder: some View {
         Color.clear
-            .frame(width: 40, height: 14)
+            .frame(width: InterfaceScale.points(40), height: InterfaceScale.points(14))
     }
 }

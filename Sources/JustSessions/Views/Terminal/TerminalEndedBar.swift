@@ -56,7 +56,7 @@ struct TerminalEndedBar: View {
             }
         }
         .padding(.horizontal, 16)
-        .frame(minHeight: 32)
+        .frame(minHeight: InterfaceScale.points(32))
         .background(ThemePalette.contentSurface)
     }
 

@@ -13,12 +13,12 @@ struct SidebarNotificationBellButton: View {
         let entries = store.notificationBellEntries
         Button { isShowingList.toggle() } label: {
             Image(systemName: "bell")
-                .frame(width: 24, height: 24)
+                .frame(width: InterfaceScale.points(24), height: InterfaceScale.points(24))
                 .overlay(alignment: .topTrailing) {
                     if !entries.isEmpty {
                         Circle()
                             .fill(ThemePalette.unseenTurn)
-                            .frame(width: 6, height: 6)
+                            .frame(width: InterfaceScale.points(6), height: InterfaceScale.points(6))
                             .offset(x: -4, y: 4)
                     }
                 }

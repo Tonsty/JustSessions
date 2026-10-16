@@ -7,7 +7,7 @@ struct TerminalFindBar: View {
     @Bindable var findState: TerminalFindState
     @FocusState private var isFieldFocused: Bool
 
-    static let width: CGFloat = 340
+    static var width: CGFloat { InterfaceScale.points(340) }
 
     private var localizedResultLabel: LocalizedStringKey {
         guard !findState.query.isEmpty, let matchCount = findState.matchCount else { return "" }

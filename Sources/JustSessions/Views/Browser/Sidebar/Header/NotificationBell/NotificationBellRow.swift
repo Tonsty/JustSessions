@@ -6,7 +6,7 @@ struct NotificationBellRow: View {
     let entry: NotificationBellEntry
     let onShow: () -> Void
 
-    static let height: CGFloat = 42
+    static var height: CGFloat { InterfaceScale.points(42) }
 
     var body: some View {
         Button(action: onShow) {
@@ -14,7 +14,7 @@ struct NotificationBellRow: View {
                 entry.provider.iconImage(size: 10)
                     .foregroundStyle(entry.provider.tintColor)
                     .font(ThemeFont.glyph(.control, weight: .medium))
-                    .frame(width: 14)
+                    .frame(width: InterfaceScale.points(14))
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: entry.sessionTitle)
                         .font(ThemeFont.callout)

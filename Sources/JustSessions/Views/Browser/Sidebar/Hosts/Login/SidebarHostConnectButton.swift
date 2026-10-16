@@ -12,7 +12,7 @@ struct SidebarHostConnectButton: View {
         if isLoggingIn {
             ProgressView()
                 .controlSize(.mini)
-                .frame(height: 20)
+                .frame(height: InterfaceScale.points(20))
                 .accessibilityLabel(Text("Connecting to \(host.displayName)…"))
         } else {
             Button("Connect…", action: action)

@@ -10,7 +10,7 @@ struct SidebarNewSessionButton: View {
             Image(systemName: "plus")
                 .font(ThemeFont.callout.weight(.semibold))
                 .foregroundStyle(ThemePalette.ink)
-                .frame(width: 26, height: 26)
+                .frame(width: InterfaceScale.points(26), height: InterfaceScale.points(26))
                 .background(ThemePalette.trackFill, in: RoundedRectangle(.control))
         }
         .buttonStyle(ThemePlainButtonStyle(cornerRadius: .control))

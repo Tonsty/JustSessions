@@ -17,7 +17,7 @@ struct ThemedCheckboxToggleStyle: ToggleStyle {
                                 .foregroundStyle(ThemePalette.inkForeground)
                         }
                     }
-                    .frame(width: 16, height: 16)
+                    .frame(width: InterfaceScale.points(16), height: InterfaceScale.points(16))
                 configuration.label.foregroundStyle(ThemePalette.ink)
             }
         }

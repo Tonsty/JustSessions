@@ -35,7 +35,7 @@ struct SidebarHostAddProjectButton: View {
     static var placeholder: some View {
         Image(systemName: "plus")
             .font(ThemeFont.glyph(.control, weight: .bold))
-            .frame(width: 16, height: 16)
+            .frame(width: InterfaceScale.points(16), height: InterfaceScale.points(16))
             .hidden()
     }
 
@@ -43,7 +43,7 @@ struct SidebarHostAddProjectButton: View {
         Image(systemName: "plus")
             .font(ThemeFont.glyph(.control, weight: .bold))
             .foregroundStyle(ThemePalette.secondaryText)
-            .frame(width: 16, height: 16)
+            .frame(width: InterfaceScale.points(16), height: InterfaceScale.points(16))
             .contentShape(Rectangle())
     }
 
