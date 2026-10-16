@@ -110,7 +110,7 @@ struct RemoteDetachedActivityTests {
     }
 
     /// While the app is busy, an answer can come long after the host was asked; it is as new as its answer.
-    @Test func aListingIsAsNewAsItsAnswer() async {
+    @Test(.oneHeldThreadAtATime) func aListingIsAsNewAsItsAnswer() async {
         var now = Date(timeIntervalSince1970: 1_000)
         let asked = CallCounter(), answer = DispatchSemaphore(value: 0)
         let reader = RemoteDetachedActivityReader(listPanes: { _ in

@@ -4,6 +4,7 @@ import Testing
 @testable import JustSessions
 
 /// Deleting many sessions at once: SSH hosts that cannot be reached, Cancel, and how often the list changes.
+@Suite(.oneHeldThreadAtATime)
 @MainActor
 struct BulkSessionDeletionTests {
     @Test func anUnreachableHostIsTriedOnceAndItsSessionsStayListed() async throws {
