@@ -88,8 +88,10 @@ struct RemoteAntigravityActivityRelayTests {
                 else:
                     return out + bytes([byte])
 
+        # A protobuf Timestamp's seconds and nanoseconds, as Antigravity writes them: the relay compares the step's
+        # time with its own start, which is less than a second earlier when a test writes a turn right away.
         def payload(seconds):
-            timestamp = b"\x08" + varint(int(seconds))
+            timestamp = b"\x08" + varint(int(seconds)) + b"\x10" + varint(int(seconds % 1 * 1e9))
             inner = b"\x0a" + varint(len(timestamp)) + timestamp
             return b"\x2a" + varint(len(inner)) + inner
 

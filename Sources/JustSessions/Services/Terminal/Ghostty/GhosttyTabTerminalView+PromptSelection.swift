@@ -2,12 +2,14 @@ import AppKit
 import GhosttyTerminal
 
 /// See `TerminalPromptSelection`. Ghostty has no keybinding for ⌘A (see `GhosttyAppearanceConfiguration`), so ⌘A
-/// reaches the terminal in `performKeyEquivalent`, before the Edit menu's Select All.
+/// reaches the terminal in `performKeyEquivalent`, before the Edit menu's Select All. Control keys in this Mac's tmux
+/// go there too; see `GhosttyTabTerminalView+ControlKeys`.
 extension GhosttyTabTerminalView: PromptSelectableTerminal {
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
         if window?.firstResponder === self, PromptSelectionKeyAction.isSelectAll(event), promptSelection.selectPrompt() {
             return true
         }
+        if sendControlKeyToThisMacTmux(event) { return true }
         return super.performKeyEquivalent(with: event)
     }
 
