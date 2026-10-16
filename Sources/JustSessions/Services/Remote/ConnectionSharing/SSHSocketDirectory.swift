@@ -17,8 +17,21 @@ enum SSHSocketDirectory {
         processID: pid_t = getpid(),
         identifier: UUID = UUID()
     ) -> URL? {
-        makeDirectory(at: rootPath, named: "login-\(processID)-\(identifier.uuidString)")
+        makeDirectory(at: rootPath, named: "\(loginPrefix)-\(processID)-\(identifier.uuidString)")
     }
+
+    /// Makes a new directory for the connection that carries one host's port forwards, named as a login's is, for the
+    /// same reason; see `SSHPortForwardConnection`.
+    static func makePortForwardDirectory(
+        at rootPath: String,
+        processID: pid_t = getpid(),
+        identifier: UUID = UUID()
+    ) -> URL? {
+        makeDirectory(at: rootPath, named: "\(portForwardPrefix)-\(processID)-\(identifier.uuidString)")
+    }
+
+    private static let loginPrefix = "login"
+    private static let portForwardPrefix = "forward"
 
     /// The login directories whose app is no longer running, as after a crash; another copy of the app that still
     /// runs keeps its own. Only names made by `makeLoginDirectory` count, so a folder named any other way, whose
@@ -27,12 +40,28 @@ enum SSHSocketDirectory {
         at rootPath: String,
         isRunning: (pid_t) -> Bool = SSHSocketDirectory.isRunning
     ) -> [URL] {
+        directoriesOfEndedProcesses(at: rootPath, prefix: loginPrefix, isRunning: isRunning)
+    }
+
+    /// The port forward connections' directories whose app is no longer running, told apart as logins' are.
+    static func portForwardDirectoriesOfEndedProcesses(
+        at rootPath: String,
+        isRunning: (pid_t) -> Bool = SSHSocketDirectory.isRunning
+    ) -> [URL] {
+        directoriesOfEndedProcesses(at: rootPath, prefix: portForwardPrefix, isRunning: isRunning)
+    }
+
+    private static func directoriesOfEndedProcesses(
+        at rootPath: String,
+        prefix: String,
+        isRunning: (pid_t) -> Bool
+    ) -> [URL] {
         guard preparedRoot(at: rootPath) != nil,
               let names = try? FileManager.default.contentsOfDirectory(atPath: rootPath) else { return [] }
         let root = URL(fileURLWithPath: rootPath, isDirectory: true)
         return names.sorted().compactMap { name in
             let parts = name.split(separator: "-", maxSplits: 2)
-            guard parts.count == 3, parts[0] == "login", let processID = pid_t(parts[1]),
+            guard parts.count == 3, parts[0] == prefix, let processID = pid_t(parts[1]),
                   UUID(uuidString: String(parts[2])) != nil, !isRunning(processID) else { return nil }
             return root.appendingPathComponent(name, isDirectory: true)
         }
