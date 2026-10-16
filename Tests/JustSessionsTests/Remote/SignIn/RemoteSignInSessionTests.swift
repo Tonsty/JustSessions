@@ -157,15 +157,20 @@ struct RemoteSignInSessionTests {
         #expect(message.contains("Your account is locked"))
     }
 
+    /// The command outlives any stall of a full run, so only the time limit can end it: in the v1.2.14 release run a
+    /// 30-second one ended by itself before the session looked, and signed in.
     @Test func aCommandThatNeverEndsIsStoppedAtTheTimeLimit() async {
         var timing = Self.fastTiming
         timing.timeLimit = .seconds(1)
+        let started = ContinuousClock.now
 
-        let outcome = await session(running: "sleep 30", timing: timing).run { _ in nil }
+        let outcome = await session(running: "sleep 600", timing: timing).run { _ in nil }
 
-        guard case .failed = outcome else {
+        guard case .failed(let message) = outcome else {
             Issue.record("Expected a failure, got \(outcome)")
             return
         }
+        #expect(message.contains("5 minutes") || message.contains("stopped"))
+        #expect(ContinuousClock.now - started < .seconds(300))
     }
 }
