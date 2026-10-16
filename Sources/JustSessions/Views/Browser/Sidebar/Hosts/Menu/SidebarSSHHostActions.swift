@@ -17,5 +17,10 @@ struct SidebarSSHHostActions {
     let login: SidebarSSHHostLogin
     let onConnect: () -> Void
     let onDisconnect: () -> Void
+    /// The host's port forwards, and Forward a port…; see `SSHPortForwards`.
+    let portForwards: [SSHPortForwards.Entry]
+    let onForwardPort: () -> Void
+    let onTryPortForwardsAgain: () -> Void
+    let onStopPortForward: (SSHPortForward) -> Void
     let onRemove: () -> Void
 }

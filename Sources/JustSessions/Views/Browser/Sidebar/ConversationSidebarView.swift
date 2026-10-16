@@ -45,6 +45,7 @@ struct ConversationSidebarView: View {
     @State private var hostShowingArchivedProjects: SessionHost?
     /// The SSH host a folder path is being typed for, from its heading's +.
     @State private var sshHostAddingProject: SessionHost?
+    @State private var sshHostForwardingPort: SessionHost?
     /// A project to scroll into view once it is listed: one just added from a host's heading, as a project with no
     /// sessions sorts last under its host and could otherwise be added out of sight, or the onboarding tour's.
     @State var projectToReveal: String?
@@ -193,6 +194,13 @@ struct ConversationSidebarView: View {
             AddProjectOnSSHHostSheet(store: store, host: host, onAdded: revealAddedProject)
         }
         .dismissesOnClickOutside(item: $sshHostAddingProject)
+        .sheet(item: $sshHostForwardingPort) { host in
+            if let destination = host.sshDestination {
+                ForwardPortSheet(host: destination)
+                    .appLanguage(from: .shared)
+            }
+        }
+        .dismissesOnClickOutside(item: $sshHostForwardingPort)
         .sshLoginQuestions(from: sshLoginPrompter)
         .onAppear { expandProjectsWithOpenTerminals() }
         .onOnboardingTourStop(showOnboardingTourStop)
@@ -255,6 +263,10 @@ struct ConversationSidebarView: View {
                         store.logInFromHeading(to: destination) { await sshLoginPrompter.ask($0) }
                     },
                     onDisconnect: { store.disconnect(destination) },
+                    portForwards: SSHPortForwards.shared.entries(on: destination),
+                    onForwardPort: { sshHostForwardingPort = section.host },
+                    onTryPortForwardsAgain: { SSHPortForwards.shared.tryAgain(onlyOn: destination) },
+                    onStopPortForward: { SSHPortForwards.shared.stop($0) },
                     onRemove: { store.removeRemoteHost(destination) }
                 )
             }

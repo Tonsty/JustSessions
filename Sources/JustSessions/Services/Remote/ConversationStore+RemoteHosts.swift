@@ -88,6 +88,7 @@ extension ConversationStore {
     func removeRemoteHost(_ host: String, mirror: RemoteSessionMirror = RemoteSessionMirror()) {
         remoteHostList.remove(host)
         disconnect(host)
+        SSHPortForwards.shared.stopAll(on: host)
         forgetLoginState(on: host)
         messageIndexer.removeHost(.ssh(host))
         remoteHostList.save(to: userDefaults)

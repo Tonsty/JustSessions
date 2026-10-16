@@ -116,6 +116,22 @@
         }
       }
     },
+    "%@ doesn't allow forwarding to this port: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ doesn't allow forwarding to this port: %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 不允许转发到这个端口：%2$@"
+          }
+        }
+      }
+    },
     "%@ has a problem: %@": {
       "localizations": {
         "en": {
@@ -128,6 +144,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ 有问题：%2$@"
+          }
+        }
+      }
+    },
+    "%@ has no tool that lists its ports. Type the port instead.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 上没有能列出端口的工具。请直接输入端口。"
           }
         }
       }
@@ -1095,6 +1121,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "已归档的项目会从侧栏中隐藏。其文件夹和会话仍保留在磁盘上，恢复后会重新列出。在其文件夹中新建会话也会恢复该项目。"
+          }
+        }
+      }
+    },
+    "Another program on this Mac uses port %@. Choose another port on this Mac.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 Mac 上的另一个程序正在使用端口 %@。请为此 Mac 选择其他端口。"
           }
         }
       }
@@ -2482,6 +2518,16 @@
         }
       }
     },
+    "Copy address": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制地址"
+          }
+        }
+      }
+    },
     "Copy code": {
       "localizations": {
         "zh-Hans": {
@@ -2684,6 +2730,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法启动会话"
+          }
+        }
+      }
+    },
+    "Couldn't ask %@ which ports it listens on. Type the port instead.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法向 %@ 查询它在监听哪些端口。请直接输入端口。"
           }
         }
       }
@@ -3132,6 +3188,16 @@
         }
       }
     },
+    "Enter a port from 1 to 65535.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入 1 到 65535 之间的端口。"
+          }
+        }
+      }
+    },
     "Enter only the host, such as `devbox` or `me@devbox`. Options such as a key or a jump host go in `~/.ssh/config`.": {
       "localizations": {
         "zh-Hans": {
@@ -3540,12 +3606,62 @@
         }
       }
     },
+    "Forward a port": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "转发端口"
+          }
+        }
+      }
+    },
+    "Forward a port…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "转发端口…"
+          }
+        }
+      }
+    },
     "Forward again": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "再次前进"
+          }
+        }
+      }
+    },
+    "Forward port": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "转发端口"
+          }
+        }
+      }
+    },
+    "Forwarded to %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已转发到 %@"
+          }
+        }
+      }
+    },
+    "Forwarding…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在转发…"
           }
         }
       }
@@ -4264,6 +4380,16 @@
         }
       }
     },
+    "Listening on %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 上正在监听的端口"
+          }
+        }
+      }
+    },
     "Lists the monospaced fonts installed on this Mac.": {
       "localizations": {
         "zh-Hans": {
@@ -4933,6 +5059,16 @@
         }
       }
     },
+    "Nothing on %@ listens on a port that localhost reaches.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 上没有在 localhost 可访问的端口上监听的程序。"
+          }
+        }
+      }
+    },
     "Notifications": {
       "localizations": {
         "zh-Hans": {
@@ -5119,6 +5255,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "在独立阅读窗口中打开"
+          }
+        }
+      }
+    },
+    "Open in browser": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在浏览器中打开"
           }
         }
       }
@@ -5363,6 +5509,52 @@
         }
       }
     },
+    "Port %@ on this Mac already forwards to port %@ on %@.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Port %1$@ on this Mac already forwards to port %2$@ on %3$@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 Mac 的端口 %1$@ 已转发到 %3$@ 的端口 %2$@。"
+          }
+        }
+      }
+    },
+    "Port on %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 上的端口"
+          }
+        }
+      }
+    },
+    "Port on the host": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主机上的端口"
+          }
+        }
+      }
+    },
+    "Port on this Mac": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 Mac 上的端口"
+          }
+        }
+      }
+    },
     "Prefer Ghostty's renderer? Pick it in Settings → Appearance → Terminal → Engine. New tabs use it.": {
       "localizations": {
         "zh-Hans": {
@@ -5513,6 +5705,16 @@
         }
       }
     },
+    "Reach a port on %@ at localhost on this Mac. Only this Mac can use it, and it stops when JustSessions quits.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在此 Mac 上通过 localhost 访问 %@ 上的端口。只有此 Mac 可以使用，JustSessions 退出时转发会停止。"
+          }
+        }
+      }
+    },
     "Read a conversation in its own window with **Open in new window**.": {
       "localizations": {
         "zh-Hans": {
@@ -5599,6 +5801,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "重新连接"
+          }
+        }
+      }
+    },
+    "Reconnecting…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在重新连接…"
           }
         }
       }
@@ -6107,6 +6319,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "用户指南中的 SSH 设置 ↗"
+          }
+        }
+      }
+    },
+    "Same as on the host": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "与主机上的相同"
           }
         }
       }
@@ -6953,6 +7175,16 @@
         }
       }
     },
+    "Stop forwarding": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止转发"
+          }
+        }
+      }
+    },
     "Stop the running CLIs of the selected sessions; they can be resumed": {
       "localizations": {
         "zh-Hans": {
@@ -7009,6 +7241,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "子代理"
+          }
+        }
+      }
+    },
+    "Such as 3000": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 3000"
           }
         }
       }
@@ -8213,6 +8455,16 @@
         }
       }
     },
+    "ssh couldn't forward the port: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ssh 无法转发该端口：%@"
+          }
+        }
+      }
+    },
     "tmux isn't installed on %@, so CLIs there run without it: closing a tab or losing the connection ends them.": {
       "localizations": {
         "zh-Hans": {
@@ -8338,6 +8590,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在查找各个 CLI"
+          }
+        }
+      }
+    },
+    "Looking up the ports %@ listens on…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在查找 %@ 监听的端口…"
           }
         }
       }
