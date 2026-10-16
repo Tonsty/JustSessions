@@ -78,7 +78,7 @@ struct ThisMacTmuxStoreTests {
         let tab = try #require(store.terminalSessions.last)
         let tmuxSessionName = try #require(tab.tmuxSessionName)
         #expect(tmuxSessionName.hasPrefix("justsessions-codex-new-"))
-        #expect(tab.terminalView.sendsShiftReturnAsCSIu)
+        #expect(tab.terminalView.cliRunsInThisMacTmux)
         tab.startIfNeeded()
         try #require(await sandbox.waitUntil { sandbox.server.sessionNames() == [tmuxSessionName] }, "\(sandbox.launchDiagnostics(for: tab))")
 

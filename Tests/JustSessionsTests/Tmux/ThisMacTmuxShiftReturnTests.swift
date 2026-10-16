@@ -71,10 +71,10 @@ struct ThisMacTmuxShiftReturnTests {
             )
         }
 
-        #expect(tab(host: .thisMac, tmuxSessionName: "justsessions-claude-abc").terminalView.sendsShiftReturnAsCSIu)
-        #expect(!tab(host: .thisMac, tmuxSessionName: nil).terminalView.sendsShiftReturnAsCSIu)
+        #expect(tab(host: .thisMac, tmuxSessionName: "justsessions-claude-abc").terminalView.cliRunsInThisMacTmux)
+        #expect(!tab(host: .thisMac, tmuxSessionName: nil).terminalView.cliRunsInThisMacTmux)
         // tmux on an SSH host keeps its own key settings, which may not pass CSI u on.
-        #expect(!tab(host: .ssh("devbox"), tmuxSessionName: "justsessions-claude-abc").terminalView.sendsShiftReturnAsCSIu)
+        #expect(!tab(host: .ssh("devbox"), tmuxSessionName: "justsessions-claude-abc").terminalView.cliRunsInThisMacTmux)
     }
 
     private func returnKeyEvent(modifiers: NSEvent.ModifierFlags, windowNumber: Int) -> NSEvent {

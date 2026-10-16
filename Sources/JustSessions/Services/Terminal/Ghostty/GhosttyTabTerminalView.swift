@@ -8,9 +8,10 @@ import SwiftTerm
 /// SwiftTerm's, and hands Ghostty the output; Ghostty hands back what you type and the size it lays the text out at.
 /// Ghostty's colors and font come from its controller's configuration; see `GhosttyTerminalControllers`.
 final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
-    /// For a tab whose CLI runs in tmux on this Mac; see `SelectableTerminalView.sendsShiftReturnAsCSIu`. Ghostty
-    /// would send Shift-Return as `CSI 27 ; 2 ; 13 ~`, so the tab sends CSI u itself.
-    var sendsShiftReturnAsCSIu = false
+    /// For a tab whose CLI runs in tmux on this Mac; see `SelectableTerminalView.cliRunsInThisMacTmux`. Ghostty
+    /// would send Shift-Return as `CSI 27 ; 2 ; 13 ~`, so the tab sends CSI u itself, and Control keys as
+    /// `GhosttyTabTerminalView+ControlKeys` does.
+    var cliRunsInThisMacTmux = false
     var onBackgroundColorChange: (() -> Void)?
     /// See `SelectableTerminalView.onUnheardLightDarkChange`.
     var onUnheardLightDarkChange: (() -> Void)?
@@ -75,7 +76,7 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     private var themeReportAfterBackgroundAnswer: String?
     /// The screen, keyboard, and paste modes the process's output last set, for Page Up and Page Down and for an
     /// image pasted on a tab on this Mac.
-    private var outputModeScanner = TerminalOutputModeScanner()
+    private(set) var outputModeScanner = TerminalOutputModeScanner()
 
     override convenience init(frame: NSRect) {
         self.init(frame: frame, appearanceStore: .shared, themeStore: .shared)
@@ -182,7 +183,7 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     /// While an input method composes text, Return belongs to it. tmux never turns on the kitty keyboard protocol for
     /// the tab, which is when the SwiftTerm tab leaves Shift-Return alone, so this one doesn't ask.
     override func keyDown(with event: NSEvent) {
-        if sendsShiftReturnAsCSIu, ShiftReturnKey.matches(event), !hasMarkedText() {
+        if cliRunsInThisMacTmux, ShiftReturnKey.matches(event), !hasMarkedText() {
             sendAsTyped(ShiftReturnKey.csiUSequence)
             return
         }
