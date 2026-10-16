@@ -152,8 +152,10 @@ struct RemoteCLIInvocationTests {
         }
         let record = root.appendingPathComponent("launch")
         let cli = cliFolder.appendingPathComponent("claude")
+        // The record is found from the stand-in's own path, so every case's stand-in is the same script, which macOS
+        // checks only once; see `writeExecutableScript(_:to:)`.
         try writeExecutableScript(
-            "#!/bin/sh\n{ ps -o comm= -p \"$PPID\"; printf '%s\\n' \"$@\"; } > '\(record.path)'\n",
+            "#!/bin/sh\n{ ps -o comm= -p \"$PPID\"; printf '%s\\n' \"$@\"; } > \"${0%/*}/../\(record.lastPathComponent)\"\n",
             to: cli
         )
         let programsRun = root.appendingPathComponent("programs-run")
