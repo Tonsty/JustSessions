@@ -60,9 +60,7 @@ struct InterfaceSizeTests {
         let width = label.fittingSize.width
 
         store.setScale(1.5)
-        for _ in 0..<10 where label.fittingSize.width < width * 1.4 {
-            try await Task.sleep(for: .milliseconds(20))
-        }
+        try await expectEventually { label.fittingSize.width > width * 1.4 }
 
         #expect(label.fittingSize.width > width * 1.4)
     }

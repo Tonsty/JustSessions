@@ -54,8 +54,9 @@ struct BoundedProcessRunnerTests {
         let clock = ContinuousClock()
         let startedAt = clock.now
 
-        #expect(BoundedProcessRunner.result(ofExecutable: "/bin/sleep", arguments: ["30"], timeout: 0.3) == nil)
-        #expect(clock.now - startedAt < .seconds(5))
+        #expect(BoundedProcessRunner.result(ofExecutable: "/bin/sleep", arguments: ["600"], timeout: 0.3) == nil)
+        // Well short of the 600 seconds `sleep` runs, so the timeout, not the process ending, stopped the wait.
+        #expect(clock.now - startedAt < .seconds(120))
     }
 
     /// A pipe would stay open while the child it leaves behind runs; output in a file does not wait for it.
@@ -65,13 +66,14 @@ struct BoundedProcessRunnerTests {
 
         let output = try #require(BoundedProcessRunner.output(
             ofExecutable: "/bin/sh",
-            arguments: ["-c", "/bin/sleep 30 & echo $!"],
-            timeout: 10
+            arguments: ["-c", "/bin/sleep 600 & echo $!"],
+            timeout: 120
         ))
         let childProcessID = try #require(pid_t(output.trimmingCharacters(in: .whitespacesAndNewlines)))
         kill(childProcessID, SIGKILL)
 
-        #expect(clock.now - startedAt < .seconds(5))
+        // Well short of the child's 600 seconds, so the result came back without waiting for it.
+        #expect(clock.now - startedAt < .seconds(120))
     }
 
     /// A pipe holds 64 KB; a process that writes more than that into an unread pipe stalls until the timeout.

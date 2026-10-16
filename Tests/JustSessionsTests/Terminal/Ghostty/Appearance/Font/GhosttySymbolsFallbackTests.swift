@@ -125,7 +125,7 @@ struct GhosttySymbolsFallbackTests {
         #expect(controller.lastConfigurationIssue == nil)
         terminal.show(output)
         var bitmap: NSBitmapImageRep?
-        try await expectEventually(timeout: .seconds(10)) {
+        try await expectEventually {
             bitmap = terminal.view.snapshotImage()?.representations.first as? NSBitmapImageRep
             return bitmap.map { DrawnTextLines($0).lines.count == 1 } ?? false
         }

@@ -28,9 +28,7 @@ struct SidebarSessionDateTextTests {
         notificationCenter.post(name: notification, object: nil)
 
         // The cache empties on the next main run loop turn, where the system posts these notifications from.
-        for _ in 0..<100 where cache.cachedTextCount != 0 {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        try await expectEventually { cache.cachedTextCount == 0 }
         #expect(cache.cachedTextCount == 0)
     }
 }

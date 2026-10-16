@@ -62,9 +62,7 @@ struct BranchTabLinkTests {
             commandResolver: NativeCLICommandResolver(searchDirectories: [binaryDirectory.path])
         )
         store.refreshThisMac()
-        for _ in 0..<100 where store.isScanningThisMac || store.conversations.isEmpty {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        try await expectEventually { !store.isScanningThisMac && !store.conversations.isEmpty }
         #expect(store.conversations.count == conversations.count)
         return store
     }

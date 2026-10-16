@@ -77,7 +77,9 @@ struct AppThemeCustomizationTests {
         #expect(store.resolvedTheme.customization.isEmpty)
     }
 
-    @Test func everyCombinationOfTakenColorsKeepsTextReadable() {
+    /// Off the main actor: its thousands of contrast checks would hold the main thread for seconds in a full run, while
+    /// other tests wait there for their views.
+    @Test nonisolated func everyCombinationOfTakenColorsKeepsTextReadable() {
         var random = SeededRandomNumberGenerator(seed: 116)
         var takenCount = 0
         for _ in 0..<400 {
@@ -214,7 +216,7 @@ struct AppThemeCustomizationTests {
     }
 
     /// Every text color reads at 4.5 on every surface it sits on, and on the ink.
-    private func keepsTextReadable(_ colors: AppThemeColors) -> Bool {
+    private nonisolated func keepsTextReadable(_ colors: AppThemeColors) -> Bool {
         let textColors = [colors.ink, colors.secondaryText, colors.tertiaryText, colors.warningText, colors.errorText]
             + colors.providerTextHexColors.values
         let textIsReadable = textColors.allSatisfy { textColor in

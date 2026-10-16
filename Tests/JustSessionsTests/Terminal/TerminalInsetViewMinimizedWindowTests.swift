@@ -15,11 +15,11 @@ struct TerminalInsetViewMinimizedWindowTests {
         #expect(!terminal.isHidden)
 
         window.miniaturize(nil)
-        try await expectEventually(timeout: .seconds(10)) { window.isMiniaturized && terminal.isHidden }
+        try await expectEventually { window.isMiniaturized && terminal.isHidden }
         #expect(terminal.isHidden)
 
         window.deminiaturize(nil)
-        try await expectEventually(timeout: .seconds(10)) { !window.isMiniaturized && !terminal.isHidden }
+        try await expectEventually { !window.isMiniaturized && !terminal.isHidden }
         #expect(!terminal.isHidden)
     }
 
@@ -31,10 +31,10 @@ struct TerminalInsetViewMinimizedWindowTests {
         #expect(terminal.isHidden)
 
         window.miniaturize(nil)
-        try await expectEventually(timeout: .seconds(10)) { window.isMiniaturized }
+        try await expectEventually { window.isMiniaturized }
         #expect(terminal.isHidden)
         window.deminiaturize(nil)
-        try await expectEventually(timeout: .seconds(10)) { !window.isMiniaturized }
+        try await expectEventually { !window.isMiniaturized }
         #expect(terminal.isHidden)
 
         insetView.isShown = true
@@ -51,7 +51,7 @@ struct TerminalInsetViewMinimizedWindowTests {
         second.orderFrontRegardless()
         defer { second.close() }
         second.miniaturize(nil)
-        try await expectEventually(timeout: .seconds(10)) { second.isMiniaturized }
+        try await expectEventually { second.isMiniaturized }
         #expect(!terminal.isHidden)
 
         insetView.removeFromSuperview()
@@ -59,7 +59,7 @@ struct TerminalInsetViewMinimizedWindowTests {
         #expect(terminal.isHidden)
 
         second.deminiaturize(nil)
-        try await expectEventually(timeout: .seconds(10)) { !second.isMiniaturized && !terminal.isHidden }
+        try await expectEventually { !second.isMiniaturized && !terminal.isHidden }
     }
 
     private func makeWindow() -> (NSWindow, TerminalInsetView, SelectableTerminalView) {

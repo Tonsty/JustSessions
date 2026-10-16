@@ -4,6 +4,8 @@ import Testing
 
 @MainActor
 struct TranscriptReadingWidthPositionTests {
+    private let readingPadding: CGFloat = 24
+
     @Test func switchingWidthKeepsTheReaderWithinTheSameMessage() async throws {
         let fixture = try TranscriptScrollViewFixture(width: 1600)
         defer { fixture.close() }
@@ -22,17 +24,29 @@ struct TranscriptReadingWidthPositionTests {
         #expect(fixture.visiblePosition(in: scrollView) == readingPosition)
         let readableHeight = try #require(fixture.visibleEntryFrames(in: scrollView).first).height
 
-        try await switchWidth(to: .full, in: fixture)
+        try await switchWidth(to: .full, in: fixture, scrollView: scrollView, keeping: readingPosition)
         #expect(fixture.visiblePosition(in: scrollView) == readingPosition)
         let fullHeight = try #require(fixture.visibleEntryFrames(in: scrollView).first).height
         #expect(fullHeight < readableHeight)
 
-        try await switchWidth(to: .readable, in: fixture)
+        try await switchWidth(to: .readable, in: fixture, scrollView: scrollView, keeping: readingPosition)
         #expect(fixture.visiblePosition(in: scrollView) == readingPosition)
     }
 
-    private func switchWidth(to width: TranscriptReadingWidth, in fixture: TranscriptScrollViewFixture) async throws {
+    /// Switches the setting, then waits until the entries are laid out at the new width and the reader is back at
+    /// `readingPosition`. The setting reaches the layout on later main-actor turns, which a busy main thread at the
+    /// start of a full run can hold up for far longer than a fixed settle. The expectations that follow report where
+    /// the reader is if this gives up.
+    private func switchWidth(
+        to width: TranscriptReadingWidth, in fixture: TranscriptScrollViewFixture, scrollView: NSScrollView,
+        keeping readingPosition: TranscriptReadingPosition
+    ) async throws {
         fixture.settings.userDefaults.set(width.rawValue, forKey: TranscriptReadingWidth.userDefaultsKey)
-        try await fixture.settleLayout()
+        try await fixture.waitUntil {
+            let columnWidth = min(width.maximumColumnWidth, scrollView.contentView.bounds.width - 2 * readingPadding)
+            let frames = fixture.visibleEntryFrames(in: scrollView)
+            return !frames.isEmpty && frames.allSatisfy { abs($0.width - columnWidth) < 1 }
+                && fixture.visiblePosition(in: scrollView) == readingPosition
+        }
     }
 }

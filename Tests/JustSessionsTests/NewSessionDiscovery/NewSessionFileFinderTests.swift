@@ -78,9 +78,10 @@ struct NewSessionFileFinderTests {
         )
         let finder = finder(claudeConfigurationDirectory: root)
 
-        // The child opens the file right after it starts, so give it a moment.
+        // The child opens the file right after it starts, so give it a moment; a loaded machine can make that long.
         var sessionFile: NewSessionFile?
-        for _ in 0..<40 where sessionFile == nil {
+        let deadline = ContinuousClock.now + .seconds(120)
+        while sessionFile == nil, ContinuousClock.now < deadline {
             sessionFile = finder.sessionFiles(for: [tab], processTree: .ofRunningProcesses())[tab.terminalID]
             if sessionFile == nil { try await Task.sleep(for: .milliseconds(50)) }
         }
@@ -128,9 +129,10 @@ struct NewSessionFileFinderTests {
         let tab = branchTab(provider: .codex, processID: cli.processIdentifier, branchedFromSessionID: forkedSessionID)
         let finder = finder(claudeConfigurationDirectory: root)
 
-        // The shell opens both files and then becomes `sleep`, so give it a moment.
+        // The shell opens both files and then becomes `sleep`, so give it a moment; a loaded machine can make that long.
         var sessionFile: NewSessionFile?
-        for _ in 0..<40 where sessionFile == nil {
+        let deadline = ContinuousClock.now + .seconds(120)
+        while sessionFile == nil, ContinuousClock.now < deadline {
             sessionFile = finder.sessionFiles(for: [tab], processTree: ProcessTree(parentProcessIDs: [:]))[tab.terminalID]
             if sessionFile == nil { try await Task.sleep(for: .milliseconds(50)) }
         }

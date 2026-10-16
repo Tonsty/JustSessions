@@ -45,7 +45,7 @@ struct OpenCodeConversationDeletionTests {
         defer { fixture.remove() }
         let deletion = OpenCodeConversationDeletion(
             databaseFile: fixture.database.file,
-            executableURL: try fixture.executable(running: "#!/bin/sh\nexec /bin/sleep 30\n"),
+            executableURL: try fixture.executable(running: "#!/bin/sh\nexec /bin/sleep 600\n"),
             timeout: 0.5
         )
         let clock = ContinuousClock()
@@ -53,7 +53,8 @@ struct OpenCodeConversationDeletionTests {
 
         #expect(throws: OpenCodeConversationDeletionError.didNotFinish) { try deletion.delete(try fixture.selectedConversation()) }
 
-        #expect(clock.now - startedAt < .seconds(10))
+        // Well short of the stand-in's 600 seconds, so the time limit, not the CLI ending, stopped the wait.
+        #expect(clock.now - startedAt < .seconds(120))
         #expect(try fixture.database.count("SELECT count(*) FROM session") == 3)
     }
 

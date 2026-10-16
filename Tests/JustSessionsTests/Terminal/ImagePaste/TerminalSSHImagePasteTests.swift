@@ -41,7 +41,9 @@ struct TerminalSSHImagePasteTests {
         fileDrop.take(try image(first))
         fileDrop.take(try image(second))
 
-        try await expectEventually { !typedPaths.isEmpty }
+        // Each copy waits for the main actor and for one of Swift's shared threads, both of which a full run holds up:
+        // a release run passed here after 135 seconds, and two runs failed at the 120-second default.
+        try await expectEventually(timeout: .seconds(300)) { !typedPaths.isEmpty }
         let hostPaths = try #require(typedPaths.first)
         #expect(typedPaths.count == 1)
         #expect(hostPaths.map { URL(fileURLWithPath: $0).lastPathComponent } == ["shot.png", "pasted-image.png", "pasted-image.png"])

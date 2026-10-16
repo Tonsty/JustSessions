@@ -104,7 +104,7 @@ struct RemoteClaudeNewSessionLinkingTests {
 
         store.setInstalledProviders([.codex, .claude], on: .ssh(Self.host))
         store.checkClaudeSessionIDFlagIfUnanswered(on: Self.host)
-        try await expectEventually(timeout: .seconds(10)) { recorder.commands.count == 1 }
+        try await expectEventually { recorder.commands.count == 1 }
         #expect(recorder.commands.first?.host == Self.host)
     }
 

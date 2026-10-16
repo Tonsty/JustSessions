@@ -35,9 +35,7 @@ struct NewSessionLinkTests {
     private func makeStore(discovering conversations: [Conversation]) async throws -> ConversationStore {
         let store = ConversationStore(adapters: [StaticConversationAdapter(discoveredConversations: conversations)])
         store.refreshThisMac()
-        for _ in 0..<100 where store.isScanningThisMac || store.conversations.isEmpty {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        try await expectEventually { !store.isScanningThisMac && !store.conversations.isEmpty }
         #expect(store.conversations.count == conversations.count)
         return store
     }

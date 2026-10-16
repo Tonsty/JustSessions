@@ -6,16 +6,25 @@ import Testing
 /// Readers showing the same image share one decode and its result, a view that goes away stops waiting without
 /// stopping the others, and an image that can't be decoded is tried again next time.
 struct TranscriptImageDecoderTests {
-    @Test func viewsAskingForTheSameBytesShareOneDecodeAndItsResult() async throws {
-        let counter = DecodeCounter(delay: .milliseconds(200))
-        let decoder = TranscriptImageDecoder(cacheByteLimit: 1 << 20, decode: counter.decode)
+    /// The decode holds until both views wait on it, so the second view can only have joined the decode under way,
+    /// however busy the machine is. The images are kept where nothing lets them go, as `NSCache` may when memory runs
+    /// low, so reopening can only find the stored result.
+    @Test(.oneHeldThreadAtATime) func viewsAskingForTheSameBytesShareOneDecodeAndItsResult() async throws {
+        let counter = DecodeCounter(delay: .zero, holdsUntilReleased: true)
+        let decoder = TranscriptImageDecoder(storage: ImagesKeptUntilRemoved(), decode: counter.decode)
         // Two readers read the image into their own `Data`.
         let first = TranscriptImage(base64Encoded: SampleTranscriptImage.base64)
         let second = TranscriptImage(base64Encoded: SampleTranscriptImage.base64)
 
-        async let firstImage = decoder.image(for: first, maximumPixelSize: 1_600)
-        async let secondImage = decoder.image(for: second, maximumPixelSize: 1_600)
-        let (a, b) = await (firstImage, secondImage)
+        let firstImage = Task { await decoder.image(for: first, maximumPixelSize: 1_600) }
+        let secondImage = Task { await decoder.image(for: second, maximumPixelSize: 1_600) }
+        let deadline = ContinuousClock.now + .seconds(120)
+        while await decoder.waitingViewCount(for: first, maximumPixelSize: 1_600) < 2, ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(await decoder.waitingViewCount(for: first, maximumPixelSize: 1_600) == 2)
+        counter.release()
+        let (a, b) = (await firstImage.value, await secondImage.value)
 
         #expect(counter.count == 1)
         let shared = try #require(a)
@@ -25,6 +34,7 @@ struct TranscriptImageDecoderTests {
         #expect(counter.count == 1)
         #expect(reopened === shared)
 
+        counter.release()
         _ = await decoder.image(for: first, maximumPixelSize: 400)
         #expect(counter.count == 2)
     }
@@ -66,6 +76,15 @@ struct TranscriptImageDecoderTests {
         let decoded = try #require(await TranscriptImageDecoder.shared.image(for: SampleTranscriptImage.image, maximumPixelSize: 1_600))
         #expect(CGSize(width: decoded.width, height: decoded.height) == SampleTranscriptImage.pixelSize)
     }
+}
+
+/// Keeps every image until `removeAll()`, so a test of reuse doesn't depend on `NSCache` keeping one.
+private final class ImagesKeptUntilRemoved: TranscriptImageStorage {
+    private var images: [TranscriptImageDecoder.Key: CGImage] = [:]
+
+    func image(for key: TranscriptImageDecoder.Key) -> CGImage? { images[key] }
+    func store(_ image: CGImage, for key: TranscriptImageDecoder.Key, cost: Int) { images[key] = image }
+    func removeAll() { images.removeAll() }
 }
 
 /// Stands in for ImageIO: counts decodes and makes a new image for each, after `delay`, or once `release()` is called
