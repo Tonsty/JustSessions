@@ -8,7 +8,7 @@ struct ClaudeSessionIDFlagSupportConcurrencyTests {
         let root = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
         let helpRunsLog = root.appendingPathComponent("help-runs.log")
-        let executable = try writeTimedStandIn("""
+        let executable = try writeExecutableScript("""
             #!/bin/sh
             echo run >> '\(helpRunsLog.path)'
             sleep 0.2
@@ -20,16 +20,16 @@ struct ClaudeSessionIDFlagSupportConcurrencyTests {
             workingDirectory: root.path,
             environment: ["PATH=/usr/bin:/bin"]
         )
-        let support = ClaudeSessionIDFlagSupport(helpTimeout: 5)
+        let support = ClaudeSessionIDFlagSupport(helpTimeout: 60)
 
         await withTaskGroup(of: Void.self) { group in
             for _ in 0..<50 {
                 group.addTask { _ = support.preassigningSessionID(to: command) }
             }
         }
-        for _ in 0..<500 where support.preassigningSessionID(to: command) == nil {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        // The check runs in a utility-priority task, which a full run's start can hold up for well over the
+        // 5 seconds this once waited, before the stand-in ever ran.
+        try await expectEventually { support.preassigningSessionID(to: command) != nil }
         let sessionIDs = (0..<20).compactMap { _ in support.preassigningSessionID(to: command)?.sessionID }
 
         #expect(sessionIDs.count == 20)
