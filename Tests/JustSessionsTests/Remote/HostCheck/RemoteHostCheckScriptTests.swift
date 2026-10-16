@@ -52,10 +52,11 @@ struct RemoteHostCheckScriptTests {
         let command = RemoteHostCheckScript.command(
             startup: .interactive,
             programs: programs,
-            projectPath: root.path,
-            // Long enough for the stand-ins that answer at once to start even when a full run stalls for tens of
-            // seconds; `pi`, which sleeps far longer, still runs into it.
-            versionTimeoutSeconds: 20
+            // The app's own time limit, 10 seconds. The check runs in processes of its own, which a stall of this test
+            // process doesn't slow, and each stand-in has run once already, so those that answer at once start in
+            // milliseconds. `pi`, which sleeps far longer, runs into it. This synchronous test holds one of the shared
+            // threads for as long as `pi` takes, so the limit stays short.
+            projectPath: root.path
         )
 
         let started = Date()
