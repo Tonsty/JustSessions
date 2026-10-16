@@ -39,7 +39,7 @@ struct GhosttyTextMatchesSwiftTermTests {
         // A new size makes the terminal report its grid to the delegate it now has.
         ghostty.view.frame = Self.frame.insetBy(dx: 0, dy: 10)
 
-        try await expectEventually(timeout: .seconds(10), { recorder.metrics != nil }, sourceLocation: sourceLocation)
+        try await expectEventually({ recorder.metrics != nil }, sourceLocation: sourceLocation)
         let metrics = try #require(recorder.metrics, sourceLocation: sourceLocation)
         let ghosttyCell = TerminalCellPixelSize(width: Int(metrics.cellWidthPixels), height: Int(metrics.cellHeightPixels))
         #expect(ghosttyCell == swiftTerm.cellPixelSize, "\(family) at \(size) points", sourceLocation: sourceLocation)
@@ -108,7 +108,7 @@ struct GhosttyTextMatchesSwiftTermTests {
         let ghostty = ghosttyTerminal(stores: stores, backingScaleFactor: swiftTerm.window.backingScaleFactor, mode: mode)
         ghostty.show(output)
         var ghosttyLines: DrawnTextLines?
-        try await expectEventually(timeout: .seconds(10)) {
+        try await expectEventually {
             guard let bitmap = ghostty.view.snapshotImage()?.representations.first as? NSBitmapImageRep else { return false }
             ghosttyLines = DrawnTextLines(bitmap)
             return ghosttyLines?.lines.count == lineCount

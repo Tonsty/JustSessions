@@ -177,20 +177,24 @@ private final class StoreAlertScenario {
         try await click(title, in: sheet) { self.store.alert?.id != clickedAlertID }
     }
 
-    /// Clicks the button, then again while `tookEffect` stays false: on a busy machine a click can come while the
-    /// sheet is still appearing and be ignored. It checks right after each click, so a click that took effect
+    /// Clicks the button, then again every 2 seconds while `tookEffect` stays false, for up to 120 seconds: on a busy
+    /// machine a click can come while the sheet is still appearing and be ignored, and the start of a full run can
+    /// keep the sheet appearing for tens of seconds. It checks right after each click, so a click that took effect
     /// returns in the same turn.
     func click(_ title: String, in sheet: NSWindow, until tookEffect: () -> Bool) async throws {
         let clock = ContinuousClock()
-        for _ in 1...5 {
+        let giveUpAt = clock.now + .seconds(120)
+        var tries = 0
+        while clock.now < giveUpAt {
             try #require(Self.button(titled: title, in: sheet)).performClick(nil)
+            tries += 1
             let deadline = clock.now + .seconds(2)
             while !tookEffect(), clock.now < deadline {
                 try await Task.sleep(for: .milliseconds(20))
             }
             if tookEffect() { return }
         }
-        Issue.record("Clicking “\(title)” had no effect after 5 tries")
+        Issue.record("Clicking “\(title)” had no effect after \(tries) tries")
     }
 
     /// Clicks the window's content beside its sheet, which AppKit alone would only answer with a beep.

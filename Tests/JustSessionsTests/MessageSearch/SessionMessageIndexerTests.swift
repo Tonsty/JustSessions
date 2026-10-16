@@ -107,10 +107,11 @@ struct SessionMessageIndexerTests {
         }
         indexer.beginUse(by: user)
         await indexer.update(with: [session], for: user)
-        let pauseDeadline = ContinuousClock.now + .seconds(10)
+        let pauseDeadline = ContinuousClock.now + .seconds(120)
         while await !reader.hasPausedRead, ContinuousClock.now < pauseDeadline {
             try await Task.sleep(for: .milliseconds(20))
         }
+        #expect(await reader.hasPausedRead)
 
         let grown = try codexSession(
             ["First message", "A later generation"], in: directory, sessionID: session.sessionID,
@@ -182,10 +183,11 @@ struct SessionMessageIndexerTests {
         try await waitForUpdate(of: indexer, after: 0)
 
         indexer.endUse(by: user)
-        let deadline = ContinuousClock.now + .seconds(10)
+        let deadline = ContinuousClock.now + .seconds(120)
         while await indexer.index.sessionCount() != 1, ContinuousClock.now < deadline {
             try await Task.sleep(for: .milliseconds(20))
         }
+        #expect(await indexer.index.sessionCount() == 1)
 
         #expect(try await matches("first window", in: indexer).isEmpty)
         #expect(Set(try await matches("second window", in: indexer).keys) == [second.id])
@@ -204,10 +206,11 @@ struct SessionMessageIndexerTests {
         try await waitForUpdate(of: indexer, after: 0)
 
         indexer.removeHost(.ssh("devbox"))
-        let removalDeadline = ContinuousClock.now + .seconds(10)
+        let removalDeadline = ContinuousClock.now + .seconds(120)
         while await indexer.index.sessionCount() != 0, ContinuousClock.now < removalDeadline {
             try await Task.sleep(for: .milliseconds(20))
         }
+        #expect(await indexer.index.sessionCount() == 0)
         await indexer.update(with: [remote], for: otherWindow)
         #expect(try await matches("remote mirror", in: indexer).isEmpty)
 
@@ -276,7 +279,7 @@ struct SessionMessageIndexerTests {
         #expect(try await matches("some words", in: indexer).count == 1)
 
         indexer.endUse(by: otherWindow)
-        let deadline = ContinuousClock.now + .seconds(10)
+        let deadline = ContinuousClock.now + .seconds(120)
         while try await !matches("some words", in: indexer).isEmpty, ContinuousClock.now < deadline {
             try await Task.sleep(for: .milliseconds(20))
         }

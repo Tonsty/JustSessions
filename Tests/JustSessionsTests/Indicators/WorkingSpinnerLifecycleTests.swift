@@ -145,9 +145,11 @@ struct WorkingSpinnerLifecycleTests {
         return (window, hostingView, visibility)
     }
 
-    /// Up to two seconds, polling, for the window server's animations.
+    /// Up to 120 seconds, polling, for the window server's animations, which the start of a full run can hold up for
+    /// tens of seconds; the expectations after it check the result.
     private func waitUntil(_ condition: () -> Bool) async throws {
-        for _ in 0..<80 where !condition() {
+        let deadline = ContinuousClock.now + .seconds(120)
+        while !condition(), ContinuousClock.now < deadline {
             try await Task.sleep(for: .milliseconds(25))
         }
     }

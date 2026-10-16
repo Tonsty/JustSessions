@@ -128,7 +128,7 @@ struct TmuxSandbox {
     /// Every caller waits for something to happen, so a passing test never waits out the deadline. It is long because
     /// tmux can take many seconds to start while other suites fill the machine, as on a CI runner.
     func waitUntil(_ condition: () -> Bool) -> Bool {
-        let deadline = Date(timeIntervalSinceNow: 30)
+        let deadline = Date(timeIntervalSinceNow: 120)
         while Date() < deadline {
             if condition() { return true }
             Thread.sleep(forTimeInterval: 0.1)

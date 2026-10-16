@@ -6,7 +6,8 @@ import XCTest
 /// temporary folder and settings in a suite of their own. Sessions are called by the title they were first listed with.
 @MainActor
 final class ScenarioApp {
-    static let timeout: Duration = .seconds(10)
+    /// As long as `expectEventually`'s, for the same stall at the start of a full run; a passing step returns at once.
+    static let timeout: Duration = .seconds(120)
 
     let provider: ConversationProvider
     let store: ConversationStore
