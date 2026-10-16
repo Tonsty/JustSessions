@@ -54,7 +54,7 @@ struct RemoteSignInsTests {
                         promptPause: .milliseconds(50),
                         linePause: .milliseconds(200),
                         pollInterval: .milliseconds(20),
-                        timeLimit: .seconds(20)
+                        timeLimit: .seconds(120)
                     )
                 )
             },
@@ -75,7 +75,7 @@ struct RemoteSignInsTests {
         signIns.setCommand(command(hours: 10), on: "devbox", now: start)
         #expect(signIns.state(on: "devbox") == .signingIn)
         #expect(signIns.presentingStoreID == ObjectIdentifier(store))
-        try await expectEventually(timeout: .seconds(10)) { signIns.state(on: "devbox") == .signedIn }
+        try await expectEventually { signIns.state(on: "devbox") == .signedIn }
 
         let signedInAt = try #require(signIns.settings.signedInAt(on: "devbox"))
         signIns.lookAtHosts(["devbox"], needingLogIn: [], now: signedInAt.addingTimeInterval(9 * 3600))
@@ -101,7 +101,7 @@ struct RemoteSignInsTests {
         signIns.appCameForward()
 
         #expect(signIns.state(on: "devbox") == .signingIn)
-        try await expectEventually(timeout: .seconds(10)) { signIns.state(on: "devbox") == .signedIn }
+        try await expectEventually { signIns.state(on: "devbox") == .signedIn }
     }
 
     @Test func theCheckCommandSaysWhenASignInIsDue() async throws {
@@ -111,7 +111,7 @@ struct RemoteSignInsTests {
         fakes.setCheckStatus(0)
 
         signIns.setCommand(command(check: "check"), on: "devbox", now: start)
-        try await expectEventually(timeout: .seconds(10)) { signIns.state(on: "devbox") == .signedIn }
+        try await expectEventually { signIns.state(on: "devbox") == .signedIn }
 
         // Not asked again within 5 minutes, nor while the host needs Connect….
         fakes.setCheckStatus(1)
@@ -120,13 +120,13 @@ struct RemoteSignInsTests {
         #expect(fakes.checks == 1)
 
         signIns.lookAtHosts(["devbox"], needingLogIn: [], now: start.addingTimeInterval(400))
-        try await expectEventually(timeout: .seconds(10)) { signIns.state(on: "devbox") == .due }
+        try await expectEventually { signIns.state(on: "devbox") == .due }
         #expect(fakes.notifiedHosts == ["devbox"])
 
         // A host that can't be reached tells nothing.
         fakes.setCheckStatus(RemoteHostCommandRunner.connectionFailureExitStatus)
         signIns.lookAtHosts(["devbox"], needingLogIn: [], now: start.addingTimeInterval(800))
-        try await expectEventually(timeout: .seconds(10)) { fakes.checks == 3 }
+        try await expectEventually { fakes.checks == 3 }
         try await Task.sleep(for: .milliseconds(100))
         #expect(signIns.state(on: "devbox") == .due)
     }
@@ -136,9 +136,9 @@ struct RemoteSignInsTests {
         fakes.setScript("printf 'PIN: '; read pin; sleep 30")
 
         signIns.setCommand(command(), on: "devbox")
-        try await expectEventually(timeout: .seconds(10)) { signIns.prompter.question?.prompt == "PIN:" }
+        try await expectEventually { signIns.prompter.question?.prompt == "PIN:" }
         signIns.prompter.answer(nil)
-        try await expectEventually(timeout: .seconds(10)) { signIns.state(on: "devbox") == .due }
+        try await expectEventually { signIns.state(on: "devbox") == .due }
 
         signIns.appCameForward()
         #expect(signIns.state(on: "devbox") == .due)
@@ -150,7 +150,7 @@ struct RemoteSignInsTests {
         fakes.setScript("echo 'Your account is locked'; exit 2")
 
         signIns.setCommand(command(), on: "devbox")
-        try await expectEventually(timeout: .seconds(10)) { store.alert != nil }
+        try await expectEventually { store.alert != nil }
 
         #expect(store.alert?.title == "Couldn't sign in on devbox")
         #expect(store.alert?.message.contains("Your account is locked") == true)
@@ -160,9 +160,9 @@ struct RemoteSignInsTests {
     @Test func theCommandAndTheLastSignInOutliveARelaunchAndARemovedHostForgetsThem() async throws {
         defer { isolatedUserDefaults.removeSuite() }
         signIns.setCommand(command(check: "check", hours: 8), on: "devbox")
-        try await expectEventually(timeout: .seconds(10)) { signIns.state(on: "devbox") == .signedIn }
+        try await expectEventually { signIns.state(on: "devbox") == .signedIn }
         signIns.setCommand(command(hours: 8), on: "build")
-        try await expectEventually(timeout: .seconds(10)) { signIns.state(on: "build") == .signedIn }
+        try await expectEventually { signIns.state(on: "build") == .signedIn }
 
         let relaunched = Self.signIns(userDefaults: isolatedUserDefaults.userDefaults, fakes: fakes, store: store)
         #expect(relaunched.command(on: "devbox") == command(check: "check", hours: 8))

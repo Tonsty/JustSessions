@@ -9,7 +9,8 @@ struct RemoteSignInSessionTests {
         promptPause: .milliseconds(100),
         linePause: .milliseconds(300),
         pollInterval: .milliseconds(20),
-        timeLimit: .seconds(20)
+        // Well past the stall at the start of a full run, when the whole test process can wait half a minute.
+        timeLimit: .seconds(120)
     )
 
     private func session(running script: String, timing: RemoteSignInSession.Timing = fastTiming) -> RemoteSignInSession {
@@ -30,14 +31,19 @@ struct RemoteSignInSessionTests {
     private final class Asker: @unchecked Sendable {
         private let lock = NSLock()
         private let answers: [String: String]
+        private let onAsked: @Sendable (SSHAskpassQuestion) -> Void
         private(set) var questions: [SSHAskpassQuestion] = []
 
-        init(_ answers: [String: String]) { self.answers = answers }
+        init(_ answers: [String: String], onAsked: @escaping @Sendable (SSHAskpassQuestion) -> Void = { _ in }) {
+            self.answers = answers
+            self.onAsked = onAsked
+        }
 
         var asked: [SSHAskpassQuestion] { lock.withLock { questions } }
 
         func ask(_ question: SSHAskpassQuestion) async -> String? {
             lock.withLock { questions.append(question) }
+            onAsked(question)
             guard let answer = answers[question.prompt] else {
                 // Waits to be taken back, as a question shown in the dialog does.
                 while !Task.isCancelled { try? await Task.sleep(for: .milliseconds(10)) }
@@ -107,11 +113,23 @@ struct RemoteSignInSessionTests {
         #expect(asker.asked.map(\.prompt) == ["Press your key to type its code"])
     }
 
-    @Test func aPauseWhileTheCommandStillWorksTakesItsQuestionBack() async {
-        let asker = Asker(["PIN:": "1234"])
+    /// The command goes on printing only once its first line has been asked, as a slow step's would, so the order
+    /// never depends on how quickly the session looks.
+    @Test func aPauseWhileTheCommandStillWorksTakesItsQuestionBack() async throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let asked = directory.appendingPathComponent("asked")
+        let asker = Asker(["PIN:": "1234"], onAsked: { question in
+            if question.prompt == "Contacting the server" { FileManager.default.createFile(atPath: asked.path, contents: nil) }
+        })
 
-        let outcome = await session(running: "echo 'Contacting the server'; sleep 1; printf 'PIN: '; read pin; [ \"$pin\" = 1234 ]")
-            .run(ask: asker.ask)
+        let outcome = await session(running: """
+            echo 'Contacting the server'
+            while [ ! -f '\(asked.path)' ]; do sleep 0.05; done
+            printf 'PIN: '
+            read pin
+            [ "$pin" = 1234 ]
+            """).run(ask: asker.ask)
 
         #expect(outcome == .signedIn)
         #expect(asker.asked.map(\.prompt) == ["Contacting the server", "PIN:"])
@@ -121,10 +139,11 @@ struct RemoteSignInSessionTests {
     @Test func cancellingAQuestionStopsTheCommand() async {
         let started = ContinuousClock.now
 
-        let outcome = await session(running: "printf 'PIN: '; read pin; sleep 30").run { _ in nil }
+        let outcome = await session(running: "printf 'PIN: '; read pin; sleep 600").run { _ in nil }
 
+        // Stopped, not waited for: well short of the command's 10 minutes, even at a full run's slow start.
         #expect(outcome == .cancelled)
-        #expect(ContinuousClock.now - started < .seconds(10))
+        #expect(ContinuousClock.now - started < .seconds(300))
     }
 
     @Test func aFailureSaysWhatTheCommandPrinted() async {
