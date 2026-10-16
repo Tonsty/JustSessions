@@ -3,7 +3,7 @@ import Foundation
 /// Tells what running CLIs are doing. Claude Code says so in its live process registry, which on an SSH host reaches
 /// the tab through a relay; Codex in its terminal title, on this Mac and on an SSH host, and otherwise its session
 /// file shows whether a turn is under way, and Codex's background server whether it waits for you; an Antigravity
-/// conversation database shows both. Pi and OpenCode say so through the extension the app starts them with, which on
+/// conversation database shows both, and on an SSH host reaches the tab through a relay. Pi and OpenCode say so through the extension the app starts them with, which on
 /// an SSH host tells the tab through its title. Kiro CLI marks its turns in a folder (`KiroTurnMarkers`), which on an
 /// SSH host reaches the tab through a relay too. CLIs whose process or file is not known yet give nil.
 struct CLIActivityReader: Sendable {
@@ -90,6 +90,8 @@ struct CLIActivityReader: Sendable {
                 isWaitingOnYou: probe.sessionID.map(codexThreadsWaitingOnYou.contains) ?? false
             )
         case .antigravity:
+            // On an SSH host, the relay puts it in the title.
+            if let activity = remoteActivity(of: probe) { return activity }
             guard let sessionFile = probe.sessionFile else { return nil }
             return Self.antigravityActivity(
                 turnState: AntigravityTurnStateReader.turnState(ofConversationDatabase: sessionFile),
