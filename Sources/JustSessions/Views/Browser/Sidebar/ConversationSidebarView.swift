@@ -24,6 +24,7 @@ struct ConversationSidebarView: View {
     let onRequestDeletion: (SessionDeletionRequest) -> Void
     let onCloseTerminal: (UUID) -> Void
     let onCloseTabGroup: ([UUID], _ projectName: String) -> Void
+    let onCloseSelectedTabs: ([UUID]) -> Void
 
     @SceneStorage("sidebarContentMode") private var contentMode: SidebarContentMode = .projects
     @SceneStorage("sidebarOpenTabSearch") private var openTabSearchText = ""
@@ -35,6 +36,8 @@ struct ConversationSidebarView: View {
     /// Sessions start with their subagents' sessions hidden; each shows them once you expand it.
     @State var subagentRows = SidebarSubagentRows()
     @State var projectSelection = ProjectMultiSelection()
+    /// Rows of Open tabs selected to close together.
+    @State var openTabSelection = OpenTabMultiSelection()
     /// A project or session being dragged among the pinned ones.
     @State var pinDrag: SidebarPinDrag?
     @State var sidebarRowFrames = SidebarRowFrames()
@@ -140,12 +143,14 @@ struct ConversationSidebarView: View {
                 SidebarOpenTabsView(
                     store: store,
                     searchText: openTabSearchText,
+                    selection: $openTabSelection,
                     onSelectTab: selectTab,
                     onDroppedTabIntoTerminals: clearSelectionForDroppedRow,
                     onRenameConversation: onRenameConversation,
                     onCloseTab: onCloseTerminal,
                     onDeleteConversation: { onRequestDeletion(.conversation($0)) },
                     onCloseTabGroup: onCloseTabGroup,
+                    onCloseSelectedTabs: onCloseSelectedTabs,
                     onNewSession: onNewSession
                 )
             }
@@ -172,6 +177,12 @@ struct ConversationSidebarView: View {
                     endableCount: selectedConversations.filter(store.canEndSession).count,
                     onEnd: { store.endSessions(selectedConversations) },
                     onDelete: { onRequestDeletion(.conversations(selectedConversations)) }
+                )
+            } else if contentMode == .openTabs, openTabSelection.hasMultipleSelected {
+                ThemeDivider()
+                SidebarOpenTabSelectionActionBar(
+                    selectedCount: openTabSelection.selectedTabIDs.count,
+                    onClose: { onCloseSelectedTabs(Array(openTabSelection.selectedTabIDs)) }
                 )
             }
 
@@ -332,6 +343,7 @@ struct ConversationSidebarView: View {
     func selectTab(_ terminalID: UUID) {
         projectSelection.clear()
         sessionSelection.clear()
+        openTabSelection.clear()
         store.selectTerminal(terminalID)
     }
 
@@ -340,6 +352,7 @@ struct ConversationSidebarView: View {
     func clearSelectionForDroppedRow() {
         projectSelection.clear()
         sessionSelection.clear()
+        openTabSelection.clear()
     }
 
     func handleProjectClick(_ project: ProjectConversationGroup) {
@@ -358,6 +371,7 @@ struct ConversationSidebarView: View {
 
     func dismissSidebarSelection() {
         projectSelection.clear()
+        openTabSelection.clear()
         if sessionSelection.hasMultipleSelected {
             sessionSelection.clear()
         }

@@ -656,6 +656,34 @@
         }
       }
     },
+    "%lld tabs selected": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld tab selected"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld tabs selected"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选择 %lld 个标签"
+          }
+        }
+      }
+    },
     "%lld tool calls": {
       "localizations": {
         "zh-Hans": {
@@ -1958,6 +1986,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "关闭 %@"
+          }
+        }
+      }
+    },
+    "Close %lld tabs?": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Close %lld tab?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Close %lld tabs?"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭 %lld 个标签？"
+          }
+        }
+      }
+    },
+    "Close %lld tabs…": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Close %lld tab…"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Close %lld tabs…"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭 %lld 个标签…"
           }
         }
       }

@@ -100,6 +100,8 @@
 	<string>将跳过 %lld 个终端已打开的会话。</string>
 	<key>%lld subagent sessions stay on disk.</key>
 	<string>%lld 个子代理会话将保留在磁盘上。</string>
+	<key>%lld tabs selected</key>
+	<string>已选择 %lld 个标签</string>
 	<key>%lld tool calls</key>
 	<string>%lld 次工具调用</string>
 	<key>%lld+ matches</key>
@@ -356,6 +358,10 @@
 	<string>关闭</string>
 	<key>Close %@</key>
 	<string>关闭 %@</string>
+	<key>Close %lld tabs?</key>
+	<string>关闭 %lld 个标签？</string>
+	<key>Close %lld tabs…</key>
+	<string>关闭 %lld 个标签…</string>
 	<key>Close Left View</key>
 	<string>关闭左侧视图</string>
 	<key>Close Right View</key>
