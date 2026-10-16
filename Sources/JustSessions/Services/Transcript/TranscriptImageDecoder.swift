@@ -34,12 +34,17 @@ actor TranscriptImageDecoder {
     }
 
     private let decode: @Sendable (TranscriptImage, Int) -> CGImage?
-    private let cache = NSCache<CacheKey, CachedImage>()
+    private let storage: any TranscriptImageStorage
     private var decodings: [Key: Decoding] = [:]
 
     init(cacheByteLimit: Int, decode: @escaping @Sendable (TranscriptImage, Int) -> CGImage?) {
+        self.init(storage: CachedTranscriptImages(byteLimit: cacheByteLimit), decode: decode)
+    }
+
+    /// Keeps decoded images in `storage`. Tests pass one that never lets an image go, since `NSCache` can.
+    init(storage: any TranscriptImageStorage, decode: @escaping @Sendable (TranscriptImage, Int) -> CGImage?) {
         self.decode = decode
-        cache.totalCostLimit = cacheByteLimit
+        self.storage = storage
     }
 
     /// The image decoded for display, downsampled to at most `maximumPixelSize` on its longer side; see
@@ -57,7 +62,7 @@ actor TranscriptImageDecoder {
     }
 
     private func decoded(_ image: TranscriptImage, key: Key, waiter: UUID) async -> CGImage? {
-        if let cached = cache.object(forKey: CacheKey(key)) { return cached.image }
+        if let cached = storage.image(for: key) { return cached }
         return await withCheckedContinuation { continuation in
             // Cancellation sets the flag before its handler runs, and the handler's call on this actor waits for this
             // one, so a waiter is either never added or removed by `stopWaiting`.
@@ -81,7 +86,12 @@ actor TranscriptImageDecoder {
 
     /// Forgets every decoded image, so a measurement can start cold. Decodes under way still finish.
     func removeCachedImages() {
-        cache.removeAllObjects()
+        storage.removeAll()
+    }
+
+    /// How many views wait on the decode of `image` under way, so a test can tell when a view has joined it.
+    func waitingViewCount(for image: TranscriptImage, maximumPixelSize: Int) -> Int {
+        decodings[Key(image, maximumPixelSize: maximumPixelSize)]?.waiters.count ?? 0
     }
 
     private func isWanted(_ key: Key, _ decodingID: UUID) -> Bool {
@@ -90,7 +100,7 @@ actor TranscriptImageDecoder {
 
     private func finish(_ key: Key, _ decodingID: UUID, with image: CGImage?) {
         if let image {
-            cache.setObject(CachedImage(image), forKey: CacheKey(key), cost: image.bytesPerRow * image.height)
+            storage.store(image, for: key, cost: image.bytesPerRow * image.height)
         }
         guard let decoding = decodings[key], decoding.id == decodingID else { return }
         decodings[key] = nil
@@ -102,10 +112,39 @@ actor TranscriptImageDecoder {
         continuation.resume(returning: nil)
         if decodings[key]?.waiters.isEmpty == true { decodings[key] = nil }
     }
+}
+
+/// Where `TranscriptImageDecoder` keeps the images it decoded. Only the decoder calls it, on its own actor.
+protocol TranscriptImageStorage: AnyObject {
+    func image(for key: TranscriptImageDecoder.Key) -> CGImage?
+    /// `cost` is the image's pixel bytes.
+    func store(_ image: CGImage, for key: TranscriptImageDecoder.Key, cost: Int)
+    func removeAll()
+}
+
+/// The app's storage: an `NSCache` of at most `byteLimit` pixel bytes, which it also empties when memory runs low.
+private final class CachedTranscriptImages: TranscriptImageStorage {
+    private let cache = NSCache<CacheKey, CachedImage>()
+
+    init(byteLimit: Int) {
+        cache.totalCostLimit = byteLimit
+    }
+
+    func image(for key: TranscriptImageDecoder.Key) -> CGImage? {
+        cache.object(forKey: CacheKey(key))?.image
+    }
+
+    func store(_ image: CGImage, for key: TranscriptImageDecoder.Key, cost: Int) {
+        cache.setObject(CachedImage(image), forKey: CacheKey(key), cost: cost)
+    }
+
+    func removeAll() {
+        cache.removeAllObjects()
+    }
 
     private final class CacheKey: NSObject {
-        let key: Key
-        init(_ key: Key) { self.key = key }
+        let key: TranscriptImageDecoder.Key
+        init(_ key: TranscriptImageDecoder.Key) { self.key = key }
         override var hash: Int { key.hashValue }
         override func isEqual(_ object: Any?) -> Bool { (object as? CacheKey)?.key == key }
     }
