@@ -13,14 +13,14 @@ struct SidebarOpenTabRow: View {
     /// The tab's menu in the tab bar.
     let menuItems: TerminalTabMenuItems
 
-    static let height: CGFloat = 28
+    static var height: CGFloat { InterfaceScale.points(28) }
 
     var body: some View {
         Button(action: onSelect) {
             HStack(spacing: 8) {
                 toolIcon
                     .font(ThemeFont.glyph(.control, weight: .medium))
-                    .frame(width: 14)
+                    .frame(width: InterfaceScale.points(14))
                 Text(verbatim: tab.displayTitle)
                     .font(ThemeFont.callout.weight(isSelected ? .medium : .regular))
                     .lineLimit(1)

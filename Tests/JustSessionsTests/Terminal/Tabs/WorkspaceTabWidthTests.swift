@@ -4,6 +4,7 @@ import Testing
 
 /// As in Chrome, tabs keep their full width while they fit, narrow together to share the bar as more open, and stop
 /// at the narrowest width, past which the bar scrolls.
+@MainActor
 struct WorkspaceTabWidthTests {
     @Test func tabsThatFitTakeTheirFullWidth() {
         let width = WorkspaceTabWidth.fitting(shownTabCount: 3, shownSplitCount: 0, groupCount: 1, groupLabelsWidth: 100, barWidth: 1200)

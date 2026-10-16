@@ -36,7 +36,7 @@ struct ProjectNewSessionMenu: View {
                 Label("New session", systemImage: "plus")
             } else {
                 Image(systemName: "plus")
-                    .frame(width: 20, height: 20)
+                    .frame(width: InterfaceScale.points(20), height: InterfaceScale.points(20))
                     .contentShape(Rectangle())
             }
         }

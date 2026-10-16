@@ -11,7 +11,7 @@ struct SidebarSettingsButton: View {
             Label("Settings", systemImage: "gearshape")
                 .labelStyle(.titleAndIcon)
                 .fixedSize(horizontal: true, vertical: false)
-                .frame(height: 30)
+                .frame(height: InterfaceScale.points(30))
                 .contentShape(Rectangle())
         }
         .help("Settings (⌘,)")

@@ -62,6 +62,8 @@ Draw a standalone SF Symbol with `ThemeFont.glyph(_:weight:)` at a `ThemeGlyphSi
 
 A symbol inline with text uses the text's font.
 
+The sizes above are at the default interface size. **Settings → Appearance → Interface size** (`InterfaceSizeStore`, 90% to 150%) scales every token, and a view drawing with one redraws when it changes, since SwiftUI follows the `@Observable` store a body reads; read tokens in a body, not into a stored property, or the text keeps its old size. A number that holds text or a symbol, such as a row's height, an icon button's frame, or a sheet's width, goes through `InterfaceScale.points(_:)` so it grows with its text; spacing and margins stay as they are. The tab bar keeps its height, level with the window's buttons. Each window's root gives text that names no font `ThemeFont.body`, and the system's controls `InterfaceScale.controlSize`.
+
 Enforced by `UITypographyContractTests`. The test rejects `.system(size: <number>)` and the system text styles (`.headline`, `.caption`, and the rest).
 
 ## Corner radii

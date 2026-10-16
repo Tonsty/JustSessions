@@ -700,6 +700,8 @@
 	<string>Install `rsync` and the CLIs you use on the host.</string>
 	<key>Interface language</key>
 	<string>Interface language</string>
+	<key>Interface size</key>
+	<string>Interface size</string>
 	<key>It didn't print its version within %lld seconds.</key>
 	<string>It didn't print its version within %lld seconds.</string>
 	<key>It failed when asked for its version, so it may fail to start sessions too.</key>

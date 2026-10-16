@@ -57,7 +57,7 @@ private struct RandomTipCardButton: View {
             Image(systemName: systemImage)
                 .font(ThemeFont.glyph(.control, weight: .semibold))
                 .foregroundStyle(ThemePalette.secondaryText)
-                .frame(width: 22, height: 22)
+                .frame(width: InterfaceScale.points(22), height: InterfaceScale.points(22))
                 .contentShape(Circle())
         }
         .buttonStyle(ThemePlainButtonStyle(cornerRadius: nil))

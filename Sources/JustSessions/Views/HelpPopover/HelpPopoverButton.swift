@@ -16,7 +16,7 @@ struct HelpPopoverButton: View {
             Image(systemName: "questionmark.circle")
                 .font(ThemeFont.body)
                 .foregroundStyle(ThemePalette.secondaryText)
-                .frame(width: 22, height: 22)
+                .frame(width: InterfaceScale.points(22), height: InterfaceScale.points(22))
         }
         .buttonStyle(ThemePlainButtonStyle())
         .accessibilityLabel(Text(title))
@@ -31,7 +31,7 @@ struct HelpPopoverButton: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             .foregroundStyle(ThemePalette.ink)
-            .frame(width: 280, alignment: .leading)
+            .frame(width: InterfaceScale.points(280), alignment: .leading)
             .padding(16)
             .background(ThemePalette.contentSurface)
             // A native popover can start with its own presentation environment.

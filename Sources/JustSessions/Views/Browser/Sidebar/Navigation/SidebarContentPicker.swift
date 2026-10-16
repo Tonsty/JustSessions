@@ -34,7 +34,7 @@ struct SidebarContentPicker: View {
             }
             .lineLimit(1)
             .frame(maxWidth: .infinity)
-            .frame(height: 22)
+            .frame(height: InterfaceScale.points(22))
             .contentShape(Rectangle())
             .background {
                 if isSelected {

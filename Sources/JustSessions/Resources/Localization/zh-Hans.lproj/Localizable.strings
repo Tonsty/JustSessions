@@ -728,6 +728,8 @@
 	<string>在主机上安装 `rsync` 和需要使用的 CLI。</string>
 	<key>Interface language</key>
 	<string>界面语言</string>
+	<key>Interface size</key>
+	<string>界面大小</string>
 	<key>It didn't print its version within %lld seconds.</key>
 	<string>它未在 %lld 秒内输出版本。</string>
 	<key>It failed when asked for its version, so it may fail to start sessions too.</key>

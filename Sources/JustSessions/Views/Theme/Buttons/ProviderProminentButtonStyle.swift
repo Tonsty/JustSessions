@@ -10,7 +10,7 @@ struct ProviderProminentButtonStyle: ButtonStyle {
             .font(ThemeFont.callout.weight(.semibold))
             .foregroundStyle(.white)
             .padding(.horizontal, 14)
-            .frame(height: 28)
+            .frame(height: InterfaceScale.points(28))
             .background(RoundedRectangle(.card).fill(tint))
             .contentShape(RoundedRectangle(.card))
             .modifier(ThemeButtonPressFeedback(isPressed: configuration.isPressed))

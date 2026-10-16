@@ -2,7 +2,7 @@ import SwiftUI
 
 /// One tip: how far along its tour or tip it is, what the control it points at does, and the way on.
 struct OnboardingTourCard: View {
-    static let width: CGFloat = 280
+    static var width: CGFloat { InterfaceScale.points(280) }
 
     let stop: OnboardingTourStop
     let stepNumber: Int

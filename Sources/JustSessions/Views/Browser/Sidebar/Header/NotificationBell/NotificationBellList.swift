@@ -6,9 +6,9 @@ struct NotificationBellList: View {
     let entries: [NotificationBellEntry]
     let onShow: (NotificationBellEntry) -> Void
 
-    private static let width: CGFloat = 300
+    private static var width: CGFloat { InterfaceScale.points(300) }
     private static let rowSpacing: CGFloat = 2
-    private static let maximumRowsHeight: CGFloat = 360
+    private static var maximumRowsHeight: CGFloat { InterfaceScale.points(360) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {

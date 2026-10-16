@@ -84,7 +84,7 @@ struct HostFixAgentForm: View {
             Text(label)
                 .font(ThemeFont.fieldLabel)
                 .foregroundStyle(ThemePalette.secondaryText)
-                .frame(width: 52, alignment: .leading)
+                .frame(width: InterfaceScale.points(52), alignment: .leading)
             content()
         }
     }

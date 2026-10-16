@@ -5,6 +5,7 @@ import Foundation
 /// `GetShowDelay` does: 300 ms while tabs are at their narrowest, their titles cut the most, rising on a log scale to
 /// 800 ms as tabs widen to their full width, and 500 ms more at full width, where a tab already shows most of its
 /// title.
+@MainActor
 enum TabHoverCardDelay {
     static let atNarrowestTabs: Duration = .milliseconds(300)
     static let atWidestNarrowedTabs: Duration = .milliseconds(800)

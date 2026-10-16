@@ -33,7 +33,7 @@ struct SidebarHeader: View {
                 markAndActions
             }
         }
-        .frame(height: 46)
+        .frame(height: InterfaceScale.points(46))
     }
 
     private var markAndActions: some View {
@@ -63,13 +63,13 @@ struct SidebarHeader: View {
 
     private var appMark: some View {
         JustSessionsMark()
-            .frame(width: 21, height: 18)
+            .frame(width: InterfaceScale.points(21), height: InterfaceScale.points(18))
     }
 
     private var searchButton: some View {
         Button { isSearchOpen = true } label: {
             Image(systemName: "magnifyingglass")
-                .frame(width: 24, height: 24)
+                .frame(width: InterfaceScale.points(24), height: InterfaceScale.points(24))
                 .contentShape(Rectangle())
         }
         .buttonStyle(ThemePlainButtonStyle())

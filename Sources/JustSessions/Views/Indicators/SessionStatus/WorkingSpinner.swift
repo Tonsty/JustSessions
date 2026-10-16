@@ -18,7 +18,7 @@ struct WorkingSpinner: View {
 
     var body: some View {
         WorkingSpinnerArc(turns: !reduceMotion && !holdsStill)
-            .frame(width: 8, height: 8)
+            .frame(width: InterfaceScale.points(8), height: InterfaceScale.points(8))
     }
 }
 
@@ -36,7 +36,7 @@ struct WorkingSpinnerArc: NSViewRepresentable {
     }
 
     func sizeThatFits(_ proposal: ProposedViewSize, nsView: WorkingSpinnerArcView, context: Context) -> CGSize? {
-        CGSize(width: 8, height: 8)
+        CGSize(width: InterfaceScale.points(8), height: InterfaceScale.points(8))
     }
 }
 

@@ -9,7 +9,7 @@ struct TerminalTabCloseButton: View {
         Button(action: action) {
             Image(systemName: "xmark")
                 .font(ThemeFont.glyph(.small, weight: .bold))
-                .frame(width: 16, height: 16)
+                .frame(width: InterfaceScale.points(16), height: InterfaceScale.points(16))
                 .contentShape(Circle())
         }
         .buttonStyle(ThemePlainButtonStyle(cornerRadius: nil))

@@ -12,7 +12,7 @@ struct SidebarProjectLabel: View {
             Image(systemName: project.isPinned ? "pin" : "folder")
                 .font(ThemeFont.callout)
                 .foregroundStyle(ThemePalette.secondaryText)
-                .frame(width: 16)
+                .frame(width: InterfaceScale.points(16))
             VStack(alignment: .leading, spacing: 1) {
                 Text(project.displayName)
                     .font(ThemeFont.callout.weight(.medium))

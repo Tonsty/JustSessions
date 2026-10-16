@@ -64,7 +64,7 @@ struct SessionPreviewHeader: View {
             conversation.provider.iconImage(size: 15)
                 .font(ThemeFont.glyph(.badge, weight: .medium))
                 .foregroundStyle(conversation.provider.tintColor)
-                .frame(width: 34, height: 34)
+                .frame(width: InterfaceScale.points(34), height: InterfaceScale.points(34))
                 .background(conversation.provider.tintColor.opacity(0.14), in: RoundedRectangle(.card))
 
             VStack(alignment: .leading, spacing: 4) {
@@ -153,7 +153,7 @@ struct SessionPreviewHeader: View {
             SessionManagementMenuItems(store: store, conversation: conversation, onRename: onRename, onDelete: onDelete)
         } label: {
             Image(systemName: "ellipsis")
-                .frame(width: 24, height: 24)
+                .frame(width: InterfaceScale.points(24), height: InterfaceScale.points(24))
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)

@@ -24,10 +24,10 @@ struct SidebarProjectRow: View {
     private var isSelected: Bool { projectSelection.contains(project.id) }
     private var rowHeight: CGFloat { Self.height(withParentLabel: parentLabel != nil) }
 
-    static let chevronWidth: CGFloat = 27
+    static var chevronWidth: CGFloat { InterfaceScale.points(27) }
 
     static func height(withParentLabel: Bool) -> CGFloat {
-        withParentLabel ? 40 : 30
+        InterfaceScale.points(withParentLabel ? 40 : 30)
     }
 
     var body: some View {

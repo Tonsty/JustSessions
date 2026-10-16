@@ -42,7 +42,7 @@ struct SidebarSessionRowLayout<Title: View, Detail: View, Trailing: View>: View 
                 Spacer(minLength: 6)
                 trailing
             }
-            .frame(height: 28)
+            .frame(height: InterfaceScale.points(28))
             if let detail {
                 // Lined up with the title, under it.
                 detail
