@@ -158,6 +158,32 @@ No difference stands out from the load's noise:
 - **Bulk:** the fork took 0.78–0.80 s and 118–119% of a core, against the base's 0.78–0.79 s and 123%.
 - **Frames:** the repaint runs drew 146–150 frames on the base and 144–150 on the fork.
 
+**The SwiftTerm fork on 1.20.0, 15 October 2026.** The pin moved to the fork's `1.20.0-justsessions.1`; see [SwiftTerm fork](build-and-release.md#swiftterm-fork). It brings 81 upstream commits. Among them, cells in the default background are left to the layer's background color instead of being filled, and a cell's width is rounded to the nearest pixel, so the bench's tabs have 122 columns instead of 115. `TerminalEngineMeasurements` (repaint, bulk, hidden tabs, and SwiftTerm's two memory cases) ran on the base (`f507cf6`, `1.15.0-justsessions.3`) and on the branch (`084f8bf`), alternating base, branch, base, branch.
+
+**Method:**
+- **Machine:** Apple M4 Max, 14 cores (10 performance, 4 efficiency), 36 GB, macOS 27.0.1.
+- **Build:** release build from `swift test -c release`, Xcode 27.0, Swift 6.4.
+- **Load:** other sessions were running. The load average was 2.7–6.0. The display was kept awake with `caffeinate -d -i`.
+- **Runs:** each figure below is the median of the test's three runs in that round. Memory is one run per round, each in a process of its own.
+
+| SwiftTerm | Base, round 1 / 2 | 1.20, round 1 / 2 |
+| --- | --- | --- |
+| Repaint, 1 tab: process CPU | 15.0% / 14.9% | 13.2% / 13.1% |
+| Repaint, 1 tab: main thread | 11.7% / 11.7% | 9.9% / 9.8% |
+| Repaint, 1 tab: longest main-thread gap | 29.8 / 27.9 ms | 24.2 / 29.1 ms |
+| Repaint, 5 tabs, 1 shown: process CPU | 17.1% / 16.6% | 15.8% / 15.6% |
+| Repaint, 10 tabs, 1 shown: process CPU | 20.3% / 19.5% | 18.9% / 17.9% |
+| Bulk 20 MB: time | 0.73 / 0.70 s | 0.69 / 0.70 s |
+| Bulk 20 MB: process CPU | 124.6% / 123.4% | 124.5% / 124.8% |
+| Footprint per idle tab | 3.2 / 3.2 MB | 3.0 / 3.1 MB |
+| Footprint added per full tab | 30.2 / 30.8 MB | 30.7 / 31.4 MB |
+| Resident memory added per full tab | 35.3 / 33.6 MB | 35.7 / 30.5 MB |
+
+- **Repaint:** 1.20 used 1.0–1.8 points less of a core in every repaint case, on a grid with 6% more columns. With one tab, single runs overlap only at 14.3–14.4% of process CPU (base 14.3–17.0%, 1.20 12.7–14.4%), and main-thread CPU doesn't overlap (base 10.8–16.4%, 1.20 9.7–10.6%). Ghostty, which didn't change, used 5.1–5.4% with one tab in both, so the load stayed steady. Which upstream change saves the time wasn't profiled.
+- **Bulk and memory:** no change beyond the noise. Bulk took 0.69–0.70 s against the base's 0.70–0.73 s. Footprint per tab moved by at most 1.2 MB, while resident memory per full tab differed by 5.2 MB between 1.20's own two rounds. With the 10,000-line scrollback case, a full tab added 30.7 MB of footprint in both 1.20 rounds against the base's 29.9–30.4 MB, and 35.7–37.2 MB resident against 34.7–35.4 MB.
+- **Frames:** every SwiftTerm repaint drew 147–150 frames on both.
+- **Metal, off:** it still draws hidden tabs, 470–484 frames with 10 tabs on both, so it stays off (PERF-84).
+
 ## Work items
 
 | # | Item | Status |
