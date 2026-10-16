@@ -1,5 +1,24 @@
 [
   {
+    "version": "1.2.14",
+    "publishedOn": "2026-10-16",
+    "title": {
+      "en": "Sign in again on SSH hosts",
+      "zh-Hans": "在 SSH 主机上重新验证身份"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "Sign-in command… in an SSH host's menu asks for its PIN or code in a dialog when sign-in is due.",
+            "zh-Hans": "SSH 主机菜单中的「身份验证命令…」会在需要重新验证时，在对话框中询问 PIN 或验证码。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.13",
     "publishedOn": "2026-10-16",
     "title": {
