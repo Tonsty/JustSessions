@@ -15,7 +15,14 @@ struct WorkspaceReadServiceTests {
         first?.refreshThisMac()
         try await expectEventually { adapter.discoveryCount == 1 }
         second.refreshThisMac()
-        try await Task.sleep(for: .milliseconds(50))
+        // The second refresh joins from a task of its own, which a full run's load can hold up for longer than a
+        // short sleep. Had the first window gone before it joined, its join would end the first window's scan and
+        // start another, so the first window goes only once both wait on the one scan.
+        let joinDeadline = ContinuousClock.now + .seconds(120)
+        while await service.thisMacDiscoveryWaiterCount() < 2, ContinuousClock.now < joinDeadline {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(await service.thisMacDiscoveryWaiterCount() == 2)
         #expect(adapter.discoveryCount == 1)
 
         // Releasing one waiter must not cancel the producer the other window is awaiting.
@@ -99,13 +106,16 @@ private final class FirstDiscoveryBlocksAdapter: ConversationAdapter, @unchecked
     func delete(_ conversation: Conversation) throws {}
 }
 
+/// Each discovery waits until `allowDiscoveryToFinish()`, which lets every discovery finish, later ones too. A
+/// one-shot signal let a scan the test didn't expect wait out the test's whole time limit: the scan it ended took
+/// the signal. Now such a scan finishes, and the test fails on the count.
 private final class BlockingCountingAdapter: ConversationAdapter, @unchecked Sendable {
     let provider = ConversationProvider.claude
     private let lock = NSLock()
-    private let gate = DispatchSemaphore(value: 0)
     private let conversations: [Conversation]
     private let startsBlocked: Bool
     private var count = 0
+    private var mayFinish = false
 
     init(conversations: [Conversation], startsBlocked: Bool = true) {
         self.conversations = conversations
@@ -117,14 +127,15 @@ private final class BlockingCountingAdapter: ConversationAdapter, @unchecked Sen
     func discover(cancellation: ConversationDiscoveryCancellation) throws -> [Conversation] {
         lock.withLock { count += 1 }
         if startsBlocked {
-            while !cancellation.isCancelled,
-                  gate.wait(timeout: .now() + .milliseconds(10)) == .timedOut {}
+            while !cancellation.isCancelled, !lock.withLock({ mayFinish }) {
+                Thread.sleep(forTimeInterval: 0.01)
+            }
             try cancellation.checkCancellation()
         }
         return conversations
     }
 
-    func allowDiscoveryToFinish() { gate.signal() }
+    func allowDiscoveryToFinish() { lock.withLock { mayFinish = true } }
     func arguments(for conversation: Conversation, action: ConversationAction) -> [String] { [] }
     func delete(_ conversation: Conversation) throws {}
 }
