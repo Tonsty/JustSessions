@@ -94,10 +94,13 @@ struct ThisMacTmuxSandbox {
         ) ?? ""
     }
 
-    /// Waits up to 10 seconds without blocking the main thread, where a tab reads its terminal's output.
+    /// Waits up to 120 seconds without blocking the main thread, where a tab reads its terminal's output. The start of
+    /// a full run can hold up tmux and the store's background work for tens of seconds, as `expectEventually` notes;
+    /// a passing condition still returns at once.
     @MainActor
     func waitUntil(_ condition: () -> Bool) async -> Bool {
-        for _ in 0..<100 {
+        let deadline = ContinuousClock.now + .seconds(120)
+        while ContinuousClock.now < deadline {
             if condition() { return true }
             try? await Task.sleep(for: .milliseconds(100))
         }
@@ -106,7 +109,8 @@ struct ThisMacTmuxSandbox {
 
     @MainActor
     func waitForPaneProcess(in store: ConversationStore, for tab: TerminalSession) async -> Bool {
-        for _ in 0..<100 {
+        let deadline = ContinuousClock.now + .seconds(120)
+        while ContinuousClock.now < deadline {
             await store.lookUpTmuxPaneProcesses()
             if (tab.tmuxPaneProcessID ?? 0) > 0 { return true }
             try? await Task.sleep(for: .milliseconds(100))

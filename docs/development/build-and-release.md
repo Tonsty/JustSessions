@@ -38,6 +38,8 @@ The terminal comes from [yangzichao/SwiftTerm](https://github.com/yangzichao/Swi
 
 Since `v1.16.0`, SwiftTerm rounds a cell's width to the nearest pixel rather than up ([#606](https://github.com/migueldeicaza/SwiftTerm/issues/606)), so SF Mono at 13 points on a Retina screen has cells 16 pixels wide, as in Ghostty, rather than 17. `TerminalCellPixelSize.swiftTerm` mirrors it. SwiftTerm also leaves cells in the default background for the layer's background color to show through, which `cacheDisplay` doesn't draw, so tests read a SwiftTerm terminal's pixels through `snapshotOverLayerBackground()`.
 
+Before `v1.18.0`, `LocalProcess` started its child-exit `DispatchSource` before setting its handler. A Ghostty tab's process reports on a queue of its own, so an exit in that gap, as when a command fails as it starts on a busy Mac, was never delivered: the tab never showed it had ended, and the child stayed a zombie until the tab closed. Upstream [`1c3f3538`](https://github.com/migueldeicaza/SwiftTerm/commit/1c3f3538cb) sets the handler first; the app has it since `v1.2.13`. Keep that order when rebasing the fork.
+
 Fork tags are named `v<upstream version>-justsessions.<n>`, and `Package.swift` pins one exactly. To move to a newer SwiftTerm, rebase the commits upstream doesn't have onto the upstream tag, run `swift test` in the fork, push a new tag, and update `Package.swift` and `Package.resolved`. Drop the fork once an upstream release has all three changes.
 
 ## libghostty
@@ -82,7 +84,7 @@ Mark a new test of either kind with its trait.
 
 ## Stand-in CLIs
 
-Tests stand in for CLIs and other programs with shell scripts written by `writeExecutableScript`. macOS checks each newly written executable the first time it runs, one file at a time: about 140 ms each, against a few milliseconds once the file has run. With the whole suite writing stand-ins in parallel, that queue reached several seconds, and tests that give a stand-in a few seconds to answer failed, such as `RemoteHostCheckScriptTests`. A stand-in a test gives a time limit is written with `writeTimedStandIn` instead, which runs the `#!/bin/sh` script once before the test starts timing, ending at a line it adds, so that run does nothing the test could count. It waits for macOS, so it refuses to run on the main thread: running every stand-in once there held up the main-actor tests.
+Tests stand in for CLIs and other programs with shell scripts written by `writeExecutableScript`. macOS checks each newly written executable the first time it runs, one file at a time across the Mac: about 160 ms each, against a few milliseconds once the file has run. A full run's start queued 185 of these checks, for 30 seconds, with each waiting test holding one of Swift concurrency's shared threads (see [Tests that hold a thread](#tests-that-hold-a-thread)). So each distinct script is written once per test run, and each stand-in is a hard link to that copy (`StandInScripts`): a script many tests use is checked once. A stand-in a test gives a time limit is written with `writeTimedStandIn`, which runs the `#!/bin/sh` script once before the test starts timing, ending at a line it adds, so that run does nothing the test could count. It refuses to run on the main thread, where running every stand-in once held up the main-actor tests. Write stand-ins with these helpers, starting with `#!/bin/sh`, and replace a stand-in by writing it again rather than changing the file in place, which would change it for every test that shares the script.
 
 ## Live CLI checks
 

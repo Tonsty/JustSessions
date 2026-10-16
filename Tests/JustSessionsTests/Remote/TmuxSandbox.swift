@@ -36,7 +36,9 @@ struct TmuxSandbox {
         } else {
             try writeExecutableScript("#!/bin/sh\nshift\nexec /bin/sh -c \"$1\"\n", to: bin.appendingPathComponent("login-shell"))
         }
-        recordLaunch = "{ pwd -P; printf '%s\\n' \"$@\"; } >> '\(launchLog.path)'"
+        // The log is found from the stand-in's own path, so every sandbox's stand-in is the same script, which macOS
+        // checks only once; see `writeExecutableScript(_:to:)`.
+        recordLaunch = "{ pwd -P; printf '%s\\n' \"$@\"; } >> \"${0%/*}/../\(launchLog.lastPathComponent)\""
         // It runs until a test or `tearDown()` ends it, as `ThisMacTmuxSandbox.writeExecutable` says.
         try writeExecutableScript("#!/bin/sh\n\(recordLaunch)\nexec sleep 600\n", to: bin.appendingPathComponent("claude"))
         if let tmuxConfiguration {
@@ -112,8 +114,8 @@ struct TmuxSandbox {
         try writeExecutableScript("#!/bin/sh\n\(body)\n", to: root.appendingPathComponent("bin").appendingPathComponent(name))
     }
 
-    func run(_ command: String) -> String {
-        BoundedProcessRunner.output(ofExecutable: "/bin/sh", arguments: ["-c", command], environment: environment, timeout: 10) ?? ""
+    func run(_ command: String, timeout: TimeInterval = 10) -> String {
+        BoundedProcessRunner.output(ofExecutable: "/bin/sh", arguments: ["-c", command], environment: environment, timeout: timeout) ?? ""
     }
 
     func hasTmuxSession(_ name: String) -> Bool {
@@ -128,7 +130,7 @@ struct TmuxSandbox {
     /// Every caller waits for something to happen, so a passing test never waits out the deadline. It is long because
     /// tmux can take many seconds to start while other suites fill the machine, as on a CI runner.
     func waitUntil(_ condition: () -> Bool) -> Bool {
-        let deadline = Date(timeIntervalSinceNow: 30)
+        let deadline = Date(timeIntervalSinceNow: 120)
         while Date() < deadline {
             if condition() { return true }
             Thread.sleep(forTimeInterval: 0.1)

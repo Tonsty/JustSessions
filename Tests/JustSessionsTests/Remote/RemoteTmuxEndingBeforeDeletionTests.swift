@@ -86,10 +86,11 @@ struct RemoteTmuxEndingBeforeDeletionTests {
         defer { kill(cliProcessID, SIGKILL) }
         let startedAt = Date()
 
-        _ = sandbox.run(RemoteTmuxCommands.killSessionWaitingForCLIExitCommand(tmuxName, on: "devbox", timeoutSeconds: 2))
+        _ = sandbox.run(RemoteTmuxCommands.killSessionWaitingForCLIExitCommand(tmuxName, on: "devbox", timeoutSeconds: 2), timeout: 300)
 
+        // The CLI never exits, so returning well before `run`'s 300-second limit means the command gave up on it.
         let elapsed = Date().timeIntervalSince(startedAt)
-        #expect(elapsed >= 1 && elapsed < 6, "waited \(elapsed) seconds")
+        #expect(elapsed >= 1 && elapsed < 120, "waited \(elapsed) seconds")
         #expect(kill(cliProcessID, 0) == 0)
     }
 

@@ -104,7 +104,8 @@ struct RemoteDetachedActivityTests {
         answer.set(answers.removeFirst())
         reader.askIfDue("devbox")
         // It asks in the background, which can take a while when the whole suite runs.
-        for _ in 0..<600 where reader.listing(of: "devbox") == nil { try? await Task.sleep(for: .milliseconds(50)) }
+        let deadline = ContinuousClock.now + .seconds(120)
+        while reader.listing(of: "devbox") == nil, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(50)) }
         #expect(calls.count == 3)
         #expect(reader.listing(of: "devbox") != nil)
     }

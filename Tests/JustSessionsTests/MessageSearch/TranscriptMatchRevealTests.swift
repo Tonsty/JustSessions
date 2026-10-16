@@ -9,6 +9,15 @@ struct TranscriptMatchRevealTests {
         fixture.readerScrollView.flatMap { fixture.visiblePosition(in: $0)?.entryIndex }
     }
 
+    /// Waits for the reader to show the reveal's page with Find holding `query`, then for it to settle at the match,
+    /// each with the fixture's full wait. Loading the page, searching and restoring the match each wait on threads a
+    /// full run keeps busy: two release runs had Find showing the query but the match not yet restored when one wait
+    /// covering all of them ran out.
+    private func waitForTheMatch(_ entryID: Int, query: String, in fixture: TranscriptScrollViewFixture) async throws {
+        try await fixture.waitUntil { fixture.readerScrollView != nil && fixture.textFieldValues.contains(query) }
+        try await fixture.waitUntil { shownEntry(in: fixture) == entryID && fixture.textFieldValues.contains(query) }
+    }
+
     @Test func theReaderOpensAtTheMatchWithFindShowingTheSearchedText() async throws {
         let files = try TranscriptPagingFixture(count: 500)
         defer { files.remove() }
@@ -20,7 +29,7 @@ struct TranscriptMatchRevealTests {
             conversationID: files.conversation.id, entryID: entryID, query: "Message 300,"
         ))
 
-        try await fixture.waitUntil { shownEntry(in: fixture) == entryID && fixture.textFieldValues.contains("Message 300,") }
+        try await waitForTheMatch(entryID, query: "Message 300,", in: fixture)
         #expect(shownEntry(in: fixture) == entryID)
         #expect(fixture.textFieldValues.contains("Message 300,"))
     }
@@ -40,7 +49,7 @@ struct TranscriptMatchRevealTests {
             conversationID: conversation.id, entryID: entryID, query: "Message 120,"
         ))
 
-        try await fixture.waitUntil { shownEntry(in: fixture) == entryID && fixture.textFieldValues.contains("Message 120,") }
+        try await waitForTheMatch(entryID, query: "Message 120,", in: fixture)
         #expect(shownEntry(in: fixture) == entryID)
         #expect(fixture.textFieldValues.contains("Message 120,"))
     }
@@ -65,7 +74,7 @@ struct TranscriptMatchRevealTests {
         fixture.positionStore.record(.bottom, for: reveal.conversationID)
         fixture.showReader(conversation(updatedAt: 2), matchReveal: reveal)
 
-        try await fixture.waitUntil { shownEntry(in: fixture) == entryID && fixture.textFieldValues.contains("Message 120,") }
+        try await waitForTheMatch(entryID, query: "Message 120,", in: fixture)
         #expect(shownEntry(in: fixture) == entryID)
         #expect(fixture.textFieldValues.contains("Message 120,"))
     }

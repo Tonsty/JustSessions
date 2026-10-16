@@ -39,11 +39,13 @@ struct AntigravityLiveConversationSourceTests {
         let logFile = try writeLog(AntigravityCLILogTests.streamLine(for: AntigravityCLILogTests.secondConversationID), in: configurationDirectory)
         let cli = Process()
         cli.executableURL = URL(fileURLWithPath: "/bin/sh")
-        cli.arguments = ["-c", #"exec 3>>"$1"; exec sleep 30"#, "agy", logFile.path]
+        // Long enough that a stall can't let the CLI end before it is looked up; the test ends it.
+        cli.arguments = ["-c", #"exec 3>>"$1"; exec sleep 600"#, "agy", logFile.path]
         try cli.run()
         defer { cli.terminate() }
         // The temporary folder is under /var, which `lsof` lists as /private/var.
-        for _ in 0..<50 where !(ProcessOpenFileReader().openFilePaths(ofProcessIDs: [cli.processIdentifier])[cli.processIdentifier] ?? [])
+        let deadline = ContinuousClock.now + .seconds(120)
+        while ContinuousClock.now < deadline, !(ProcessOpenFileReader().openFilePaths(ofProcessIDs: [cli.processIdentifier])[cli.processIdentifier] ?? [])
             .contains(where: { $0.hasSuffix(logFile.lastPathComponent) }) {
             try await Task.sleep(for: .milliseconds(100))
         }

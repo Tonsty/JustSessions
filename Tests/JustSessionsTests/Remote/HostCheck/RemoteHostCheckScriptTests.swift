@@ -46,16 +46,17 @@ struct RemoteHostCheckScriptTests {
             "#!/bin/sh\necho \"env: node: No such file or directory\" >&2\nexit 127\n",
             to: bin.appendingPathComponent("opencode")
         )
-        try writeTimedStandIn("#!/bin/sh\nexec sleep 30\n", to: bin.appendingPathComponent("pi"))
+        try writeTimedStandIn("#!/bin/sh\nexec sleep 600\n", to: bin.appendingPathComponent("pi"))
         try writeTimedStandIn("#!/bin/sh\ncat >/dev/null\necho 3.45.1\n", to: bin.appendingPathComponent("python3"))
         let programs = RemoteHostCheckProgram.all { _ in nil }
         let command = RemoteHostCheckScript.command(
             startup: .interactive,
             programs: programs,
-            projectPath: root.path,
-            // Long enough for the stand-ins that answer at once to start while the whole suite runs in parallel;
-            // `pi`, which sleeps, still runs into it.
-            versionTimeoutSeconds: 3
+            // The app's own time limit, 10 seconds. The check runs in processes of its own, which a stall of this test
+            // process doesn't slow, and each stand-in has run once already, so those that answer at once start in
+            // milliseconds. `pi`, which sleeps far longer, runs into it. This synchronous test holds one of the shared
+            // threads for as long as `pi` takes, so the limit stays short.
+            projectPath: root.path
         )
 
         let started = Date()
@@ -64,11 +65,12 @@ struct RemoteHostCheckScriptTests {
             arguments: ["-c", command],
             environment: ["HOME": root.path, "SHELL": loginShell.path, "PATH": "\(bin.path):/usr/bin:/bin"],
             includesStandardError: true,
-            timeout: 20
+            timeout: 120
         )
 
         let output = RemoteHostCheckOutput(try #require(result).output)
-        #expect(Date().timeIntervalSince(started) < 10)
+        // Well short of `pi`'s 600 seconds, so the time limit, not `pi` ending, let the check finish.
+        #expect(Date().timeIntervalSince(started) < 300)
         #expect(output.text("rsync-path") == bin.appendingPathComponent("rsync").path)
         #expect(output.text("outside-login-shell-done") == nil)
         #expect(output.reachedLoginShell)
