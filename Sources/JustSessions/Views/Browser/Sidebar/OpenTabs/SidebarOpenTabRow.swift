@@ -1,17 +1,17 @@
 import SwiftUI
 
 /// An open tab on one line: its tool's icon, the tab's title, which side of a split it is, if any, and its CLI's
-/// status, highlighted while the tab is selected. Its project shows in the heading of the group above it, so the row
-/// leaves it to the tooltip.
-struct SidebarOpenTabRow: View {
+/// status, highlighted while the tab is shown or picked among several to close. Its project shows in the heading of the
+/// group above it, so the row leaves it to the tooltip.
+struct SidebarOpenTabRow<MenuItems: View>: View {
     @ObservedObject var tab: TerminalSession
     let projectDisplayName: String
     /// The tab's side of its split, or nil for a tab in no split.
     var splitSide: TerminalSplit.Side? = nil
     let isSelected: Bool
     let onSelect: () -> Void
-    /// The tab's menu in the tab bar.
-    let menuItems: TerminalTabMenuItems
+    /// The tab's menu in the tab bar, or, while the row is one of several selected, the menu for them all.
+    @ViewBuilder let menuItems: () -> MenuItems
 
     static var height: CGFloat { InterfaceScale.points(28) }
 
@@ -44,7 +44,7 @@ struct SidebarOpenTabRow: View {
         .accessibilityLabel(Text(verbatim: "\(tab.displayTitle), \(projectContext)"))
         .accessibilityValue(splitAccessibilityValue)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .contextMenu { menuItems }
+        .contextMenu { menuItems() }
     }
 
     /// Which view of its split the tab is, as the tab bar's tabs say; nothing for a tab in no split.

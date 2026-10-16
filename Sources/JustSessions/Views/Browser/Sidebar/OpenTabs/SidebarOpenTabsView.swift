@@ -4,10 +4,12 @@ import SwiftUI
 /// that collapses it. It stays mounted beside the project list to retain its scroll position and collapsed groups.
 /// Each tab of a split across projects lists under its own project, marked with its side of the split, as is each
 /// tab of a split in its project's group. Rows, headings, and the space around them offer the menus of the tab bar's
-/// tabs, group labels, and space. A row drags onto the terminals as its tab would from the tab bar.
+/// tabs, group labels, and space. A row drags onto the terminals as its tab would from the tab bar. ⌘- and Shift-clicks
+/// select several rows to close together; see `SidebarOpenTabsView+Selection`.
 struct SidebarOpenTabsView: View {
     let store: ConversationStore
     let searchText: String
+    @Binding var selection: OpenTabMultiSelection
     let onSelectTab: (UUID) -> Void
     /// Called once a tab dragged onto the terminals shows there.
     let onDroppedTabIntoTerminals: () -> Void
@@ -16,14 +18,18 @@ struct SidebarOpenTabsView: View {
     let onDeleteConversation: (Conversation) -> Void
     /// Closes a group's tabs, asking once for them all.
     let onCloseTabGroup: ([UUID], _ projectName: String) -> Void
+    /// Closes the selected tabs, asking once for them all.
+    let onCloseSelectedTabs: ([UUID]) -> Void
     let onNewSession: () -> Void
 
-    @State private var groupCollapse = OpenTabGroupCollapse()
+    @State var groupCollapse = OpenTabGroupCollapse()
+    /// Set by a ⌘- or Shift-click, so Escape cancels the selection; see `SidebarSelectionScrollView`.
+    @FocusState var isListFocused: Bool
 
     /// Space above each group's heading after the first, which sets the groups apart without indenting their rows.
     static let groupSpacing: CGFloat = 10
 
-    private var matchingTabs: [TerminalSession] {
+    var matchingTabs: [TerminalSession] {
         store.terminalSessions.filter { tab in
             SidebarOpenTabSearch.matches(
                 searchText,
@@ -35,7 +41,7 @@ struct SidebarOpenTabsView: View {
         }
     }
 
-    private var isSearching: Bool {
+    var isSearching: Bool {
         !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
@@ -46,7 +52,7 @@ struct SidebarOpenTabsView: View {
         let colorsByProjectKey = TabGroupPalette.colorsByProjectKey(store.tabProjectKeysInOrder)
         let allGroups = allGroupsCollapsing(groups.map(\.projectDirectoryKey))
 
-        ScrollView {
+        SidebarSelectionScrollView(isFocused: $isListFocused, onDismissSelection: { selection.clear() }) {
             LazyVStack(spacing: SidebarIndentGuide.rowSpacing) {
                 ForEach(groups) { group in
                     let projectName = store.projectDisplayName(forProjectPath: group.projectDirectoryKey)
@@ -80,13 +86,21 @@ struct SidebarOpenTabsView: View {
                                 tab: tab,
                                 projectDisplayName: store.projectDisplayName(forProjectPath: tab.projectDirectoryKey),
                                 splitSide: store.split(containing: tab.id).flatMap { store.sides(of: $0)?.side(of: tab.id) },
-                                isSelected: store.selectedTerminalID == tab.id,
-                                onSelect: { onSelectTab(tab.id) },
-                                menuItems: TerminalTabMenuItems(
-                                    store: store, tab: tab, onRename: onRenameConversation, onCloseTab: onCloseTab,
-                                    onDelete: onDeleteConversation
-                                )
-                            )
+                                isSelected: isHighlighted(tab.id),
+                                onSelect: { handleRowClick(tab.id) }
+                            ) {
+                                if selection.hasMultipleSelected && selection.contains(tab.id) {
+                                    SelectedOpenTabsContextMenu(
+                                        selectedTabCount: selection.selectedTabIDs.count,
+                                        onClose: { onCloseSelectedTabs(Array(selection.selectedTabIDs)) }
+                                    )
+                                } else {
+                                    TerminalTabMenuItems(
+                                        store: store, tab: tab, onRename: onRenameConversation, onCloseTab: onCloseTab,
+                                        onDelete: onDeleteConversation
+                                    )
+                                }
+                            }
                             .sidebarRowDragIntoSplit(
                                 .openTab(tab.id),
                                 titled: tab.displayTitle,
@@ -126,11 +140,16 @@ struct SidebarOpenTabsView: View {
         }
         .accessibilityIdentifier("sidebar.openTabs")
         .onChange(of: store.selectedTerminalID) { _, _ in
-            // A tab selected from the tab bar or by shortcut shows its row, as selecting one there expands its group.
+            // A tab selected from the tab bar or by shortcut shows its row, as selecting one there expands its group,
+            // and its row is the one highlighted, in place of any rows selected to close.
             expandSelectedTabsGroup()
+            selection.clear()
         }
         .onChange(of: store.tabProjectKeysInOrder) { _, openProjectKeys in
             groupCollapse.keepOnly(openProjectKeys)
+        }
+        .onChange(of: tabs.map(\.id)) { _, listedTabIDs in
+            selection.keepOnly(Set(listedTabIDs))
         }
     }
 
