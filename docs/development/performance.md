@@ -771,6 +771,29 @@ When a tab goes through a Connect… login, its keystrokes are sent by the login
 
 **Limits:** one host, on the same Mac. A host whose bash has no command-not-found handler saved only the PATH lookup. No macOS host was tested; zsh ran on this Mac only, in `RemoteCLIInvocationTests`.
 
+### 31. A Pi session's name was looked for in its last 256 KB on every refresh
+
+**Evidence:** Pi writes a `/name` once, as a `session_info` line. On every refresh the adapter read the last 256 KB of each session file and parsed its lines from the end until it found one. On the reporting Mac, with 338 Pi sessions totalling 1.05 GB, the largest 523 MB, that took 212 ms a refresh and found none of the 4 names, which were 0.5–5.4 MB before the end of their files.
+
+**Change:** `PiSessionNameScan` (DSC-55) looks for the last name anywhere in the file. It byte-searches 1 MiB chunks for `"session_info"`, parses only the lines that hold it, and skips lines longer than 64 KiB without keeping them. Its result is kept per file in a `SessionFileSummaryCache` saved across launches. A file whose size and modification date haven't changed isn't read. A changed one is read on from where the last scan stopped, once the 256 bytes it ended on are still there.
+
+**Measured:** `PiSessionNameScan` compiled with `swiftc -O` beside a stand-in for its parse of name lines, over the reporting Mac's own Pi sessions with a warm page cache, in two processes:
+
+| Operation | Time |
+| --- | --- |
+| First scan of all 338 files, once per file | 627–783 ms |
+| First scan of the largest file, 523 MB | 236–246 ms |
+| Every file again with nothing new, reading on from each kept scan | 5 ms |
+| Before: the last 256 KB of every file, parsed for a name | 212 ms |
+
+The scan found all 4 names. Apple M4 Pro (12 cores), 24 GB, macOS 26.6.1, Swift 6.4; the machine wasn't isolated, at a load average of 5–6.
+
+**Limits:**
+- **The first launch after the update** reads each Pi session in full once, on the discovery worker: 0.6–0.8 s here.
+- **The check before reading on** compares the last 256 bytes read, not a hash of every byte as #24 does. A file rewritten in place with the same bytes at that point would keep a stale name. In exchange, sessions mirrored from SSH hosts read on too, although rsync replaces their files at every copy.
+- **Not measured in the app:** the numbers come from the standalone scan, not from a refresh.
+- **Still read on every refresh:** an unnamed session's first prompt, up to 1 MB from the start of its file.
+
 ## How to profile
 
 Attach to a running copy, so you keep your windows and sessions. Record in chunks, so you can analyze finished chunks while still using the app:
