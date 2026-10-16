@@ -7,11 +7,15 @@ import Testing
 /// stands in for `ssh`: as the connection it makes its control socket's file and runs until stopped; as `-O forward`,
 /// `-O cancel`, and the `-W` probe it notes the request, failing as the files beside it say, and prints what the
 /// connection would print to the connection's output file.
+///
+/// Its tests run one at a time: each starts several `ssh` stand-ins, and all of them at once slowed other suites'
+/// shell scripts by about 2 seconds, enough for `RemoteHostCheckScriptTests`' 10-second limit to fail in a full run.
 @MainActor
+@Suite(.serialized)
 struct SSHPortForwardsTests {
     static let fakeSSH = """
         #!/bin/sh
-        dir=$(dirname "$0")
+        dir=${0%/*}
         mode=connect; control=""; spec=""; target=""; previous=""
         for argument; do
             case "$previous" in
@@ -23,15 +27,19 @@ struct SSHPortForwardsTests {
             case "$argument" in ControlPath=*) control="${argument#ControlPath=}" ;; esac
             previous="$argument"
         done
-        connection_output="$(dirname "$control")/ssh-output"
+        connection_output="${control%/*}/ssh-output"
         case "$mode" in
         connect)
             echo "connect" >> "$dir/requests"
             if [ -e "$dir/connection-fails" ]; then echo "me@devbox: Permission denied (publickey)." >&2; exit 255; fi
-            trap 'rm -f "$control"; exit 0' TERM
+            # Waits on one `sleep` rather than looping, which would start a process every few milliseconds for each
+            # open connection while the whole suite runs in parallel. `wait` returns at once for the trap.
+            trap 'rm -f "$control"; kill $sleeper 2>/dev/null; exit 0' TERM
             echo $$ > "$dir/connection-pid"
             : > "$control"
-            while :; do sleep 0.05; done
+            sleep 600 &
+            sleeper=$!
+            wait $sleeper
             ;;
         forward|cancel)
             echo "$mode $spec $control" >> "$dir/requests"
