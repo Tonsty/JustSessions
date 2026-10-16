@@ -47,6 +47,33 @@ extension View {
     }
 }
 
+extension View {
+    /// Shows a host sign-in's questions in this window when it's the one the sign-in runs in; see `RemoteSignIns`.
+    func remoteSignInQuestions(in store: ConversationStore, signIns: RemoteSignIns = .shared) -> some View {
+        modifier(RemoteSignInQuestionPresenter(store: store, signIns: signIns, prompter: signIns.prompter))
+    }
+}
+
+private struct RemoteSignInQuestionPresenter: ViewModifier {
+    let store: ConversationStore
+    let signIns: RemoteSignIns
+    @ObservedObject var prompter: SSHLoginPrompter
+
+    func body(content: Content) -> some View {
+        let isThisWindow = signIns.presentingStoreID == ObjectIdentifier(store)
+        let question = Binding(
+            get: { isThisWindow ? prompter.question : nil },
+            set: { if $0 == nil, isThisWindow { prompter.answer(nil) } }
+        )
+        content
+            .sheet(item: question) { question in
+                SSHLoginQuestionSheet(question: question, onAnswer: prompter.answer)
+                    .appLanguage(from: .shared)
+            }
+            .dismissesOnClickOutside(item: question)
+    }
+}
+
 private struct SSHLoginQuestionPresenter: ViewModifier {
     @ObservedObject var prompter: SSHLoginPrompter
 

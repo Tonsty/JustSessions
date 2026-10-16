@@ -49,6 +49,7 @@ struct ConversationSidebarView: View {
     /// The SSH host a folder path is being typed for, from its heading's +.
     @State private var sshHostAddingProject: SessionHost?
     @State private var sshHostForwardingPort: SessionHost?
+    @State private var sshHostEditingSignInCommand: SessionHost?
     /// A project to scroll into view once it is listed: one just added from a host's heading, as a project with no
     /// sessions sorts last under its host and could otherwise be added out of sight, or the onboarding tour's.
     @State var projectToReveal: String?
@@ -212,6 +213,14 @@ struct ConversationSidebarView: View {
             }
         }
         .dismissesOnClickOutside(item: $sshHostForwardingPort)
+        .sheet(item: $sshHostEditingSignInCommand) { host in
+            if let destination = host.sshDestination {
+                RemoteSignInCommandSheet(host: destination, needsLogIn: store.sshHostsNeedingLogIn.contains(destination))
+                    .appLanguage(from: .shared)
+            }
+        }
+        .dismissesOnClickOutside(item: $sshHostEditingSignInCommand)
+        .remoteSignInQuestions(in: store)
         .sshLoginQuestions(from: sshLoginPrompter)
         .onAppear { expandProjectsWithOpenTerminals() }
         .onOnboardingTourStop(showOnboardingTourStop)
@@ -274,6 +283,10 @@ struct ConversationSidebarView: View {
                         store.logInFromHeading(to: destination) { await sshLoginPrompter.ask($0) }
                     },
                     onDisconnect: { store.disconnect(destination) },
+                    signIn: RemoteSignIns.shared.command(on: destination) == nil
+                        ? nil : RemoteSignIns.shared.state(on: destination),
+                    onSignIn: { RemoteSignIns.shared.signIn(on: destination, presentingIn: store) },
+                    onEditSignInCommand: { sshHostEditingSignInCommand = section.host },
                     portForwards: SSHPortForwards.shared.entries(on: destination),
                     onForwardPort: { sshHostForwardingPort = section.host },
                     onTryPortForwardsAgain: { SSHPortForwards.shared.tryAgain(onlyOn: destination) },

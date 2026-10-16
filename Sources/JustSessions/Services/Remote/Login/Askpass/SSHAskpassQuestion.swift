@@ -1,7 +1,14 @@
 import Foundation
 
-/// One question `ssh` asks while the app logs in to a host, shown in the window that started the login.
+/// One question `ssh` asks while the app logs in to a host, shown in the window that started the login. A host's
+/// sign-in command asks its questions the same way; see `RemoteSignInSession`.
 struct SSHAskpassQuestion: Identifiable, Equatable, Sendable {
+    /// Who asks: `ssh` logging in, or a sign-in command running on the host after it has.
+    enum Asker: Equatable, Sendable {
+        case ssh
+        case signInCommand
+    }
+
     enum Kind: Equatable, Sendable {
         /// A password, passphrase, or one-time code, typed without being shown.
         case secret
@@ -15,6 +22,7 @@ struct SSHAskpassQuestion: Identifiable, Equatable, Sendable {
 
     let id = UUID()
     let host: String
+    let asker: Asker
     let kind: Kind
     /// What `ssh` asked, as it worded it, such as "(me@devbox) Password:".
     let prompt: String
@@ -27,6 +35,7 @@ struct SSHAskpassQuestion: Identifiable, Equatable, Sendable {
 
     init(host: String, request: SSHAskpassRequest, context: String?, previousPrompt: String? = nil) {
         self.host = host
+        asker = .ssh
         prompt = request.prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         self.context = context
         kind = switch request.hint {
@@ -35,6 +44,16 @@ struct SSHAskpassQuestion: Identifiable, Equatable, Sendable {
         default: Self.asksToTrustHostKey(request.prompt) ? .unknownHostKey : .secret
         }
         isAskedAgain = kind == .secret && prompt == previousPrompt
+    }
+
+    /// What a host's sign-in command asks once it waits, answered out of sight: a PIN, a password, or a one-time code.
+    init(signInOn host: String, prompt: String, context: String?, previousPrompt: String?) {
+        self.host = host
+        asker = .signInCommand
+        kind = .secret
+        self.prompt = prompt
+        self.context = context
+        isAskedAgain = prompt == previousPrompt
     }
 
     /// OpenSSH asks "Are you sure you want to continue connecting (yes/no/[fingerprint])?" about a new host key.

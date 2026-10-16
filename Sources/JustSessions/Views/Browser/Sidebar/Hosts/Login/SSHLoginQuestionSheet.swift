@@ -25,7 +25,9 @@ struct SSHLoginQuestionSheet: View {
                         .font(ThemeFont.callout)
                         .foregroundStyle(ThemePalette.warningText)
                 }
-                sshText(question.prompt)
+                if !question.prompt.isEmpty {
+                    sshText(question.prompt)
+                }
                 switch question.kind {
                 case .secret:
                     SecureField("Answer", text: $typedText)
@@ -53,15 +55,19 @@ struct SSHLoginQuestionSheet: View {
     }
 
     private var title: Text {
-        question.kind == .unknownHostKey ? Text("Trust \(question.host)?") : Text("Log in to \(question.host)")
+        if question.asker == .signInCommand { return Text("Sign in on \(question.host)") }
+        return question.kind == .unknownHostKey ? Text("Trust \(question.host)?") : Text("Log in to \(question.host)")
     }
 
     private var intro: Text {
+        if question.asker == .signInCommand {
+            return Text("Your sign-in command asks this on \(question.host). JustSessions keeps nothing you type.")
+        }
         switch question.kind {
         case .unknownHostKey:
-            Text("This Mac hasn't connected to this host before. Trust it only if the fingerprint matches the host's.")
+            return Text("This Mac hasn't connected to this host before. Trust it only if the fingerprint matches the host's.")
         case .secret, .confirmation, .notice:
-            Text("`ssh` asks this to log in. JustSessions keeps nothing you type.")
+            return Text("`ssh` asks this to log in. JustSessions keeps nothing you type.")
         }
     }
 

@@ -17,6 +17,11 @@ struct SidebarSSHHostActions {
     let login: SidebarSSHHostLogin
     let onConnect: () -> Void
     let onDisconnect: () -> Void
+    /// Where the host's sign-in command stands; nil when it has none. See `RemoteSignIns`.
+    let signIn: RemoteSignIns.State?
+    let onSignIn: () -> Void
+    /// Sign-in command…, which sets the command.
+    let onEditSignInCommand: () -> Void
     /// The host's port forwards, and Forward a port…; see `SSHPortForwards`.
     let portForwards: [SSHPortForwards.Entry]
     let onForwardPort: () -> Void
