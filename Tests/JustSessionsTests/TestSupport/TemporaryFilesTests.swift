@@ -20,6 +20,47 @@ struct TemporaryFilesTests {
         #expect(result == "--version\n")
         #expect(try String(contentsOf: runsLog, encoding: .utf8) == "run\n")
     }
+
+    /// Stand-ins with the same script are one file, which macOS checks once; writing one again leaves the other as it was.
+    @Test func standInsWithTheSameScriptShareOneFileThatRewritingOneLeavesAlone() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let script = "#!/bin/sh\necho \"same $1\"\n"
+        let first = try writeExecutableScript(script, to: root.appendingPathComponent("first"))
+        let second = try writeExecutableScript(script, to: root.appendingPathComponent("second"))
+
+        #expect(try Self.fileNumber(of: first) == Self.fileNumber(of: second))
+        #expect(BoundedProcessRunnerOutput.run(second, arguments: ["run"]) == "same run\n")
+
+        try writeExecutableScript("#!/bin/sh\necho other\n", to: second)
+
+        #expect(try Self.fileNumber(of: first) != Self.fileNumber(of: second))
+        #expect(BoundedProcessRunnerOutput.run(first, arguments: ["run"]) == "same run\n")
+        #expect(BoundedProcessRunnerOutput.run(second, arguments: []) == "other\n")
+    }
+
+    @Test func aRunsCopiesAreRemovedOnceItHasEnded() throws {
+        let temporaryDirectory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+        let ended = Process()
+        ended.executableURL = URL(fileURLWithPath: "/usr/bin/true")
+        try ended.run()
+        ended.waitUntilExit()
+        let endedRunsFolder = temporaryDirectory.appendingPathComponent("JustSessionsTests-stand-ins-\(ended.processIdentifier)")
+        let runningFolder = temporaryDirectory.appendingPathComponent("JustSessionsTests-stand-ins-1")
+        for folder in [endedRunsFolder, runningFolder] {
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        }
+
+        _ = StandInScripts(temporaryDirectory: temporaryDirectory)
+
+        #expect(!FileManager.default.fileExists(atPath: endedRunsFolder.path))
+        #expect(FileManager.default.fileExists(atPath: runningFolder.path))
+    }
+
+    private static func fileNumber(of file: URL) throws -> Int {
+        try #require(FileManager.default.attributesOfItem(atPath: file.path)[.systemFileNumber] as? Int)
+    }
 }
 
 /// What a stand-in prints when a test runs it the ordinary way.
