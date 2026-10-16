@@ -76,6 +76,8 @@
 	<string>%lld</string>
 	<key>%lld earlier entries are not shown. Resume the session to see all of it.</key>
 	<string>%lld earlier entries are not shown. Resume the session to see all of it.</string>
+	<key>%lld hours</key>
+	<string>%lld hours</string>
 	<key>%lld of %lld</key>
 	<string>%lld of %lld</string>
 	<key>%lld points</key>
@@ -282,6 +284,10 @@
 	<string>Check Again</string>
 	<key>Check again</key>
 	<string>Check again</string>
+	<key>Check command</key>
+	<string>Check command</string>
+	<key>Check command (optional)</key>
+	<string>Check command (optional)</string>
 	<key>Check for updates</key>
 	<string>Check for updates</string>
 	<key>Check host</key>
@@ -404,6 +410,8 @@
 	<string>Color intensity</string>
 	<key>Colors</key>
 	<string>Colors</string>
+	<key>Command</key>
+	<string>Command</string>
 	<key>Commands start in %@'s login shell with its interactive startup files, as in your own terminal.</key>
 	<string>Commands start in %@'s login shell with its interactive startup files, as in your own terminal.</string>
 	<key>Connect again; a CLI still running in tmux on the host is reattached</key>
@@ -482,10 +490,14 @@
 	<string>Could not start session</string>
 	<key>Couldn't ask %@ which ports it listens on. Type the port instead.</key>
 	<string>Couldn't ask %@ which ports it listens on. Type the port instead.</string>
+	<key>Couldn't connect to %@.</key>
+	<string>Couldn't connect to %@.</string>
 	<key>Couldn't copy to %@</key>
 	<string>Couldn't copy to %@</string>
 	<key>Couldn't find iTerm2's default profile. A dynamic profile can't be imported.</key>
 	<string>Couldn't find iTerm2's default profile. A dynamic profile can't be imported.</string>
+	<key>Couldn't sign in on %@</key>
+	<string>Couldn't sign in on %@</string>
 	<key>Create folder and add</key>
 	<string>Create folder and add</string>
 	<key>Create folder and open terminal</key>
@@ -1086,6 +1098,8 @@
 	<string>Release history could not be loaded. Read the latest notes on the website.</string>
 	<key>Release notes</key>
 	<string>Release notes</string>
+	<key>Remove</key>
+	<string>Remove</string>
 	<key>Remove host</key>
 	<string>Remove host</string>
 	<key>Rename</key>
@@ -1148,8 +1162,12 @@
 	<string>Run on</string>
 	<key>Running</key>
 	<string>Running</string>
+	<key>Runs every 5 minutes. When it exits with anything but 0, you're asked to sign in.</key>
+	<string>Runs every 5 minutes. When it exits with anything but 0, you're asked to sign in.</string>
 	<key>Runs on %@ what JustSessions runs there. When a command below fails the same way in your own Terminal, the problem is on %@.</key>
 	<string>Runs on %@ what JustSessions runs there. When a command below fails the same way in your own Terminal, the problem is on %@.</string>
+	<key>Runs on the host in your login shell, as you'd type it there.</key>
+	<string>Runs on the host in your login shell, as you'd type it there.</string>
 	<key>SSH alias or user@hostname</key>
 	<string>SSH alias or user@hostname</string>
 	<key>SSH aliases come from `~/.ssh/config`.</key>
@@ -1274,6 +1292,24 @@
 	<string>Sidebar</string>
 	<key>Sidebar width</key>
 	<string>Sidebar width</string>
+	<key>Sign in again…</key>
+	<string>Sign in again…</string>
+	<key>Sign in on %@</key>
+	<string>Sign in on %@</string>
+	<key>Sign in…</key>
+	<string>Sign in…</string>
+	<key>Sign-in command</key>
+	<string>Sign-in command</string>
+	<key>Sign-in command…</key>
+	<string>Sign-in command…</string>
+	<key>Sign-in needed</key>
+	<string>Sign-in needed</string>
+	<key>Signing in on %@…</key>
+	<string>Signing in on %@…</string>
+	<key>Signing in…</key>
+	<string>Signing in…</string>
+	<key>Signs in again on %@ when a sign-in there expires. When the command asks for a PIN or a code, JustSessions asks you in a dialog.</key>
+	<string>Signs in again on %@ when a sign-in there expires. When the command asks for a PIN or a code, JustSessions asks you in a dialog.</string>
 	<key>Size</key>
 	<string>Size</string>
 	<key>Skip</key>
@@ -1424,6 +1460,10 @@
 	<string>The shell and anything still running in it will stop.</string>
 	<key>The sidebar lists sessions from %@ by host and project. Search matches project names and paths, session titles and IDs, and message text.</key>
 	<string>The sidebar lists sessions from %@ by host and project. Search matches project names and paths, session titles and IDs, and message text.</string>
+	<key>The sign-in command ended with exit status %lld.</key>
+	<string>The sign-in command ended with exit status %lld.</string>
+	<key>The sign-in command took longer than 5 minutes, so it was stopped.</key>
+	<string>The sign-in command took longer than 5 minutes, so it was stopped.</string>
 	<key>The terminal process will stop. Sessions saved by the CLI will appear in the project list after refresh.</key>
 	<string>The terminal process will stop. Sessions saved by the CLI will appear in the project list after refresh.</string>
 	<key>The tmux sessions the app starts on a host have no prefix key, so every key reaches the CLI. To use your own tmux prefix there, point at the host's heading, click its **⋯**, and choose **Use this host's tmux prefix**.</key>
@@ -1522,6 +1562,8 @@
 	<string>When you close this tab, choose **Keep running**: the CLI carries on, even after you quit. Click its session to return.</string>
 	<key>When you ⌘-click a file</key>
 	<string>When you ⌘-click a file</string>
+	<key>Without a check command, sign in every</key>
+	<string>Without a check command, sign in every</string>
 	<key>Works with SSH keys, or with a password or code.</key>
 	<string>Works with SSH keys, or with a password or code.</string>
 	<key>Yes</key>
@@ -1538,6 +1580,12 @@
 	<string>Your sessions, already here</string>
 	<key>Your shell startup keeps CLIs from starting!</key>
 	<string>Your shell startup keeps CLIs from starting!</string>
+	<key>Your sign-in command asks this on %@. JustSessions keeps nothing you type.</key>
+	<string>Your sign-in command asks this on %@. JustSessions keeps nothing you type.</string>
+	<key>Your sign-in command on %@ is due</key>
+	<string>Your sign-in command on %@ is due</string>
+	<key>Your sign-in command on this host is due. Click to sign in.</key>
+	<string>Your sign-in command on this host is due. Click to sign in.</string>
 	<key>Your start command's program, found at %@.</key>
 	<string>Your start command's program, found at %@.</string>
 	<key>Zoom In</key>

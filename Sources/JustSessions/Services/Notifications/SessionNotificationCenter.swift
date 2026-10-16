@@ -36,6 +36,26 @@ final class SessionNotificationCenter: NSObject, SessionNotifying {
         Task.detached(priority: .utility) { await Self.post(notification) }
     }
 
+    /// A host's sign-in command is due; see `RemoteSignIns`. It waits on your PIN or code, so it follows the setting
+    /// for sessions that need your input. Clicking it opens the sign-in.
+    func notifySignInNeeded(on host: String) {
+        guard Self.isAvailable, settingsStore.preferences.allows(.needsInput(reason: nil)) else { return }
+        let title = AppLocalization.string("Sign in on \(host)")
+        let body = AppLocalization.string("Your sign-in command on this host is due. Click to sign in.")
+        Task.detached(priority: .utility) {
+            guard await Self.requestAuthorization() else { return }
+            let content = UNMutableNotificationContent()
+            content.title = title
+            content.body = body
+            content.sound = .default
+            content.userInfo = [Self.signInHostKey: host]
+            let request = UNNotificationRequest(identifier: "\(Self.signInHostKey).\(host)", content: content, trigger: nil)
+            try? await UNUserNotificationCenter.current().add(request)
+        }
+    }
+
+    nonisolated static let signInHostKey = "signInHost"
+
     /// Asks for permission the first time. macOS asks you once and gives the same answer from then on, so a
     /// notification you turned off in System Settings is dropped here.
     nonisolated private static func post(_ notification: SessionNotification) async {
@@ -80,8 +100,13 @@ extension SessionNotificationCenter: UNUserNotificationCenterDelegate {
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse
     ) async {
-        guard response.actionIdentifier == UNNotificationDefaultActionIdentifier,
-              let source = SessionAttentionSource(userInfo: response.notification.request.content.userInfo) else { return }
+        guard response.actionIdentifier == UNNotificationDefaultActionIdentifier else { return }
+        let userInfo = response.notification.request.content.userInfo
+        if let host = userInfo[Self.signInHostKey] as? String {
+            await RemoteSignIns.shared.signInFromNotification(on: host)
+            return
+        }
+        guard let source = SessionAttentionSource(userInfo: userInfo) else { return }
         await showSession(notifiedAbout: source)
     }
 }

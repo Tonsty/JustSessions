@@ -436,6 +436,16 @@
         }
       }
     },
+    "%lld hours": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 小时"
+          }
+        }
+      }
+    },
     "%lld matches": {
       "localizations": {
         "en": {
@@ -1704,6 +1714,26 @@
         }
       }
     },
+    "Check command": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查命令"
+          }
+        }
+      }
+    },
+    "Check command (optional)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查命令（可选）"
+          }
+        }
+      }
+    },
     "Check for updates": {
       "localizations": {
         "zh-Hans": {
@@ -2394,6 +2424,16 @@
         }
       }
     },
+    "Command": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "命令"
+          }
+        }
+      }
+    },
     "Commands start in %@'s login shell with its interactive startup files, as in your own terminal.": {
       "localizations": {
         "zh-Hans": {
@@ -2828,6 +2868,16 @@
         }
       }
     },
+    "Couldn't connect to %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法连接到 %@。"
+          }
+        }
+      }
+    },
     "Couldn't copy to %@": {
       "localizations": {
         "zh-Hans": {
@@ -2844,6 +2894,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "找不到 iTerm2 的默认 Profile。动态 Profile 无法导入。"
+          }
+        }
+      }
+    },
+    "Couldn't sign in on %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法在 %@ 上验证身份"
           }
         }
       }
@@ -5969,6 +6029,16 @@
         }
       }
     },
+    "Remove": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除"
+          }
+        }
+      }
+    },
     "Remove host": {
       "localizations": {
         "zh-Hans": {
@@ -6307,12 +6377,32 @@
         }
       }
     },
+    "Runs every 5 minutes. When it exits with anything but 0, you're asked to sign in.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每 5 分钟运行一次。只要它的退出状态不是 0，就会请你验证身份。"
+          }
+        }
+      }
+    },
     "Runs on %@ what JustSessions runs there. When a command below fails the same way in your own Terminal, the problem is on %@.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "在 %@ 上运行 JustSessions 在那里运行的命令。如果下方的命令在你自己的终端中以同样方式失败，问题就出在 %@ 上。"
+          }
+        }
+      }
+    },
+    "Runs on the host in your login shell, as you'd type it there.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在主机上用你的登录 shell 运行，效果与你在那里输入相同。"
           }
         }
       }
@@ -6993,6 +7083,96 @@
           "stringUnit": {
             "state": "translated",
             "value": "侧栏宽度"
+          }
+        }
+      }
+    },
+    "Sign in again…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新验证身份…"
+          }
+        }
+      }
+    },
+    "Sign in on %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 %@ 上验证身份"
+          }
+        }
+      }
+    },
+    "Sign in…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "验证身份…"
+          }
+        }
+      }
+    },
+    "Sign-in command": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份验证命令"
+          }
+        }
+      }
+    },
+    "Sign-in command…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份验证命令…"
+          }
+        }
+      }
+    },
+    "Sign-in needed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要验证身份"
+          }
+        }
+      }
+    },
+    "Signing in on %@…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在 %@ 上验证身份…"
+          }
+        }
+      }
+    },
+    "Signing in…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在验证身份…"
+          }
+        }
+      }
+    },
+    "Signs in again on %@ when a sign-in there expires. When the command asks for a PIN or a code, JustSessions asks you in a dialog.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 上的身份验证过期时，重新验证身份。命令要求输入 PIN 或验证码时，JustSessions 会在对话框中询问你。"
           }
         }
       }
@@ -7769,6 +7949,26 @@
         }
       }
     },
+    "The sign-in command ended with exit status %lld.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份验证命令结束，退出状态为 %lld。"
+          }
+        }
+      }
+    },
+    "The sign-in command took longer than 5 minutes, so it was stopped.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份验证命令运行超过 5 分钟，因此已被停止。"
+          }
+        }
+      }
+    },
     "The terminal process will stop. Sessions saved by the CLI will appear in the project list after refresh.": {
       "localizations": {
         "zh-Hans": {
@@ -8309,6 +8509,16 @@
         }
       }
     },
+    "Without a check command, sign in every": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有检查命令时，验证身份的频率"
+          }
+        }
+      }
+    },
     "Works with SSH keys, or with a password or code.": {
       "localizations": {
         "zh-Hans": {
@@ -8385,6 +8595,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "你的 shell 启动配置使 CLI 无法启动！"
+          }
+        }
+      }
+    },
+    "Your sign-in command asks this on %@. JustSessions keeps nothing you type.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的身份验证命令在 %@ 上需要这些信息。JustSessions 不会保存你输入的任何内容。"
+          }
+        }
+      }
+    },
+    "Your sign-in command on %@ is due": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该在 %@ 上运行身份验证命令了"
+          }
+        }
+      }
+    },
+    "Your sign-in command on this host is due. Click to sign in.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该在这台主机上运行身份验证命令了。点按以验证身份。"
           }
         }
       }

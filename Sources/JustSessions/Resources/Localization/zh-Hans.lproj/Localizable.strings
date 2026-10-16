@@ -74,6 +74,8 @@
 	<string>%@，%@，终端已打开，尚未保存</string>
 	<key>%lld earlier entries are not shown. Resume the session to see all of it.</key>
 	<string>未显示前面的 %lld 条记录。继续会话可查看全部内容。</string>
+	<key>%lld hours</key>
+	<string>%lld 小时</string>
 	<key>%lld matches</key>
 	<string>%lld 个匹配项</string>
 	<key>%lld messages</key>
@@ -298,6 +300,10 @@
 	<string>重新检查</string>
 	<key>Check again</key>
 	<string>重新检查</string>
+	<key>Check command</key>
+	<string>检查命令</string>
+	<key>Check command (optional)</key>
+	<string>检查命令（可选）</string>
 	<key>Check for updates</key>
 	<string>检查更新</string>
 	<key>Check host</key>
@@ -428,6 +434,8 @@
 	<string>颜色浓淡</string>
 	<key>Colors</key>
 	<string>配色</string>
+	<key>Command</key>
+	<string>命令</string>
 	<key>Commands start in %@'s login shell with its interactive startup files, as in your own terminal.</key>
 	<string>命令在 %@ 的登录 shell 中启动，并读取其交互式启动文件，与你自己的终端相同。</string>
 	<key>Connect again; a CLI still running in tmux on the host is reattached</key>
@@ -510,10 +518,14 @@
 	<string>无法启动会话</string>
 	<key>Couldn't ask %@ which ports it listens on. Type the port instead.</key>
 	<string>无法向 %@ 查询它在监听哪些端口。请直接输入端口。</string>
+	<key>Couldn't connect to %@.</key>
+	<string>无法连接到 %@。</string>
 	<key>Couldn't copy to %@</key>
 	<string>无法复制到 %@</string>
 	<key>Couldn't find iTerm2's default profile. A dynamic profile can't be imported.</key>
 	<string>找不到 iTerm2 的默认 Profile。动态 Profile 无法导入。</string>
+	<key>Couldn't sign in on %@</key>
+	<string>无法在 %@ 上验证身份</string>
 	<key>Create folder and add</key>
 	<string>创建文件夹并添加</string>
 	<key>Create folder and open terminal</key>
@@ -1122,6 +1134,8 @@
 	<string>无法加载更新历史。请在网站查看最新说明。</string>
 	<key>Release notes</key>
 	<string>更新说明</string>
+	<key>Remove</key>
+	<string>移除</string>
 	<key>Remove host</key>
 	<string>移除主机</string>
 	<key>Rename</key>
@@ -1186,8 +1200,12 @@
 	<string>运行于</string>
 	<key>Running</key>
 	<string>运行中</string>
+	<key>Runs every 5 minutes. When it exits with anything but 0, you're asked to sign in.</key>
+	<string>每 5 分钟运行一次。只要它的退出状态不是 0，就会请你验证身份。</string>
 	<key>Runs on %@ what JustSessions runs there. When a command below fails the same way in your own Terminal, the problem is on %@.</key>
 	<string>在 %@ 上运行 JustSessions 在那里运行的命令。如果下方的命令在你自己的终端中以同样方式失败，问题就出在 %@ 上。</string>
+	<key>Runs on the host in your login shell, as you'd type it there.</key>
+	<string>在主机上用你的登录 shell 运行，效果与你在那里输入相同。</string>
 	<key>SSH alias or user@hostname</key>
 	<string>SSH 别名或 user@hostname</string>
 	<key>SSH aliases come from `~/.ssh/config`.</key>
@@ -1318,6 +1336,24 @@
 	<string>侧栏</string>
 	<key>Sidebar width</key>
 	<string>侧栏宽度</string>
+	<key>Sign in again…</key>
+	<string>重新验证身份…</string>
+	<key>Sign in on %@</key>
+	<string>在 %@ 上验证身份</string>
+	<key>Sign in…</key>
+	<string>验证身份…</string>
+	<key>Sign-in command</key>
+	<string>身份验证命令</string>
+	<key>Sign-in command…</key>
+	<string>身份验证命令…</string>
+	<key>Sign-in needed</key>
+	<string>需要验证身份</string>
+	<key>Signing in on %@…</key>
+	<string>正在 %@ 上验证身份…</string>
+	<key>Signing in…</key>
+	<string>正在验证身份…</string>
+	<key>Signs in again on %@ when a sign-in there expires. When the command asks for a PIN or a code, JustSessions asks you in a dialog.</key>
+	<string>%@ 上的身份验证过期时，重新验证身份。命令要求输入 PIN 或验证码时，JustSessions 会在对话框中询问你。</string>
 	<key>Size</key>
 	<string>字号</string>
 	<key>Skip</key>
@@ -1472,6 +1508,10 @@
 	<string>shell 及其中仍在运行的进程都会停止。</string>
 	<key>The sidebar lists sessions from %@ by host and project. Search matches project names and paths, session titles and IDs, and message text.</key>
 	<string>侧边栏按主机和项目列出来自 %@ 的会话。搜索可匹配项目名称和路径、会话标题和 ID，以及消息内容。</string>
+	<key>The sign-in command ended with exit status %lld.</key>
+	<string>身份验证命令结束，退出状态为 %lld。</string>
+	<key>The sign-in command took longer than 5 minutes, so it was stopped.</key>
+	<string>身份验证命令运行超过 5 分钟，因此已被停止。</string>
 	<key>The terminal process will stop. Sessions saved by the CLI will appear in the project list after refresh.</key>
 	<string>终端进程会停止。CLI 已保存的会话将在刷新后出现在项目列表中。</string>
 	<key>The tmux sessions the app starts on a host have no prefix key, so every key reaches the CLI. To use your own tmux prefix there, point at the host's heading, click its **⋯**, and choose **Use this host's tmux prefix**.</key>
@@ -1576,6 +1616,8 @@
 	<string>关闭这个标签页时选择 **保持运行**：CLI 会继续运行，退出 App 后也不会停。单击它的会话即可回来。</string>
 	<key>When you ⌘-click a file</key>
 	<string>按住 ⌘ 点击文件时</string>
+	<key>Without a check command, sign in every</key>
+	<string>没有检查命令时，验证身份的频率</string>
 	<key>Works with SSH keys, or with a password or code.</key>
 	<string>支持 SSH 密钥，也支持密码或验证码。</string>
 	<key>Yes</key>
@@ -1592,6 +1634,12 @@
 	<string>你的会话已经在这里</string>
 	<key>Your shell startup keeps CLIs from starting!</key>
 	<string>你的 shell 启动配置使 CLI 无法启动！</string>
+	<key>Your sign-in command asks this on %@. JustSessions keeps nothing you type.</key>
+	<string>你的身份验证命令在 %@ 上需要这些信息。JustSessions 不会保存你输入的任何内容。</string>
+	<key>Your sign-in command on %@ is due</key>
+	<string>该在 %@ 上运行身份验证命令了</string>
+	<key>Your sign-in command on this host is due. Click to sign in.</key>
+	<string>该在这台主机上运行身份验证命令了。点按以验证身份。</string>
 	<key>Your start command's program, found at %@.</key>
 	<string>你的启动命令所用的程序，位于 %@。</string>
 	<key>Zoom In</key>

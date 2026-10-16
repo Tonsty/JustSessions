@@ -89,6 +89,7 @@ extension ConversationStore {
         remoteHostList.remove(host)
         disconnect(host)
         SSHPortForwards.shared.stopAll(on: host)
+        RemoteSignIns.shared.forget(host)
         forgetLoginState(on: host)
         messageIndexer.removeHost(.ssh(host))
         remoteHostList.save(to: userDefaults)
