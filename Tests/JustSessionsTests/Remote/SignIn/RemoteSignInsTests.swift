@@ -133,7 +133,7 @@ struct RemoteSignInsTests {
 
     @Test func aCancelledSignInStaysDueAndDoesntOpenAgainByItself() async throws {
         defer { isolatedUserDefaults.removeSuite() }
-        fakes.setScript("printf 'PIN: '; read pin; sleep 30")
+        fakes.setScript("printf 'PIN: '; read pin; sleep 600")
 
         signIns.setCommand(command(), on: "devbox")
         try await expectEventually { signIns.prompter.question?.prompt == "PIN:" }
