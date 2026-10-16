@@ -6,12 +6,8 @@ enum PiSessionTitle {
     /// The first prompt follows the header and the system message, which lists every tool and can be long.
     static let maximumLeadingByteCount = 1_048_576
 
-    /// The name from the last `session_info` line near the end of the file.
-    static func latestName(in file: URL) -> String? {
-        latestName(amongLines: JSONLinesReader.trailingLines(in: file, maximumByteCount: maximumTailByteCount))
-    }
-
-    /// `lines` are oldest first, as they are in the file.
+    /// The name in the last `session_info` line among `lines`, which are oldest first, as they are in the file. A
+    /// session file's latest name, wherever it is, comes from `PiSessionNameScan`.
     static func latestName(amongLines lines: [Data]) -> String? {
         for line in lines.reversed() {
             guard let record = ConversationMetadata.object(from: line),

@@ -39,6 +39,26 @@ struct SessionFileSummaryCacheTests {
         #expect(cache.summary(of: scanned(file), read: read) == "first line\nsecond line\n")
     }
 
+    @Test func aGrowingFileIsReadOnFromTheSummaryKeptForIt() throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let file = directory.appendingPathComponent("session.jsonl")
+        try "first line\n".write(to: file, atomically: true, encoding: .utf8)
+        let cache = SessionFileSummaryCache<String>()
+        var keptSummaries: [String?] = []
+        let read: (URL, String?) -> String? = { file, kept in
+            keptSummaries.append(kept)
+            return try? String(contentsOf: file, encoding: .utf8)
+        }
+
+        _ = cache.summary(ofGrowingFile: scanned(file), read: read)
+        _ = cache.summary(ofGrowingFile: scanned(file), read: read)
+        try "first line\nsecond line\n".write(to: file, atomically: true, encoding: .utf8)
+        #expect(cache.summary(ofGrowingFile: scanned(file), read: read) == "first line\nsecond line\n")
+
+        #expect(keptSummaries == [nil, "first line\n"])
+    }
+
     @Test func aFileThatHeldNothingIsNotReadAgainUntilItChanges() throws {
         let directory = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }

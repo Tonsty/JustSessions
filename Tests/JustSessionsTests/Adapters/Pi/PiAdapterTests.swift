@@ -31,6 +31,22 @@ struct PiAdapterTests {
         #expect(found.first { $0.sessionID == emptyID }?.suggestedTitle == ConversationMetadata.untitledConversationTitle)
     }
 
+    /// Pi writes a `/name` once, so a long session's name can sit far before the end of its file.
+    @Test func showsANameGivenLongBeforeTheEndOfTheSession() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let sessionID = UUID().uuidString.lowercased()
+        let laterPrompts = (0..<2_000).map { PiSessionFolderFixture.userMessage("Step \($0) " + String(repeating: "x", count: 150)) }
+        try PiSessionFolderFixture(sessionsDirectory: root).writeSession(id: sessionID, projectPath: "/Users/me/app", lines: [
+            PiSessionFolderFixture.userMessage("Fix the login bug"),
+            PiSessionFolderFixture.sessionName("Login fix"),
+        ] + laterPrompts)
+
+        let found = try PiAdapter(sessionsDirectory: root).discover()
+
+        #expect(found.first { $0.sessionID == sessionID }?.suggestedTitle == "Login fix")
+    }
+
     /// Subagent runs and forks sit in the folder named after the session file that started them, at any depth.
     @Test func listsEachSubagentsSessionUnderTheSessionThatStartedIt() throws {
         let root = try makeTemporaryDirectory()
