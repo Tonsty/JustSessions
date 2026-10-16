@@ -88,7 +88,7 @@ struct ClaudeSessionIDFlagSupportTests {
 
     private func fakeClaude(in root: URL, script: String) throws -> NativeCLICommand {
         let executable = root.appendingPathComponent("claude")
-        try writeExecutableScript(script, to: executable)
+        try writeTimedStandIn(script, to: executable)
         return NativeCLICommand(
             executablePath: executable.path,
             arguments: [],

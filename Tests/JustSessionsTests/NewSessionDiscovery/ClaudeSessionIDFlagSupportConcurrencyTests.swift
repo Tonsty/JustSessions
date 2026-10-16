@@ -8,7 +8,7 @@ struct ClaudeSessionIDFlagSupportConcurrencyTests {
         let root = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
         let helpRunsLog = root.appendingPathComponent("help-runs.log")
-        let executable = try writeExecutableScript("""
+        let executable = try writeTimedStandIn("""
             #!/bin/sh
             echo run >> '\(helpRunsLog.path)'
             sleep 0.2

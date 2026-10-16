@@ -29,9 +29,9 @@ struct RemoteHostCheckScriptTests {
         let bin = root.appendingPathComponent("bin")
         try FileManager.default.createDirectory(at: bin, withIntermediateDirectories: true)
         let loginShell = bin.appendingPathComponent("login-shell")
-        try writeExecutableScript("#!/bin/sh\nshift\nexec /bin/sh -c \"$1\"\n", to: loginShell)
-        try writeExecutableScript("#!/bin/sh\necho \"rsync  version 3.2.7  protocol version 31\"\n", to: bin.appendingPathComponent("rsync"))
-        try writeExecutableScript(
+        try writeTimedStandIn("#!/bin/sh\nshift\nexec /bin/sh -c \"$1\"\n", to: loginShell)
+        try writeTimedStandIn("#!/bin/sh\necho \"rsync  version 3.2.7  protocol version 31\"\n", to: bin.appendingPathComponent("rsync"))
+        try writeTimedStandIn(
             """
             #!/bin/sh
             case "$1" in
@@ -41,13 +41,13 @@ struct RemoteHostCheckScriptTests {
             """,
             to: bin.appendingPathComponent("tmux")
         )
-        try writeExecutableScript("#!/bin/sh\necho \"codex-cli 0.50.0\"\n", to: bin.appendingPathComponent("codex"))
-        try writeExecutableScript(
+        try writeTimedStandIn("#!/bin/sh\necho \"codex-cli 0.50.0\"\n", to: bin.appendingPathComponent("codex"))
+        try writeTimedStandIn(
             "#!/bin/sh\necho \"env: node: No such file or directory\" >&2\nexit 127\n",
             to: bin.appendingPathComponent("opencode")
         )
-        try writeExecutableScript("#!/bin/sh\nexec sleep 30\n", to: bin.appendingPathComponent("pi"))
-        try writeExecutableScript("#!/bin/sh\ncat >/dev/null\necho 3.45.1\n", to: bin.appendingPathComponent("python3"))
+        try writeTimedStandIn("#!/bin/sh\nexec sleep 30\n", to: bin.appendingPathComponent("pi"))
+        try writeTimedStandIn("#!/bin/sh\ncat >/dev/null\necho 3.45.1\n", to: bin.appendingPathComponent("python3"))
         let programs = RemoteHostCheckProgram.all { _ in nil }
         let command = RemoteHostCheckScript.command(
             startup: .interactive,
