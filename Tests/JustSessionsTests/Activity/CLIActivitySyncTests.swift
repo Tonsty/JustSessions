@@ -37,10 +37,11 @@ struct CLIActivitySyncTests {
         defer { try? FileManager.default.removeItem(at: directory) }
         let conversation = Conversation.fixture(provider: .claude, projectPath: directory.path)
         let store = Self.makeStore(listing: [conversation], searching: directory)
-        // Stands in for the CLI in a tmux session whose tab closed.
+        // Stands in for the CLI in a tmux session whose tab closed. It runs until the test ends it: on the release runner
+        // the first sync came 87 seconds after the test started, when a 30-second CLI had long ended.
         let cli = Process()
         cli.executableURL = URL(fileURLWithPath: "/bin/sleep")
-        cli.arguments = ["30"]
+        cli.arguments = ["600"]
         try cli.run()
         defer { if cli.isRunning { cli.terminate() } }
         let tmuxSessionName = TmuxSessionName.forConversation(conversation)

@@ -61,9 +61,10 @@ final class TranscriptScrollViewFixture {
     /// outlast `settleLayout()`'s fixed wait. Gives up after `timeout`, leaving the expectations that follow to report
     /// what the transcript shows. The timeout is generous because a reader that loads in under a second on its own can
     /// take far longer at the start of a full run, when every suite starts at once: on a CI runner, the first match
-    /// reveal test once spent its whole 10 seconds waiting for its first page.
+    /// reveal test once spent its whole 10 seconds waiting for its first page, and in v1.2.13's runs its whole 60.
+    /// It now waits as long as `expectEventually`.
     func waitUntil(
-        stableFor stableDuration: Duration = .milliseconds(150), timeout: Duration = .seconds(60),
+        stableFor stableDuration: Duration = .milliseconds(150), timeout: Duration = .seconds(120),
         _ condition: () -> Bool
     ) async throws {
         let clock = ContinuousClock()

@@ -6,6 +6,7 @@ import Testing
 /// it, and the extension puts what the CLI does in the tab's title; see `RemoteLiveSessionReporting`. Runs the tab's
 /// command against a real tmux on this Mac, with a private tmux server and home folder. Skipped where tmux is not
 /// installed, and the tests that run the extension where `node` is not.
+@Suite(.oneTmuxSandboxAtATime)
 struct RemoteLiveSessionReportingTests {
     @Test func piStartsWithTheExtensionTheTabWroteToTheHost() throws {
         guard let tmuxDirectory = TmuxSandbox.installedTmuxDirectory else { return }

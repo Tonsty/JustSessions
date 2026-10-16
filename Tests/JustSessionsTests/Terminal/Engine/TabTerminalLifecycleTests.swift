@@ -49,7 +49,8 @@ struct TabTerminalLifecycleTests {
 
         try await expectEventually { fixture.tab.hasExited }
         #expect(fixture.tab.exitCode == 3)
-        #expect(fixture.tab.endedWithErrorSoonAfterStarting)
+        // Not whether it ended soon after starting: the tab counts from when the exit reaches the main thread, which
+        // took over 30 seconds on the release runner. `RemoteTabReconnectorTests` ends a tab itself to check that.
     }
 
     @Test(arguments: TerminalEngine.allCases)
