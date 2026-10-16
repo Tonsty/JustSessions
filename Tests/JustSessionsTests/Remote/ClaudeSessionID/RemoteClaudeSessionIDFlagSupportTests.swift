@@ -49,7 +49,7 @@ struct RemoteClaudeSessionIDFlagSupportTests {
         #expect(support.check(host: "devbox", startCommand: nil) == nil)
         #expect(support.preassignedSessionID(host: "devbox", startCommand: nil) == nil)
         support.checkInBackgroundIfUnanswered(host: "devbox", startCommand: nil)
-        try await expectEventually(timeout: .seconds(10)) { recorder.commands.count == 2 }
+        try await expectEventually { recorder.commands.count == 2 }
     }
 
     @Test func timingOutIsAskedAgain() {
@@ -63,7 +63,7 @@ struct RemoteClaudeSessionIDFlagSupportTests {
 
         support.checkInBackgroundIfUnanswered(host: "devbox", startCommand: nil)
         support.checkInBackgroundIfUnanswered(host: "devbox", startCommand: nil)
-        try await expectEventually(timeout: .seconds(10)) { recorder.commands.count == 1 }
+        try await expectEventually { recorder.commands.count == 1 }
         try await Task.sleep(for: .milliseconds(200))
         support.checkInBackgroundIfUnanswered(host: "devbox", startCommand: nil)
         try await Task.sleep(for: .milliseconds(200))
