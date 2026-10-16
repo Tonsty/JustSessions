@@ -34,8 +34,7 @@ struct Terminal256ColorPaletteRenderingTests {
             themeStore: AppThemeStore(userDefaults: settings.userDefaults)
         )
         terminalView.feed(text: output)
-        let representation = try #require(terminalView.bitmapImageRepForCachingDisplay(in: terminalView.bounds))
-        terminalView.cacheDisplay(in: terminalView.bounds, to: representation)
+        let representation = try #require(terminalView.snapshotOverLayerBackground())
         var colors: [UInt32] = []
         for y in 0..<representation.pixelsHigh {
             for x in 0..<representation.pixelsWide {

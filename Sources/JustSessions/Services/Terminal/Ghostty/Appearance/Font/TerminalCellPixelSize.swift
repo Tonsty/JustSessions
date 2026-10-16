@@ -2,19 +2,19 @@ import AppKit
 import CoreText
 
 /// A terminal cell's size in pixels on a screen of `backingScaleFactor`, as SwiftTerm or Ghostty works it out for a
-/// font. The two round differently, so the same font gives Ghostty cells up to a pixel narrower and shorter; Ghostty's
-/// `adjust-cell-width` and `adjust-cell-height` take the difference.
+/// font. The two measure and round differently, so the same font can give Ghostty cells a pixel narrower or wider and
+/// shorter; Ghostty's `adjust-cell-width` and `adjust-cell-height` take the difference.
 struct TerminalCellPixelSize: Equatable {
     var width: Int
     var height: Int
 
-    /// SwiftTerm's `computeFontDimensions`: the advance of W, see `SwiftTermCellWidth`, and the line height rounded up to
-    /// whole points, each rounded up to whole pixels.
+    /// SwiftTerm's `computeFontDimensions`: the advance of W, see `SwiftTermCellWidth`, rounded to the nearest pixel, and
+    /// the line height rounded up to whole points, then up to whole pixels.
     static func swiftTerm(font: NSFont, backingScaleFactor: CGFloat) -> Self {
         let ctFont = font as CTFont
         let lineHeight = ceil(CTFontGetAscent(ctFont) + CTFontGetDescent(ctFont) + CTFontGetLeading(ctFont))
         let advance = SwiftTermCellWidth.advance(of: ctFont)
-        return Self(width: Int(ceil(advance * backingScaleFactor)), height: Int(ceil(lineHeight * backingScaleFactor)))
+        return Self(width: Int((advance * backingScaleFactor).rounded()), height: Int(ceil(lineHeight * backingScaleFactor)))
     }
 
     /// Ghostty's `Metrics.calc`, for the face Ghostty finds for `family` at `pointSize`: the widest advance of the

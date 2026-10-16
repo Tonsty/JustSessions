@@ -74,13 +74,13 @@ struct GhosttyFontConfigurationTests {
         #expect(GhosttyFontConfiguration.thickenStrength(drawing: 0xFFFFFF) == 255)
     }
 
-    /// SF Mono's cells are a pixel narrower and a pixel shorter in Ghostty at 13 points on a Retina screen.
+    /// SF Mono's cells are as wide and a pixel shorter in Ghostty at 13 points on a Retina screen.
     @Test func cellsAreAdjustedByTheDifferenceFromSwiftTerms() {
         let lines = Self.lines(of: TerminalAppearancePreferences(), backingScaleFactor: 2)
 
         #expect(TerminalCellPixelSize.swiftTerm(font: TerminalFontFamily.system.font(size: 13), backingScaleFactor: 2)
-            == TerminalCellPixelSize(width: 17, height: 32))
-        #expect(lines.contains("adjust-cell-width = 1"))
+            == TerminalCellPixelSize(width: 16, height: 32))
+        #expect(!lines.contains { $0.hasPrefix("adjust-cell-width") })
         #expect(lines.contains("adjust-cell-height = 1"))
     }
 
