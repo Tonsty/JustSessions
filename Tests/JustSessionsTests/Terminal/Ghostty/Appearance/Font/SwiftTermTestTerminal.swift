@@ -42,8 +42,6 @@ final class SwiftTermTestTerminal {
     }
 
     func snapshot() -> NSBitmapImageRep? {
-        guard let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return nil }
-        view.cacheDisplay(in: view.bounds, to: bitmap)
-        return bitmap
+        view.snapshotOverLayerBackground()
     }
 }
