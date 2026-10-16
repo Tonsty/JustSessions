@@ -1,7 +1,7 @@
 [
   {
     "version": "1.2.13",
-    "publishedOn": "2026-10-15",
+    "publishedOn": "2026-10-16",
     "title": {
       "en": "See what SSH sessions are doing",
       "zh-Hans": "查看 SSH 会话的状态"

@@ -77,13 +77,11 @@ struct ClaudeSessionIDFlagSupportTests {
         let root = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
         let command = try fakeClaude(in: root, script: "#!/bin/sh\ncat <<'EOF'\n\(Self.helpWithFlag)\nEOF\n")
-        let support = ClaudeSessionIDFlagSupport(helpTimeout: 5)
+        let support = ClaudeSessionIDFlagSupport(helpTimeout: 60)
 
         #expect(support.preassigningSessionID(to: command) == nil)
-        for _ in 0..<500 where support.preassigningSessionID(to: command) == nil {
-            try await Task.sleep(for: .milliseconds(10))
-        }
-        #expect(support.preassigningSessionID(to: command) != nil)
+        // The check runs in a utility-priority task, which a full run's start can hold up for well over 5 seconds.
+        try await expectEventually { support.preassigningSessionID(to: command) != nil }
     }
 
     private func fakeClaude(in root: URL, script: String) throws -> NativeCLICommand {
