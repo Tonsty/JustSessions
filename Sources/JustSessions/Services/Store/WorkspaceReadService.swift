@@ -34,6 +34,12 @@ final class WorkspaceReadService: ObservableObject {
     func discoverThisMac() async throws -> ThisMacDiscovery {
         try await discovery.discover(adapters: adapters, commandResolver: commandResolver)
     }
+
+    /// How many windows wait on the scan in flight. A window's refresh joins from a task of its own, so this tells a
+    /// test when it has.
+    func thisMacDiscoveryWaiterCount() async -> Int {
+        await discovery.waiterCount
+    }
 }
 
 private actor ThisMacDiscoveryCoordinator {
@@ -58,6 +64,8 @@ private actor ThisMacDiscoveryCoordinator {
     }
 
     private var inFlight: InFlight?
+
+    var waiterCount: Int { inFlight?.waiters.count ?? 0 }
 
     func discover(adapters: [any ConversationAdapter], commandResolver: NativeCLICommandResolver) async throws -> Discovery {
         let waiterID = UUID()

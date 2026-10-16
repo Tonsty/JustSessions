@@ -84,7 +84,7 @@ Tab recovery is controlled in **Settings → General**; split layouts reopen as 
 - **No conversation uploads.** JustSessions reads existing CLI history; your CLIs still communicate with their providers.
 - **Free and open source.** MIT licensed; your CLI provider’s charges still apply.
 
-Choose system, English, or Chinese for the interface. Set app themes, terminal fonts and colors, or import iTerm2 colors. Local Claude Code, Codex, Antigravity, Pi, and OpenCode sessions, and Claude Code, Codex, Pi, and OpenCode tabs on SSH hosts, can notify when a turn finishes or when they need your input. [Settings and notifications](docs/guides/session-management.md).
+Choose system, English, or Chinese for the interface. Set app themes, the interface size, terminal fonts and colors, or import iTerm2 colors. Claude Code, Codex, Antigravity, Pi, OpenCode, and Kiro CLI sessions, on this Mac and on SSH hosts, notify when a turn finishes; all but Kiro CLI also notify when they need your input. [Settings and notifications](docs/guides/session-management.md).
 
 ## Download
 
