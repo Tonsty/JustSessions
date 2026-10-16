@@ -537,7 +537,8 @@ private struct SidebarPerfBrowserHarness: View {
                 onRenameProject: { _ in },
                 onRequestDeletion: { _ in },
                 onCloseTerminal: { _ in },
-                onCloseTabGroup: { _, _ in }
+                onCloseTabGroup: { _, _ in },
+                onCloseSelectedTabs: { _ in }
             )
         } detail: {
             WorkspaceDetailView(

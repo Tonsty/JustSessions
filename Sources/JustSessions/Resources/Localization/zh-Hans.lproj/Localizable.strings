@@ -22,8 +22,12 @@
 	<string>无法刷新 %@：%@</string>
 	<key>%@ didn't answer the rest of the check within %lld seconds, or the connection dropped.</key>
 	<string>%@ 未在 %lld 秒内回应其余检查，或连接已断开。</string>
+	<key>%@ doesn't allow forwarding to this port: %@</key>
+	<string>%1$@ 不允许转发到这个端口：%2$@</string>
 	<key>%@ has a problem: %@</key>
 	<string>%1$@ 有问题：%2$@</string>
+	<key>%@ has no tool that lists its ports. Type the port instead.</key>
+	<string>%@ 上没有能列出端口的工具。请直接输入端口。</string>
 	<key>%@ has not saved this session yet · click to open its terminal</key>
 	<string>%@ 尚未保存此会话 · 点击打开终端</string>
 	<key>%@ has tmux %@. JustSessions needs tmux 2.6 or later to pass Control-B to the CLI and to end a session before deleting it.</key>
@@ -96,6 +100,8 @@
 	<string>将跳过 %lld 个终端已打开的会话。</string>
 	<key>%lld subagent sessions stay on disk.</key>
 	<string>%lld 个子代理会话将保留在磁盘上。</string>
+	<key>%lld tabs selected</key>
+	<string>已选择 %lld 个标签</string>
 	<key>%lld tool calls</key>
 	<string>%lld 次工具调用</string>
 	<key>%lld+ matches</key>
@@ -188,6 +194,8 @@
 	<string>在这台 Mac 上恢复 %@ 会话时也会用它。JustSessions 会在它后面加上自己的参数。</string>
 	<key>An archived project is hidden from the sidebar. Its folder and sessions stay on disk, and restoring it lists them again. Starting a new session in its folder also restores it.</key>
 	<string>已归档的项目会从侧栏中隐藏。其文件夹和会话仍保留在磁盘上，恢复后会重新列出。在其文件夹中新建会话也会恢复该项目。</string>
+	<key>Another program on this Mac uses port %@. Choose another port on this Mac.</key>
+	<string>此 Mac 上的另一个程序正在使用端口 %@。请为此 Mac 选择其他端口。</string>
 	<key>Answer</key>
 	<string>回答</string>
 	<key>Antigravity and OpenCode need `python3`; deleting Antigravity sessions also needs `lsof`.</key>
@@ -350,6 +358,10 @@
 	<string>关闭</string>
 	<key>Close %@</key>
 	<string>关闭 %@</string>
+	<key>Close %lld tabs?</key>
+	<string>关闭 %lld 个标签？</string>
+	<key>Close %lld tabs…</key>
+	<string>关闭 %lld 个标签…</string>
 	<key>Close Left View</key>
 	<string>关闭左侧视图</string>
 	<key>Close Right View</key>
@@ -454,6 +466,8 @@
 	<string>复制链接</string>
 	<key>Copy Path</key>
 	<string>复制路径</string>
+	<key>Copy address</key>
+	<string>复制地址</string>
 	<key>Copy code</key>
 	<string>复制代码</string>
 	<key>Copy conversation</key>
@@ -494,6 +508,8 @@
 	<string>无法读取此会话</string>
 	<key>Could not start session</key>
 	<string>无法启动会话</string>
+	<key>Couldn't ask %@ which ports it listens on. Type the port instead.</key>
+	<string>无法向 %@ 查询它在监听哪些端口。请直接输入端口。</string>
 	<key>Couldn't copy to %@</key>
 	<string>无法复制到 %@</string>
 	<key>Couldn't find iTerm2's default profile. A dynamic profile can't be imported.</key>
@@ -572,6 +588,8 @@
 	<string>已结束</string>
 	<key>Engine</key>
 	<string>引擎</string>
+	<key>Enter a port from 1 to 65535.</key>
+	<string>请输入 1 到 65535 之间的端口。</string>
 	<key>Enter only the host, such as `devbox` or `me@devbox`. Options such as a key or a jump host go in `~/.ssh/config`.</key>
 	<string>只输入主机，例如 `devbox` 或 `me@devbox`。密钥、跳板机等选项写在 `~/.ssh/config` 中。</string>
 	<key>Every open tab in one list</key>
@@ -650,8 +668,18 @@
 	<string>前进</string>
 	<key>Forward (⌘]). Right-click to see history.</key>
 	<string>前进（⌘]）。右键单击可查看历史记录。</string>
+	<key>Forward a port</key>
+	<string>转发端口</string>
+	<key>Forward a port…</key>
+	<string>转发端口…</string>
 	<key>Forward again</key>
 	<string>再次前进</string>
+	<key>Forward port</key>
+	<string>转发端口</string>
+	<key>Forwarded to %@</key>
+	<string>已转发到 %@</string>
+	<key>Forwarding…</key>
+	<string>正在转发…</string>
 	<key>Found at %@, but it didn't print its version within %lld seconds.</key>
 	<string>位于 %@，但未在 %lld 秒内输出版本。</string>
 	<key>Found at %@, but it failed when asked for its version, so it may fail to start sessions too.</key>
@@ -790,6 +818,8 @@
 	<string>浅色或深色</string>
 	<key>List the sessions on another machine you reach with ssh</key>
 	<string>列出可通过 SSH 连接的另一台机器上的会话</string>
+	<key>Listening on %@</key>
+	<string>%@ 上正在监听的端口</string>
 	<key>Lists the monospaced fonts installed on this Mac.</key>
 	<string>列出此 Mac 上安装的等宽字体。</string>
 	<key>Load earlier messages</key>
@@ -810,6 +840,8 @@
 	<string>登录 shell</string>
 	<key>Looking up each CLI</key>
 	<string>正在查找各个 CLI</string>
+	<key>Looking up the ports %@ listens on…</key>
+	<string>正在查找 %@ 监听的端口…</string>
 	<key>Make text bigger or smaller with ⌘+ and ⌘−, in terminals and conversations.</key>
 	<string>⌘+ / ⌘− 调整终端和对话的文字大小。</string>
 	<key>Makes the 16 colors that shells and many CLIs pick from stronger or softer. Colors a program sets exactly stay as they are.</key>
@@ -926,6 +958,8 @@
 	<string>%@ 上未找到：%@。</string>
 	<key>Note</key>
 	<string>提示</string>
+	<key>Nothing on %@ listens on a port that localhost reaches.</key>
+	<string>%@ 上没有在 localhost 可访问的端口上监听的程序。</string>
 	<key>Notifications</key>
 	<string>通知</string>
 	<key>Notifications for JustSessions are turned off in System Settings &gt; Notifications.</key>
@@ -964,6 +998,8 @@
 	<string>在 Finder 中打开</string>
 	<key>Open in a separate reading window</key>
 	<string>在独立阅读窗口中打开</string>
+	<key>Open in browser</key>
+	<string>在浏览器中打开</string>
 	<key>Open in its default app</key>
 	<string>用默认 App 打开</string>
 	<key>Open in new window</key>
@@ -1012,6 +1048,14 @@
 	<string>已置顶</string>
 	<key>Plain text (.txt)…</key>
 	<string>纯文本（.txt）…</string>
+	<key>Port %@ on this Mac already forwards to port %@ on %@.</key>
+	<string>此 Mac 的端口 %1$@ 已转发到 %3$@ 的端口 %2$@。</string>
+	<key>Port on %@</key>
+	<string>%@ 上的端口</string>
+	<key>Port on the host</key>
+	<string>主机上的端口</string>
+	<key>Port on this Mac</key>
+	<string>此 Mac 上的端口</string>
 	<key>Prefer Ghostty's renderer? Pick it in Settings → Appearance → Terminal → Engine. New tabs use it.</key>
 	<string>想用 Ghostty 渲染终端？在 设置 → 外观 → 终端 → 引擎 里选择，之后新开的标签页生效。</string>
 	<key>Preview</key>
@@ -1042,6 +1086,8 @@
 	<string>退出 App 或重启 Mac 后，标签页会重新打开，tmux 里的 CLI 直接接上。</string>
 	<key>Quit the app and your CLIs keep running: close tabs with **Keep running**.</key>
 	<string>关标签页时选 **保持运行**，退出 App 后 CLI 也照样跑。</string>
+	<key>Reach a port on %@ at localhost on this Mac. Only this Mac can use it, and it stops when JustSessions quits.</key>
+	<string>在此 Mac 上通过 localhost 访问 %@ 上的端口。只有此 Mac 可以使用，JustSessions 退出时转发会停止。</string>
 	<key>Read a conversation in its own window with **Open in new window**.</key>
 	<string>**在新窗口中打开** 可以单独开一个窗口阅读对话。</string>
 	<key>Read a session</key>
@@ -1060,6 +1106,8 @@
 	<string>最近的项目</string>
 	<key>Reconnect</key>
 	<string>重新连接</string>
+	<key>Reconnecting…</key>
+	<string>正在重新连接…</string>
 	<key>Refresh</key>
 	<string>刷新</string>
 	<key>Refresh sessions on %@</key>
@@ -1158,6 +1206,8 @@
 	<string>SSH 配置指南 ↗</string>
 	<key>SSH setup in the user guide ↗</key>
 	<string>用户指南中的 SSH 设置 ↗</string>
+	<key>Same as on the host</key>
+	<string>与主机上的相同</string>
 	<key>Save</key>
 	<string>保存</string>
 	<key>Save messages and tool-call summaries to a file</key>
@@ -1320,6 +1370,8 @@
 	<string>停止复制，不会输入任何路径</string>
 	<key>Stop deleting after the current session; the rest stay listed</key>
 	<string>删除当前会话后停止；保留其余会话</string>
+	<key>Stop forwarding</key>
+	<string>停止转发</string>
 	<key>Stop the running CLIs of the selected sessions; they can be resumed</key>
 	<string>停止所选会话中正在运行的 CLI；之后仍可继续</string>
 	<key>Stopping deletion</key>
@@ -1332,6 +1384,8 @@
 	<string>%@ 的子代理</string>
 	<key>Subagents</key>
 	<string>子代理</string>
+	<key>Such as 3000</key>
+	<string>例如 3000</string>
 	<key>Supports Claude Code, Codex, Antigravity, Pi, OpenCode, and Kiro CLI, on this Mac or an SSH host, including sessions running in tmux without an open tab. Sessions you are viewing do not notify you. Click a notification to open its session.</key>
 	<string>支持这台 Mac 或 SSH 主机上的 Claude Code、Codex、Antigravity、Pi、OpenCode 和 Kiro CLI，包括在 tmux 中运行但未打开标签的会话。正在查看的会话不发送通知。点击通知可打开会话。</string>
 	<key>Swap with left view</key>
@@ -1568,6 +1622,8 @@
 	<string>%@ 上的 python3 无法加载 sqlite3 模块，因此无法复制 %@ 的会话。</string>
 	<key>rsync isn't installed on %@, or isn't on the PATH of commands run over ssh, so its sessions can't be copied to this Mac.</key>
 	<string>%@ 上未安装 rsync，或它不在通过 ssh 运行的命令的 PATH 中，因此无法将其会话复制到此 Mac。</string>
+	<key>ssh couldn't forward the port: %@</key>
+	<string>ssh 无法转发该端口：%@</string>
 	<key>tmux isn't installed on %@, so CLIs there run without it: closing a tab or losing the connection ends them.</key>
 	<string>%@ 上未安装 tmux，因此那里的 CLI 不在 tmux 中运行：关闭标签页或连接断开都会结束它们。</string>
 	<key>tmux on %@ answered with an error.</key>

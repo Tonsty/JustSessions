@@ -22,7 +22,7 @@ struct ConversationBrowserView: View {
     /// Settings or Help while either shows as a sheet on this window.
     @State private var appWideSheet: AppWideSheet?
     @State private var closingTerminalID: UUID?
-    @State private var closingTabGroup: TabGroupClosingRequest?
+    @State private var closingSeveralTabs: SeveralTabsClosingRequest?
     @SceneStorage("isSidebarHidden") private var isSidebarHidden = false
     @StateObject private var updateManager = SparkleUpdateManager()
     @StateObject private var onboardingTour = OnboardingTour()
@@ -91,7 +91,8 @@ struct ConversationBrowserView: View {
                 onRenameProject: onRenameProject,
                 onRequestDeletion: onRequestDeletion,
                 onCloseTerminal: { requestClosingTerminal($0) },
-                onCloseTabGroup: { requestClosingTabGroup($0, projectName: $1) }
+                onCloseTabGroup: { requestClosingTabs($0, subject: .group(projectName: $1)) },
+                onCloseSelectedTabs: { requestClosingTabs($0, subject: .selectedTabs) }
             )
         } detail: {
             WorkspaceDetailView(
@@ -102,7 +103,7 @@ struct ConversationBrowserView: View {
                 onRename: onRename,
                 onNewSession: { newSessionSheetHost = defaultNewSessionHost },
                 onCloseTerminal: { requestClosingTerminal($0) },
-                onCloseTabGroup: { requestClosingTabGroup($0, projectName: $1) },
+                onCloseTabGroup: { requestClosingTabs($0, subject: .group(projectName: $1)) },
                 onDelete: { onRequestDeletion(.conversation($0)) }
             )
         }
@@ -174,7 +175,7 @@ struct ConversationBrowserView: View {
             tabCloseChoiceSettingsStore: .shared,
             plainTerminalCloseChoiceSettingsStore: .shared
         ))
-        .modifier(TabGroupCloseConfirmation(store: store, request: $closingTabGroup))
+        .modifier(SeveralTabsCloseConfirmation(store: store, request: $closingSeveralTabs))
         .modifier(OnboardingTipsPresenter(
             store: store,
             tour: onboardingTour,
@@ -212,9 +213,9 @@ struct ConversationBrowserView: View {
         }
     }
 
-    /// A group's one tab closes as its × closes it, with its own dialog. More ask once for them all, unless each would
-    /// close without asking on its own.
-    private func requestClosingTabGroup(_ tabIDs: [UUID], projectName: String) {
+    /// A group's one tab, or one tab selected, closes as its × closes it, with its own dialog. More ask once for them all,
+    /// unless each would close without asking on its own.
+    private func requestClosingTabs(_ tabIDs: [UUID], subject: SeveralTabsClosingRequest.Subject) {
         guard tabIDs.count > 1 else {
             requestClosingTerminal(tabIDs.first)
             return
@@ -227,12 +228,12 @@ struct ConversationBrowserView: View {
         if question == .closeWithoutAsking {
             store.closeTabs(tabIDs, as: TabCloseChoiceSettingsStore.shared.choices)
         } else {
-            closingTabGroup = TabGroupClosingRequest(projectName: projectName, tabIDs: tabIDs, question: question)
+            closingSeveralTabs = SeveralTabsClosingRequest(subject: subject, tabIDs: tabIDs, question: question)
         }
     }
 
     var workspaceTabCommandsEnabled: Bool {
-        newSessionSheetHost == nil && appWideSheet == nil && closingTerminalID == nil && closingTabGroup == nil
+        newSessionSheetHost == nil && appWideSheet == nil && closingTerminalID == nil && closingSeveralTabs == nil
             && store.hostCheck == nil
     }
 

@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// An SSH host's own settings: logging in with Connect… or ending that login, whether its tmux sessions use the host's
-/// tmux prefix, what its shell startup check last found, Check this host…, and removing the host. Its heading's ⋯
+/// An SSH host's own settings: logging in with Connect… or ending that login, its port forwards and Forward a port…,
+/// whether its tmux sessions use the host's tmux prefix, what its shell startup check last found, Check this host…, and
+/// removing the host. Its heading's ⋯
 /// shows only these, since the heading's + and refresh buttons already offer the rest of its right-click menu, which
 /// ends with them.
 struct SidebarSSHHostMenuItems: View {
@@ -16,6 +17,15 @@ struct SidebarSSHHostMenuItems: View {
         case .loggedIn:
             Text("Logged in with Connect…")
             Button("Disconnect", systemImage: "xmark.circle", action: actions.onDisconnect)
+        }
+        Divider()
+        Button("Forward a port…", systemImage: "arrow.left.arrow.right", action: actions.onForwardPort)
+        ForEach(actions.portForwards) { entry in
+            SidebarPortForwardMenu(
+                entry: entry,
+                onTryAgain: actions.onTryPortForwardsAgain,
+                onStop: { actions.onStopPortForward(entry.forward) }
+            )
         }
         Divider()
         Toggle(isOn: actions.usesTmuxPrefix) {

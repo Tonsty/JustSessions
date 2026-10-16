@@ -30,14 +30,15 @@ extension ConversationStore {
         }
     }
 
-    /// Ends the host's login. Its tabs' connections end with it, and their CLIs keep running in tmux; those tabs are
-    /// not reconnected on their own. Every window that lists the host refreshes it without the login, so a host that
+    /// Ends the host's login. Its tabs' connections and the port forwards going through it end with it; the tabs'
+    /// CLIs keep running in tmux, and those tabs are not reconnected on their own. Every window that lists the host refreshes it without the login, so a host that
     /// needs one offers Connect… at once.
     func disconnect(_ host: String, connections: SSHLoginConnections = .shared) {
         for tab in storesOfEveryWindow.flatMap(\.terminalSessions)
         where tab.host == .ssh(host) && RemoteCLICommandBuilder.goesThroughLogin(tab.command) {
             tab.connectionEndedOnPurpose = true
         }
+        SSHPortForwards.shared.loginEnding(on: host)
         connections.disconnect(host)
         for store in storesOfEveryWindow { store.loginClosed(on: host) }
     }

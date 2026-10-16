@@ -9,6 +9,11 @@ struct OpenTabGroupCollapse: Equatable {
         !isSearching && collapsedProjectKeys.contains(projectKey)
     }
 
+    /// The tabs whose rows show, in list order: every tab of a group not collapsed. A Shift-click range runs over these.
+    func tabsInSight<Tab>(of groups: [TerminalTabGroup<Tab>], whileSearching isSearching: Bool) -> [Tab] {
+        groups.filter { !isCollapsed($0.projectDirectoryKey, whileSearching: isSearching) }.flatMap(\.tabs)
+    }
+
     mutating func toggle(_ projectKey: String) {
         if collapsedProjectKeys.remove(projectKey) == nil {
             collapsedProjectKeys.insert(projectKey)

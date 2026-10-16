@@ -2,7 +2,8 @@ import Foundation
 import Testing
 @testable import JustSessions
 
-/// Close all tabs in group… closes only that group's tabs, and a tab left open shows next.
+/// Close all tabs in group…, or closing the tabs selected in Open tabs, closes only those tabs, and a tab left open
+/// shows next.
 @MainActor
 struct ClosingSeveralTabsStoreTests {
     @MainActor
@@ -93,6 +94,23 @@ struct ClosingSeveralTabsStoreTests {
 
         #expect(store.terminalSessions.map(\.id) == [other.id])
         #expect(store.selectedTerminalID == other.id)
+    }
+
+    /// Tabs selected in Open tabs can come from several groups; only they close, and the shown one closes last.
+    @Test func closingTabsSelectedAcrossGroupsShowsATabLeftOpen() throws {
+        let fixture = try Fixture()
+        defer { fixture.tearDown() }
+        let store = fixture.store
+        let app = fixture.openTab("App", in: "/tmp/justsessions-tests/app")
+        let secondApp = fixture.openTab("Second app", in: "/tmp/justsessions-tests/app")
+        let tools = fixture.openTab("Tools", in: "/tmp/justsessions-tests/tools")
+        let docs = fixture.openTab("Docs", in: "/tmp/justsessions-tests/docs")
+        store.selectTerminal(tools.id)
+
+        store.closeTabs([docs.id, tools.id, app.id], endingTmuxSessions: true)
+
+        #expect(store.terminalSessions.map(\.id) == [secondApp.id])
+        #expect(store.selectedTerminalID == secondApp.id)
     }
 
     /// Tabs not yet shown have started nothing, so closing them asks nothing.

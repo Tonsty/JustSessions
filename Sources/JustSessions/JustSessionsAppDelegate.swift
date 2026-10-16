@@ -19,11 +19,16 @@ final class JustSessionsAppDelegate: NSObject, NSApplicationDelegate {
         ZoomInEqualsKey.startForwarding()
         HostAutoRefresher.shared.start()
         RemoteTabReconnector.shared.start()
-        DispatchQueue.global(qos: .utility).async { SSHLoginConnections.closeLoginsOfEndedApps() }
+        SSHPortForwards.shared.start()
+        DispatchQueue.global(qos: .utility).async {
+            SSHLoginConnections.closeLoginsOfEndedApps()
+            SSHPortForwardConnection.closeConnectionsOfEndedApps()
+        }
     }
 
-    /// Logins made with Connect… end with the app; nothing it typed for them is kept.
+    /// Port forwards and logins made with Connect… end with the app; nothing it typed for them is kept.
     func applicationWillTerminate(_ notification: Notification) {
+        SSHPortForwards.shared.endAll()
         SSHLoginConnections.shared.disconnectAll()
     }
 

@@ -82,6 +82,22 @@
 			<string>%lld sessions</string>
 		</dict>
 	</dict>
+	<key>%lld tabs selected</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@value@</string>
+		<key>value</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld tab selected</string>
+			<key>other</key>
+			<string>%lld tabs selected</string>
+		</dict>
+	</dict>
 	<key>Archive %lld sessions</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
@@ -112,6 +128,38 @@
 			<string>Branch %lld session</string>
 			<key>other</key>
 			<string>Branch %lld sessions</string>
+		</dict>
+	</dict>
+	<key>Close %lld tabs?</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@value@</string>
+		<key>value</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>Close %lld tab?</string>
+			<key>other</key>
+			<string>Close %lld tabs?</string>
+		</dict>
+	</dict>
+	<key>Close %lld tabs…</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@value@</string>
+		<key>value</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>Close %lld tab…</string>
+			<key>other</key>
+			<string>Close %lld tabs…</string>
 		</dict>
 	</dict>
 	<key>Close and delete %lld sessions</key>
