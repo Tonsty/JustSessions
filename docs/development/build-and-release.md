@@ -65,6 +65,10 @@ CucumberSwift makes an XCTest case for each step when the run starts, so `swift 
 
 Tests that need the app's own launch, tmux, and CLI activity sync run in `ThisMacTmuxSandbox`: a private tmux server with its own home folder and a `bin` folder of stand-in CLIs, so the app's own server and your sessions are never touched. `Activity/UnseenTurns/EndToEnd/` runs the unseen-turn dot and the Waiting for you filter this way. Its `StandInActivityCLI` scripts report what they do as Claude Code and Codex do, in the live registry and the rollout file, and as Pi and OpenCode do, in the report file their extension writes, only when the app started them with it. A test drives them by typing in their tab's terminal. A tab starts its CLI with only that `bin` folder on `PATH`, so a stand-in sets its own. These tests pass without running where tmux is missing or too old, so run them through `make test`, which provides the bundled tmux.
 
+## Stand-in CLIs
+
+Tests stand in for CLIs and other programs with shell scripts written by `writeExecutableScript`. macOS checks each newly written executable the first time it runs, one file at a time: about 140 ms each, against a few milliseconds once the file has run. With the whole suite writing stand-ins in parallel, that queue reached several seconds, and tests that give a stand-in a few seconds to answer failed, such as `RemoteHostCheckScriptTests`. A stand-in a test gives a time limit is written with `writeTimedStandIn` instead, which runs the `#!/bin/sh` script once before the test starts timing, ending at a line it adds, so that run does nothing the test could count. It waits for macOS, so it refuses to run on the main thread: running every stand-in once there held up the main-actor tests.
+
 ## Live CLI checks
 
 `LiveCLIEvidence` runs the Claude Code and Codex CLIs installed on this Mac in real tabs, directly and in a sandboxed tmux server, and saves a PNG and the screen text of each terminal. It is opt-in, since it starts the real CLIs; each run gives them a home folder and settings folders of their own, so they show their first-run screen and never read your sessions or settings:
