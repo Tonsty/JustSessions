@@ -1,5 +1,45 @@
 [
   {
+    "version": "1.2.13",
+    "publishedOn": "2026-10-15",
+    "title": {
+      "en": "See what SSH sessions are doing",
+      "zh-Hans": "查看 SSH 会话的状态"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "SSH sessions in tmux show what their CLI does and notify, even with no tab; Antigravity needs the host's python3.",
+            "zh-Hans": "tmux 中的 SSH 会话显示 CLI 状态并通知，没有标签页也会；Antigravity 需主机有 python3。"
+          },
+          {
+            "en": "Archive sessions to hide them from Projects without deleting them; Show archived lists them again.",
+            "zh-Hans": "可归档会话，将其从项目列表中隐藏而不删除；「显示已归档」会重新列出它们。"
+          },
+          {
+            "en": "Forward a port… in an SSH host's menu makes one of its ports reachable at localhost on this Mac.",
+            "zh-Hans": "SSH 主机菜单中的「转发端口…」可让主机的端口通过这台 Mac 的 localhost 访问。"
+          },
+          {
+            "en": "Interface size in Settings → Appearance scales the app's interface from 90% to 150%; terminals keep their font size.",
+            "zh-Hans": "「设置」→「外观」中的「界面大小」可将应用界面缩放到 90% 至 150%；终端字号不变。"
+          }
+        ]
+      },
+      {
+        "kind": "fixed",
+        "items": [
+          {
+            "en": "Fixed session names being lost: Pi's /name in long sessions, and renames with several windows open.",
+            "zh-Hans": "修复了会话名称丢失的问题：长会话中 Pi 的 /name，以及打开多个窗口时的重命名。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.12",
     "publishedOn": "2026-10-14",
     "title": {
