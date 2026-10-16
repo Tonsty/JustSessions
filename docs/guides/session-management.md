@@ -114,7 +114,7 @@ The host runs Linux or macOS and needs `rsync` plus the CLI you want to run inst
 - An SSH host's sessions are copied one tool at a time, and each tool's sessions are listed as soon as they are copied. Meanwhile the host's heading shows how far the copy is, such as **2/6**, and its tooltip names the tool being copied. A host with nothing listed yet, such as one just added, says the same under its heading.
 - Install **tmux on the remote host** so a session there keeps running when the connection drops or the tab closes. The app's bundled tmux is only for this Mac. Run `tmux -V` on the host to check installation, then select the session to reattach.
 - When a tab's connection drops while its CLI runs in tmux, for example while your Mac sleeps with its lid closed, the tab says **Connection lost. Reconnecting…** and reattaches on its own once the host answers. It tries right after the drop, when your Mac wakes, when you come back to the app, and after **Connect…**, then less often for 15 minutes. If the CLI ended on the host, the tab stays ended and nothing restarts it; otherwise click **Reconnect** in the tab any time. The host itself must stay on: the CLI runs there, not on your Mac.
-- Point at a host's heading and click its **⋯** for the host's own settings: **Connect…** or **Disconnect** (see [below](#hosts-that-ask-for-a-password-or-code)), **Use this host's tmux prefix** (see [terminal persistence](session-storage.md#terminal-persistence)), **Check this host…** (see [below](#when-something-fails-on-an-ssh-host)), and **Remove host**. The heading's right-click menu has them too, after **Add project…** and **Refresh**.
+- Point at a host's heading and click its **⋯** for the host's own settings: **Connect…** or **Disconnect** (see [below](#hosts-that-ask-for-a-password-or-code)), **Forward a port…** and the host's port forwards (see [below](#forward-a-port-from-a-host)), **Use this host's tmux prefix** (see [terminal persistence](session-storage.md#terminal-persistence)), **Check this host…** (see [below](#when-something-fails-on-an-ssh-host)), and **Remove host**. The heading's right-click menu has them too, after **Add project…** and **Refresh**.
 - If a session opens a shell instead of its CLI, see [shell startup](#shell-startup-on-ssh-hosts) below. If a refresh fails or a session won't start or resume, see [when something fails](#when-something-fails-on-an-ssh-host).
 
 ### Hosts that ask for a password or code
@@ -125,6 +125,14 @@ The host runs Linux or macOS and needs `rsync` plus the CLI you want to run inst
 - The login stays open while JustSessions runs, even with nothing using it. It closes when the connection drops, as when the Mac sleeps, when you choose **Disconnect** from the host's **⋯**, when you remove the host, and when you quit JustSessions. The next refresh then offers **Connect…** again. Closing the login ends the host's open tabs; their CLIs keep running in tmux. Tabs whose login closed with the connection reconnect on their own once you connect again; after **Disconnect**, click **Reconnect** in the tab.
 - JustSessions keeps nothing you type to log in.
 - **Connect…** is also in the host's **⋯** when nothing asks, for example to share one login among several tabs on a host whose key asks for a tap each time.
+
+### Forward a port from a host
+
+- To open a web app or another server running on a host, choose **Forward a port…** from the host's **⋯** or right-click menu. The sheet lists the ports the host listens on that `localhost` reaches, with the program's name when it's yours. Pick one, or type a port. The port on this Mac is the same unless you type another.
+- The forward listens on `localhost` on this Mac only, so other computers can't use it, and reaches `localhost` on the host. It's listed in the host's menu, such as `localhost:3000 → 3000`, with **Open in browser**, **Copy address**, and **Stop forwarding**.
+- If another program on this Mac uses the port, or the host doesn't allow forwarding, the sheet says so, with what `ssh` printed. On a host logged in with **Connect…**, a host that doesn't allow forwarding shows no error; the forward fails when you use it.
+- A host's forwards share one connection, or go through its **Connect…** login, and ignore the port forwards in `~/.ssh/config`, so they don't clash with an open tab's. When the connection drops, for example while your Mac sleeps, they reconnect on their own.
+- Forwards stop when you choose **Stop forwarding**, remove the host, choose **Disconnect** on a host logged in with **Connect…**, or quit JustSessions.
 
 ### Shell startup on SSH hosts
 
