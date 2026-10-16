@@ -38,6 +38,8 @@ The terminal comes from [yangzichao/SwiftTerm](https://github.com/yangzichao/Swi
 
 Since `v1.16.0`, SwiftTerm rounds a cell's width to the nearest pixel rather than up ([#606](https://github.com/migueldeicaza/SwiftTerm/issues/606)), so SF Mono at 13 points on a Retina screen has cells 16 pixels wide, as in Ghostty, rather than 17. `TerminalCellPixelSize.swiftTerm` mirrors it. SwiftTerm also leaves cells in the default background for the layer's background color to show through, which `cacheDisplay` doesn't draw, so tests read a SwiftTerm terminal's pixels through `snapshotOverLayerBackground()`.
 
+Before `v1.18.0`, `LocalProcess` started its child-exit `DispatchSource` before setting its handler. A Ghostty tab's process reports on a queue of its own, so an exit in that gap, as when a command fails as it starts on a busy Mac, was never delivered: the tab never showed it had ended, and the child stayed a zombie until the tab closed. Upstream [`1c3f3538`](https://github.com/migueldeicaza/SwiftTerm/commit/1c3f3538cb) sets the handler first; the app has it since `v1.2.13`. Keep that order when rebasing the fork.
+
 Fork tags are named `v<upstream version>-justsessions.<n>`, and `Package.swift` pins one exactly. To move to a newer SwiftTerm, rebase the commits upstream doesn't have onto the upstream tag, run `swift test` in the fork, push a new tag, and update `Package.swift` and `Package.resolved`. Drop the fork once an upstream release has all three changes.
 
 ## libghostty
