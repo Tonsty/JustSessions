@@ -4,6 +4,7 @@ import Testing
 
 /// Sessions asked to be deleted while a deletion runs join it: it goes on to them after the others, with one
 /// progress bar and one report.
+@Suite(.oneHeldThreadAtATime)
 @MainActor
 struct DeletionJoiningTests {
     @Test func sessionsAskedForWhileADeletionRunsShareItsProgressAndReport() async throws {

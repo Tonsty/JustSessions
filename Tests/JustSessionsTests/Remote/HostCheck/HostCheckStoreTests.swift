@@ -4,6 +4,7 @@ import Testing
 
 /// How a window's store runs Check this host… and shows its report; see `ConversationStore+HostCheck`. Each test has a
 /// host of its own, since shell startups are the app's.
+@Suite(.oneHeldThreadAtATime)
 @MainActor
 struct HostCheckStoreTests {
     @Test func showsTheCheckWhileItRunsThenItsReportAndKeepsTheShellStartupItFound() async throws {

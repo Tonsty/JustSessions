@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import JustSessions
 
-@Suite(.serialized)
+@Suite(.serialized, .oneHeldThreadAtATime)
 struct WorkspaceReadServiceTests {
     @Test @MainActor func simultaneousWindowRefreshesShareOneDiscoveryAndBothReceiveIt() async throws {
         let conversation = Conversation.fixture(sessionID: "shared-discovery")

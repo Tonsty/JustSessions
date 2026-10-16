@@ -71,6 +71,15 @@ Tests that need the app's own launch, tmux, and CLI activity sync run in `ThisMa
 
 Terminal tests wait for the terminal view to take input and redraw, which stops while the Mac's display sleeps: a `make release-check` that ran with the display off failed 3 Ghostty and SwiftTerm input tests at their 120-second limits, and the suite took 588 s instead of about 110. Keep the display awake for `make test`, `make verify`, and `make release-check`, for example with `caffeinate -u -t 1; caffeinate -d -i make verify`, which turns the display on and keeps it on until the command ends.
 
+## Tests that hold a thread
+
+Swift Testing runs tests on Swift concurrency's shared threads, which number the CPU count: 12 on an M4 Pro and three on the release runner. A test that blocks one, with `Thread.sleep`, a semaphore, or a synchronous wait for a process, holds it from every other test. Tests that do this on purpose are run one at a time with a trait, and a test waiting for its turn holds no thread:
+
+- `.oneTmuxSandboxAtATime` for the synchronous tests that wait on a `TmuxSandbox`.
+- `.oneHeldThreadAtATime` for tests whose stand-in holds a thread until the test lets it go, such as `SimulatedSSHHosts(holdingAttempt:)`. The test lets it go from its own task, which needs a free thread to wake, so several of these at once could hold every thread with none able to wake: two release runs hung that way, with about 2,000 tests started and none finishing.
+
+Mark a new test of either kind with its trait.
+
 ## Stand-in CLIs
 
 Tests stand in for CLIs and other programs with shell scripts written by `writeExecutableScript`. macOS checks each newly written executable the first time it runs, one file at a time: about 140 ms each, against a few milliseconds once the file has run. With the whole suite writing stand-ins in parallel, that queue reached several seconds, and tests that give a stand-in a few seconds to answer failed, such as `RemoteHostCheckScriptTests`. A stand-in a test gives a time limit is written with `writeTimedStandIn` instead, which runs the `#!/bin/sh` script once before the test starts timing, ending at a line it adds, so that run does nothing the test could count. It waits for macOS, so it refuses to run on the main thread: running every stand-in once there held up the main-actor tests.

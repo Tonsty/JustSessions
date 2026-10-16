@@ -31,7 +31,7 @@ struct TranscriptImageDecoderTests {
 
     /// The decode holds until the test lets it go, so the view leaves while the decode is under way, however busy
     /// the machine is.
-    @Test func aViewThatGoesAwayStopsWaitingAndTheOthersStillGetTheImage() async throws {
+    @Test(.oneHeldThreadAtATime) func aViewThatGoesAwayStopsWaitingAndTheOthersStillGetTheImage() async throws {
         let counter = DecodeCounter(delay: .zero, holdsUntilReleased: true)
         let decoder = TranscriptImageDecoder(cacheByteLimit: 1 << 20, decode: counter.decode)
         let image = SampleTranscriptImage.image

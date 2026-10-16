@@ -5,6 +5,7 @@ import Testing
 /// A refresh of an SSH host asked for while a deletion runs on it waits until the deletion ends; a refresh of
 /// another host does not wait. That the waiting refresh then runs is checked only for this Mac, in
 /// `DeletionDuringRefreshTests`: for an SSH host it would copy the host over `ssh`.
+@Suite(.oneHeldThreadAtATime)
 @MainActor
 struct DeletionRefreshTests {
     @Test func onlyTheSSHHostTheDeletionDeletesFromWaitsToRefresh() async throws {
