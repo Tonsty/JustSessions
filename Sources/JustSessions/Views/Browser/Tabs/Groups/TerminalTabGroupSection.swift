@@ -22,7 +22,7 @@ struct TerminalTabGroupSection: View {
     let onRenameConversation: (Conversation) -> Void
     let onCloseTab: (UUID) -> Void
     let onDeleteConversation: (Conversation) -> Void
-    /// Closes the group's tabs, asking once for them all; see `TabGroupCloseConfirmation`.
+    /// Closes the group's tabs, asking once for them all; see `SeveralTabsCloseConfirmation`.
     let onCloseTabs: ([UUID], _ projectName: String) -> Void
 
     @State private var hoveredTabID: UUID?
