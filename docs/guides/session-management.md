@@ -114,7 +114,7 @@ The host runs Linux or macOS and needs `rsync` plus the CLI you want to run inst
 - An SSH host's sessions are copied one tool at a time, and each tool's sessions are listed as soon as they are copied. Meanwhile the host's heading shows how far the copy is, such as **2/6**, and its tooltip names the tool being copied. A host with nothing listed yet, such as one just added, says the same under its heading.
 - Install **tmux on the remote host** so a session there keeps running when the connection drops or the tab closes. The app's bundled tmux is only for this Mac. Run `tmux -V` on the host to check installation, then select the session to reattach.
 - When a tab's connection drops while its CLI runs in tmux, for example while your Mac sleeps with its lid closed, the tab says **Connection lost. Reconnecting…** and reattaches on its own once the host answers. It tries right after the drop, when your Mac wakes, when you come back to the app, and after **Connect…**, then less often for 15 minutes. If the CLI ended on the host, the tab stays ended and nothing restarts it; otherwise click **Reconnect** in the tab any time. The host itself must stay on: the CLI runs there, not on your Mac.
-- Point at a host's heading and click its **⋯** for the host's own settings: **Connect…** or **Disconnect** (see [below](#hosts-that-ask-for-a-password-or-code)), **Forward a port…** and the host's port forwards (see [below](#forward-a-port-from-a-host)), **Use this host's tmux prefix** (see [terminal persistence](session-storage.md#terminal-persistence)), **Check this host…** (see [below](#when-something-fails-on-an-ssh-host)), and **Remove host**. The heading's right-click menu has them too, after **Add project…** and **Refresh**.
+- Point at a host's heading and click its **⋯** for the host's own settings: **Connect…** or **Disconnect** (see [below](#hosts-that-ask-for-a-password-or-code)), **Sign-in command…** and **Sign in again…** (see [below](#sign-in-again-on-a-host)), **Forward a port…** and the host's port forwards (see [below](#forward-a-port-from-a-host)), **Use this host's tmux prefix** (see [terminal persistence](session-storage.md#terminal-persistence)), **Check this host…** (see [below](#when-something-fails-on-an-ssh-host)), and **Remove host**. The heading's right-click menu has them too, after **Add project…** and **Refresh**.
 - If a session opens a shell instead of its CLI, see [shell startup](#shell-startup-on-ssh-hosts) below. If a refresh fails or a session won't start or resume, see [when something fails](#when-something-fails-on-an-ssh-host).
 
 ### Hosts that ask for a password or code
@@ -125,6 +125,19 @@ The host runs Linux or macOS and needs `rsync` plus the CLI you want to run inst
 - The login stays open while JustSessions runs, even with nothing using it. It closes when the connection drops, as when the Mac sleeps, when you choose **Disconnect** from the host's **⋯**, when you remove the host, and when you quit JustSessions. The next refresh then offers **Connect…** again. Closing the login ends the host's open tabs; their CLIs keep running in tmux. Tabs whose login closed with the connection reconnect on their own once you connect again; after **Disconnect**, click **Reconnect** in the tab.
 - JustSessions keeps nothing you type to log in.
 - **Connect…** is also in the host's **⋯** when nothing asks, for example to share one login among several tabs on a host whose key asks for a tap each time.
+
+### Sign in again on a host
+
+Some hosts need you to sign in again every so often after `ssh` has logged you in, for example to renew a credential that expires and asks for a PIN or a one-time code. JustSessions can run that command for you and ask its questions in a dialog.
+
+- Choose **Sign-in command…** from the host's **⋯** or right-click menu, and type the command as you'd type it on the host, such as `kinit`. It runs there in your login shell, with a terminal, so it asks what it asks when you type it.
+- To be asked only once the sign-in has expired, add a check command, such as `klist -s`, that exits with 0 while you're still signed in. JustSessions runs it every 5 minutes while one of its windows shows. Without one, you're asked every few hours, 10 unless you choose another, counted from your last sign-in through JustSessions.
+- When a sign-in is due, the host's heading shows **Sign in…**. Its dialog opens by itself when you switch to JustSessions, or when JustSessions first finds the host due after it starts or after you save the command. Otherwise, while you're using JustSessions or it's in the background, you get a notification instead, so the dialog never catches typing meant for a terminal. Click **Sign in…** or the notification to sign in.
+- The dialog shows what the command printed and asks the line it stopped on, such as `PIN:`. What you type goes to the command out of sight, then the next question follows, such as a code after the PIN. A security key that types its code can type it into the dialog. If the command asks the same question again, the dialog says your answer wasn't accepted.
+- The dialog suits commands that ask one line at a time. A command that draws a full-screen interface, or opens a browser to sign in, needs a terminal: open one in a project on the host and run it there.
+- If the command fails, an alert shows its last lines. **Cancel** stops the command, and the heading keeps **Sign in…**.
+- **Sign in again…** in the host's menu signs in before it's due. Remove the command in the same sheet.
+- The notification follows the **Needs my input** setting in **Settings > General**. JustSessions keeps the commands and when you last signed in, never what you type.
 
 ### Forward a port from a host
 
