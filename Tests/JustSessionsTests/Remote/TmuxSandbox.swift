@@ -112,8 +112,8 @@ struct TmuxSandbox {
         try writeExecutableScript("#!/bin/sh\n\(body)\n", to: root.appendingPathComponent("bin").appendingPathComponent(name))
     }
 
-    func run(_ command: String) -> String {
-        BoundedProcessRunner.output(ofExecutable: "/bin/sh", arguments: ["-c", command], environment: environment, timeout: 10) ?? ""
+    func run(_ command: String, timeout: TimeInterval = 10) -> String {
+        BoundedProcessRunner.output(ofExecutable: "/bin/sh", arguments: ["-c", command], environment: environment, timeout: timeout) ?? ""
     }
 
     func hasTmuxSession(_ name: String) -> Bool {

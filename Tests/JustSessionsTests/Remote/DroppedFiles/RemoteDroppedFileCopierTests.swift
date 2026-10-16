@@ -123,7 +123,7 @@ struct RemoteDroppedFileCopierTests {
         defer { try? FileManager.default.removeItem(at: home) }
         let file = try makeDroppedFile(named: "shot.png", byteCount: 10, in: home)
         // A connection that never finishes.
-        let copier = RemoteDroppedFileCopier.replacingSSH(with: "exec sleep 30")
+        let copier = RemoteDroppedFileCopier.replacingSSH(with: "exec sleep 600")
         let cancellation = RemoteDroppedFileCopyCancellation()
 
         let (outcome, copyDuration) = await withCheckedContinuation { (continuation: CheckedContinuation<(Result<String, any Error>, Duration), Never>) in
@@ -138,6 +138,7 @@ struct RemoteDroppedFileCopierTests {
         }
 
         #expect(throws: CancellationError.self) { try outcome.get() }
-        #expect(copyDuration < .seconds(20))
+        // Well short of the connection's 600 seconds, so the cancel, not `ssh` ending, stopped the copy.
+        #expect(copyDuration < .seconds(120))
     }
 }

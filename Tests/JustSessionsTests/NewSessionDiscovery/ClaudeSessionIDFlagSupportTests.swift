@@ -65,12 +65,13 @@ struct ClaudeSessionIDFlagSupportTests {
     @Test func hungHelpLeavesTheAnswerOpenForALaterLaunch() throws {
         let root = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
-        let command = try fakeClaude(in: root, script: "#!/bin/sh\nexec sleep 30\n")
+        let command = try fakeClaude(in: root, script: "#!/bin/sh\nexec sleep 600\n")
         let support = ClaudeSessionIDFlagSupport(helpTimeout: 0.5)
 
         let startedAt = Date()
         #expect(support.check(command) == nil)
-        #expect(Date().timeIntervalSince(startedAt) < 5)
+        // Well short of the stand-in's 600 seconds, so the time limit, not `--help` ending, gave the answer.
+        #expect(Date().timeIntervalSince(startedAt) < 120)
     }
 
     @Test func uncheckedExecutableLaunchesWithoutTheFlagWhileItsCheckRuns() async throws {

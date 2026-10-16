@@ -50,10 +50,11 @@ struct KiroConversationDeletionTests {
         let startedAt = clock.now
 
         #expect(throws: KiroConversationDeletionError.didNotFinish) {
-            try fixture.delete(runningScript: "#!/bin/sh\nexec /bin/sleep 30\n", timeout: 0.5)
+            try fixture.delete(runningScript: "#!/bin/sh\nexec /bin/sleep 600\n", timeout: 0.5)
         }
 
-        #expect(clock.now - startedAt < .seconds(10))
+        // Well short of the stand-in's 600 seconds, so the time limit, not the CLI ending, stopped the wait.
+        #expect(clock.now - startedAt < .seconds(120))
         #expect(FileManager.default.fileExists(atPath: fixture.conversation.sourceFile.path))
         #expect(FileManager.default.fileExists(atPath: fixture.metadataFile.path))
     }

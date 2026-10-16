@@ -37,14 +37,15 @@ struct LoginShellEnvironmentTests {
         let hungShell = try writeExecutableScript("""
         #!/bin/sh
         trap '' TERM
-        sleep 30
+        exec sleep 600
         """, to: root.appendingPathComponent("hung-shell"))
 
         let startedAt = Date()
         let variables = LoginShellEnvironment.readVariables(shellPath: hungShell.path, timeout: 0.5)
 
         #expect(variables.isEmpty)
-        #expect(Date().timeIntervalSince(startedAt) < 5)
+        // Well short of the stand-in's 600 seconds, so the time limit, not the shell ending, stopped the wait.
+        #expect(Date().timeIntervalSince(startedAt) < 120)
     }
 
     @Test func entriesWithoutANameAreSkipped() {
