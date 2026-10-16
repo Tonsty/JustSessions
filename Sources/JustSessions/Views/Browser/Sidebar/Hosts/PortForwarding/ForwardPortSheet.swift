@@ -136,7 +136,7 @@ struct ForwardPortSheet: View {
         } label: {
             rowLabel(for: port, forwardedFrom: forwardedFrom, isPicked: isPicked)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(ThemePlainButtonStyle())
         .accessibilityLabel(accessibilityName)
         .accessibilityValue(forwardedFrom.map { Text("Forwarded to \($0.address)") } ?? Text(verbatim: ""))
         .accessibilityAddTraits(isPicked ? .isSelected : [])
