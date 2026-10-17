@@ -20,8 +20,10 @@ struct ProjectDisplayNames: Equatable {
         userDefaults.set(customNamesByProjectPath, forKey: Self.userDefaultsKey)
     }
 
+    /// Works on the text alone, as views ask on every render: `URL(fileURLWithPath:)` would look the path up on this
+    /// Mac's disk, and an SSH key such as `ssh://host/home/me/app` there as a path under the current folder.
     static func folderName(forProjectPath projectPath: String) -> String {
-        URL(fileURLWithPath: projectPath).lastPathComponent
+        (projectPath as NSString).lastPathComponent
     }
 
     func displayName(forProjectPath projectPath: String) -> String {

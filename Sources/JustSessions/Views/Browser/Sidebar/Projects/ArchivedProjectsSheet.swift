@@ -7,11 +7,9 @@ struct ArchivedProjectsSheet: View {
     let host: SessionHost
     @Environment(\.dismiss) private var dismiss
 
-    private var archivedProjectPaths: [String] {
-        store.archivedProjectPaths(on: host)
-    }
-
     var body: some View {
+        // Sorted once a render, not on each read: the rows' dividers read it once per row.
+        let archivedProjectPaths = store.archivedProjectPaths(on: host)
         ThemeSheetLayout(
             title: Text("Archived projects on \(host.nameInSentence)"),
             width: ThemeSheetMetrics.compactWidth
@@ -31,9 +29,9 @@ struct ArchivedProjectsSheet: View {
                 // A short list keeps the sheet tight; a long one scrolls instead of growing past the window.
                 Group {
                     if archivedProjectPaths.count > 7 {
-                        ScrollView { rows }.frame(height: 300)
+                        ScrollView { rows(archivedProjectPaths) }.frame(height: 300)
                     } else {
-                        rows
+                        rows(archivedProjectPaths)
                     }
                 }
                 .background(ThemePalette.raisedSurface, in: RoundedRectangle(.card))
@@ -47,7 +45,7 @@ struct ArchivedProjectsSheet: View {
         }
     }
 
-    private var rows: some View {
+    private func rows(_ archivedProjectPaths: [String]) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(archivedProjectPaths, id: \.self) { projectPath in
                 row(for: projectPath)

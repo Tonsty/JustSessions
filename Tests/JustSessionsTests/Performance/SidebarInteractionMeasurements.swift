@@ -61,6 +61,14 @@ struct SidebarInteractionMeasurements {
         try await measureScenario(.storeChange, sessionCount: sessionCount)
     }
 
+    /// The same tick with the sessions on an SSH host, in `/home` folders whose names come in pairs, so every project
+    /// row shows its parent folders. On a Mac, `/home` is an automount: a lookup of such a path on this Mac's disk
+    /// takes milliseconds.
+    @Test(arguments: [300, 2_000])
+    func oneSmallStoreChangeOnAnSSHHost(sessionCount: Int) async throws {
+        try await measureScenario(.storeChange, sessionCount: sessionCount, listedOn: .ssh(SidebarPerfHarness.sshHostName))
+    }
+
     /// Selecting one session row the way the sidebar's click handler does, with a small real transcript file.
     /// Only the synchronous turn is measured; the transcript itself loads asynchronously afterwards.
     @Test(arguments: [300, 2_000])
@@ -93,9 +101,13 @@ struct SidebarInteractionMeasurements {
         #expect(iterations > 0)
     }
 
-    private func measureScenario(_ scenario: SidebarPerfScenario, sessionCount: Int) async throws {
+    private func measureScenario(
+        _ scenario: SidebarPerfScenario,
+        sessionCount: Int,
+        listedOn host: SessionHost = .thisMac
+    ) async throws {
         guard Self.isEnabled else { return }
-        let harness = try await SidebarPerfHarness(sessionCount: sessionCount)
+        let harness = try await SidebarPerfHarness(sessionCount: sessionCount, listedOn: host)
         defer { harness.close() }
         var runs: [SidebarInteractionMetrics] = []
         for _ in 0..<3 {
@@ -103,7 +115,7 @@ struct SidebarInteractionMeasurements {
             runs.append(try await harness.measure(scenario))
         }
         let median = runs.sorted { $0.total < $1.total }[1]
-        let label = "\(scenario.rawValue) N=\(sessionCount)"
+        let label = "\(scenario.rawValue)\(host == .thisMac ? "" : " on an SSH host") N=\(sessionCount)"
         perfReport(label, "total (median of 3)", median.total)
         perfReport(label, "longest main-thread gap (20 ms heartbeat)", median.longestGap)
         perfReport(label, "summed stall beyond heartbeat", median.stalled)
@@ -137,17 +149,21 @@ struct SidebarInteractionMetrics {
 // MARK: - Harness
 
 /// `sessionCount` Claude Code sessions with real transcript files spread over 50 real project folders, listed by
-/// a store with isolated settings and no background polling, shown in the real sidebar + detail layout.
+/// a store with isolated settings and no background polling, shown in the real sidebar + detail layout. Listed on an
+/// SSH host, the folders are `/home` paths on it instead, two to each folder name.
 @MainActor
 final class SidebarPerfHarness {
     nonisolated static let projectFolderPrefix = "perfproj-"
     nonisolated static let projectCount = 50
+    /// Never a real host: the store doesn't poll, and nothing here connects.
+    nonisolated static let sshHostName = "sidebar-perf-host.invalid"
     /// Spread over 14 days so the Recent filter keeps about half of the sessions.
     nonisolated static let updatedAtSpread: TimeInterval = 14 * 24 * 60 * 60
 
     let sandbox: DeletionSandbox
     let store: ConversationStore
     let conversations: [Conversation]
+    let listedHost: SessionHost
     let controls: SidebarPerfControls
     private let window: NSWindow
     private let hostingView: NSHostingView<AnyView>
@@ -163,15 +179,23 @@ final class SidebarPerfHarness {
         return views
     }
 
-    init(sessionCount: Int) async throws {
+    init(sessionCount: Int, listedOn listedHost: SessionHost = .thisMac) async throws {
         let sandbox = try DeletionSandbox()
         self.sandbox = sandbox
+        self.listedHost = listedHost
         let sessionsFolder = sandbox.directory.appendingPathComponent("sessions")
         try FileManager.default.createDirectory(at: sessionsFolder, withIntermediateDirectories: true)
-        let projectFolders: [URL] = try (0..<Self.projectCount).map { index in
+        let projectFolders: [String] = try (0..<Self.projectCount).map { index in
+            guard listedHost == .thisMac else {
+                let parentFolder = index.isMultiple(of: 2) ? "work" : "personal"
+                return String(format: "/home/perfuser/\(parentFolder)/\(Self.projectFolderPrefix)%02d", index / 2)
+            }
             let folder = sandbox.directory.appendingPathComponent(String(format: "\(Self.projectFolderPrefix)%02d", index))
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-            return folder
+            return folder.path
+        }
+        if let destination = listedHost.sshDestination {
+            RemoteHostList(hosts: [destination]).save(to: sandbox.userDefaults)
         }
         // A small real Claude-style transcript, so the preview path reads real content.
         let transcript = """
@@ -188,10 +212,11 @@ final class SidebarPerfHarness {
             return .fixture(
                 provider: .claude,
                 sessionID: sessionID,
-                projectPath: projectFolders[index % Self.projectCount].path,
+                projectPath: projectFolders[index % Self.projectCount],
                 title: "Session \(index): a typical prompt-length title for the sidebar",
                 updatedAt: now.addingTimeInterval(-Double(index) * interval),
-                sourceFile: file
+                sourceFile: file,
+                host: listedHost
             )
         }
         self.conversations = conversations
@@ -202,7 +227,7 @@ final class SidebarPerfHarness {
             startsBackgroundPolling: false
         )
         self.store = store
-        store.replaceConversations(on: .thisMac, with: conversations)
+        store.replaceConversations(on: listedHost, with: conversations)
         // Custom titles on one session in ten, so title lookups go through the alias list as they do in use.
         for conversation in conversations.enumerated().filter({ $0.offset % 10 == 0 }).map(\.element) {
             store.rename(conversation, to: "Renamed \(conversation.suggestedTitle)")
@@ -252,7 +277,7 @@ final class SidebarPerfHarness {
         switch scenario {
         case .populate:
             controls.searchText = ""
-            store.replaceConversations(on: .thisMac, with: [])
+            store.replaceConversations(on: listedHost, with: [])
         case .typing, .filters, .preview:
             controls.searchText = ""
         case .selection, .storeChange:
@@ -302,7 +327,7 @@ final class SidebarPerfHarness {
     }
 
     private func runPopulate() async throws -> [(String, String)] {
-        let apply = turn { store.replaceConversations(on: .thisMac, with: conversations) }
+        let apply = turn { store.replaceConversations(on: listedHost, with: conversations) }
         try await pumpTurns(3)
         return [("replaceConversations + first render turn", perfMilliseconds(apply))]
     }

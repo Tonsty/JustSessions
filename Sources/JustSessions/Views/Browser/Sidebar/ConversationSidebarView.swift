@@ -266,7 +266,7 @@ struct ConversationSidebarView: View {
             onAddProject: { addProject(on: section.host) },
             onRefresh: { store.refreshTryingAgain(section.host) },
             isRefreshDisabled: store.isDeletingSessions,
-            archivedProjectCount: store.archivedProjectPaths(on: section.host).count,
+            archivedProjectCount: store.archivedProjectCount(on: section.host),
             onShowArchivedProjects: { hostShowingArchivedProjects = section.host },
             sshHostActions: section.host.sshDestination.map { destination in
                 SidebarSSHHostActions(

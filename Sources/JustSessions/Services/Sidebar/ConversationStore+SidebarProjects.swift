@@ -65,19 +65,26 @@ extension ConversationStore {
 
     /// Archived projects for the restore list: by display name, then by key so equal names keep a stable order.
     var archivedProjectPaths: [String] {
-        sidebarProjectList.removedProjectPaths.sorted { left, right in
-            switch projectDisplayName(forProjectPath: left)
-                .localizedCaseInsensitiveCompare(projectDisplayName(forProjectPath: right)) {
-            case .orderedAscending: true
-            case .orderedDescending: false
-            case .orderedSame: left < right
+        sidebarProjectList.removedProjectPaths
+            .map { (projectPath: $0, displayName: projectDisplayName(forProjectPath: $0)) }
+            .sorted { left, right in
+                switch left.displayName.localizedCaseInsensitiveCompare(right.displayName) {
+                case .orderedAscending: true
+                case .orderedDescending: false
+                case .orderedSame: left.projectPath < right.projectPath
+                }
             }
-        }
+            .map(\.projectPath)
     }
 
     /// One host's archived projects, in the restore list's order, for the list opened from that host's heading.
     func archivedProjectPaths(on host: SessionHost) -> [String] {
         archivedProjectPaths.filter { ProjectLocation(key: $0).host == host }
+    }
+
+    /// How many of one host's projects are archived, for its heading, which asks on every render: no sort.
+    func archivedProjectCount(on host: SessionHost) -> Int {
+        sidebarProjectList.removedProjectPaths.count { ProjectLocation(key: $0).host == host }
     }
 
     func showProjectInSidebar(_ projectPath: String) {

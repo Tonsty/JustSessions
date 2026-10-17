@@ -61,4 +61,15 @@ struct ProjectDisplayNamesTests {
         #expect(groups.map(\.displayName) == ["Marketing site"])
         #expect(groups.map(\.folderName) == ["example-project"])
     }
+
+    /// The folder name comes from the key's text: an SSH key isn't a path on this Mac.
+    @Test(arguments: [
+        ("ssh://devbox/home/me/api", "api"),
+        ("ssh://devbox/home/me/api/", "api"),
+        ("/Users/me/code/app", "app"),
+        ("/", "/"),
+    ])
+    func folderNameIsTheKeysLastFolder(projectPath: String, folderName: String) {
+        #expect(ProjectDisplayNames.folderName(forProjectPath: projectPath) == folderName)
+    }
 }
