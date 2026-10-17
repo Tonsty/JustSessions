@@ -54,7 +54,7 @@ For people who prefer the command line. JustSessions adds a native Mac workspace
 
 ![JustSessions displaying a Claude Code conversation on the dev-desktop SSH host alongside local projects and a build server](docs/images/remote-desktop-sessions.jpg)
 
-Add a `~/.ssh/config` alias or `user@hostname` with `rsync` and the CLI installed. A host that asks for a password or a code logs in with **Connect…**. A host that needs you to sign in again every so often can run a **Sign-in command…** that asks for its PIN or code in a dialog. Session history is cached on your Mac. [SSH setup](docs/guides/session-management.md#ssh-hosts).
+Add a `~/.ssh/config` alias or `user@hostname` with `rsync` and the CLI installed. A host that asks for a password or a code logs in with **Connect…**. **Disconnect** in a host's **⋯** leaves it alone, sessions still listed, until you choose **Connect**. A host that needs you to sign in again every so often can run a **Sign-in command…** that asks for its PIN or code in a dialog. Session history is cached on your Mac. [SSH setup](docs/guides/session-management.md#ssh-hosts).
 
 ## Close a tab. Keep the work.
 
