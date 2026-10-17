@@ -16,8 +16,9 @@ extension ConversationStore {
         tmuxSessionNamesByHost[conversation.host]?.contains(TmuxSessionName.forConversation(conversation)) == true
     }
 
+    /// Nothing is published when the names haven't changed, as after most refreshes (PERF-05).
     func setTmuxSessionNames(_ names: Set<String>, on host: SessionHost) {
-        guard hosts.contains(host) else { return }
+        guard hosts.contains(host), tmuxSessionNamesByHost[host] != names else { return }
         tmuxSessionNamesByHost[host] = names
     }
 

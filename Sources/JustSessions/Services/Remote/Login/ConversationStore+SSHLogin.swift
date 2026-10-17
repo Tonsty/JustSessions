@@ -45,15 +45,14 @@ extension ConversationStore {
     }
 
     /// After a refresh of `host`: whether it needs Connect…, and whether its login is still open, as it may have
-    /// closed on its own, such as when the Mac slept.
+    /// closed on its own, such as when the Mac slept. Nothing is published when neither changed (PERF-05).
     func noteLoginState(on host: String, refreshProblem: SSHConnectionProblem?, connections: SSHLoginConnections = .shared) {
-        if refreshProblem?.isFixedByLoggingIn == true {
-            sshHostsNeedingLogIn.insert(host)
-        } else {
-            sshHostsNeedingLogIn.remove(host)
+        let needsLogIn = refreshProblem?.isFixedByLoggingIn == true
+        if needsLogIn != sshHostsNeedingLogIn.contains(host) {
+            if needsLogIn { sshHostsNeedingLogIn.insert(host) } else { sshHostsNeedingLogIn.remove(host) }
         }
         if !connections.isLoggedIn(host) {
-            sshHostsLoggedIn.remove(host)
+            if sshHostsLoggedIn.contains(host) { sshHostsLoggedIn.remove(host) }
             connections.forgetEndedLogin(of: host)
         }
     }
