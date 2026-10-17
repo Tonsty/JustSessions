@@ -218,6 +218,9 @@ No difference stands out from the load's noise:
 | 28 | [Dragging a tab or a group along the tab bar](#28-dragging-a-tab-or-a-group-along-the-tab-bar) | Done: this change |
 | 29 | [Typing in an SSH tab](#29-typing-in-an-ssh-tab) | Done: #235 |
 | 30 | [Starting a CLI in an SSH tab ran bash's command-not-found handler](#30-starting-a-cli-in-an-ssh-tab-ran-bashs-command-not-found-handler) | Done: this change |
+| 31 | [A Pi session's name was looked for in its last 256 KB on every refresh](#31-a-pi-sessions-name-was-looked-for-in-its-last-256-kb-on-every-refresh) | Done: #277 |
+| 32 | [The activity sync went through every listed session for every tmux session](#32-the-activity-sync-went-through-every-listed-session-for-every-tmux-session) | Done: #294 |
+| 33 | [The sidebar looked up an SSH host's project paths on this Mac's disk](#33-the-sidebar-looked-up-an-ssh-hosts-project-paths-on-this-macs-disk) | Done: this change |
 
 ### 1. Timestamp parsing
 
@@ -847,6 +850,27 @@ The two gaps, 36–44 ms, came with the launch and with the opening of the new s
 - **Not changed, off the main thread:** the refresh read the 3,000 mirrored session files for about 170 s on one core (`ClaudeAdapter.discover`, 28 ms a file) because rsync replaces each file the VM wrote to, and a replaced file's summary is read again. The host stays "refreshing" meanwhile, and the copy every 10 seconds for a new tab waiting to link ([budgets, Method](../requirements/performance/budgets.md#method)) is skipped until it ends.
 - **The live run showed the host's tmux sessions only in its last minute:** a host's tmux session names arrive with its status call at the end of its refresh.
 - **The suites run one case at a time:** Swift Testing ran the sync suite's two cases together on the main actor, and each case's syncs ran while the other's awaited its reader's task, so both cases first reported the same 25 ms a sync whatever their size. They are `.serialized` now, and the sync suite reports the main thread's CPU time per sync beside the wall clock.
+
+### 33. The sidebar looked up an SSH host's project paths on this Mac's disk
+
+**Evidence:** a profile on another Mac, with 221 projects listed on an SSH host under `/home`, timed tab switches with an Accessibility ping and no profiler attached: 4 of 8 switches blocked the main thread for 2,360–3,175 ms in each of 3 runs, the others 55–90 ms. In a 10 ms sample taken during the freezes, 926 of 1,227 busy main-thread samples were in `ProjectParentLabels.init` → `URL(fileURLWithPath:)` → `lstat`, and the main thread's CPU covered about 20% of the freeze: it waited on the kernel. Without `isDirectory:`, `URL(fileURLWithPath:)` asks the disk whether the path is a folder, and on a Mac `/home` is an automount (`auto_home` in `/etc/auto_master`): an `lstat` there took 88–146 ms on that Mac and 15–30 ms on this one, against microseconds for a folder on this Mac, and nothing caches the answer. `ProjectParentLabels(projectsOnOneHost:)` runs in the sidebar's body on every render and looked up each project whose name another project on its host shares. `ProjectDisplayNames.folderName(forProjectPath:)`, which views call for project, group, and tab names, handed project keys to `URL(fileURLWithPath:)` too; an SSH key such as `ssh://host/home/me/app` is a relative path there, so each call also read the current folder. Each host heading sorted every archived project by display name to show their count.
+
+**Change:** `parentLabel(forFolderPath:)` and `folderName(forProjectPath:)` use `NSString`'s path methods, which work on the text alone. Their answers match the old ones for paths and keys a CLI records, a trailing `/`, `/`, and non-ASCII folders; a path ending in `..` is the only difference found. A host heading counts its archived projects with `archivedProjectCount(on:)`, without sorting, and the archived projects sheet sorts once a render, looking each display name up once.
+
+**Measured:** `SidebarInteractionMeasurements`' `oneSmallStoreChangeOnAnSSHHost`, the store-change scenario with its sessions on an SSH host, in 50 `/home` folders whose names come in pairs, so every project row shows its parent folders. Release builds (`swift test -c release`) of `8489bd84` and of the same tree with the two path functions and the heading's count as on `993db1b8`. Apple M4 Max (14 cores), 36 GB, macOS 27.0.1, Swift 6.4. The machine wasn't isolated.
+
+| Operation, 300 / 2,000 sessions | Before | After |
+| --- | --- | --- |
+| A store change's turn, projects collapsed | 487 / 410 ms | 4.7 / 6.0 ms |
+| The same, every project expanded by a search | 502 / 498 ms | 7.3 / 23.0 ms |
+| The scenario's total, median of 3 | 2,419 / 2,329 ms | 53 / 78 ms |
+| Longest main-thread gap (20 ms heartbeat) | 1,424 / 1,413 ms | 40 / 38 ms |
+| This Mac's store change, projects collapsed | 5.7 / 6.1 ms | 5.9 / 6.3 ms |
+
+**Limits:**
+- **Not run on the Mac that was profiled, or against a live host:** the suite lists the host's sessions through the store. That Mac's automount answered 3–5 times slower than this one's.
+- **The labels are still worked out in the sidebar's body:** each render groups a host's projects by name, which the numbers above include.
+- **Not changed:** the same profile found `TerminalSurfaceCoordinator.tick` → `ghostty_surface_draw` waiting for the GPU (`waitUntilCompleted`) on the main thread, about 1.4 s of small stutters after switching to a Ghostty tab with streaming output.
 
 ## How to profile
 
