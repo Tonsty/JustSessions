@@ -222,6 +222,7 @@ struct ConversationSidebarView: View {
         .dismissesOnClickOutside(item: $sshHostEditingSignInCommand)
         .remoteSignInQuestions(in: store)
         .sshLoginQuestions(from: sshLoginPrompter)
+        .modifier(HostDisconnectConfirmation(store: store))
         .onAppear { expandProjectsWithOpenTerminals() }
         .onOnboardingTourStop(showOnboardingTourStop)
         .onChange(of: contentMode) { _, _ in
@@ -282,13 +283,20 @@ struct ConversationSidebarView: View {
                     onConnect: { [sshLoginPrompter] in
                         store.logInFromHeading(to: destination) { await sshLoginPrompter.ask($0) }
                     },
-                    onDisconnect: { store.disconnect(destination) },
+                    onDisconnect: { store.requestDisconnect(destination) },
+                    onConnectDisconnectedHost: { store.connectHost(destination) },
                     signIn: RemoteSignIns.shared.command(on: destination) == nil
                         ? nil : RemoteSignIns.shared.state(on: destination),
-                    onSignIn: { RemoteSignIns.shared.signIn(on: destination, presentingIn: store) },
+                    onSignIn: {
+                        store.connectIfDisconnected(section.host)
+                        RemoteSignIns.shared.signIn(on: destination, presentingIn: store)
+                    },
                     onEditSignInCommand: { sshHostEditingSignInCommand = section.host },
                     portForwards: SSHPortForwards.shared.entries(on: destination),
-                    onForwardPort: { sshHostForwardingPort = section.host },
+                    onForwardPort: {
+                        store.connectIfDisconnected(section.host)
+                        sshHostForwardingPort = section.host
+                    },
                     onTryPortForwardsAgain: { SSHPortForwards.shared.tryAgain(onlyOn: destination) },
                     onStopPortForward: { SSHPortForwards.shared.stop($0) },
                     onRemove: { store.removeRemoteHost(destination) }
@@ -298,6 +306,7 @@ struct ConversationSidebarView: View {
     }
 
     private func sshHostLogin(_ host: String) -> SidebarSSHHostLogin {
+        if store.isDisconnected(host) { return .disconnected }
         if store.sshHostsLoggingIn.contains(host) { return .loggingIn }
         if store.sshHostsLoggedIn.contains(host) { return .loggedIn }
         return .notLoggedIn(needsLogIn: store.sshHostsNeedingLogIn.contains(host))

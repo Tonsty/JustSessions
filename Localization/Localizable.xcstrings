@@ -214,6 +214,16 @@
         }
       }
     },
+    "%@ is disconnected": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 已断开连接"
+          }
+        }
+      }
+    },
     "%@ isn't a folder on %@, so the session can't start there. It may have been moved or deleted.": {
       "localizations": {
         "zh-Hans": {
@@ -2434,12 +2444,32 @@
         }
       }
     },
+    "Connect": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接"
+          }
+        }
+      }
+    },
     "Connect again; a CLI still running in tmux on the host is reattached": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "重新连接；仍在主机 tmux 中运行的 CLI 会重新接入"
+          }
+        }
+      }
+    },
+    "Connect and refresh sessions on %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接并刷新 %@ 的会话"
           }
         }
       }
@@ -3140,6 +3170,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "断开连接"
+          }
+        }
+      }
+    },
+    "Disconnect from %@?": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "断开与 %@ 的连接？"
+          }
+        }
+      }
+    },
+    "Disconnected": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已断开连接"
+          }
+        }
+      }
+    },
+    "Disconnected. Connect to copy its sessions.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已断开连接。连接后即可复制其会话。"
           }
         }
       }
@@ -4247,6 +4307,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "会先结束它仍在 %@ 上运行的 CLI。"
+          }
+        }
+      }
+    },
+    "Its open tabs close, and the CLIs and shells running in them stop.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它打开的标签会关闭，其中运行的 CLI 和 shell 会停止。"
+          }
+        }
+      }
+    },
+    "Its open tabs close. Keep running leaves their CLIs running in tmux; click a session to reattach once you connect again. End sessions stops them.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它打开的标签会关闭。保持运行会让这些 CLI 继续在 tmux 中运行；重新连接后点击会话即可重新接入。结束会话会停止这些 CLI。"
+          }
+        }
+      }
+    },
+    "Its open tabs close. Keep running leaves their CLIs running in tmux; click a session to reattach once you connect again. End sessions stops them. The other tabs' CLIs and shells stop either way.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它打开的标签会关闭。保持运行会让这些 CLI 继续在 tmux 中运行；重新连接后点击会话即可重新接入。结束会话会停止这些 CLI。其他标签的 CLI 和 shell 无论如何都会停止。"
           }
         }
       }

@@ -178,8 +178,25 @@ struct RemoteTabReconnectorTests {
         #expect(replacement.isWaitingToReconnect)
     }
 
-    /// Disconnect ends the tabs that went through the host's login on purpose.
-    @Test func aTabEndedByDisconnectIsNotReconnected() throws {
+    /// You disconnected from the host, so nothing asks it; see `ConversationStore+RemoteHostDisconnect`.
+    @Test func aDroppedTabOnADisconnectedHostIsGivenUp() throws {
+        let setup = try DroppedTabSetup()
+        defer { setup.tearDown() }
+        setup.host.answer.update { $0 = [setup.tmuxSessionName] }
+        for store in [setup.sandbox.first, setup.sandbox.second] {
+            store.disconnectedRemoteHosts.setDisconnected(true, for: "devbox")
+        }
+
+        setup.drop(setup.tab)
+        setup.clock.advance(by: 2)
+        setup.reconnector.askDueHosts()
+
+        #expect(setup.host.askCount.value == 0)
+        #expect(!setup.tab.isWaitingToReconnect)
+    }
+
+    /// Closing the host's login ends the tabs that went through it on purpose.
+    @Test func aTabEndedByClosingTheLoginIsNotReconnected() throws {
         let setup = try DroppedTabSetup()
         defer { setup.tearDown() }
         let loginDirectory = try makeTemporaryDirectory()
@@ -201,10 +218,10 @@ struct RemoteTabReconnectorTests {
             tmuxSessionName: "justsessions-claude-through-login"
         )
         store.openTerminal(throughLogin)
-        // Disconnect refreshes a listed host in every window, which would connect to it.
+        // Closing the login refreshes a listed host in every window, which would connect to it.
         for window in [setup.sandbox.first, setup.sandbox.second] { window.remoteHostList = RemoteHostList(hosts: []) }
 
-        store.disconnect("devbox", connections: connections)
+        store.closeLogin(on: "devbox", connections: connections)
         setup.drop(throughLogin)
         setup.drop(setup.tab)
 

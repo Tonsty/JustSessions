@@ -27,11 +27,15 @@ struct HostBackgroundCheckerTests {
         #expect(checkedHosts == ["devbox", "devbox"])
     }
 
-    @Test func leavesAHostThatDidntRefreshNeedsConnectOrHasNoShellStartupYet() throws {
-        let (store, settings) = try makeStore(hosts: ["failed", "needs-login", "unchecked-startup"], shellStartupHosts: ["failed", "needs-login"])
+    @Test func leavesAHostThatDidntRefreshNeedsConnectIsDisconnectedOrHasNoShellStartupYet() throws {
+        let (store, settings) = try makeStore(
+            hosts: ["failed", "needs-login", "disconnected", "unchecked-startup"],
+            shellStartupHosts: ["failed", "needs-login", "disconnected"]
+        )
         defer { settings.removeSuite() }
         store.hostRefreshStatuses[.ssh("failed")] = .failed("ssh: connect to host failed")
         store.sshHostsNeedingLogIn = ["needs-login"]
+        store.disconnectedRemoteHosts.setDisconnected(true, for: "disconnected")
         var checkedHosts: [String] = []
         let checker = HostBackgroundChecker(appVersion: { "1.2.11" }, checkHost: { _, host in
             checkedHosts.append(host)

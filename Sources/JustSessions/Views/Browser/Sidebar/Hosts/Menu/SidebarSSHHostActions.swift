@@ -16,7 +16,10 @@ struct SidebarSSHHostActions {
     /// Connect…, for a host that asks for a password or a code; see `ConversationStore+SSHLogin`.
     let login: SidebarSSHHostLogin
     let onConnect: () -> Void
+    /// Disconnect, after which the app leaves the host alone, and Connect, which takes it up again; see
+    /// `ConversationStore+RemoteHostDisconnect`.
     let onDisconnect: () -> Void
+    let onConnectDisconnectedHost: () -> Void
     /// Where the host's sign-in command stands; nil when it has none. See `RemoteSignIns`.
     let signIn: RemoteSignIns.State?
     let onSignIn: () -> Void

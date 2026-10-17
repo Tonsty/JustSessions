@@ -152,9 +152,9 @@ extension ConversationStore {
     }
 
     /// Asks the hosts of these sessions what their CLIs do, except one that needs Connect…, which no background command
-    /// reaches. Each is asked only when due; see `RemoteDetachedActivityReader`.
+    /// reaches, and one you disconnected from. Each is asked only when due; see `RemoteDetachedActivityReader`.
     private func askHosts(of sessions: [DetachedRemoteTmuxSession]) {
-        for host in Set(sessions.map(\.key.host)) where !sshHostsNeedingLogIn.contains(host) {
+        for host in Set(sessions.map(\.key.host)) where !sshHostsNeedingLogIn.contains(host) && !isDisconnected(host) {
             remoteDetachedActivityReader.askIfDue(host)
         }
     }

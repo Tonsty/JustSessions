@@ -107,6 +107,13 @@ final class ConversationStore {
     var remoteHostList: RemoteHostList
     /// SSH hosts whose tmux sessions keep the host's own prefix keys; see `ConversationStore+RemoteTmuxPrefix`.
     var remoteHostsUsingTmuxPrefix: RemoteHostsUsingTmuxPrefix
+    /// SSH hosts you disconnected from, which the app leaves alone; see `ConversationStore+RemoteHostDisconnect`.
+    var disconnectedRemoteHosts: DisconnectedRemoteHosts
+    /// Disconnect's question about the host's open tabs, while it shows; see `HostDisconnectConfirmation`.
+    var hostDisconnectQuestion: HostDisconnectQuestion?
+    /// Lists an SSH host's sessions, copying them over SSH; see `refreshRemoteHost(_:discovery:)`. Tests copy from a
+    /// local folder.
+    @ObservationIgnored var remoteSessionDiscovery = RemoteSessionDiscovery()
     /// Commands of your own that tools' CLIs start with, per host; see `ConversationStore+StartCommands`.
     var cliStartCommands: CLIStartCommands
     /// Each SSH host's last shell startup check; see `ConversationStore+RemoteShellStartup`.
@@ -246,6 +253,7 @@ final class ConversationStore {
         self.sidebarProjectList = SidebarProjectList.load(from: userDefaults)
         self.remoteHostList = RemoteHostList.load(from: userDefaults)
         self.remoteHostsUsingTmuxPrefix = RemoteHostsUsingTmuxPrefix.load(from: userDefaults)
+        self.disconnectedRemoteHosts = DisconnectedRemoteHosts.load(from: userDefaults)
         self.cliStartCommands = CLIStartCommands.load(from: userDefaults)
         self.remoteShellStartupChecks = RemoteShellStartupChecks.load(from: userDefaults)
         self.keptHostChecks = KeptHostChecks.load(from: userDefaults)
@@ -518,6 +526,8 @@ final class ConversationStore {
     /// asked for while a deletion stops wait for it to end.
     private func startOrQueueDeletion(of deletableConversations: [Conversation]) {
         guard !deletableConversations.isEmpty else { return }
+        // Deleting on a disconnected host connects it; its sessions then wait for the refresh that starts.
+        for host in Set(deletableConversations.map(\.host)) { connectIfDisconnected(host) }
         let isHostRefreshing = deletableConversations.contains { hostRefreshStatuses[$0.host] == .refreshing }
         if isHostRefreshing || deletionProgress.isStopping {
             queuedDeletionConversationIDs.formUnion(deletableConversations.map(\.id))

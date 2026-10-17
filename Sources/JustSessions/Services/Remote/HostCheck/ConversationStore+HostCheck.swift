@@ -6,6 +6,7 @@ import Foundation
 /// startup check's own would be, and its report as the host's last check; see `ConversationStore+BackgroundHostCheck`.
 extension ConversationStore {
     func checkHost(_ host: String, session: HostCheckSession? = nil) {
+        connectIfDisconnected(.ssh(host))
         let state = HostCheckSheetState(host: host, session: session)
         hostCheck = state
         runHostCheck(state)

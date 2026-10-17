@@ -5,6 +5,8 @@ struct SidebarHostRefreshButton: View {
     let host: SessionHost
     let refreshStatus: HostRefreshStatus?
     let isDisabled: Bool
+    /// The host is disconnected, so refreshing connects it first; see `ConversationStore+RemoteHostDisconnect`.
+    let connectsFirst: Bool
     let action: () -> Void
 
     var body: some View {
@@ -32,7 +34,8 @@ struct SidebarHostRefreshButton: View {
     }
 
     private var refreshAccessibilityLabel: LocalizedStringKey {
-        host == .thisMac ? "Refresh sessions on this Mac" : "Refresh sessions on \(host.displayName)"
+        if connectsFirst { return "Connect and refresh sessions on \(host.displayName)" }
+        return host == .thisMac ? "Refresh sessions on this Mac" : "Refresh sessions on \(host.displayName)"
     }
 
     private var refreshingAccessibilityLabel: LocalizedStringKey {

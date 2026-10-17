@@ -4,7 +4,7 @@ import AppKit
 /// window shows on screen, and as soon as the app comes forward. This Mac's scan is shared by every window. An SSH host
 /// is copied by the oldest window, and the others list its copy, so more windows don't mean more copies. The app's
 /// own host checks run on the same beat; see `HostBackgroundChecker`, and so do hosts' sign-in commands; see
-/// `RemoteSignIns`.
+/// `RemoteSignIns`. A host you disconnected from is left alone by all of them; see `ConversationStore+RemoteHostDisconnect`.
 @MainActor
 final class HostAutoRefresher {
     static let shared = HostAutoRefresher(backgroundChecker: HostBackgroundChecker(), signIns: .shared)
@@ -76,7 +76,7 @@ final class HostAutoRefresher {
         ) {
             for store in stores where !store.isScanningThisMac { store.refreshThisMac() }
         }
-        for host in oldestStore.remoteHostList.hosts where schedule.isSSHHostDue(
+        for host in oldestStore.remoteHostList.hosts where !oldestStore.isDisconnected(host) && schedule.isSSHHostDue(
             host,
             status: oldestStore.hostRefreshStatuses[.ssh(host)],
             needsLogIn: oldestStore.sshHostsNeedingLogIn.contains(host),
@@ -91,6 +91,10 @@ final class HostAutoRefresher {
             }
         }
         backgroundChecker?.checkDueHost(in: stores, now: now)
-        signIns?.lookAtHosts(oldestStore.remoteHostList.hosts, needingLogIn: oldestStore.sshHostsNeedingLogIn, now: now)
+        signIns?.lookAtHosts(
+            oldestStore.remoteHostList.hosts.filter { !oldestStore.isDisconnected($0) },
+            needingLogIn: oldestStore.sshHostsNeedingLogIn,
+            now: now
+        )
     }
 }

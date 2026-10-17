@@ -1,7 +1,7 @@
 import Foundation
 
-/// What the sidebar says under a host that lists no projects: that its refresh is running or failed, or that the
-/// filters and search left nothing.
+/// What the sidebar says under a host that lists no projects: that its refresh is running or failed, that you
+/// disconnected from it before it was copied, or that the filters and search left nothing.
 struct SidebarEmptyHostMessage: Equatable {
     let text: String
     let localizedText: LocalizedStringResource?
@@ -14,8 +14,14 @@ struct SidebarEmptyHostMessage: Equatable {
         copyStep: RemoteSessionCopyStep?,
         isSearching: Bool,
         recencyFilter: SessionRecencyFilter,
-        statusFilter: SessionStatusFilter
+        statusFilter: SessionStatusFilter,
+        isDisconnected: Bool = false
     ) {
+        // Nothing is known of a disconnected host beyond its last copy, which lists nothing here.
+        if isDisconnected, refreshStatus != .refreshing {
+            self.init(text: isSearching ? "No matching projects or sessions" : "Disconnected. Connect to copy its sessions.")
+            return
+        }
         switch refreshStatus {
         case .failed(let error)?:
             self.init(failure: error)

@@ -14,7 +14,9 @@ struct TwoWindowSandbox {
     let second: ConversationStore
     private let isolatedUserDefaults: IsolatedUserDefaults
 
-    init(sessionCount: Int = 1) throws {
+    /// A test whose refresh of an SSH host fails passes a `remoteShellStartupCheck` that runs nothing, as the failed
+    /// refresh checks how the host's shell starts.
+    init(sessionCount: Int = 1, remoteShellStartupCheck: RemoteShellStartupCheck = RemoteShellStartupCheck()) throws {
         root = try makeTemporaryDirectory()
         project = root.appendingPathComponent("project")
         let binaryDirectory = root.appendingPathComponent("bin")
@@ -41,6 +43,7 @@ struct TwoWindowSandbox {
                 userDefaults: isolatedUserDefaults.userDefaults,
                 sessionNotifier: RecordingSessionNotifier(),
                 windowRegistry: windowRegistry,
+                remoteShellStartupCheck: remoteShellStartupCheck,
                 startsBackgroundPolling: false
             )
             store.replaceConversations(on: .thisMac, with: conversations)

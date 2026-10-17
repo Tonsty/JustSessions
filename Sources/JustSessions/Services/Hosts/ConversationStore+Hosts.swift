@@ -12,16 +12,23 @@ extension ConversationStore {
 
     var isScanningThisMac: Bool { hostRefreshStatuses[.thisMac] == .refreshing }
 
+    /// A disconnected SSH host is listed from its last copy instead, without reaching it; see
+    /// `ConversationStore+RemoteHostDisconnect`.
     func refresh(_ host: SessionHost) {
         switch host {
         case .thisMac: refreshThisMac()
+        case .ssh(let destination) where isDisconnected(destination): listRemoteHostFromMirror(destination)
         case .ssh(let destination): refreshRemoteHost(destination)
         }
     }
 
     /// A heading's refresh: an SSH host that couldn't be reached a moment ago is tried again now, where the app's own
-    /// refreshes wait a while; see `SSHHostReachability`.
+    /// refreshes wait a while; see `SSHHostReachability`. A disconnected host connects again, which refreshes it.
     func refreshTryingAgain(_ host: SessionHost) {
+        guard !isDisconnected(host) else {
+            connectIfDisconnected(host)
+            return
+        }
         if let destination = host.sshDestination { SSHHostReachability.shared.forget(destination) }
         refresh(host)
     }
@@ -58,6 +65,7 @@ extension ConversationStore {
             let path = try ThisMacFolderResolver.resolvedPath(of: folder, creatingMissingFolder: creatingMissingFolder)
             return ProjectLocation(host: .thisMac, path: path)
         case .ssh(let destination):
+            connectIfDisconnected(host)
             let resolvedPath = try await Task.detached(priority: .userInitiated) {
                 try resolver.resolvedPath(of: folder, host: destination, creatingMissingFolder: creatingMissingFolder)
             }.value

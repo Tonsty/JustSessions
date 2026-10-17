@@ -31,10 +31,11 @@ extension ConversationStore {
         }
     }
 
-    /// Ends the host's login. Its tabs' connections and the port forwards going through it end with it; the tabs'
-    /// CLIs keep running in tmux, and those tabs are not reconnected on their own. Every window that lists the host refreshes it without the login, so a host that
-    /// needs one offers Connect… at once.
-    func disconnect(_ host: String, connections: SSHLoginConnections = .shared) {
+    /// Ends the host's login, when the host is removed or disconnected; see `ConversationStore+RemoteHostDisconnect`.
+    /// Its tabs' connections and the port forwards going through it end with it; the tabs' CLIs keep running in tmux,
+    /// and those tabs are not reconnected on their own. Every window that lists the host refreshes it without the
+    /// login, so a host that needs one offers Connect… at once; a disconnected host is not refreshed.
+    func closeLogin(on host: String, connections: SSHLoginConnections = .shared) {
         for tab in storesOfEveryWindow.flatMap(\.terminalSessions)
         where tab.host == .ssh(host) && RemoteCLICommandBuilder.goesThroughLogin(tab.command) {
             tab.connectionEndedOnPurpose = true
@@ -75,7 +76,7 @@ extension ConversationStore {
     }
 
     /// This window's store also when it is not in the registry, as in tests.
-    private var storesOfEveryWindow: [ConversationStore] {
+    var storesOfEveryWindow: [ConversationStore] {
         let stores = windowRegistry.stores
         return stores.contains { $0 === self } ? stores : stores + [self]
     }

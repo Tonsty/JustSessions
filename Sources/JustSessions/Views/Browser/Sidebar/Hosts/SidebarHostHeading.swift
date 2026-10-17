@@ -5,7 +5,9 @@ import SwiftUI
 /// CLIs from starting; see `SidebarHostShellStartupWarning`. A refresh that needed a password, a code, or a new host
 /// key's approval shows Connect… in place of the first warning; see `SidebarHostConnectButton`. Otherwise a host whose
 /// sign-in command is due shows Sign in… there; see `SidebarHostSignInButton`. With none of these, a
-/// problem the host's last check found shows a warning too; see `SidebarHostCheckProblemWarning`. While the pointer is over the heading, the
+/// problem the host's last check found shows a warning too; see `SidebarHostCheckProblemWarning`. A host you
+/// disconnected from shows none of these, and Disconnected in place of its refresh status; its refresh button
+/// connects it again. While the pointer is over the heading, the
 /// count gives way to a +, and an SSH host's refresh status to a ⋯. The + adds a project there, or
 /// restores an archived one; the ⋯ holds the host's own settings, and a right-click opens all the heading's actions.
 /// New sessions start from a project's own +, so the heading manages the host's projects instead. Its refresh button
@@ -44,6 +46,46 @@ struct SidebarHostHeading: View {
                 .foregroundStyle(ThemePalette.secondaryText)
                 .lineLimit(1)
                 .truncationMode(.middle)
+            if !isDisconnected { warningsAndButtons }
+            Spacer(minLength: 6)
+            refreshStatusOrMoreActions
+            SidebarHostRefreshButton(
+                host: host,
+                refreshStatus: refreshStatus,
+                isDisabled: isRefreshDisabled,
+                connectsFirst: isDisconnected,
+                action: onRefresh
+            )
+            projectCountOrAddProjectButton
+        }
+        .font(ThemeFont.caption.weight(.semibold))
+        .padding(.leading, 18)
+        .padding(.trailing, 16)
+        .frame(height: InterfaceScale.points(20))
+        .contentShape(Rectangle())
+        .onHover { isHovered = $0 }
+        .help(helpText)
+        .contextMenu {
+            SidebarHostMenuItems(
+                refreshStatus: refreshStatus,
+                isRefreshDisabled: isRefreshDisabled,
+                archivedProjectCount: archivedProjectCount,
+                onAddProject: onAddProject,
+                onShowArchivedProjects: onShowArchivedProjects,
+                onRefresh: onRefresh,
+                sshHostActions: sshHostActions
+            )
+        }
+    }
+
+    private var isDisconnected: Bool {
+        sshHostActions?.login == .disconnected
+    }
+
+    /// Connect…, Sign in…, or the warnings, after the host's name, while the host is connected.
+    @ViewBuilder
+    private var warningsAndButtons: some View {
+        Group {
             if let sshHostActions, sshHostActions.login == .loggingIn
                 || sshHostActions.login == .notLoggedIn(needsLogIn: true) {
                 SidebarHostConnectButton(
@@ -75,33 +117,6 @@ struct SidebarHostHeading: View {
                     onShowHostCheck: sshHostActions.onShowHostCheck
                 )
             }
-            Spacer(minLength: 6)
-            refreshStatusOrMoreActions
-            SidebarHostRefreshButton(
-                host: host,
-                refreshStatus: refreshStatus,
-                isDisabled: isRefreshDisabled,
-                action: onRefresh
-            )
-            projectCountOrAddProjectButton
-        }
-        .font(ThemeFont.caption.weight(.semibold))
-        .padding(.leading, 18)
-        .padding(.trailing, 16)
-        .frame(height: InterfaceScale.points(20))
-        .contentShape(Rectangle())
-        .onHover { isHovered = $0 }
-        .help(helpText)
-        .contextMenu {
-            SidebarHostMenuItems(
-                refreshStatus: refreshStatus,
-                isRefreshDisabled: isRefreshDisabled,
-                archivedProjectCount: archivedProjectCount,
-                onAddProject: onAddProject,
-                onShowArchivedProjects: onShowArchivedProjects,
-                onRefresh: onRefresh,
-                sshHostActions: sshHostActions
-            )
         }
     }
 
@@ -126,6 +141,15 @@ struct SidebarHostHeading: View {
 
     @ViewBuilder
     private var refreshStatusIndicator: some View {
+        if isDisconnected {
+            SidebarHostDisconnectedLabel(host: host)
+        } else {
+            refreshStatusIndicatorWhileConnected
+        }
+    }
+
+    @ViewBuilder
+    private var refreshStatusIndicatorWhileConnected: some View {
         switch refreshStatus {
         case .refreshing?:
             if let copyStep {
@@ -176,6 +200,10 @@ struct SidebarHostHeading: View {
         let summary = host == .thisMac
             ? "Sessions on this Mac"
             : "Sessions on \(host.displayName), copied over SSH"
+        if isDisconnected {
+            guard case .refreshed(let date)? = refreshStatus else { return "\(summary). Disconnected." }
+            return "\(summary). Disconnected; last refreshed at \(date.formatted(date: .omitted, time: .shortened))."
+        }
         switch refreshStatus {
         case .refreshing?:
             guard let copyStep else { return "\(summary). Refreshing…" }

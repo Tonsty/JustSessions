@@ -3,16 +3,18 @@ import Foundation
 /// Sessions on SSH hosts. Each host is copied into a local mirror in the background, apart from this Mac's scan,
 /// so a slow or unreachable host never holds up the rest of the list.
 extension ConversationStore {
-    /// Returns the refresh's task, or nil when none started: the host is refreshing already, or a deletion from it
-    /// runs and the refresh waits for it.
+    /// Returns the refresh's task, or nil when none started: the host is disconnected (see
+    /// `ConversationStore+RemoteHostDisconnect`), is refreshing already, or a deletion from it runs and the refresh
+    /// waits for it. Copies with `discovery`, or else the store's.
     @discardableResult
     func refreshRemoteHost(
         _ host: String,
-        discovery: RemoteSessionDiscovery = RemoteSessionDiscovery()
+        discovery: RemoteSessionDiscovery? = nil
     ) -> Task<Void, Never>? {
-        guard remoteHostList.hosts.contains(host),
+        guard remoteHostList.hosts.contains(host), !isDisconnected(host),
               !deferRefreshWhileDeleting(on: .ssh(host)),
               hostRefreshStatuses[.ssh(host)] != .refreshing else { return nil }
+        let discovery = discovery ?? remoteSessionDiscovery
         hostRefreshStatuses[.ssh(host)] = .refreshing
         return Task.detached(priority: .userInitiated) {
             // The last copy lists right away; the host may be slow or offline.
@@ -57,6 +59,17 @@ extension ConversationStore {
         }
     }
 
+    /// Lists a disconnected host's sessions from its last copy, as at launch, without reaching the host; see
+    /// `ConversationStore+RemoteHostDisconnect`. Its refresh status stays as it was, since nothing was refreshed.
+    func listRemoteHostFromMirror(_ host: String) {
+        guard remoteHostList.hosts.contains(host), hostRefreshStatuses[.ssh(host)] != .refreshing else { return }
+        let discovery = remoteSessionDiscovery
+        Task.detached(priority: .userInitiated) {
+            guard let mirroredConversations = try? discovery.readMirror(host: host) else { return }
+            await self.applyRemoteHostConversations(mirroredConversations, host: host, discardMissingReopeningTabs: false)
+        }
+    }
+
     /// Why the app can't log in to `host` without a prompt, or through a login made with Connect…, or nil when it
     /// can; checked before the host is added, also when it couldn't be reached a moment ago.
     func connectionProblem(
@@ -88,7 +101,8 @@ extension ConversationStore {
 
     func removeRemoteHost(_ host: String, mirror: RemoteSessionMirror = RemoteSessionMirror()) {
         remoteHostList.remove(host)
-        disconnect(host)
+        closeLogin(on: host)
+        forgetDisconnection(from: host)
         SSHPortForwards.shared.stopAll(on: host)
         RemoteSignIns.shared.forget(host)
         forgetLoginState(on: host)

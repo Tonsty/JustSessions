@@ -36,6 +36,8 @@
 	<string>%@ is a folder on %@.</string>
 	<key>%@ is already added.</key>
 	<string>%@ is already added.</string>
+	<key>%@ is disconnected</key>
+	<string>%@ is disconnected</string>
 	<key>%@ isn't a folder on %@, so the session can't start there. It may have been moved or deleted.</key>
 	<string>%@ isn't a folder on %@, so the session can't start there. It may have been moved or deleted.</string>
 	<key>%@ isn't on the PATH of %@'s login shell, so its sessions listed here can't resume. If it's installed, add its folder to PATH in a startup file that shell reads.</key>
@@ -428,8 +430,12 @@
 	<string>Commands start in %@'s login shell with its interactive startup files, as in your own terminal.</string>
 	<key>Complete your split view</key>
 	<string>Complete your split view</string>
+	<key>Connect</key>
+	<string>Connect</string>
 	<key>Connect again; a CLI still running in tmux on the host is reattached</key>
 	<string>Connect again; a CLI still running in tmux on the host is reattached</string>
+	<key>Connect and refresh sessions on %@</key>
+	<string>Connect and refresh sessions on %@</string>
 	<key>Connecting to %@…</key>
 	<string>Connecting to %@…</string>
 	<key>Connecting…</key>
@@ -550,6 +556,12 @@
 	<string>Deletion progress</string>
 	<key>Disconnect</key>
 	<string>Disconnect</string>
+	<key>Disconnect from %@?</key>
+	<string>Disconnect from %@?</string>
+	<key>Disconnected</key>
+	<string>Disconnected</string>
+	<key>Disconnected. Connect to copy its sessions.</key>
+	<string>Disconnected. Connect to copy its sessions.</string>
 	<key>Don't ask again</key>
 	<string>Don't ask again</string>
 	<key>Don't ask again on %@</key>
@@ -756,6 +768,12 @@
 	<string>It isn't on the PATH of %@'s login shell, so tabs start it from this folder.</string>
 	<key>Its CLI, still running on %@, ends first.</key>
 	<string>Its CLI, still running on %@, ends first.</string>
+	<key>Its open tabs close, and the CLIs and shells running in them stop.</key>
+	<string>Its open tabs close, and the CLIs and shells running in them stop.</string>
+	<key>Its open tabs close. Keep running leaves their CLIs running in tmux; click a session to reattach once you connect again. End sessions stops them.</key>
+	<string>Its open tabs close. Keep running leaves their CLIs running in tmux; click a session to reattach once you connect again. End sessions stops them.</string>
+	<key>Its open tabs close. Keep running leaves their CLIs running in tmux; click a session to reattach once you connect again. End sessions stops them. The other tabs' CLIs and shells stop either way.</key>
+	<string>Its open tabs close. Keep running leaves their CLIs running in tmux; click a session to reattach once you connect again. End sessions stops them. The other tabs' CLIs and shells stop either way.</string>
 	<key>Its tab closes and its CLI ends first.</key>
 	<string>Its tab closes and its CLI ends first.</string>
 	<key>Jump back to the tab or session you just left with ⌘[, forward with ⌘].</key>
