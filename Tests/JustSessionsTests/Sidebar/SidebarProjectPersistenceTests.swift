@@ -82,9 +82,11 @@ struct SidebarProjectPersistenceTests {
 
         #expect(store.sidebarProjectGroups.isEmpty)
         #expect(store.archivedProjectPaths == [zebra.projectDirectoryKey, remote.projectDirectoryKey])
-        // Each host heading's restore list holds only that host's projects.
+        // Each host heading's restore list, and the count beside it, hold only that host's projects.
         #expect(store.archivedProjectPaths(on: .thisMac) == [zebra.projectDirectoryKey])
         #expect(store.archivedProjectPaths(on: remote.host) == [remote.projectDirectoryKey])
+        #expect(store.archivedProjectCount(on: .thisMac) == 1)
+        #expect(store.archivedProjectCount(on: remote.host) == 1)
 
         store.showProjectInSidebar(zebra.projectDirectoryKey)
 
