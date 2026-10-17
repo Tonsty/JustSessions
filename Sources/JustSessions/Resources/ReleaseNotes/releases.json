@@ -1,5 +1,33 @@
 [
   {
+    "version": "1.2.16",
+    "publishedOn": "2026-10-17",
+    "title": {
+      "en": "Disconnect from an SSH host",
+      "zh-Hans": "断开 SSH 主机连接"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "Disconnect, in an SSH host's ⋯ menu, closes its tabs and stops all background work until you choose Connect.",
+            "zh-Hans": "SSH 主机的 ⋯ 菜单新增「断开连接」：关闭其标签页并停止一切后台访问，直到你选择「连接」。"
+          }
+        ]
+      },
+      {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "Switching tabs no longer stalls for seconds when an SSH host has hundreds of projects under /home.",
+            "zh-Hans": "SSH 主机在 /home 下有数百个项目时，切换标签页不再卡顿数秒。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.15",
     "publishedOn": "2026-10-17",
     "title": {
