@@ -14,13 +14,18 @@ struct RemoteShellStartupCheck: Sendable {
     let run: @Sendable (_ host: String, _ command: String, _ timeout: TimeInterval) -> (exitStatus: Int32?, output: String)?
     let timeout: TimeInterval
 
-    /// Startup that takes longer than `timeout` counts as having started another program, so it is generous.
+    /// Startup that takes longer than `timeout` counts as having started another program, so it is generous. A host
+    /// that couldn't be reached a moment ago isn't asked; see `SSHHostReachability`.
     init(
+        reachability: SSHHostReachability = .shared,
         run: (@Sendable (_ host: String, _ command: String, _ timeout: TimeInterval) -> (exitStatus: Int32?, output: String)?)? = nil,
         timeout: TimeInterval = 20
     ) {
         self.run = run ?? { host, command, timeout in
-            BoundedProcessRunner.outcome(
+            if let failureOutput = reachability.recentFailureOutput(on: host) {
+                return (RemoteHostCommandRunner.connectionFailureExitStatus, failureOutput)
+            }
+            let result = BoundedProcessRunner.outcome(
                 ofExecutable: "/usr/bin/ssh",
                 arguments: Self.sshArguments(
                     host: host,
@@ -32,6 +37,10 @@ struct RemoteShellStartupCheck: Sendable {
                 includesStandardError: true,
                 timeout: timeout
             )
+            if let result, let exitStatus = result.exitStatus {
+                reachability.noteResult(exitStatus: exitStatus, output: result.output, on: host)
+            }
+            return result
         }
         self.timeout = timeout
     }

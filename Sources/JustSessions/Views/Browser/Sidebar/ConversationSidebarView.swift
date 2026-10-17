@@ -264,7 +264,7 @@ struct ConversationSidebarView: View {
             copyStep: store.remoteSessionCopySteps[section.host],
             projectCount: section.projects.count,
             onAddProject: { addProject(on: section.host) },
-            onRefresh: { store.refresh(section.host) },
+            onRefresh: { store.refreshTryingAgain(section.host) },
             isRefreshDisabled: store.isDeletingSessions,
             archivedProjectCount: store.archivedProjectPaths(on: section.host).count,
             onShowArchivedProjects: { hostShowingArchivedProjects = section.host },

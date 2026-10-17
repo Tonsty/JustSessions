@@ -32,7 +32,7 @@ enum SSHConnectionProblem: Hashable, Sendable {
         (.hostNotFound, ["could not resolve hostname"]),
         (.refused, ["connection refused"]),
         (.connectionLost, ["timeout, server", "broken pipe", "connection reset", "connection closed by", "closed by remote host"]),
-        (.noAnswer, ["operation timed out", "connection timed out", "no route to host", "network is unreachable"]),
+        (.noAnswer, ["operation timed out", "connection timed out", "no route to host", "network is unreachable", "host is down"]),
     ]
 
     /// Classifies one line `ssh` printed, such as the one `tellingLine(inOutput:)` picks.
@@ -125,6 +125,15 @@ enum SSHConnectionProblem: Hashable, Sendable {
         switch self {
         case .loginRefused, .hostKeyNotTrusted: true
         case .hostNotFound, .noAnswer, .refused, .connectionLost, .windowsHost, .other: false
+        }
+    }
+
+    /// Whether `ssh` never got to the host's SSH server, so another command now would wait and fail the same way;
+    /// see `SSHHostReachability`. A connection that was made and then lost may work again at once.
+    var meansHostIsOutOfReach: Bool {
+        switch self {
+        case .hostNotFound, .noAnswer, .refused: true
+        case .connectionLost, .loginRefused, .hostKeyNotTrusted, .windowsHost, .other: false
         }
     }
 

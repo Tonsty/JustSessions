@@ -17,6 +17,7 @@ final class JustSessionsAppDelegate: NSObject, NSApplicationDelegate {
         GhosttyResourcesLaunchCheck.runIfAsked()
         LaunchCrashReportOffer.offerIfTheLastRunCrashed()
         ZoomInEqualsKey.startForwarding()
+        SSHHostReachabilityResets.shared.start()
         HostAutoRefresher.shared.start()
         RemoteTabReconnector.shared.start()
         SSHPortForwards.shared.start()
