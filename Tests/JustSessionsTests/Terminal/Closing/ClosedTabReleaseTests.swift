@@ -74,6 +74,7 @@ private final class ShownWorkspace {
             isSidebarHidden: false,
             onRename: { _ in },
             onNewSession: {},
+            onNewSessionInSplitChooser: { _ in },
             onCloseTerminal: { _ in },
             onCloseTabGroup: { _, _ in },
             onDelete: { _ in }

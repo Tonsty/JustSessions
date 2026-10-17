@@ -744,16 +744,6 @@
         }
       }
     },
-    "**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab to show two side by side.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "**⌘N** 可用任一已安装的 CLI 开始会话，或打开普通终端。标签页按项目分组，侧边栏的 **已打开** 会列出全部标签页。右键单击标签页可将两个并排显示。"
-          }
-        }
-      }
-    },
     "1 message": {
       "localizations": {
         "zh-Hans": {
@@ -8944,6 +8934,96 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在询问 tmux、rsync、各个 CLI 的版本和标签页的文件夹"
+          }
+        }
+      }
+    },
+    "**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab, or press **⌥⌘N**, to show two side by side.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "**⌘N** 可用任一已安装的 CLI 开始会话，或打开普通终端。标签页按项目分组，侧边栏的 **已打开** 会列出全部标签页。右键单击标签页或按 **⌥⌘N**，可将两个并排显示。"
+          }
+        }
+      }
+    },
+    "Add Tab to New Split View": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向新拆分视图添加标签页"
+          }
+        }
+      }
+    },
+    "Choose a tab": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择标签页"
+          }
+        }
+      }
+    },
+    "Choose a tab - Left view": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择标签页 - 左侧视图"
+          }
+        }
+      }
+    },
+    "Choose a tab - Right view": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择标签页 - 右侧视图"
+          }
+        }
+      }
+    },
+    "Choose a tab to add to split view": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择要添加到拆分视图的标签页"
+          }
+        }
+      }
+    },
+    "Complete your split view": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成拆分视图"
+          }
+        }
+      }
+    },
+    "Start a new session to show it here.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建一个会话，它会显示在这里。"
+          }
+        }
+      }
+    },
+    "Choose a tab to show beside this one": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择一个标签页显示在当前标签页旁边"
           }
         }
       }

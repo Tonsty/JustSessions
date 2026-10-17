@@ -22,7 +22,7 @@ struct HelpFeatureOverview: View {
                 HelpFeatureRow(title: "Resume or branch", systemImage: "play",
                                detail: "**Resume**, or a double-click, continues the conversation in its CLI and original folder. **Branch**, where the CLI supports it, starts a new session from a copy and leaves the original as it was.")
                 HelpFeatureRow(title: "Tabs and split view", systemImage: "rectangle.split.2x1",
-                               detail: "**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab to show two side by side.")
+                               detail: "**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab, or press **⌥⌘N**, to show two side by side.")
                 HelpFeatureRow(title: "Keep running", systemImage: "arrow.triangle.2.circlepath",
                                detail: "Close a tab with **Keep running**, or quit the app, and the CLI carries on in tmux. Click its session to return. A plain terminal ends with its tab.")
                 HelpFeatureRow(title: "Organize", systemImage: "pin",

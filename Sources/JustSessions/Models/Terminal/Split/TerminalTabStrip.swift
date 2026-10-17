@@ -63,13 +63,18 @@ struct TerminalTabStrip: Equatable {
     // MARK: - Splits
 
     /// Links the tab `joiningID` with `pivotID`, as Chrome's AddToNewSplit does. The joining tab moves next to the
-    /// pivot on the side it came from: right before it, as the left pane, when it came from before it in the tab bar,
-    /// or else right after it, as the right pane. Two tabs of one project split in their project's group. A split
-    /// across two projects takes a group key of its own and moves whole to right after the pivot's project's group,
-    /// or, when the pivot was its project's only tab, stays where the pivot was, at a place that parts no group.
-    /// Changes nothing and returns nil unless both tabs are open, different, and in no split.
+    /// pivot on `joiningSide`, or, without one, on the side it came from: right before it, as the left pane, when it
+    /// came from before it in the tab bar, or else right after it, as the right pane. Two tabs of one project split in
+    /// their project's group. A split across two projects takes a group key of its own and moves whole to right after
+    /// the pivot's project's group, or, when the pivot was its project's only tab, stays where the pivot was, at a
+    /// place that parts no group. Changes nothing and returns nil unless both tabs are open, different, and in no split.
     @discardableResult
-    mutating func addSplit(joining joiningID: UUID, beside pivotID: UUID, splitID: UUID = UUID()) -> TerminalSplit? {
+    mutating func addSplit(
+        joining joiningID: UUID,
+        beside pivotID: UUID,
+        on joiningSide: TerminalSplit.Side? = nil,
+        splitID: UUID = UUID()
+    ) -> TerminalSplit? {
         guard joiningID != pivotID,
               let joiningIndex = index(of: joiningID),
               let pivotIndex = index(of: pivotID),
@@ -82,7 +87,8 @@ struct TerminalTabStrip: Equatable {
         let split = TerminalSplit(id: splitID, tabIDs: (pivotID, joiningID), groupKey: groupKey)
         let joiningTab = tabs.remove(at: joiningIndex)
         let pivotIndexAfterRemoval = joiningIndex < pivotIndex ? pivotIndex - 1 : pivotIndex
-        tabs.insert(joiningTab, at: joiningIndex < pivotIndex ? pivotIndexAfterRemoval : pivotIndexAfterRemoval + 1)
+        let side = joiningSide ?? (joiningIndex < pivotIndex ? .left : .right)
+        tabs.insert(joiningTab, at: side == .left ? pivotIndexAfterRemoval : pivotIndexAfterRemoval + 1)
         splits.append(split)
         if split.spansProjects { move(split, afterGroupOf: pivotProjectKey) }
         return split

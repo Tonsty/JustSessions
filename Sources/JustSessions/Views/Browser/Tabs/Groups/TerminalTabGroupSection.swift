@@ -26,6 +26,8 @@ struct TerminalTabGroupSection: View {
     let onCloseTabs: ([UUID], _ projectName: String) -> Void
 
     @State private var hoveredTabID: UUID?
+    /// The tab whose split chooser's half is under the pointer, which lights the tab too.
+    @State private var hoveredSplitChooserTabID: UUID?
     /// The tab, or split, being dragged among the group's tabs and splits, each named by its tabs' ids.
     @State private var tabDrag = TabBarDragDisplay<[UUID]>()
 
@@ -75,29 +77,10 @@ struct TerminalTabGroupSection: View {
             .padding(.trailing, 6)
             .onGeometryChange(for: CGFloat.self, of: \.size.width, action: onLabelWidthChange)
             ForEach(shownTabs, id: \.id) { session in
-                let split = store.split(containing: session.id)
                 let movingUnit = movingUnits.first { $0.contains(session.id) } ?? [session.id]
                 let dragItem = tabDragPlacement?.itemIDs.first { $0.contains(session.id) } ?? movingUnit
-                TerminalTab(
-                    session: session,
-                    projectDisplayName: store.projectDisplayName(forProjectPath: session.projectDirectoryKey),
-                    hostDisplayName: store.hasRemoteHosts ? session.host.displayName : nil,
-                    width: width(ofTab: session.id),
-                    isSelected: store.selectedTerminalID == session.id,
-                    isActive: isActive(session.id),
-                    splitSide: split.flatMap { store.sides(of: $0)?.side(of: session.id) },
-                    isSplitPartnerHovered: hoveredTabID.map { split?.partner(of: session.id) == $0 } ?? false,
-                    showsLeadingSeparator: tabBefore(session.id, in: tabIDsInSight).map { showsSeparator(between: $0, and: session.id) } ?? false,
-                    groupColor: color,
-                    menuItems: TerminalTabMenuItems(
-                        store: store, tab: session, onRename: onRenameConversation, onCloseTab: onCloseTab,
-                        onDelete: onDeleteConversation
-                    ),
-                    onHoverChange: { trackHover(of: session.id, isHovering: $0) },
-                    onSelect: { store.selectTerminal(session.id) },
-                    onClose: { onCloseTab(session.id) }
-                )
-                .tabHoverCardAnchor(.tab(session.id))
+                let showsLeadingSeparator = tabBefore(session.id, in: tabIDsInSight).map { showsSeparator(between: $0, and: session.id) } ?? false
+                tabUnit(of: session, showsLeadingSeparator: showsLeadingSeparator)
                 .id(session.id)
                 .tabBarDragShift(of: dragItem, in: shownTabDrag)
                 .opacity(dragDisplays.leavingTabIDs.contains(session.id) ? 0 : 1)
@@ -118,9 +101,94 @@ struct TerminalTabGroupSection: View {
         }
     }
 
-    /// A split's tab is half as wide as the others, so the split's two take one tab's place.
+    /// The tab, joined with its split chooser's half when it has a chooser, as a split's two tabs join.
+    @ViewBuilder
+    private func tabUnit(of session: TerminalSession, showsLeadingSeparator: Bool) -> some View {
+        if let chooser = store.splitChooser(beside: session.id) {
+            let halfWidth = WorkspaceTabWidth.splitTabWidth(forTabWidth: tabWidth)
+            HStack(spacing: 0) {
+                if chooser.side == .left { splitChooserTab(beside: session, side: .left, width: halfWidth, showsLeadingSeparator: showsLeadingSeparator) }
+                terminalTab(
+                    session,
+                    width: halfWidth,
+                    splitSide: chooser.tabSide,
+                    isPartnerHovered: hoveredSplitChooserTabID == session.id,
+                    showsLeadingSeparator: chooser.side == .right && showsLeadingSeparator
+                )
+                if chooser.side == .right { splitChooserTab(beside: session, side: .right, width: halfWidth, showsLeadingSeparator: false) }
+            }
+        } else {
+            let split = store.split(containing: session.id)
+            terminalTab(
+                session,
+                width: width(ofTab: session.id),
+                splitSide: split.flatMap { store.sides(of: $0)?.side(of: session.id) },
+                isPartnerHovered: hoveredTabID.map { split?.partner(of: session.id) == $0 } ?? false,
+                showsLeadingSeparator: showsLeadingSeparator
+            )
+        }
+    }
+
+    private func terminalTab(
+        _ session: TerminalSession,
+        width: CGFloat,
+        splitSide: TerminalSplit.Side?,
+        isPartnerHovered: Bool,
+        showsLeadingSeparator: Bool
+    ) -> some View {
+        TerminalTab(
+            session: session,
+            projectDisplayName: store.projectDisplayName(forProjectPath: session.projectDirectoryKey),
+            hostDisplayName: store.hasRemoteHosts ? session.host.displayName : nil,
+            width: width,
+            isSelected: store.selectedTerminalID == session.id && !(store.selectsShownSplitChooser && store.splitChooser(beside: session.id) != nil),
+            isActive: isActive(session.id),
+            splitSide: splitSide,
+            isSplitPartnerHovered: isPartnerHovered,
+            showsLeadingSeparator: showsLeadingSeparator,
+            groupColor: color,
+            menuItems: TerminalTabMenuItems(
+                store: store, tab: session, onRename: onRenameConversation, onCloseTab: onCloseTab,
+                onDelete: onDeleteConversation
+            ),
+            onHoverChange: { trackHover(of: session.id, isHovering: $0) },
+            onSelect: { store.selectTerminal(session.id) },
+            onClose: { onCloseTab(session.id) }
+        )
+        .tabHoverCardAnchor(.tab(session.id))
+    }
+
+    /// The half of the split tab that stands for the split chooser beside `session`.
+    private func splitChooserTab(beside session: TerminalSession, side: TerminalSplit.Side, width: CGFloat, showsLeadingSeparator: Bool) -> some View {
+        let isShown = store.selectedTerminalID == session.id
+        return TerminalSplitChooserTab(
+            width: width,
+            isSelected: isShown && store.selectsShownSplitChooser,
+            isActive: isShown,
+            side: side,
+            isPartnerHovered: hoveredTabID == session.id,
+            showsLeadingSeparator: showsLeadingSeparator,
+            groupColor: color,
+            menuItems: TerminalTabSplitMenuItems(splitMenu: .arrangeSplit) { action in
+                store.performSplitAction(action, fromTab: session.id, closeTab: onCloseTab)
+            },
+            onHoverChange: { isHovering in
+                if isHovering {
+                    hoveredSplitChooserTabID = session.id
+                } else if hoveredSplitChooserTabID == session.id {
+                    hoveredSplitChooserTabID = nil
+                }
+            },
+            onSelect: { store.selectSplitChooser(beside: session.id) },
+            onClose: { if let chooser = store.splitChooser(beside: session.id) { store.closeSplitChooser(chooser.id) } }
+        )
+    }
+
+    /// A split's tab is half as wide as the others, so the split's two take one tab's place, as a tab and its split
+    /// chooser's half do.
     private func width(ofTab tabID: UUID) -> CGFloat {
-        store.split(containing: tabID) == nil ? tabWidth : WorkspaceTabWidth.splitTabWidth(forTabWidth: tabWidth)
+        if store.splitChooser(beside: tabID) != nil { return 2 * WorkspaceTabWidth.splitTabWidth(forTabWidth: tabWidth) }
+        return store.split(containing: tabID) == nil ? tabWidth : WorkspaceTabWidth.splitTabWidth(forTabWidth: tabWidth)
     }
 
     /// The tab drawn right before this one, in the order the tabs show in mid-drag.
@@ -184,8 +252,9 @@ struct TerminalTabGroupSection: View {
         tabID == store.selectedTerminalID || store.shownSplit?.contains(tabID) == true
     }
 
-    /// Under the pointer, itself or through the other tab of its split.
+    /// Under the pointer, itself or through the other tab of its split or its split chooser's half.
     private func isLitByHover(_ tabID: UUID) -> Bool {
+        if hoveredSplitChooserTabID == tabID { return true }
         guard let hoveredTabID else { return false }
         return tabID == hoveredTabID || store.split(containing: hoveredTabID)?.contains(tabID) == true
     }

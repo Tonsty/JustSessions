@@ -10,7 +10,8 @@ import SwiftUI
 /// bringing it the keyboard, and a click in the pane still reaches its terminal, so scrolling and selecting text work
 /// there too. Every split's tabs keep their terminals' sizes while another tab shows, so coming back resizes no
 /// terminal. A tab dragged over the terminals lights up the pane it would take in a split; see
-/// `TerminalSplitDropHighlight`.
+/// `TerminalSplitDropHighlight`. A split chooser lays out as a split's other view, its list in that pane; see
+/// `TerminalSplitChooserPane`.
 /// The tab bar runs up into the title bar beside the window buttons; with no tabs open, the title bar stays clear.
 struct WorkspaceDetailView: View {
     let store: ConversationStore
@@ -19,13 +20,16 @@ struct WorkspaceDetailView: View {
     let isSidebarHidden: Bool
     let onRename: (Conversation) -> Void
     let onNewSession: () -> Void
+    /// A split chooser's New Session…, whose tab takes the chooser's place.
+    let onNewSessionInSplitChooser: (UUID) -> Void
     let onCloseTerminal: (UUID) -> Void
     let onCloseTabGroup: ([UUID], _ projectName: String) -> Void
     let onDelete: (Conversation) -> Void
 
     @Environment(\.titleBarRow) private var titleBarRow
     /// Each split's left pane share of the panes' width, by split id: even until its resize area is dragged, and kept as
-    /// its views are reversed or swapped, as Chrome keeps a split's sizes.
+    /// its views are reversed or swapped, as Chrome keeps a split's sizes. A split chooser's is under its id, which the
+    /// split takes once a tab is chosen.
     @State private var splitFractions: [UUID: CGFloat] = [:]
     @StateObject private var hoverCards = TabHoverCardController()
 
@@ -51,6 +55,9 @@ struct WorkspaceDetailView: View {
             }
             GeometryReader { geometry in
                 let shownSplit = store.shownSplit
+                let shownSplitChooser = store.shownSplitChooser
+                // The split, or split chooser, that shows, by the id its panes' widths are kept under.
+                let shownSplitViewID = shownSplit?.id ?? shownSplitChooser?.id
                 ZStack(alignment: .topLeading) {
                     SessionPreviewPane(
                         store: store,
@@ -62,13 +69,17 @@ struct WorkspaceDetailView: View {
                     .shown(store.selectedTerminalID == nil)
 
                     WorkspaceSplitAreaBackground()
-                        .shown(shownSplit != nil)
+                        .shown(shownSplitViewID != nil)
 
                     ForEach(store.terminalSessions) { session in
-                        let isActive = store.selectedTerminalID == session.id
-                        let isShown = isActive || shownSplit?.contains(session.id) == true
+                        let isSelected = store.selectedTerminalID == session.id
+                        let isShown = isSelected || shownSplit?.contains(session.id) == true
+                        // Beside a split chooser that has the keyboard, the tab's terminal does not take it.
+                        let isActive = isSelected && !(store.selectsShownSplitChooser && shownSplitChooser?.tabID == session.id)
                         let split = store.split(containing: session.id)
-                        let paneFrame = paneFrame(of: session.id, in: split, size: geometry.size)
+                        let splitChooser = store.splitChooser(beside: session.id)
+                        let isInSplitView = split != nil || splitChooser != nil
+                        let paneFrame = paneFrame(of: session.id, in: split, besideChooser: splitChooser, size: geometry.size)
                         TerminalWorkspaceView(
                             session: session,
                             isShown: isShown,
@@ -87,9 +98,9 @@ struct WorkspaceDetailView: View {
                         )
                         // A split's terminal keeps its place inside the pane's outline, above the mini toolbar, while
                         // another tab shows too, so selecting another tab resizes no terminal.
-                        .padding(split == nil ? EdgeInsets() : WorkspaceSplitPaneMetrics.terminalInsets)
+                        .padding(isInSplitView ? WorkspaceSplitPaneMetrics.terminalInsets : EdgeInsets())
                         .overlay {
-                            if split != nil && isShown {
+                            if isInSplitView && isShown {
                                 WorkspaceSplitPaneOverlay(
                                     session: session,
                                     isSelected: isActive,
@@ -103,12 +114,26 @@ struct WorkspaceDetailView: View {
                         .offset(x: paneFrame.minX, y: paneFrame.minY)
                     }
 
-                    if let shownSplit {
-                        let resizeAreaFrame = TerminalSplitLayout.frames(fraction: splitFraction(of: shownSplit), size: geometry.size).resizeArea
+                    if let shownSplitChooser {
+                        let frames = TerminalSplitLayout.frames(fraction: splitFraction(ofSplitView: shownSplitChooser.id), size: geometry.size)
+                        let chooserFrame = shownSplitChooser.side == .left ? frames.left : frames.right
+                        TerminalSplitChooserPane(
+                            store: store,
+                            chooser: shownSplitChooser,
+                            isSelected: store.selectsShownSplitChooser,
+                            onNewSession: { onNewSessionInSplitChooser(shownSplitChooser.id) }
+                        )
+                        .id(shownSplitChooser.id)
+                        .frame(width: chooserFrame.width, height: chooserFrame.height)
+                        .offset(x: chooserFrame.minX, y: chooserFrame.minY)
+                    }
+
+                    if let shownSplitViewID {
+                        let resizeAreaFrame = TerminalSplitLayout.frames(fraction: splitFraction(ofSplitView: shownSplitViewID), size: geometry.size).resizeArea
                         WorkspaceSplitResizeArea(
-                            fraction: splitFractionBinding(for: shownSplit),
+                            fraction: splitFractionBinding(forSplitView: shownSplitViewID),
                             totalWidth: geometry.size.width,
-                            onReverse: { store.reverseSplit(shownSplit.id) }
+                            onReverse: reverseShownSplitView
                         )
                             .frame(width: resizeAreaFrame.width, height: resizeAreaFrame.height)
                             .offset(x: resizeAreaFrame.minX, y: resizeAreaFrame.minY)
@@ -118,11 +143,11 @@ struct WorkspaceDetailView: View {
                         store: store,
                         area: TerminalSplitDropArea(
                             frameInWindow: CGRect(origin: .zero, size: geometry.size),
-                            shownSplitFraction: shownSplit.map(splitFraction(of:))
+                            shownSplitFraction: shownSplitViewID.map(splitFraction(ofSplitView:))
                         )
                     )
                 }
-                .reportsTerminalSplitDropArea(in: store, shownSplitFraction: shownSplit.map(splitFraction(of:)))
+                .reportsTerminalSplitDropArea(in: store, shownSplitFraction: shownSplitViewID.map(splitFraction(ofSplitView:)))
             }
             .tabBarTerminalPalette(from: .shared, themeStore: .shared)
         }
@@ -132,9 +157,9 @@ struct WorkspaceDetailView: View {
         .overlay { TabHoverCardOverlay(store: store, controller: hoverCards) }
         .background(TabHoverCardEventWatcher(controller: hoverCards))
         .background(TerminalFindShortcuts(selectedTabFind: store.selectedTerminal?.findState, onFind: findInSelectedTab))
-        .onChange(of: store.terminalSplits.map(\.id)) { _, splitIDs in
-            // Forget the pane widths of splits that are gone.
-            splitFractions = splitFractions.filter { splitIDs.contains($0.key) }
+        .onChange(of: store.terminalSplits.map(\.id) + store.terminalSplitChoosers.map(\.id)) { _, splitViewIDs in
+            // Forget the pane widths of splits and split choosers that are gone.
+            splitFractions = splitFractions.filter { splitViewIDs.contains($0.key) }
         }
     }
 
@@ -150,18 +175,37 @@ struct WorkspaceDetailView: View {
         }
     }
 
-    private func splitFraction(of split: TerminalSplit) -> CGFloat {
-        splitFractions[split.id] ?? TerminalSplitLayout.evenFraction
+    /// The split's, or split chooser's, left pane share, by its id.
+    private func splitFraction(ofSplitView id: UUID) -> CGFloat {
+        splitFractions[id] ?? TerminalSplitLayout.evenFraction
     }
 
-    private func splitFractionBinding(for split: TerminalSplit) -> Binding<CGFloat> {
-        Binding(get: { splitFraction(of: split) }, set: { splitFractions[split.id] = $0 })
+    private func splitFractionBinding(forSplitView id: UUID) -> Binding<CGFloat> {
+        Binding(get: { splitFraction(ofSplitView: id) }, set: { splitFractions[id] = $0 })
     }
 
-    /// Where the tab's terminal sits: its side's pane of its split, or the whole area for a tab in no split.
-    private func paneFrame(of tabID: UUID, in split: TerminalSplit?, size: CGSize) -> CGRect {
-        guard let split, let side = store.sides(of: split)?.side(of: tabID) else { return CGRect(origin: .zero, size: size) }
-        let frames = TerminalSplitLayout.frames(fraction: splitFraction(of: split), size: size)
+    /// A double-click on the resize area reverses the shown split's views, or the shown split chooser and its tab.
+    private func reverseShownSplitView() {
+        if let shownSplit = store.shownSplit {
+            store.reverseSplit(shownSplit.id)
+        } else if let shownSplitChooser = store.shownSplitChooser {
+            store.reverseSplitChooser(shownSplitChooser.id)
+        }
+    }
+
+    /// Where the tab's terminal sits: its side's pane of its split, or the side a split chooser beside it leaves it, or
+    /// the whole area for a tab in neither.
+    private func paneFrame(of tabID: UUID, in split: TerminalSplit?, besideChooser chooser: TerminalSplitChooser?, size: CGSize) -> CGRect {
+        let side: TerminalSplit.Side
+        let splitViewID: UUID
+        if let split, let splitSide = store.sides(of: split)?.side(of: tabID) {
+            (side, splitViewID) = (splitSide, split.id)
+        } else if let chooser {
+            (side, splitViewID) = (chooser.tabSide, chooser.id)
+        } else {
+            return CGRect(origin: .zero, size: size)
+        }
+        let frames = TerminalSplitLayout.frames(fraction: splitFraction(ofSplitView: splitViewID), size: size)
         return side == .left ? frames.left : frames.right
     }
 }

@@ -104,8 +104,8 @@
 	<string>**Resume** continues this conversation in its CLI, in its original folder. Double-clicking the session in the sidebar does the same.</string>
 	<key>**Resume**, or a double-click, continues the conversation in its CLI and original folder. **Branch**, where the CLI supports it, starts a new session from a copy and leaves the original as it was.</key>
 	<string>**Resume**, or a double-click, continues the conversation in its CLI and original folder. **Branch**, where the CLI supports it, starts a new session from a copy and leaves the original as it was.</string>
-	<key>**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab to show two side by side.</key>
-	<string>**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab to show two side by side.</string>
+	<key>**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab, or press **⌥⌘N**, to show two side by side.</key>
+	<string>**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab, or press **⌥⌘N**, to show two side by side.</string>
 	<key>1 message</key>
 	<string>1 message</string>
 	<key>1 session is still running: its tab closes and its CLI ends first.</key>
@@ -140,6 +140,8 @@
 	<string>Add SSH host</string>
 	<key>Add SSH host…</key>
 	<string>Add SSH host…</string>
+	<key>Add Tab to New Split View</key>
+	<string>Add Tab to New Split View</string>
 	<key>Add a project folder on %@</key>
 	<string>Add a project folder on %@</string>
 	<key>Add a project folder on this Mac</key>
@@ -318,6 +320,16 @@
 	<string>Choose **Add SSH host…** at the bottom of the sidebar, then enter `user@hostname` or an alias from `~/.ssh/config`. Your code and CLIs run on the host; its history is cached on this Mac.</string>
 	<key>Choose a session in the sidebar to read its conversation.</key>
 	<string>Choose a session in the sidebar to read its conversation.</string>
+	<key>Choose a tab</key>
+	<string>Choose a tab</string>
+	<key>Choose a tab - Left view</key>
+	<string>Choose a tab - Left view</string>
+	<key>Choose a tab - Right view</key>
+	<string>Choose a tab - Right view</string>
+	<key>Choose a tab to add to split view</key>
+	<string>Choose a tab to add to split view</string>
+	<key>Choose a tab to show beside this one</key>
+	<string>Choose a tab to show beside this one</string>
 	<key>Choose folder…</key>
 	<string>Choose folder…</string>
 	<key>Choose or enter a folder</key>
@@ -414,6 +426,8 @@
 	<string>Command</string>
 	<key>Commands start in %@'s login shell with its interactive startup files, as in your own terminal.</key>
 	<string>Commands start in %@'s login shell with its interactive startup files, as in your own terminal.</string>
+	<key>Complete your split view</key>
+	<string>Complete your split view</string>
 	<key>Connect again; a CLI still running in tmux on the host is reattached</key>
 	<string>Connect again; a CLI still running in tmux on the host is reattached</string>
 	<key>Connecting to %@…</key>
@@ -1334,6 +1348,8 @@
 	<string>Start a native CLI or a plain terminal in a project folder.</string>
 	<key>Start a new session in %@</key>
 	<string>Start a new session in %@</string>
+	<key>Start a new session to show it here.</key>
+	<string>Start a new session to show it here.</string>
 	<key>Start a session in any installed CLI, or a plain terminal, with ⌘N.</key>
 	<string>Start a session in any installed CLI, or a plain terminal, with ⌘N.</string>
 	<key>Start a session in any installed CLI, or open a plain terminal, in a project folder. ⌘N does the same.</key>

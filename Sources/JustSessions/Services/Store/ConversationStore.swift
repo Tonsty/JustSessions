@@ -45,6 +45,7 @@ final class ConversationStore {
         didSet {
             windowRegistry.tabsChanged(in: self)
             followTabStateChanges()
+            forgetClosedTabsInSplitChoosers()
         }
     }
     /// Each open tab's own changes, which count in `tabStateRevision`, and its CLI ending; see `followTabStateChanges()`.
@@ -66,13 +67,34 @@ final class ConversationStore {
         didSet {
             selectedTerminal?.startNowThatItIsShown()
             markTerminalsOnScreenSeen()
+            guard selectedTerminalID != oldValue else { return }
+            selectsShownSplitChooser = false
+            if let selectedTerminalID {
+                tabIDsByLastSelected.removeAll { $0 == selectedTerminalID }
+                tabIDsByLastSelected.insert(selectedTerminalID, at: 0)
+            }
         }
     }
     /// Pairs of tabs linked side by side, as in Chrome's split view, any number of them, with a tab in at most one.
     /// A split outlives the selection; both its terminals show only while one of them is selected, see `shownSplit`.
     private(set) var terminalSplits: [TerminalSplit] = [] {
-        didSet { markTerminalsOnScreenSeen() }
+        didSet {
+            markTerminalsOnScreenSeen()
+            forgetClosedTabsInSplitChoosers()
+        }
     }
+    /// Splits whose other view is still to be chosen, each beside a tab open here in no split, at most one per tab. Like
+    /// a split, one outlives the selection and shows while its tab is selected; see `ConversationStore+SplitChooser`.
+    var terminalSplitChoosers: [TerminalSplitChooser] = [] {
+        didSet { if shownSplitChooser == nil { selectsShownSplitChooser = false } }
+    }
+    /// The shown split chooser has the keyboard rather than the tab beside it, as Chrome's split view page is the
+    /// active tab while it shows. Selecting another tab gives the keyboard back to tabs.
+    var selectsShownSplitChooser = false
+    /// The open tabs by when they were last selected, the latest first, which is the order a split chooser lists them in.
+    private(set) var tabIDsByLastSelected: [UUID] = []
+    /// The split chooser whose New Session… is open: the next tab to open takes its place; see `openTerminal`.
+    @ObservationIgnored var splitChooserAwaitingNewTab: UUID?
     /// Every conversation queued in the running deletion, of one session or several. It changes only when a
     /// deletion starts, when sessions join it, and when it ends; `deletionProgress` follows the sessions in between.
     private(set) var pendingDeletionConversationIDs: Set<String> = []
@@ -702,22 +724,33 @@ final class ConversationStore {
     func replaceTerminal(at index: Int, with session: TerminalSession) {
         defer { persistOpenTabs() }
         let replacedID = terminalSessions[index].id
+        let splitChooserWasSelected = selectedTerminalID == replacedID && selectsShownSplitChooser
         terminalSessions[index].close()
         followLightDarkChanges(of: session)
+        // Before the old tab goes, which would close its chooser.
+        if let chooserIndex = terminalSplitChoosers.firstIndex(where: { $0.tabID == replacedID }) {
+            terminalSplitChoosers[chooserIndex].tabID = session.id
+        }
         terminalSessions[index] = session
         if terminalSplits.contains(where: { $0.contains(replacedID) }) {
             terminalSplits = terminalSplits.map { $0.replacing(replacedID, with: session.id) }
         }
         if selectedTerminalID == replacedID { selectedTerminalID = session.id }
+        if splitChooserWasSelected { selectsShownSplitChooser = true }
     }
 
-    /// Adds the tab after the last tab of its project's group, which may be a split's, or at the end, and shows it.
+    /// Adds the tab after the last tab of its project's group, which may be a split's, or at the end, and shows it. A tab
+    /// started from a split chooser's New Session… takes the chooser's place instead.
     func openTerminal(_ session: TerminalSession) {
         defer { persistOpenTabs() }
         showProjectInSidebar(session.projectDirectoryKey)
         followLightDarkChanges(of: session)
         terminalSessions.insert(session, at: tabStrip.insertionIndex(forNewTabOfProject: session.projectDirectoryKey))
         selectedTerminalID = session.id
+        if let chooserID = splitChooserAwaitingNewTab {
+            splitChooserAwaitingNewTab = nil
+            chooseTab(session.id, inSplitChooser: chooserID)
+        }
     }
 
     /// Puts a tab reopened from the last quit at `index` without showing it, unless `selecting`. Where a tab at
@@ -803,10 +836,11 @@ final class ConversationStore {
     }
 
     /// Shows another tab side by side with the selected tab, which stays selected, as Chrome's AddToNewSplit; see
-    /// `TerminalTabStrip.addSplit(joining:beside:splitID:)` for where the other tab moves. Neither tab may be in a
-    /// split already. A reopened tab still waiting to be shown starts as it joins.
+    /// `TerminalTabStrip.addSplit(joining:beside:on:splitID:)` for where the other tab moves. Neither tab may be in a
+    /// split, or beside a split chooser, already. A reopened tab still waiting to be shown starts as it joins.
     func splitSelectedTerminal(with id: UUID) {
-        guard let selectedTerminalID, let joiningTab = terminalSessions.first(where: { $0.id == id }) else { return }
+        guard let selectedTerminalID, let joiningTab = terminalSessions.first(where: { $0.id == id }),
+              splitChooser(beside: id) == nil, splitChooser(beside: selectedTerminalID) == nil else { return }
         var strip = tabStrip
         guard strip.addSplit(joining: id, beside: selectedTerminalID) != nil else { return }
         defer { persistOpenTabs() }
@@ -839,7 +873,8 @@ final class ConversationStore {
     /// selected instead. A reopened tab still waiting to be shown starts as it joins.
     func moveIntoShownSplit(_ tabID: UUID, swappingWith side: TerminalSplit.Side) {
         guard let shownSplit, let sides = sides(of: shownSplit),
-              let incomingTab = terminalSessions.first(where: { $0.id == tabID }) else { return }
+              let incomingTab = terminalSessions.first(where: { $0.id == tabID }),
+              splitChooser(beside: tabID) == nil else { return }
         let outgoingID = sides.tabID(on: side)
         var strip = tabStrip
         guard strip.swap(tabID, intoSplit: shownSplit.id, replacing: outgoingID) else { return }
@@ -849,6 +884,18 @@ final class ConversationStore {
             if selectedTerminalID == outgoingID { selectedTerminalID = tabID }
         }
         incomingTab.startNowThatItIsShown()
+    }
+
+    /// Closes the split choosers of tabs that closed or joined a split, and forgets when closed tabs were selected.
+    private func forgetClosedTabsInSplitChoosers() {
+        let openTabIDs = Set(terminalSessionsStorage.map(\.id))
+        let keptChoosers = terminalSplitChoosers.filter { chooser in
+            openTabIDs.contains(chooser.tabID) && !terminalSplits.contains { $0.contains(chooser.tabID) }
+        }
+        if keptChoosers != terminalSplitChoosers { terminalSplitChoosers = keptChoosers }
+        if tabIDsByLastSelected.contains(where: { !openTabIDs.contains($0) }) {
+            tabIDsByLastSelected.removeAll { !openTabIDs.contains($0) }
+        }
     }
 
     /// The tabs whose terminals are on screen: both tabs of a shown split, or else the selected tab.
@@ -871,9 +918,13 @@ final class ConversationStore {
     }
 
     /// A new session's tab that goes off screen refreshes its host, so what its CLI saved so far is listed.
-    /// Moving between the two panes of a shown split keeps both on screen, so it refreshes nothing.
+    /// Moving between the two panes of a shown split keeps both on screen, so it refreshes nothing. Selecting the tab
+    /// beside the shown split chooser gives that tab the keyboard back.
     func selectTerminal(_ id: UUID?) {
-        guard selectedTerminalID != id else { return }
+        guard selectedTerminalID != id else {
+            selectsShownSplitChooser = false
+            return
+        }
         defer { persistOpenTabs() }
         refreshingHostsOfNewSessionsLeavingTheScreen { selectedTerminalID = id }
     }
@@ -900,6 +951,7 @@ final class ConversationStore {
     func closeAllTerminals() {
         defer { persistOpenTabs() }
         for session in terminalSessions { session.close() }
+        terminalSplitChoosers = []
         terminalSplits = []
         terminalSessions = []
         selectedTerminalID = nil
