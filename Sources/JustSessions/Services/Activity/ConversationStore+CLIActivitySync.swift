@@ -32,8 +32,9 @@ extension ConversationStore {
         let probedTabs = terminalSessions.compactMap { tab in
             tab.isRunning ? tab.cliActivityProbe.map { (tab: tab, probe: $0) } : nil
         }
-        let detachedSessions = detachedThisMacTmuxSessions()
-        let detachedRemoteSessions = detachedRemoteTmuxSessions()
+        let conversationIDsWithRunningTab = conversationIDsWithRunningTab()
+        let detachedSessions = detachedThisMacTmuxSessions(conversationIDsWithRunningTab: conversationIDsWithRunningTab)
+        let detachedRemoteSessions = detachedRemoteTmuxSessions(conversationIDsWithRunningTab: conversationIDsWithRunningTab)
         noteRemoteSessionsDetached(detachedRemoteSessions)
         askHosts(of: detachedRemoteSessions)
         guard !probedTabs.isEmpty || !detachedSessions.isEmpty || !detachedRemoteSessions.isEmpty
@@ -120,19 +121,28 @@ extension ConversationStore {
         noteWaitingForYouStartTimes(after: observations)
     }
 
+    /// The sessions shown by a running tab in this window or another.
+    private func conversationIDsWithRunningTab() -> Set<String> {
+        Set(terminalSessions.filter(\.isRunning).compactMap { $0.conversation?.id })
+            .union(runningTerminalsInOtherWindows.keys)
+    }
+
+    /// The listed session a tmux session of the app's runs, found through the index: this runs once a second for every
+    /// tmux session on every host, and going through every listed session for each took 30 ms a second with 3,365
+    /// sessions listed and 58 running (PERF-88).
+    private func listedSession(inTmuxSessionNamed name: String, on host: SessionHost) -> Conversation? {
+        guard let session = TmuxSessionName.session(named: name) else { return nil }
+        return conversationIndex.conversation(withID: Conversation.id(provider: session.provider, sessionID: session.sessionID, host: host))
+    }
+
     /// Listed sessions of SSH hosts that run in tmux, as of the host's last refresh or the closing of their tab, with no
     /// running tab in any window.
-    private func detachedRemoteTmuxSessions() -> [DetachedRemoteTmuxSession] {
-        let conversationIDsWithRunningTab = Set(terminalSessions.filter(\.isRunning).compactMap { $0.conversation?.id })
-            .union(runningTerminalsInOtherWindows.keys)
+    private func detachedRemoteTmuxSessions(conversationIDsWithRunningTab: Set<String>) -> [DetachedRemoteTmuxSession] {
         var sessions: [DetachedRemoteTmuxSession] = []
         for (sessionHost, runningNames) in tmuxSessionNamesByHost {
             guard let host = sessionHost.sshDestination else { continue }
             for name in runningNames.sorted() {
-                guard let session = TmuxSessionName.session(named: name),
-                      let conversation = conversations.first(where: {
-                          $0.host == sessionHost && $0.provider == session.provider && $0.sessionID == session.sessionID
-                      }),
+                guard let conversation = listedSession(inTmuxSessionNamed: name, on: sessionHost),
                       !conversationIDsWithRunningTab.contains(conversation.id) else { continue }
                 let key = RemoteTmuxSessionKey(host: host, tmuxSessionName: name)
                 sessions.append(DetachedRemoteTmuxSession(conversation: conversation, key: key))
@@ -160,15 +170,10 @@ extension ConversationStore {
 
     /// Listed sessions of this Mac that run in tmux, as of the last refresh, with no running tab in any window. The
     /// window whose tab runs one follows what its CLI does and notifies about it.
-    private func detachedThisMacTmuxSessions() -> [DetachedTmuxSession] {
+    private func detachedThisMacTmuxSessions(conversationIDsWithRunningTab: Set<String>) -> [DetachedTmuxSession] {
         guard let runningNames = tmuxSessionNamesByHost[.thisMac], !runningNames.isEmpty else { return [] }
-        let conversationIDsWithRunningTab = Set(terminalSessions.filter(\.isRunning).compactMap { $0.conversation?.id })
-            .union(runningTerminalsInOtherWindows.keys)
         return runningNames.sorted().compactMap { name in
-            guard let session = TmuxSessionName.session(named: name),
-                  let conversation = conversations.first(where: {
-                      $0.host == .thisMac && $0.provider == session.provider && $0.sessionID == session.sessionID
-                  }),
+            guard let conversation = listedSession(inTmuxSessionNamed: name, on: .thisMac),
                   !conversationIDsWithRunningTab.contains(conversation.id) else { return nil }
             return DetachedTmuxSession(
                 conversation: conversation,

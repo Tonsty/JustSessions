@@ -127,9 +127,18 @@ extension ConversationStore {
     }
 
     /// Lists one tool's sessions as soon as they are copied, in place of that tool's earlier ones; the host's other
-    /// tools keep theirs until their own copy. A tab waiting to reopen is given up only once every tool is listed,
-    /// since its session may be one of a tool not copied yet.
+    /// tools keep theirs until their own copy. A copy that lists the same sessions as before changes nothing, so the
+    /// whole list isn't sorted, compared, and shown again for it: each of the 6 tools' steps did that on every
+    /// refresh, 5–24 ms apiece with 3,365 sessions listed (PERF-88). A tab waiting to reopen is given up only once
+    /// every tool is listed, since its session may be one of a tool not copied yet.
     func applyRemoteHostConversations(_ toolConversations: [Conversation], of step: RemoteSessionCopyStep, host: String) {
+        guard remoteHostList.hosts.contains(host) else { return }
+        if listsSameSessions(toolConversations, of: step.provider, on: .ssh(host)) {
+            if step.isLast, pendingTabReopening.waitingTabs.contains(where: { $0.tab.host == .ssh(host) }) {
+                reopenWaitingTabs(on: .ssh(host))
+            }
+            return
+        }
         let otherToolsConversations = (conversations + subagentConversations)
             .filter { $0.host == .ssh(host) && $0.provider != step.provider }
         applyRemoteHostConversations(
@@ -137,6 +146,20 @@ extension ConversationStore {
             host: host,
             discardMissingReopeningTabs: step.isLast
         )
+    }
+
+    /// Whether the list has the tool's sessions on the host as `copied` has them, in any order: one pass over the
+    /// list, and no second array of it.
+    private func listsSameSessions(_ copied: [Conversation], of provider: ConversationProvider, on host: SessionHost) -> Bool {
+        var copiedByID = Dictionary(copied.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        guard copiedByID.count == copied.count else { return false }
+        for conversation in conversations where conversation.host == host && conversation.provider == provider {
+            guard copiedByID.removeValue(forKey: conversation.id) == conversation else { return false }
+        }
+        for conversation in subagentConversations where conversation.host == host && conversation.provider == provider {
+            guard copiedByID.removeValue(forKey: conversation.id) == conversation else { return false }
+        }
+        return copiedByID.isEmpty
     }
 
     private func setRemoteSessionCopyStep(_ step: RemoteSessionCopyStep, host: String) {

@@ -1,13 +1,12 @@
 import Foundation
 
 extension ConversationStore {
+    /// Each tab takes its session as the list now has it. Through the index, so a list of thousands costs nothing
+    /// beyond the tabs (PERF-88).
     func synchronizeTerminalTitles() {
-        let conversationsByID = conversations.reduce(into: [String: Conversation]()) {
-            $0[$1.id] = $1
-        }
         for session in terminalSessions {
             if let conversation = session.conversation,
-               let current = conversationsByID[conversation.id] {
+               let current = conversationIndex.conversation(withID: conversation.id) {
                 session.synchronize(conversation: current, displayTitle: title(for: current))
             }
         }

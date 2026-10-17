@@ -20,4 +20,31 @@ struct SidebarStoreObservationTests {
         store.replaceConversations(on: .thisMac, with: [first.withSuggestedTitle("Changed"), other])
         #expect(publications.count == 1)
     }
+
+    /// A refresh ends by noting the host's tmux sessions and login state, which mostly haven't changed.
+    @Test func unchangedTmuxSessionsAndLoginStateDoNotPublish() throws {
+        let settings = try IsolatedUserDefaults()
+        defer { settings.removeSuite() }
+        RemoteHostList(hosts: ["devbox"]).save(to: settings.userDefaults)
+        let store = ConversationStore(adapters: [], userDefaults: settings.userDefaults, sessionNotifier: RecordingSessionNotifier(), startsBackgroundPolling: false)
+        let connections = SSHLoginConnections()
+        store.setTmuxSessionNames(["justsessions-claude-a"], on: .ssh("devbox"))
+        store.noteLoginState(on: "devbox", refreshProblem: .hostKeyNotTrusted, connections: connections)
+        #expect(store.sshHostsNeedingLogIn == ["devbox"])
+        // The counter counts once per turn, so the unchanged calls come first.
+        let publications = StoreChangeCounter(store) {
+            _ = $0.tmuxSessionNamesByHost
+            _ = $0.sshHostsNeedingLogIn
+            _ = $0.sshHostsLoggedIn
+        }
+        defer { publications.cancel() }
+
+        store.setTmuxSessionNames(["justsessions-claude-a"], on: .ssh("devbox"))
+        store.noteLoginState(on: "devbox", refreshProblem: .hostKeyNotTrusted, connections: connections)
+        #expect(publications.count == 0)
+
+        store.noteLoginState(on: "devbox", refreshProblem: nil, connections: connections)
+        #expect(publications.count == 1)
+        #expect(store.sshHostsNeedingLogIn.isEmpty)
+    }
 }

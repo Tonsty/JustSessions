@@ -47,6 +47,55 @@ struct RemoteToolByToolListingTests {
         #expect(store.terminalSessions.map(\.displayTitle) == ["Local", "Remote"])
     }
 
+    /// Most copies find what the last one did; listing them again would sort and publish the whole list for nothing.
+    @Test func aToolCopiedWithNoChangeIsNotListedAgain() throws {
+        let sandbox = try TabReopeningSandbox(remoteHosts: ["devbox"])
+        defer { sandbox.tearDown() }
+        let store = sandbox.makeStore()
+        let claude = Conversation.fixture(provider: .claude, title: "Claude", updatedAt: .now - 10, host: .ssh("devbox"))
+        let codex = Conversation.fixture(provider: .codex, title: "Codex", updatedAt: .now - 20, host: .ssh("devbox"))
+        let laterCodex = Conversation.fixture(provider: .codex, title: "Later Codex", host: .ssh("devbox"))
+        let codexSubagent = Conversation.fixture(provider: .codex, title: "Helper", host: .ssh("devbox"), parentSessionID: codex.sessionID)
+        store.replaceConversations(on: .ssh("devbox"), with: [claude, codex, laterCodex, codexSubagent])
+        let changes = StoreChangeCounter(store)
+        defer { changes.cancel() }
+        let revision = store.conversationsRevision
+
+        store.applyRemoteHostConversations([claude], of: Self.step(.claude), host: "devbox")
+        store.applyRemoteHostConversations([codexSubagent, codex, laterCodex], of: Self.step(.codex), host: "devbox")
+        for provider in [ConversationProvider.antigravity, .kiro, .opencode, .pi] {
+            store.applyRemoteHostConversations([], of: Self.step(provider), host: "devbox")
+        }
+        #expect(changes.count == 0)
+        #expect(store.conversationsRevision == revision)
+
+        store.applyRemoteHostConversations([codex.withSuggestedTitle("Renamed"), laterCodex], of: Self.step(.codex), host: "devbox")
+        #expect(changes.count > 0)
+        #expect(store.conversations.map(\.suggestedTitle) == ["Later Codex", "Claude", "Renamed"])
+        #expect(store.subagentConversations.isEmpty)
+    }
+
+    /// The tab's session was never listed, so no tool's copy changes anything; the last still gives it up.
+    @Test func aWaitingTabIsGivenUpAfterTheLastToolEvenWhenNoCopyChangedAnything() throws {
+        let sandbox = try TabReopeningSandbox(remoteHosts: ["devbox"])
+        defer { sandbox.tearDown() }
+        let store = sandbox.makeStore()
+        defer { store.closeAllTerminals() }
+        let listed = sandbox.conversation(title: "Listed", host: .ssh("devbox"))
+        let gone = Conversation.fixture(provider: .pi, projectPath: "/srv/app", title: "Gone", host: .ssh("devbox"))
+        store.replaceConversations(on: .ssh("devbox"), with: [listed])
+        store.beginReopening([.session(gone)])
+
+        for provider in ConversationProvider.allCases.dropLast() {
+            store.applyRemoteHostConversations(provider == .claude ? [listed] : [], of: Self.step(provider), host: "devbox")
+        }
+        #expect(store.pendingTabReopening.waitingTabs.map(\.tab.conversationID) == [gone.id])
+
+        store.applyRemoteHostConversations([], of: Self.step(ConversationProvider.allCases.last!), host: "devbox")
+        #expect(store.pendingTabReopening.waitingTabs.isEmpty)
+        #expect(store.conversations.map(\.id) == [listed.id])
+    }
+
     private static func step(_ provider: ConversationProvider) -> RemoteSessionCopyStep {
         let providers = ConversationProvider.allCases
         return RemoteSessionCopyStep(provider: provider, number: providers.firstIndex(of: provider)! + 1, count: providers.count)
