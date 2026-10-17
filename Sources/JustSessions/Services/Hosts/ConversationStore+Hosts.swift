@@ -19,6 +19,13 @@ extension ConversationStore {
         }
     }
 
+    /// A heading's refresh: an SSH host that couldn't be reached a moment ago is tried again now, where the app's own
+    /// refreshes wait a while; see `SSHHostReachability`.
+    func refreshTryingAgain(_ host: SessionHost) {
+        if let destination = host.sshDestination { SSHHostReachability.shared.forget(destination) }
+        refresh(host)
+    }
+
     /// From the New Session sheet. The typed folder is looked up on its host first, so a missing folder is reported
     /// before a tab opens, or created when `creatingMissingFolder` is set, and the tab waits under the path the CLI
     /// records for its session.

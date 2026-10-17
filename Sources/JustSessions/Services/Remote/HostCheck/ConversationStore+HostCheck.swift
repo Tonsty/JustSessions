@@ -43,8 +43,10 @@ extension ConversationStore {
         runHostCheck(state)
     }
 
+    /// Logs in even when the host couldn't be reached a moment ago, since you asked.
     private func runHostCheck(_ state: HostCheckSheetState) {
         let host = state.host
+        SSHHostReachability.shared.forget(host)
         let programs = RemoteHostCheckProgram.all { customStartCommand(for: $0, on: .ssh(host)) }
         let providersWithSessions = Set(conversations.filter { $0.host == .ssh(host) }.map(\.provider))
         let check = remoteHostCheck

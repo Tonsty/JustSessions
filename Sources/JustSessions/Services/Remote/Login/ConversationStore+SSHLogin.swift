@@ -16,6 +16,7 @@ extension ConversationStore {
         let outcome = await login.logIn(to: host, ask: ask)
         sshHostsLoggingIn.remove(host)
         if outcome == .loggedIn {
+            SSHHostReachability.shared.forget(host)
             for store in storesOfEveryWindow { store.loginOpened(on: host) }
             NotificationCenter.default.post(name: RemoteTabReconnector.loginOpenedNotification, object: host)
         }

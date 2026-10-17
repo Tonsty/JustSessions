@@ -58,12 +58,13 @@ extension ConversationStore {
     }
 
     /// Why the app can't log in to `host` without a prompt, or through a login made with Connect…, or nil when it
-    /// can; checked before the host is added.
+    /// can; checked before the host is added, also when it couldn't be reached a moment ago.
     func connectionProblem(
         on host: String,
         check: RemoteHostConnectionCheck = RemoteHostConnectionCheck()
     ) async -> SSHConnectionProblem? {
-        await Task.detached(priority: .userInitiated) { check.problem(connectingTo: host) }.value
+        SSHHostReachability.shared.forget(host)
+        return await Task.detached(priority: .userInitiated) { check.problem(connectingTo: host) }.value
     }
 
     /// Where `ssh` would connect for the host, and the listed host that connects to the same place, read off the main

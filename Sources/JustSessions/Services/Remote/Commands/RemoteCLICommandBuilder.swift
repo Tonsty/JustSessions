@@ -54,6 +54,9 @@ struct RemoteCLICommandBuilder {
             arguments: ["-t"]
                 + loginConnections.connectionOptions(for: host)
                 + [
+                    // A host that doesn't answer ends the tab within 10 seconds, as the background commands do,
+                    // instead of after the system's own connection timeout.
+                    "-o", "ConnectTimeout=10",
                     // Notice a dead connection within a minute, so the tab ends and offers to reconnect.
                     "-o", "ServerAliveInterval=15", "-o", "ServerAliveCountMax=4",
                 ]

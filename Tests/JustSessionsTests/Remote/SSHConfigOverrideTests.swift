@@ -74,6 +74,15 @@ struct SSHConfigOverrideTests {
         #expect(Self.setting("localforward", in: result.output) == ["18080 [localhost]:8080"])
     }
 
+    /// A tab on a host that doesn't answer ends as soon as the background commands give up on it.
+    @Test func aTabGivesUpOnAHostThatDoesNotAnswerWithinTenSeconds() throws {
+        let tab = RemoteCLICommandBuilder(inheritedEnvironment: [:]).sshCommand(host: "devbox", remoteCommand: "true")
+        let result = try Self.resolvedSettings(sshArguments: tab.arguments)
+
+        #expect(result.exitStatus == 0)
+        #expect(Self.setting("connecttimeout", in: result.output) == ["10"])
+    }
+
     /// Where this Mac's `ssh` takes the option, a tab sends each keystroke as it is typed; an older one, which prints
     /// no such setting, still connects.
     @Test func aTabSendsKeystrokesAsTheyAreTyped() throws {

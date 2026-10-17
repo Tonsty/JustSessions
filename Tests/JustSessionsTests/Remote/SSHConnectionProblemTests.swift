@@ -9,6 +9,7 @@ struct SSHConnectionProblemTests {
         ("ssh: connect to host 10.0.0.2 port 22: Connection timed out", .noAnswer),
         ("ssh: connect to host 10.0.0.2 port 22: No route to host", .noAnswer),
         ("ssh: connect to host 10.0.0.2 port 22: Network is unreachable", .noAnswer),
+        ("ssh: connect to host 192.168.1.20 port 22: Host is down", .noAnswer),
         ("ssh: connect to host devbox port 22: Connection refused", .refused),
         ("Timeout, server devbox not responding.", .connectionLost),
         ("client_loop: send disconnect: Broken pipe", .connectionLost),

@@ -1,17 +1,22 @@
 import Foundation
 
 /// Runs one command on a remote host without a terminal, failing instead of asking for a password. A host logged in to
-/// with Connect… is reached through that login; see `SSHLoginConnections`.
+/// with Connect… is reached through that login; see `SSHLoginConnections`. A host that couldn't be reached a moment
+/// ago fails again at once, without connecting; see `SSHHostReachability`.
 struct RemoteHostCommandRunner: Sendable {
     /// Replaces `ssh`, so tests can run the command in a local shell.
     let run: @Sendable (_ host: String, _ command: String, _ timeout: TimeInterval) -> (exitStatus: Int32, output: String)?
 
     init(
         connectionSharingOptions: [String] = [],
+        reachability: SSHHostReachability = .shared,
         run: (@Sendable (_ host: String, _ command: String, _ timeout: TimeInterval) -> (exitStatus: Int32, output: String)?)? = nil
     ) {
         self.run = run ?? { host, command, timeout in
-            BoundedProcessRunner.result(
+            if let failureOutput = reachability.recentFailureOutput(on: host) {
+                return (Self.connectionFailureExitStatus, failureOutput)
+            }
+            let result = BoundedProcessRunner.result(
                 ofExecutable: "/usr/bin/ssh",
                 arguments: Self.sshArguments(
                     host: host,
@@ -24,6 +29,8 @@ struct RemoteHostCommandRunner: Sendable {
                 includesStandardError: true,
                 timeout: timeout
             )
+            if let result { reachability.noteResult(exitStatus: result.exitStatus, output: result.output, on: host) }
+            return result
         }
     }
 
