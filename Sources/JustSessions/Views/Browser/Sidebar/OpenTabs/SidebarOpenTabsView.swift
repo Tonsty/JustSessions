@@ -85,7 +85,8 @@ struct SidebarOpenTabsView: View {
                             SidebarOpenTabRow(
                                 tab: tab,
                                 projectDisplayName: store.projectDisplayName(forProjectPath: tab.projectDirectoryKey),
-                                splitSide: store.split(containing: tab.id).flatMap { store.sides(of: $0)?.side(of: tab.id) },
+                                splitSide: store.split(containing: tab.id).flatMap { store.sides(of: $0)?.side(of: tab.id) }
+                                    ?? store.splitChooser(beside: tab.id)?.tabSide,
                                 isSelected: isHighlighted(tab.id),
                                 onSelect: { handleRowClick(tab.id) }
                             ) {

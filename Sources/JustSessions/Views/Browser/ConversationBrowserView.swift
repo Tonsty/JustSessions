@@ -102,6 +102,10 @@ struct ConversationBrowserView: View {
                 isSidebarHidden: isSidebarHidden,
                 onRename: onRename,
                 onNewSession: { newSessionSheetHost = defaultNewSessionHost },
+                onNewSessionInSplitChooser: { chooserID in
+                    store.awaitNewTab(inSplitChooser: chooserID)
+                    newSessionSheetHost = defaultNewSessionHost
+                },
                 onCloseTerminal: { requestClosingTerminal($0) },
                 onCloseTabGroup: { requestClosingTabs($0, subject: .group(projectName: $1)) },
                 onDelete: { onRequestDeletion(.conversation($0)) }
@@ -158,6 +162,10 @@ struct ConversationBrowserView: View {
             }
         }
         .dismissesOnClickOutside(item: $newSessionSheetHost)
+        // A split chooser's New Session… waits only while the sheet is open; the sheet opens its tab before it closes.
+        .onChange(of: newSessionSheetHost == nil) { _, isClosed in
+            if isClosed { store.stopAwaitingNewTabInSplitChooser() }
+        }
         .sheet(item: hostCheckBinding) { state in
             HostCheckSheet(store: store, presentedState: state)
         }
@@ -292,23 +300,35 @@ private struct WorkspaceTabActionsValue: ViewModifier {
             .focusedSceneValue(\.workspaceTabActions, WorkspaceTabActions(
                 tabCount: store.terminalSessions.count,
                 hasSelectedTab: store.selectedTerminal != nil,
-                isSplitShown: store.shownSplit != nil,
+                isSplitShown: store.isSplitViewShown,
+                canOpenSplitChooser: store.canOpenSplitChooser,
                 isEnabled: isEnabled,
                 newSession: newSession,
-                closeSelectedTab: { requestClosingTab(store.selectedTerminalID) },
+                closeSelectedTab: {
+                    // The split chooser with the keyboard closes, as ⌘W closes Chrome's split view page.
+                    if store.selectsShownSplitChooser, let chooser = store.shownSplitChooser {
+                        store.closeSplitChooser(chooser.id)
+                    } else {
+                        requestClosingTab(store.selectedTerminalID)
+                    }
+                },
                 selectAdjacentTab: { store.selectAdjacentTerminal(movingForward: $0) },
                 selectTab: { store.selectTerminal(shortcutNumber: $0) },
-                separateShownSplit: { if let shownSplit = store.shownSplit { store.separateSplit(shownSplit.id) } },
-                closeShownSplitView: { side in
-                    // The same close request as ⌘W, for the view on that side.
-                    guard let shownSplit = store.shownSplit, let sides = store.sides(of: shownSplit) else { return }
-                    requestClosingTab(sides.tabID(on: side))
-                },
-                reverseShownSplit: { if let shownSplit = store.shownSplit { store.reverseSplit(shownSplit.id) } }
+                openSplitChooser: { store.openSplitChooser() },
+                separateShownSplit: { performOnShownSplitView(.separateViews) },
+                // The same close request as ⌘W, for the view on that side.
+                closeShownSplitView: { performOnShownSplitView(.closeView($0)) },
+                reverseShownSplit: { performOnShownSplitView(.reverseViews) }
             ))
             .background(WorkspaceTabCycleShortcuts(
                 isEnabled: isEnabled && !store.terminalSessions.isEmpty,
                 onSelectAdjacentTab: { store.selectAdjacentTerminal(movingForward: $0) }
             ))
+    }
+
+    /// The Tabs menu's split view items act on the shown split or split chooser, as the selected tab's own entries do.
+    private func performOnShownSplitView(_ action: TerminalTabSplitAction) {
+        guard store.isSplitViewShown, let selectedTerminalID = store.selectedTerminalID else { return }
+        store.performSplitAction(action, fromTab: selectedTerminalID) { requestClosingTab($0) }
     }
 }

@@ -34,6 +34,44 @@ struct TerminalTabStripTests {
         expectSplitRules(strip)
     }
 
+    @Test func aTabJoiningFromTheLeftOnTheRightLandsRightAfterThePivot() throws {
+        var strip = makeStrip("a1", "a2", "a3")
+
+        let added = strip.addSplit(joining: id("a1"), beside: id("a3"), on: .right)
+
+        let split = try #require(added)
+
+        #expect(names(strip) == ["a2", "a3", "a1"])
+        #expect(strip.sides(of: split) == TerminalSplit.Sides(left: id("a3"), right: id("a1")))
+        expectSplitRules(strip)
+    }
+
+    @Test func aTabJoiningFromTheRightOnTheLeftLandsRightBeforeThePivot() throws {
+        var strip = makeStrip("a1", "a2", "a3")
+
+        let added = strip.addSplit(joining: id("a3"), beside: id("a1"), on: .left)
+
+        let split = try #require(added)
+
+        #expect(names(strip) == ["a3", "a1", "a2"])
+        #expect(strip.sides(of: split) == TerminalSplit.Sides(left: id("a3"), right: id("a1")))
+        expectSplitRules(strip)
+    }
+
+    @Test func aTabFromAnotherProjectKeepsItsGivenSideInItsSplitOfItsOwn() throws {
+        var strip = makeStrip("a1", "a2", "b1", "b2")
+
+        let added = strip.addSplit(joining: id("b1"), beside: id("a1"), on: .left)
+
+        let split = try #require(added)
+
+        #expect(names(strip) == ["a2", "b1", "a1", "b2"])
+        #expect(split.spansProjects)
+        #expect(strip.groupKeys == ["/a", split.groupKey, split.groupKey, "/b"])
+        #expect(strip.sides(of: split) == TerminalSplit.Sides(left: id("b1"), right: id("a1")))
+        expectSplitRules(strip)
+    }
+
     @Test func aTabFromAnotherProjectMakesASplitOfItsOwnRightAfterThePivotsGroup() throws {
         var strip = makeStrip("a1", "a2", "b1", "b2")
 

@@ -54,6 +54,10 @@ struct WorkspaceTabCommands: Commands {
 
             Divider()
 
+            // Chrome's shortcut and its Tab menu's name for it.
+            Button(AppLocalization.string("Add Tab to New Split View", language: languageStore.language)) { actions?.openSplitChooser() }
+                .keyboardShortcut("n", modifiers: [.command, .option])
+                .disabled(actions?.isEnabled != true || actions?.canOpenSplitChooser != true)
             Button(AppLocalization.string("Separate Views", language: languageStore.language)) { actions?.separateShownSplit() }
                 .disabled(!isSplitShown)
 

@@ -114,8 +114,8 @@
 	<string>**继续** 会在原来的文件夹中用它的 CLI 接着这段对话。在侧栏双击这个会话也可以。</string>
 	<key>**Resume**, or a double-click, continues the conversation in its CLI and original folder. **Branch**, where the CLI supports it, starts a new session from a copy and leaves the original as it was.</key>
 	<string>**继续**（或双击会话）会在原来的 CLI 和文件夹中接着这段对话。**分支** 会从对话的副本开始一个新会话，原会话保持不变，仅部分 CLI 支持。</string>
-	<key>**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab to show two side by side.</key>
-	<string>**⌘N** 可用任一已安装的 CLI 开始会话，或打开普通终端。标签页按项目分组，侧边栏的 **已打开** 会列出全部标签页。右键单击标签页可将两个并排显示。</string>
+	<key>**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab, or press **⌥⌘N**, to show two side by side.</key>
+	<string>**⌘N** 可用任一已安装的 CLI 开始会话，或打开普通终端。标签页按项目分组，侧边栏的 **已打开** 会列出全部标签页。右键单击标签页或按 **⌥⌘N**，可将两个并排显示。</string>
 	<key>1 message</key>
 	<string>1 条消息</string>
 	<key>1 session is still running: its tab closes and its CLI ends first.</key>
@@ -148,6 +148,8 @@
 	<string>添加 SSH 主机</string>
 	<key>Add SSH host…</key>
 	<string>添加 SSH 主机…</string>
+	<key>Add Tab to New Split View</key>
+	<string>向新拆分视图添加标签页</string>
 	<key>Add a project folder on %@</key>
 	<string>在 %@ 上添加项目文件夹</string>
 	<key>Add a project folder on this Mac</key>
@@ -336,6 +338,16 @@
 	<string>在侧边栏底部选择 **添加 SSH 主机…**，然后输入 `user@hostname` 或 `~/.ssh/config` 中的别名。代码和 CLI 在主机上运行，它的历史记录会缓存到这台 Mac。</string>
 	<key>Choose a session in the sidebar to read its conversation.</key>
 	<string>在侧栏中选择一个会话，阅读其对话内容。</string>
+	<key>Choose a tab</key>
+	<string>选择标签页</string>
+	<key>Choose a tab - Left view</key>
+	<string>选择标签页 - 左侧视图</string>
+	<key>Choose a tab - Right view</key>
+	<string>选择标签页 - 右侧视图</string>
+	<key>Choose a tab to add to split view</key>
+	<string>选择要添加到拆分视图的标签页</string>
+	<key>Choose a tab to show beside this one</key>
+	<string>选择一个标签页显示在当前标签页旁边</string>
 	<key>Choose folder…</key>
 	<string>选择文件夹…</string>
 	<key>Choose or enter a folder</key>
@@ -438,6 +450,8 @@
 	<string>命令</string>
 	<key>Commands start in %@'s login shell with its interactive startup files, as in your own terminal.</key>
 	<string>命令在 %@ 的登录 shell 中启动，并读取其交互式启动文件，与你自己的终端相同。</string>
+	<key>Complete your split view</key>
+	<string>完成拆分视图</string>
 	<key>Connect again; a CLI still running in tmux on the host is reattached</key>
 	<string>重新连接；仍在主机 tmux 中运行的 CLI 会重新接入</string>
 	<key>Connecting to %@…</key>
@@ -1380,6 +1394,8 @@
 	<string>在 %@ 中新建会话</string>
 	<key>Start a new session in %@ on %@</key>
 	<string>在 %2$@ 的 %1$@ 中新建会话</string>
+	<key>Start a new session to show it here.</key>
+	<string>新建一个会话，它会显示在这里。</string>
 	<key>Start a session in any installed CLI, or a plain terminal, with ⌘N.</key>
 	<string>⌘N 可以用任一已安装的 CLI 新建会话，或打开普通终端。</string>
 	<key>Start a session in any installed CLI, or open a plain terminal, in a project folder. ⌘N does the same.</key>

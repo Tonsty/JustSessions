@@ -3,15 +3,25 @@ import SwiftUI
 /// A tab's title, filling the room the tab leaves it. A title too long for that room fades out at its end, as in
 /// Chrome, instead of ending in an ellipsis, which would take up much of a narrow tab.
 struct TerminalTabTitle: View {
-    let title: String
+    private let title: Text
+
+    /// A title of the user's or the CLI's, shown as it is.
+    init(title: String) {
+        self.title = Text(verbatim: title)
+    }
+
+    /// A title of the app's own, translated.
+    init(localizedTitle: LocalizedStringKey) {
+        self.title = Text(localizedTitle)
+    }
 
     private static let fadeWidth: CGFloat = 18
 
     var body: some View {
         ViewThatFits(in: .horizontal) {
-            Text(title)
+            title
                 .lineLimit(1)
-            Text(title)
+            title
                 .lineLimit(1)
                 .fixedSize()
                 // A minimum lets the frame narrow below the title's own width, which then runs past the frame's end.

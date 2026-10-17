@@ -51,6 +51,8 @@ struct WorkspaceTabBar: View {
         // A split's two tabs, always in one group, take one tab's place.
         let shownSplitCount = store.terminalSplits.filter { split in shownTabs.contains { split.contains($0.id) } }.count
         let shownTabCount = shownTabs.count - shownSplitCount
+        // A tab and its split chooser's half take one tab's place too, as a split does.
+        let shownSplitChooserCount = store.terminalSplitChoosers.filter { chooser in shownTabs.contains { $0.id == chooser.tabID } }.count
         // A split across projects has no label, but its container takes room besides its tabs.
         let groupLabelsWidth = groups.reduce(CGFloat(0)) { width, group in
             TerminalSplit.isGroupKeyOfSplitAcrossProjects(group.projectDirectoryKey)
@@ -59,7 +61,7 @@ struct WorkspaceTabBar: View {
         }
         let tabWidth = WorkspaceTabWidth.fitting(
             shownTabCount: shownTabCount,
-            shownSplitCount: shownSplitCount,
+            shownSplitCount: shownSplitCount + shownSplitChooserCount,
             groupCount: groups.count,
             groupLabelsWidth: groupLabelsWidth,
             barWidth: barWidth
