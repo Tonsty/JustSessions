@@ -13,6 +13,7 @@ extension ConversationStore {
         initialPrompt: String? = nil,
         runsInTmux: Bool = true
     ) {
+        connectIfDisconnected(.ssh(host))
         let startCommand = customStartCommand(for: provider, on: .ssh(host))
         let preassignedSessionID = provider == .claude
             ? remoteClaudeSessionIDFlagSupport.preassignedSessionID(host: host, startCommand: startCommand)

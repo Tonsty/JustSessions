@@ -221,6 +221,30 @@ struct RemoteDetachedActivityTests {
 
         #expect(askedHosts.hosts.isEmpty)
     }
+
+    /// You disconnected from the host, so it is left alone; see `ConversationStore+RemoteHostDisconnect`.
+    @Test func aHostYouDisconnectedFromIsNotAsked() async throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let parked = Conversation.fixture(provider: .claude, sessionID: Self.claudeID, projectPath: "/srv/app", host: .ssh("parked"))
+        let store = ConversationStore(adapters: [], sessionNotifier: RecordingSessionNotifier(), startsBackgroundPolling: false)
+        store.replaceConversations(on: .ssh("parked"), with: [parked])
+        store.tmuxSessionNamesByHost = [.ssh("parked"): [Self.claudeName]]
+        store.disconnectedRemoteHosts.setDisconnected(true, for: "parked")
+        let askedHosts = AskedHosts()
+        store.remoteDetachedActivityReader = RemoteDetachedActivityReader(listPanes: { host in
+            askedHosts.insert(host)
+            return RemoteTmuxPanes(panesBySessionName: [:])
+        })
+
+        await store.synchronizeCLIActivity(
+            claudeRegistry: ClaudeLiveSessionRegistry(configurationDirectory: directory.appendingPathComponent("claude")),
+            liveSessionReporting: nil
+        )
+        try? await Task.sleep(for: .milliseconds(300))
+
+        #expect(askedHosts.hosts.isEmpty)
+    }
 }
 
 /// A host's tmux sessions as a test sets them.

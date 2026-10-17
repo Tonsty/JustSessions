@@ -242,7 +242,7 @@ struct ConversationBrowserView: View {
 
     var workspaceTabCommandsEnabled: Bool {
         newSessionSheetHost == nil && appWideSheet == nil && closingTerminalID == nil && closingSeveralTabs == nil
-            && store.hostCheck == nil
+            && store.hostCheck == nil && store.hostDisconnectQuestion == nil
     }
 
     /// Check this host…'s sheet, which the sidebar and an ended tab open through the store.

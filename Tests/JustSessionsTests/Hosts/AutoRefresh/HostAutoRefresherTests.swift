@@ -57,6 +57,24 @@ struct HostAutoRefresherTests {
         #expect(copies.started.first?.host == "devbox")
     }
 
+    /// You disconnected from the host, so it is left alone until you connect; see `ConversationStore+RemoteHostDisconnect`.
+    @Test func aDisconnectedHostIsLeftAlone() async throws {
+        let sandbox = try TwoWindowSandbox()
+        defer { sandbox.tearDown() }
+        for store in [sandbox.first, sandbox.second] {
+            store.remoteHostList = RemoteHostList(hosts: ["devbox", "buildbox"])
+            store.hostRefreshStatuses[.ssh("devbox")] = .refreshed(.now - 3_600)
+            store.hostRefreshStatuses[.ssh("buildbox")] = .refreshed(.now - 3_600)
+            store.disconnectedRemoteHosts.setDisconnected(true, for: "devbox")
+        }
+        let copies = SSHHostCopies()
+        let refresher = HostAutoRefresher(registry: sandbox.windowRegistry, isAnyWindowOnScreen: { true }, refreshSSHHost: copies.start)
+
+        refresher.refreshDueHosts(now: .now)
+
+        #expect(copies.started.map(\.host) == ["buildbox"])
+    }
+
     private static func finishFirstRefresh(of sandbox: TwoWindowSandbox) async throws {
         for store in [sandbox.first, sandbox.second] { store.refreshThisMac() }
         try await expectEventually { !sandbox.first.isScanningThisMac && !sandbox.second.isScanningThisMac }

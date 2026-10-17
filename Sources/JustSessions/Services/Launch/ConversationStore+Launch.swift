@@ -59,6 +59,7 @@ extension ConversationStore {
         }
         // A session runs in one tab across the app's windows, so another window's tab comes forward instead.
         if action == .resume, showRunningTerminalInAnotherWindow(for: conversation) { return }
+        connectIfDisconnected(conversation.host)
         do {
             let endedTab = action == .resume ? endedTerminal(for: conversation) : nil
             guard let session = try makeTerminal(

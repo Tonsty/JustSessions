@@ -16,6 +16,7 @@ extension ConversationStore {
         remoteRunner: RemoteHostCommandRunner = RemoteHostCommandRunner()
     ) {
         guard remoteHostList.hosts.contains(host), self.usesTmuxPrefix(on: .ssh(host)) != usesTmuxPrefix else { return }
+        connectIfDisconnected(.ssh(host))
         remoteHostsUsingTmuxPrefix.setUsesTmuxPrefix(usesTmuxPrefix, for: host)
         remoteHostsUsingTmuxPrefix.save(to: userDefaults)
         remakeTabsWaitingToBeShown(on: .ssh(host))

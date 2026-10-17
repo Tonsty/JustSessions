@@ -37,10 +37,10 @@ extension ConversationStore {
     }
 
     /// Plain terminals reopen right away. Session tabs wait for their host to list its sessions; a host no longer in
-    /// the host list never will, so its tabs are left out.
+    /// the host list never will, so its tabs are left out, as are a disconnected host's, which would connect to it.
     func beginReopening(_ tabs: [ReopenableTerminalTab]) {
         let listedHosts = Set(hosts)
-        pendingTabReopening = PendingTabReopening(tabs: tabs.filter { listedHosts.contains($0.host) })
+        pendingTabReopening = PendingTabReopening(tabs: tabs.filter { listedHosts.contains($0.host) && !isDisconnected($0.host) })
         reopenWaitingTabs { $0.isPlainTerminal }
     }
 

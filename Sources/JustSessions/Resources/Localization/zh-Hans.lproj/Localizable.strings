@@ -38,6 +38,8 @@
 	<string>%@ 已添加。</string>
 	<key>%@ is an alias or function in %@'s login shell. Tabs run it as typing %@ there would.</key>
 	<string>%@ 是 %@ 登录 shell 中的 alias 或函数。标签页运行它的效果与在那里输入 %@ 相同。</string>
+	<key>%@ is disconnected</key>
+	<string>%@ 已断开连接</string>
 	<key>%@ isn't a folder on %@, so the session can't start there. It may have been moved or deleted.</key>
 	<string>%@ 不是 %@ 上的文件夹，因此会话无法在那里启动。它可能已被移动或删除。</string>
 	<key>%@ isn't on the PATH of %@'s login shell, so its sessions listed here can't resume. If it's installed, add its folder to PATH in a startup file that shell reads.</key>
@@ -452,8 +454,12 @@
 	<string>命令在 %@ 的登录 shell 中启动，并读取其交互式启动文件，与你自己的终端相同。</string>
 	<key>Complete your split view</key>
 	<string>完成拆分视图</string>
+	<key>Connect</key>
+	<string>连接</string>
 	<key>Connect again; a CLI still running in tmux on the host is reattached</key>
 	<string>重新连接；仍在主机 tmux 中运行的 CLI 会重新接入</string>
+	<key>Connect and refresh sessions on %@</key>
+	<string>连接并刷新 %@ 的会话</string>
 	<key>Connecting to %@…</key>
 	<string>正在连接 %@…</string>
 	<key>Connecting…</key>
@@ -582,6 +588,12 @@
 	<string>删除进度</string>
 	<key>Disconnect</key>
 	<string>断开连接</string>
+	<key>Disconnect from %@?</key>
+	<string>断开与 %@ 的连接？</string>
+	<key>Disconnected</key>
+	<string>已断开连接</string>
+	<key>Disconnected. Connect to copy its sessions.</key>
+	<string>已断开连接。连接后即可复制其会话。</string>
 	<key>Don't ask again</key>
 	<string>不再询问</string>
 	<key>Don't ask again on %@</key>
@@ -792,6 +804,12 @@
 	<string>它不在 %@ 登录 shell 的 PATH 中，因此标签页从这个文件夹启动它。</string>
 	<key>Its CLI, still running on %@, ends first.</key>
 	<string>会先结束它仍在 %@ 上运行的 CLI。</string>
+	<key>Its open tabs close, and the CLIs and shells running in them stop.</key>
+	<string>它打开的标签会关闭，其中运行的 CLI 和 shell 会停止。</string>
+	<key>Its open tabs close. Keep running leaves their CLIs running in tmux; click a session to reattach once you connect again. End sessions stops them.</key>
+	<string>它打开的标签会关闭。保持运行会让这些 CLI 继续在 tmux 中运行；重新连接后点击会话即可重新接入。结束会话会停止这些 CLI。</string>
+	<key>Its open tabs close. Keep running leaves their CLIs running in tmux; click a session to reattach once you connect again. End sessions stops them. The other tabs' CLIs and shells stop either way.</key>
+	<string>它打开的标签会关闭。保持运行会让这些 CLI 继续在 tmux 中运行；重新连接后点击会话即可重新接入。结束会话会停止这些 CLI。其他标签的 CLI 和 shell 无论如何都会停止。</string>
 	<key>Its tab closes and its CLI ends first.</key>
 	<string>会先关闭它的标签页并结束它的 CLI。</string>
 	<key>Jump back to the tab or session you just left with ⌘[, forward with ⌘].</key>

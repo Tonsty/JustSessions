@@ -67,7 +67,7 @@ struct SSHLoginStoreTests {
         }
         #expect(window.sshHostsLoggingIn.isEmpty)
 
-        window.disconnect("devbox", connections: connections)
+        window.closeLogin(on: "devbox", connections: connections)
 
         #expect(otherWindow.sshHostsLoggedIn.isEmpty)
         #expect(!connections.isLoggedIn("devbox"))

@@ -104,11 +104,13 @@ final class RemoteTabReconnector {
         scheduleWakeUp()
     }
 
-    /// Asks each host that is due, unless it is being asked already or needs Connect…, which counts as a failure.
+    /// Asks each host that is due, unless it is being asked already or needs Connect…, which counts as a failure. A
+    /// host that was removed or disconnected from is given up.
     func askDueHosts() {
         let now = currentDate()
         for host in schedule.hostsBeingTried where schedule.isDue(host, now: now) && !hostsBeingAsked.contains(host) {
-            guard registry.stores.first?.remoteHostList.hosts.contains(host) == true else {
+            guard let oldestStore = registry.stores.first, oldestStore.remoteHostList.hosts.contains(host),
+                  !oldestStore.isDisconnected(host) else {
                 stopTrying(host)
                 continue
             }

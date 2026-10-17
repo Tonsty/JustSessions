@@ -4,6 +4,7 @@ import Foundation
 /// so the app never lists it, links it to a session, or watches what it does. It runs outside tmux and ends with its tab.
 extension ConversationStore {
     func openPlainTerminal(in location: ProjectLocation) {
+        connectIfDisconnected(location.host)
         do {
             openTerminal(try makePlainTerminal(in: location))
         } catch {
