@@ -820,6 +820,34 @@ The scan found all 4 names. Apple M4 Pro (12 cores), 24 GB, macOS 26.6.1, Swift 
 - **Not measured in the app:** the numbers come from the standalone scan, not from a refresh.
 - **Still read on every refresh:** an unnamed session's first prompt, up to 1 MB from the start of its file.
 
+### 32. The activity sync went through every listed session for every tmux session
+
+**Evidence:** on v1.2.14 with an SSH host of many sessions listed, the window stalled every few seconds; removing the host made it smooth again. A static review found no SSH command on the main actor: every `ssh` and `rsync` runs detached. What does run there, once a second, is `synchronizeCLIActivity`, and its `detachedThisMacTmuxSessions` and `detachedRemoteTmuxSessions` found the listed session of each of the app's tmux sessions, on this Mac and on every host, with `conversations.first(where:)`: a pass over every listed session, copying each `Conversation`, for every tmux session, every second. A release build with Sparkle's updater off, a thread timing a main-queue round trip every 50 ms, and timing logs in those functions ran against the test VM with 3,000 generated Claude Code sessions in 50 projects (3,365 listed with this Mac's 365), 42 of them left running in `justsessions-claude-*` tmux sessions with no tab, 14 more on this Mac, while a script on the VM appended a line to 30 random session files a second. Each sync's work before its await took 3.3–3.8 ms with this Mac's 14 tmux sessions alone, and 29–32 ms, every second, once the host's refresh had listed its 40; `sample` put nearly all of the main thread's non-idle time in those two functions, copying and comparing `Conversation` values. The same run showed each refresh listing the host 7 times, from the mirror and then from each of the 6 tools' copies, and a tool whose copy found nothing new still cost 5–24 ms on the main actor: a sort of all 3,365 (2–12 ms), a deep comparison, a dictionary of every session to sync the tabs' titles, and a save of the open tabs. Each refresh also published unchanged tmux names and login state.
+
+**Change:** `listedSession(inTmuxSessionNamed:on:)` looks the session up in `ConversationIndex` by `Conversation.id(provider:sessionID:host:)`, so a sync costs the tmux sessions, not their product with the list. `applyRemoteHostConversations(_:of:host:)` compares a tool's copy with the tool's listed sessions in one pass and, when they are the same, leaves the list alone; the last tool's step still gives up a tab waiting for a session that is gone (SSH-61). `synchronizeTerminalTitles` goes through the index instead of building a dictionary of every session. `setTmuxSessionNames` and `noteLoginState` publish only a change (PERF-05).
+
+**Measured:** the same probe build and VM scenario before and after, and the two measurement suites in release builds of the base commit `4f72ede2` and of `ec3f820d`. Apple M4 Max (14 cores), 36 GB, macOS 27.0.1, Swift 6.4; the VM is Ubuntu 24.04.5 with tmux 3.4 in Multipass on the same Mac. The machine wasn't isolated.
+
+| Operation | Before | After |
+| --- | --- | --- |
+| A sync's main-actor work in the app, 3,365 listed, 56 in tmux with no tab, once a second | 29–32 ms | 0.5 ms |
+| `CLIActivitySyncMeasurements`, median main-thread CPU a sync, 3,365 listed, 58 in tmux | 4.5 ms | 0.1 ms |
+| `CLIActivitySyncMeasurements`, median main-thread CPU a sync, 10,365 listed, 100 in tmux | 20.3 ms | 0.1 ms |
+| An unchanged tool's step in the app, 3,365 listed | 5.0–23.7 ms | 0.8–4.9 ms |
+| `RemoteToolStepMeasurements`, median unchanged step, 3,000 sessions | 6.4 ms | 0.9 ms |
+| `RemoteToolStepMeasurements`, median unchanged step, 10,000 sessions | 21.6 ms | 3.1 ms |
+| `replaceConversations` per refresh of the host | 7 | 2: the mirror, and the one tool whose copy changed |
+| Main-queue gaps over 30 ms in 4 minutes | 2 | 2 |
+
+The two gaps, 36–44 ms, came with the launch and with the opening of the new session's tab in both runs.
+
+**Limits:**
+- **No gap over 30 ms came from either pattern at this size:** 30 ms a second is a steady 3% of the main thread in pieces just under the watchdog's threshold. The cost grows with the tmux sessions times the listed sessions, and the report came from a host with more of both; it wasn't reproduced there.
+- **A changed tool's step still sorts and compares the whole list:** 18–19 ms with 3,365 listed, once per refresh while the VM kept writing.
+- **Not changed, off the main thread:** the refresh read the 3,000 mirrored session files for about 170 s on one core (`ClaudeAdapter.discover`, 28 ms a file) because rsync replaces each file the VM wrote to, and a replaced file's summary is read again. The host stays "refreshing" meanwhile, and the copy every 10 seconds for a new tab waiting to link ([budgets, Method](../requirements/performance/budgets.md#method)) is skipped until it ends.
+- **The live run showed the host's tmux sessions only in its last minute:** a host's tmux session names arrive with its status call at the end of its refresh.
+- **The suites run one case at a time:** Swift Testing ran the sync suite's two cases together on the main actor, and each case's syncs ran while the other's awaited its reader's task, so both cases first reported the same 25 ms a sync whatever their size. They are `.serialized` now, and the sync suite reports the main thread's CPU time per sync beside the wall clock.
+
 ## How to profile
 
 Attach to a running copy, so you keep your windows and sessions. Record in chunks, so you can analyze finished chunks while still using the app:
