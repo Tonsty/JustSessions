@@ -72,6 +72,7 @@ The packaged app includes tmux for this Mac. Install tmux on each SSH host to su
 - Use **Open tabs** for a vertical list of your terminals.
 - Automatically reopen tabs on launch.
 - Keep an agent and shell side by side; drag the divider to resize.
+- Press **⌥⌘N** to choose a tab to show beside the current one.
 
 ![JustSessions Open tabs sidebar with six tabs under one project, alongside the real Claude Code CLI and a project shell displaying Git diff in split view](docs/images/split-terminal.jpg)
 

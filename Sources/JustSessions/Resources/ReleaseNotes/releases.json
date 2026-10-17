@@ -1,5 +1,46 @@
 [
   {
+    "version": "1.2.15",
+    "publishedOn": "2026-10-17",
+    "title": {
+      "en": "Choose a split view's tab",
+      "zh-Hans": "选择拆分视图的标签页"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "Add Tab to New Split View (⌥⌘N) in the Tabs menu lists tabs to show beside the current one.",
+            "zh-Hans": "「标签」菜单中的「向新拆分视图添加标签页」(⌥⌘N) 会列出标签页，选一个显示在当前标签页旁边。"
+          }
+        ]
+      },
+      {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "The app does less work each second while an SSH host lists thousands of sessions.",
+            "zh-Hans": "SSH 主机列出数千个会话时，应用每秒做的工作更少。"
+          }
+        ]
+      },
+      {
+        "kind": "fixed",
+        "items": [
+          {
+            "en": "Fixed repeated 10-second waits on an SSH host that doesn't answer: the app remembers the failure for a minute.",
+            "zh-Hans": "修复了 SSH 主机无响应时反复等待 10 秒的问题：应用会记住这次失败一分钟。"
+          },
+          {
+            "en": "Small bug fixes.",
+            "zh-Hans": "修复了一些小问题。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.14",
     "publishedOn": "2026-10-16",
     "title": {
