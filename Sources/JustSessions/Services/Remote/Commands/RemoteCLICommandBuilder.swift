@@ -153,7 +153,8 @@ struct RemoteCLICommandBuilder {
         // such as Ubuntu 24.04's 3.4, waits 500 ms after Esc to see whether a longer key sequence follows, so Esc
         // reached the CLI half a second late. The host's other sessions get 10 ms too, as tmux 3.5 and later give
         // them anyway.
-        let titleFormat = RemoteCLIActivityTitle.providers.contains(provider) ? RemoteCLIActivityTitle.titleFormat : "#T"
+        let titleFormat = provider == .claude ? RemoteClaudeSessionTitle.titleFormat
+            : RemoteCLIActivityTitle.providers.contains(provider) ? RemoteCLIActivityTitle.titleFormat : "#T"
         let sessionOptions = [
             "set-option status off", "set-option set-titles on", "set-option set-titles-string '\(titleFormat)'",
             "set-option mouse on", "set-option -wq allow-passthrough on", "set-option -s escape-time 10",

@@ -86,11 +86,12 @@ struct RemoteCLICommandBuilderTests {
             provider: provider, projectPath: "/home/me/api", arguments: [], tmuxSessionName: "justsessions-abc"
         )
         let direct = RemoteCLICommandBuilder.remoteCommand(provider: provider, projectPath: "/home/me/api", arguments: [])
-        let relayLine = "records=${CLAUDE_CONFIG_DIR:-$HOME/.claude}/sessions"
+        let relayLine = "config=${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 
         #expect(inTmux.contains(relayLine) == (provider == .claude))
         #expect(inTmux.contains(RemoteCLIActivityTitle.titleFormat) == RemoteCLIActivityTitle.providers.contains(provider))
         #expect(!direct.contains(relayLine))
+        #expect(inTmux.contains(RemoteClaudeSessionTitle.titleFormat) == (provider == .claude))
     }
 
     /// Pi and OpenCode tell what they do through the app's extension, which their tmux session writes to the host;
