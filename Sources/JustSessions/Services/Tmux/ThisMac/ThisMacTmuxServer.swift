@@ -22,7 +22,8 @@ struct ThisMacTmuxServer: Sendable {
         ("escape-time", "10"),
         // The tab sends Shift-Return as CSI 13;2u (see `SelectableTerminalView`), and these pass it on unchanged,
         // so the CLI can tell it from Return. tmux gives a CLI that asks for modifyOtherKeys each key as CSI u, and
-        // any other CLI the key's legacy byte where it has one; see `TerminalControlKey`.
+        // any other CLI the key's legacy byte where it has one; see `TerminalControlKey`. A tab on an SSH host sets
+        // `extended-keys on` on the host's tmux, which 3.5 and later need; see `RemoteCLICommandBuilder`.
         ("extended-keys", "always"),
         ("extended-keys-format", "csi-u"),
         // The tab's terminal gets the title the CLI sets, where a Codex CLI names its thread, and, once the CLI has

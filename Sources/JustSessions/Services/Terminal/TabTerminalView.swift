@@ -39,8 +39,8 @@ protocol TabTerminalView: NSView, TerminalTextFinding {
     /// The space the margin keeps free after the terminal's trailing edge, so its text lines up the same whichever
     /// engine draws it.
     var trailingMarginWidth: CGFloat { get }
-    /// For a tab whose CLI runs in tmux on this Mac; see `SelectableTerminalView.cliRunsInThisMacTmux`.
-    var cliRunsInThisMacTmux: Bool { get set }
+    /// For a tab whose CLI runs in tmux, on this Mac or an SSH host; see `SelectableTerminalView.cliRunsInTmux`.
+    var cliRunsInTmux: Bool { get set }
     /// The terminal takes files dropped on it. Every tab turns it on.
     var acceptsDroppedFiles: Bool { get set }
     /// Takes the files dropped on a tab whose CLI runs on an SSH host, which copies them there before typing the host's

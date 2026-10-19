@@ -10,9 +10,9 @@ struct ControlKeyPress {
     /// What macOS puts in `characters`: the control character where Control makes one.
     let characters: String
     let charactersIgnoringModifiers: String
-    /// What a CLI in this Mac's tmux receives once it asks for modifyOtherKeys 2, as Codex, Claude Code, and Pi do.
+    /// What a CLI in tmux receives once it asks for modifyOtherKeys 2, as Codex, Claude Code, and Pi do.
     let bytesForCLIAskingForModifyOtherKeys: String
-    /// What a CLI in this Mac's tmux receives otherwise, or with modifyOtherKeys 1, as OpenCode asks for.
+    /// What a CLI in tmux receives otherwise, or with modifyOtherKeys 1, as OpenCode asks for.
     let bytesForLegacyCLI: String
     /// What a SwiftTerm terminal sends without tmux; nil where it sends nothing.
     let bytesWithoutTmux: String?

@@ -43,10 +43,10 @@ enum TerminalControlKey: Equatable {
         }
     }
 
-    /// What a tab whose CLI runs in this Mac's tmux sends. tmux passes `CSI u` on to a CLI that asks for
-    /// modifyOtherKeys and gives any other CLI the key's legacy byte where it has one; see
-    /// `ThisMacTmuxServer.globalOptions`.
-    var bytesForThisMacTmux: String {
+    /// What a tab whose CLI runs in tmux, on this Mac or an SSH host, sends. tmux passes `CSI u` on to a CLI that asks
+    /// for modifyOtherKeys and gives any other CLI the key's legacy byte where it has one; see
+    /// `ThisMacTmuxServer.globalOptions` and `RemoteCLICommandBuilder`.
+    var bytesForTmux: String {
         switch self {
         case let .punctuationOrDigit(character): Self.csiU(codepoint: character.asciiValue.map(Int.init) ?? 0, withShift: false)
         case let .bracketOrBackslash(character): Self.legacyControlCharacter(for: character)

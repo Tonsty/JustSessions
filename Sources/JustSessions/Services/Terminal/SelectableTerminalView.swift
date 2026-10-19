@@ -4,11 +4,12 @@ import SwiftTerm
 
 /// Keeps the embedded CLI terminal usable as a native text surface.
 final class SelectableTerminalView: LocalProcessTerminalView {
-    /// For a tab whose CLI runs in tmux on this Mac, which encodes each key again for the CLI; see
-    /// `ThisMacTmuxServer.globalOptions`. SwiftTerm tells Shift-Return from Return only once the CLI turns on the kitty
-    /// keyboard protocol, which tmux never does with the tab. So the tab sends Shift-Return as CSI u itself, and tmux
-    /// hands it to the CLI unchanged. The tab also tells tmux which Control keys were pressed; see `TerminalControlKey`.
-    var cliRunsInThisMacTmux = false
+    /// For a tab whose CLI runs in tmux, on this Mac or an SSH host, which encodes each key again for the CLI; see
+    /// `ThisMacTmuxServer.globalOptions` and `RemoteCLICommandBuilder`. SwiftTerm tells Shift-Return from Return only
+    /// once the CLI turns on the kitty keyboard protocol, which tmux never does with the tab. So the tab sends
+    /// Shift-Return as CSI u itself, and tmux hands it to the CLI unchanged. The tab also tells tmux which Control keys
+    /// were pressed; see `TerminalControlKey`.
+    var cliRunsInTmux = false
     /// Called after the terminal's colors are set, so the margin around it can match its background.
     var onBackgroundColorChange: (() -> Void)?
     /// Called when the terminal's colors turn from light to dark or back while no program in it subscribes to theme
@@ -164,7 +165,7 @@ final class SelectableTerminalView: LocalProcessTerminalView {
 
     /// SwiftTerm's `keyDown` hands Return here; while an input method composes text, Return belongs to it.
     override func interpretKeyEvents(_ eventArray: [NSEvent]) {
-        if cliRunsInThisMacTmux, terminal.keyboardEnhancementFlags.isEmpty, !hasMarkedText(),
+        if cliRunsInTmux, terminal.keyboardEnhancementFlags.isEmpty, !hasMarkedText(),
            eventArray.count == 1, let event = eventArray.first, ShiftReturnKey.matches(event) {
             send(txt: ShiftReturnKey.csiUSequence)
             return
