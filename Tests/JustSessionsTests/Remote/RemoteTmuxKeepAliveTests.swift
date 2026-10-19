@@ -33,6 +33,10 @@ struct RemoteTmuxKeepAliveTests {
         #expect(options.contains("prefix2 None"))
         let windowOptions = sandbox.run("tmux show-options -w -t \(ShellQuoting.quoted(tmuxName))")
         #expect(windowOptions.contains("allow-passthrough on"))
+        // tmux 3.5 and later pass the tab's Shift-Return and Control keys on to the CLI only with these (TRM-61, TRM-73).
+        let serverOptions = sandbox.run("tmux show-options -s")
+        #expect(serverOptions.contains("extended-keys on"))
+        if serverOptions.contains("extended-keys-format") { #expect(serverOptions.contains("extended-keys-format csi-u")) }
 
         // The connection drops: the client goes away, the CLI stays.
         firstClient.terminate()

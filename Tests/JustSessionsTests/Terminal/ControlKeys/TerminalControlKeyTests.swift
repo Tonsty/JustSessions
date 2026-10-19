@@ -34,13 +34,13 @@ struct TerminalControlKeyTests {
 
     @Test func aKeyIsCSIuForThisMacsTmuxAndItsLegacyByteWithout() {
         let slash = TerminalControlKey.punctuationOrDigit("/")
-        #expect(slash.bytesForThisMacTmux == "\u{1b}[47;5u")
+        #expect(slash.bytesForTmux == "\u{1b}[47;5u")
         #expect(slash.legacyBytes == "\u{1f}")
         #expect(TerminalControlKey.punctuationOrDigit("=").legacyBytes == nil)
-        #expect(TerminalControlKey.bracketOrBackslash("]").bytesForThisMacTmux == "\u{1d}")
-        #expect(TerminalControlKey.returnKey(withShift: true).bytesForThisMacTmux == "\u{1b}[13;6u")
+        #expect(TerminalControlKey.bracketOrBackslash("]").bytesForTmux == "\u{1d}")
+        #expect(TerminalControlKey.returnKey(withShift: true).bytesForTmux == "\u{1b}[13;6u")
         #expect(TerminalControlKey.returnKey(withShift: true).legacyBytes == nil)
-        #expect(TerminalControlKey.backspace.bytesForThisMacTmux == "\u{1b}[127;5u")
+        #expect(TerminalControlKey.backspace.bytesForTmux == "\u{1b}[127;5u")
     }
 
     @Test func aSwiftTermTerminalWithoutTmuxSendsTheLegacyBytes() async throws {
@@ -66,7 +66,7 @@ struct TerminalControlKeyTests {
     func aTerminalWithoutTheKeyboardLeavesTheKeys(_ engine: TerminalEngine) async throws {
         let fixture = try KeyRecordingTerminalFixture(engine: engine)
         defer { fixture.tearDown() }
-        fixture.terminalView.cliRunsInThisMacTmux = true
+        fixture.terminalView.cliRunsInTmux = true
         try await fixture.start()
         fixture.window.makeFirstResponder(nil)
 
@@ -82,7 +82,7 @@ struct TerminalControlKeyTests {
         let fixture = try KeyRecordingTerminalFixture(engine: .swiftTerm)
         defer { fixture.tearDown() }
         let terminalView = try #require(fixture.terminalView as? SelectableTerminalView)
-        terminalView.cliRunsInThisMacTmux = true
+        terminalView.cliRunsInTmux = true
         terminalView.setMarkedText(
             "ni", selectedRange: NSRange(location: 2, length: 0), replacementRange: NSRange(location: NSNotFound, length: 0)
         )
@@ -91,17 +91,17 @@ struct TerminalControlKeyTests {
         #expect(!terminalView.performKeyEquivalent(with: ControlKeyPress.slash.event(windowNumber: fixture.window.windowNumber)))
     }
 
-    /// Outside this Mac's tmux, Ghostty's own bytes stay.
-    @Test func aGhosttyTerminalSendsControlKeysItselfOnlyInThisMacsTmux() async throws {
+    /// Outside tmux, Ghostty's own bytes stay.
+    @Test func aGhosttyTerminalSendsControlKeysItselfOnlyInTmux() async throws {
         let fixture = try KeyRecordingTerminalFixture(engine: .ghostty)
         defer { fixture.tearDown() }
         let terminalView = try #require(fixture.terminalView as? GhosttyTabTerminalView)
         try await fixture.start()
         let slash = ControlKeyPress.slash.event(windowNumber: fixture.window.windowNumber)
 
-        #expect(!terminalView.sendControlKeyToThisMacTmux(slash))
-        terminalView.cliRunsInThisMacTmux = true
-        #expect(terminalView.sendControlKeyToThisMacTmux(slash))
+        #expect(!terminalView.sendControlKeyToTmux(slash))
+        terminalView.cliRunsInTmux = true
+        #expect(terminalView.sendControlKeyToTmux(slash))
 
         try await expectEventually { !fixture.receivedInput.isEmpty }
         #expect(fixture.receivedInput == "\u{1b}[47;5u")

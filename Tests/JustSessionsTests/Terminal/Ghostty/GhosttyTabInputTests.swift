@@ -13,7 +13,7 @@ struct GhosttyTabInputTests {
     @Test func aTabInTmuxSendsShiftReturnAsCSIuAndReturnAsItself() async throws {
         let fixture = try GhosttyTabFixture()
         defer { fixture.tearDown() }
-        fixture.view.cliRunsInThisMacTmux = true
+        fixture.view.cliRunsInTmux = true
         try await fixture.start(printing: "echo READY")
         try await expectEventually { fixture.screen.contains("READY") }
 
@@ -43,7 +43,7 @@ struct GhosttyTabInputTests {
     @Test func keysTheTabSendsItselfKeepTheirPlaceAmongTypedKeys() async throws {
         let fixture = try GhosttyTabFixture()
         defer { fixture.tearDown() }
-        fixture.view.cliRunsInThisMacTmux = true
+        fixture.view.cliRunsInTmux = true
         try await fixture.start(printing: "printf '\\033[?1049hALTERNATE'")
         try await expectEventually { fixture.screen.contains("ALTERNATE") }
         let window = fixture.window

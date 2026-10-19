@@ -6,6 +6,6 @@ import AppKit
 extension SelectableTerminalView {
     func bytesToSend(forControlKey event: NSEvent) -> String? {
         guard terminal.keyboardEnhancementFlags.isEmpty, let controlKey = TerminalControlKey(event) else { return nil }
-        return cliRunsInThisMacTmux ? controlKey.bytesForThisMacTmux : controlKey.legacyBytes
+        return cliRunsInTmux ? controlKey.bytesForTmux : controlKey.legacyBytes
     }
 }
