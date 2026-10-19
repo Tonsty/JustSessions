@@ -16,7 +16,8 @@ struct ThisMacTmuxServer: Sendable {
         ("mouse", "on"),
         // No prefix key, so Ctrl-B and every other key reaches the CLI.
         ("prefix", "None"),
-        // Claude Code tracks focus, and asks for this setting when it finds itself in tmux.
+        // Claude Code tracks focus, and asks for this setting when it finds itself in tmux. A tab on an SSH host sets
+        // it on the host's tmux too; see `RemoteCLICommandBuilder`.
         ("focus-events", "on"),
         // tmux before 3.5 waits 500 ms after Esc to see whether a longer key sequence follows.
         ("escape-time", "10"),
