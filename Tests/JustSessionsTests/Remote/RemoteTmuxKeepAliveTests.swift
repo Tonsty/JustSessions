@@ -37,6 +37,8 @@ struct RemoteTmuxKeepAliveTests {
         let serverOptions = sandbox.run("tmux show-options -s")
         #expect(serverOptions.contains("extended-keys on"))
         if serverOptions.contains("extended-keys-format") { #expect(serverOptions.contains("extended-keys-format csi-u")) }
+        // tmux asks the tab for focus changes and passes them to the CLI, as this Mac's tmux does (SSH-103).
+        #expect(serverOptions.contains("focus-events on"))
 
         // The connection drops: the client goes away, the CLI stays.
         firstClient.terminate()
