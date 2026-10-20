@@ -8,10 +8,10 @@ import SwiftTerm
 /// SwiftTerm's, and hands Ghostty the output; Ghostty hands back what you type and the size it lays the text out at.
 /// Ghostty's colors and font come from its controller's configuration; see `GhosttyTerminalControllers`.
 final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
-    /// For a tab whose CLI runs in tmux on this Mac; see `SelectableTerminalView.cliRunsInThisMacTmux`. Ghostty
+    /// For a tab whose CLI runs in tmux, on this Mac or an SSH host; see `SelectableTerminalView.cliRunsInTmux`. Ghostty
     /// would send Shift-Return as `CSI 27 ; 2 ; 13 ~`, so the tab sends CSI u itself, and Control keys as
     /// `GhosttyTabTerminalView+ControlKeys` does.
-    var cliRunsInThisMacTmux = false
+    var cliRunsInTmux = false
     var onBackgroundColorChange: (() -> Void)?
     /// See `SelectableTerminalView.onUnheardLightDarkChange`.
     var onUnheardLightDarkChange: (() -> Void)?
@@ -183,7 +183,7 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     /// While an input method composes text, Return belongs to it. tmux never turns on the kitty keyboard protocol for
     /// the tab, which is when the SwiftTerm tab leaves Shift-Return alone, so this one doesn't ask.
     override func keyDown(with event: NSEvent) {
-        if cliRunsInThisMacTmux, ShiftReturnKey.matches(event), !hasMarkedText() {
+        if cliRunsInTmux, ShiftReturnKey.matches(event), !hasMarkedText() {
             sendAsTyped(ShiftReturnKey.csiUSequence)
             return
         }

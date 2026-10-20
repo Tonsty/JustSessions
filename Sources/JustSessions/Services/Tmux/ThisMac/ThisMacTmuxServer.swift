@@ -16,13 +16,15 @@ struct ThisMacTmuxServer: Sendable {
         ("mouse", "on"),
         // No prefix key, so Ctrl-B and every other key reaches the CLI.
         ("prefix", "None"),
-        // Claude Code tracks focus, and asks for this setting when it finds itself in tmux.
+        // Claude Code tracks focus, and asks for this setting when it finds itself in tmux. A tab on an SSH host sets
+        // it on the host's tmux too; see `RemoteCLICommandBuilder`.
         ("focus-events", "on"),
         // tmux before 3.5 waits 500 ms after Esc to see whether a longer key sequence follows.
         ("escape-time", "10"),
         // The tab sends Shift-Return as CSI 13;2u (see `SelectableTerminalView`), and these pass it on unchanged,
         // so the CLI can tell it from Return. tmux gives a CLI that asks for modifyOtherKeys each key as CSI u, and
-        // any other CLI the key's legacy byte where it has one; see `TerminalControlKey`.
+        // any other CLI the key's legacy byte where it has one; see `TerminalControlKey`. A tab on an SSH host sets
+        // `extended-keys on` on the host's tmux, which 3.5 and later need; see `RemoteCLICommandBuilder`.
         ("extended-keys", "always"),
         ("extended-keys-format", "csi-u"),
         // The tab's terminal gets the title the CLI sets, where a Codex CLI names its thread, and, once the CLI has

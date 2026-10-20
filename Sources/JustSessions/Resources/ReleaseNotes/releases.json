@@ -1,5 +1,37 @@
 [
   {
+    "version": "1.2.17",
+    "publishedOn": "2026-10-18",
+    "title": {
+      "en": "⇧Return on SSH hosts",
+      "zh-Hans": "SSH 主机上 ⇧Return 换行"
+    },
+    "sections": [
+      {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "On SSH hosts with tmux, ⇧Return adds a line to the prompt instead of sending it, as on this Mac.",
+            "zh-Hans": "在装有 tmux 的 SSH 主机上，⇧Return 会在输入框中换行而不是发送，与本机一致。"
+          }
+        ]
+      },
+      {
+        "kind": "fixed",
+        "items": [
+          {
+            "en": "Claude Code on an SSH host can track focus and no longer shows a “tmux focus-events off” hint.",
+            "zh-Hans": "SSH 主机上的 Claude Code 可感知焦点，不再显示「tmux focus-events off」提示。"
+          },
+          {
+            "en": "Small bug fixes.",
+            "zh-Hans": "修复了一些小问题。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.16",
     "publishedOn": "2026-10-17",
     "title": {

@@ -55,7 +55,7 @@ struct ThisMacTmuxShiftReturnTests {
     }
 
     @Test(arguments: TerminalEngine.allCases)
-    func onlyATabWhoseCLIRunsInTmuxOnThisMacSendsShiftReturnAsCSIu(_ engine: TerminalEngine) {
+    func onlyATabWhoseCLIRunsInTmuxSendsShiftReturnAsCSIu(_ engine: TerminalEngine) {
         let command = NativeCLICommand(executablePath: "/bin/sh", arguments: [], workingDirectory: "/tmp", environment: [])
         func tab(host: SessionHost, tmuxSessionName: String?) -> TerminalSession {
             TerminalSession(
@@ -71,10 +71,11 @@ struct ThisMacTmuxShiftReturnTests {
             )
         }
 
-        #expect(tab(host: .thisMac, tmuxSessionName: "justsessions-claude-abc").terminalView.cliRunsInThisMacTmux)
-        #expect(!tab(host: .thisMac, tmuxSessionName: nil).terminalView.cliRunsInThisMacTmux)
-        // tmux on an SSH host keeps its own key settings, which may not pass CSI u on.
-        #expect(!tab(host: .ssh("devbox"), tmuxSessionName: "justsessions-claude-abc").terminalView.cliRunsInThisMacTmux)
+        #expect(tab(host: .thisMac, tmuxSessionName: "justsessions-claude-abc").terminalView.cliRunsInTmux)
+        #expect(!tab(host: .thisMac, tmuxSessionName: nil).terminalView.cliRunsInTmux)
+        // The tab's tmux on an SSH host gets the key settings it needs on every attach; see `RemoteCLICommandBuilder`.
+        #expect(tab(host: .ssh("devbox"), tmuxSessionName: "justsessions-claude-abc").terminalView.cliRunsInTmux)
+        #expect(!tab(host: .ssh("devbox"), tmuxSessionName: nil).terminalView.cliRunsInTmux)
     }
 
     private func returnKeyEvent(modifiers: NSEvent.ModifierFlags, windowNumber: Int) -> NSEvent {
