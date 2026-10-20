@@ -19,6 +19,9 @@ enum RemoteCLIActivityTitle {
     /// `ClaudeLiveSessionRecord` reads them, Pi's and OpenCode's as `LiveSessionReport` does, Kiro CLI's as
     /// `KiroTurnMarkers` names them, and Antigravity's as `RemoteAntigravityActivityRelay` does.
     static func activity(inTerminalTitle title: String, of provider: ConversationProvider) -> CLIActivity? {
+        if provider == .claude, let record = RemoteClaudeSessionTitle.record(inTerminalTitle: title) {
+            return record.activity
+        }
         guard title.hasPrefix(titlePrefix) else { return nil }
         let value = title.dropFirst(titlePrefix.count)
         let state = String(value.prefix { $0 != ":" })

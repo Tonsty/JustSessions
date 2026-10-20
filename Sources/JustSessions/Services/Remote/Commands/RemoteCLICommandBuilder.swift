@@ -161,7 +161,8 @@ struct RemoteCLICommandBuilder {
         // doesn't ask, keeps each key's plain byte. `focus-events`: tmux asks the tab to say when it gains and loses
         // the keyboard, and tells a CLI that asks, as this Mac's tmux does. Claude Code tracks focus, and without it
         // shows a hint to set the option. A program in the host's other sessions hears of it only when it asks.
-        let titleFormat = RemoteCLIActivityTitle.providers.contains(provider) ? RemoteCLIActivityTitle.titleFormat : "#T"
+        let titleFormat = provider == .claude ? RemoteClaudeSessionTitle.titleFormat
+            : RemoteCLIActivityTitle.providers.contains(provider) ? RemoteCLIActivityTitle.titleFormat : "#T"
         let sessionOptions = [
             "set-option status off", "set-option set-titles on", "set-option set-titles-string '\(titleFormat)'",
             "set-option mouse on", "set-option -wq allow-passthrough on", "set-option -s escape-time 10",

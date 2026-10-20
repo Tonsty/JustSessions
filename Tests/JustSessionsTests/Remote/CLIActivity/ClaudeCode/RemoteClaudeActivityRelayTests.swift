@@ -93,6 +93,67 @@ struct RemoteClaudeActivityRelayTests {
         #expect(sandbox.waitUntil { Self.relayCount(inProcessGroup: panePID) == 0 })
     }
 
+    @Test func namesAndSessionSwitchesReachTheTabWithoutAnActivityChange() throws {
+        guard let tmuxDirectory = TmuxSandbox.installedTmuxDirectory else { return }
+        let sandbox = try TmuxSandbox(tmuxDirectory: tmuxDirectory)
+        defer { sandbox.tearDown() }
+        try sandbox.replaceCLI(withScript: Self.claudeKeepingARecord)
+        let output = sandbox.root.appendingPathComponent("client.log")
+        let client = try sandbox.startClient(tabCommand(sandbox), recordingOutputTo: output)
+        defer { client.terminate() }
+        let name = "部署 \"quoted\" \\ #{pane_id}; $(touch should-not-exist)"
+        let fields = try JSONSerialization.data(withJSONObject: ["status": "idle", "name": name, "nameSource": "user"])
+        try Self.setRecord(String(decoding: fields, as: UTF8.self).dropFirst().dropLast().description, in: sandbox)
+
+        #expect(sandbox.waitUntil { Self.lastSession(in: output)?.userChosenName == name })
+        #expect(TerminalTitlesSent.lastActivity(inOutputFile: output, of: .claude) == .idle)
+        #expect(!FileManager.default.fileExists(atPath: sandbox.project.appendingPathComponent("should-not-exist").path))
+
+        let newID = UUID().uuidString.lowercased()
+        try newID.write(to: sandbox.root.appendingPathComponent("claude-session-id"), atomically: true, encoding: .utf8)
+        #expect(sandbox.waitUntil { Self.lastSession(in: output)?.sessionID == newID })
+        #expect(Self.lastSession(in: output)?.userChosenName == name)
+
+        // Metadata too large to relay must not leave the old idle record hiding a new busy state.
+        let huge = #""status":"busy","name":"\#(String(repeating: "x", count: 9000))","nameSource":"user""#
+        try Self.setRecord(huge, in: sandbox)
+        #expect(sandbox.waitUntil { TerminalTitlesSent.lastActivity(inOutputFile: output, of: .claude) == .working })
+        #expect(Self.lastSession(in: output) == nil)
+    }
+
+    @Test func aTranscriptRenameReachesTheTabWhenTheRegistryOmitsTheName() throws {
+        guard let tmuxDirectory = TmuxSandbox.installedTmuxDirectory else { return }
+        let sandbox = try TmuxSandbox(tmuxDirectory: tmuxDirectory)
+        defer { sandbox.tearDown() }
+        try sandbox.replaceCLI(withScript: Self.claudeKeepingARecord)
+        let output = sandbox.root.appendingPathComponent("client.log")
+        let client = try sandbox.startClient(tabCommand(sandbox), recordingOutputTo: output)
+        defer { client.terminate() }
+        try Self.setRecord(#""status":"idle""#, in: sandbox)
+        #expect(sandbox.waitUntil { Self.lastSession(in: output)?.sessionID == Self.sessionID })
+        let folder = sandbox.root.appendingPathComponent(".claude/projects/a project")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let transcript = folder.appendingPathComponent("\(Self.sessionID).jsonl")
+        try #"{"type":"custom-title","customTitle":"Transcript ✓","sessionId":"\#(Self.sessionID)"}"#
+            .write(to: transcript, atomically: true, encoding: .utf8)
+        #expect(sandbox.waitUntil { Self.lastSession(in: output)?.userChosenName == "Transcript ✓" })
+
+        // A large turn moves the title out of the tail. Its last name stays, but not after /clear.
+        try String(repeating: "x", count: 70000).write(to: transcript, atomically: true, encoding: .utf8)
+        Thread.sleep(forTimeInterval: 1.5)
+        #expect(Self.lastSession(in: output)?.userChosenName == "Transcript ✓")
+        let newID = UUID().uuidString.lowercased()
+        try newID.write(to: sandbox.root.appendingPathComponent("claude-session-id"), atomically: true, encoding: .utf8)
+        #expect(sandbox.waitUntil { Self.lastSession(in: output)?.sessionID == newID })
+        #expect(Self.lastSession(in: output)?.userChosenName == nil)
+    }
+
+    private static let sessionID = "3dba4b81-0805-49c2-bbc7-84b61e334cbe"
+
+    private static func lastSession(in output: URL) -> ClaudeLiveSessionRecord? {
+        TerminalTitlesSent.titles(inOutputFile: output).last.flatMap(RemoteClaudeSessionTitle.record(inTerminalTitle:))
+    }
+
     /// Keeps `$HOME/claude-record` in a registry record for its pane, rewritten in place as Claude Code may, until
     /// `$HOME/claude-exit` appears, then takes the record away as it does on exit.
     private static let claudeKeepingARecord = #"""
@@ -101,7 +162,9 @@ struct RemoteClaudeActivityRelayTests {
         records=${CLAUDE_CONFIG_DIR:-$HOME/.claude}/sessions
         mkdir -p "$records"
         while [ ! -e "$HOME/claude-exit" ]; do
-          [ -f "$HOME/claude-record" ] && printf '{"pid":%s,"sessionId":"abc","tmux":"%s",%s,"updatedAt":1}' "$$" "$location" "$(cat "$HOME/claude-record")" > "$records/$$.json"
+          session_id=\#(Self.sessionID)
+          [ -f "$HOME/claude-session-id" ] && IFS= read -r session_id < "$HOME/claude-session-id"
+          [ -f "$HOME/claude-record" ] && printf '{"pid":%s,"sessionId":"%s","tmux":"%s",%s,"updatedAt":1}' "$$" "$session_id" "$location" "$(cat "$HOME/claude-record")" > "$records/$$.json"
           sleep 0.1
         done
         rm -f "$records/$$.json"

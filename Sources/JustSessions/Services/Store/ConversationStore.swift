@@ -352,8 +352,8 @@ final class ConversationStore {
         titleAliases.title(for: conversation)
     }
 
-    func applySuggestedTitle(_ title: String, toSessionID sessionID: String, provider: ConversationProvider) {
-        guard let index = conversations.firstIndex(where: { $0.provider == provider && $0.sessionID == sessionID }),
+    func applySuggestedTitle(_ title: String, toSessionID sessionID: String, provider: ConversationProvider, on host: SessionHost) {
+        guard let index = conversations.firstIndex(where: { $0.provider == provider && $0.host == host && $0.sessionID == sessionID }),
               conversations[index].suggestedTitle != title else { return }
         conversations[index] = conversations[index].withSuggestedTitle(title)
     }

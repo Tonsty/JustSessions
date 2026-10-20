@@ -5,8 +5,8 @@ import Foundation
 /// in the sidebar, and the tmux session that Resume reattaches to all belong to that session. `/clear` keeps a name
 /// chosen with `/rename`, and Claude Code writes it into the new session too, so the name comes along.
 extension ConversationStore {
-    /// Whether the tab is linked to `sessionID` afterwards. A session that is not listed yet gets one refresh of this
-    /// Mac, and the tab follows it once a refresh lists it.
+    /// Whether the tab is linked to `sessionID` afterwards. A session that is not listed yet gets one refresh of its
+    /// host, and the tab follows it once a refresh lists it.
     @discardableResult
     func followClaudeSessionSwitch(of session: TerminalSession, to sessionID: String) -> Bool {
         // A new session's tab is linked by new session discovery instead.
@@ -17,7 +17,7 @@ extension ConversationStore {
         }) else {
             if session.cliSessionIDRefreshedFor != sessionID {
                 session.cliSessionIDRefreshedFor = sessionID
-                refreshThisMac()
+                refresh(session.host)
             }
             return false
         }
