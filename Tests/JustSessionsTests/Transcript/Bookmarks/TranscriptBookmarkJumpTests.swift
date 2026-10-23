@@ -28,10 +28,11 @@ struct TranscriptBookmarkJumpTests {
             store.messageBookmarks.bookmarks(forConversationID: files.conversation.id)
         }
 
-        /// Whether the entry's top is 6 points below the reader's, where a jump puts it, with nothing left to load or restore.
+        /// Whether the entry's top is 6 points below the reader's top, under its toolbar (`readableBounds(of:)`), where a jump
+        /// puts it, with nothing left to load or restore.
         func showsAtTop(_ entryID: Int) -> Bool {
             guard !paging.isLoading, !controller.isRestoring, let frame = controller.entryFrameInClipView(at: entryID) else { return false }
-            return abs(frame.minY - scrollView.contentView.bounds.minY - 6) < 1
+            return abs(frame.minY - TranscriptScrollPositionController.readableBounds(of: scrollView.contentView).minY - 6) < 1
         }
 
         func close() {
@@ -71,7 +72,7 @@ struct TranscriptBookmarkJumpTests {
     private func showsAtTop(_ entryID: Int, in fixture: TranscriptScrollViewFixture) -> Bool {
         guard let scrollView = fixture.readerScrollView, let controller = fixture.positionController, !controller.isRestoring,
               let frame = controller.entryFrameInClipView(at: entryID) else { return false }
-        return abs(frame.minY - scrollView.contentView.bounds.minY - 6) < 1
+        return abs(frame.minY - TranscriptScrollPositionController.readableBounds(of: scrollView.contentView).minY - 6) < 1
     }
 
     @Test func goingToALoadedBookmarkPutsItsMessageAtTheTop() async throws {
@@ -369,5 +370,42 @@ struct TranscriptBookmarkJumpTests {
         try await fixture.waitUntil { showsAtTop(id(50), in: fixture) }
         #expect(showsAtTop(id(50), in: fixture))
         #expect(fixture.positionController?.seekTarget == id(50))
+    }
+
+    /// The highlight beside the reader's text is on the message ⌘D bookmarks, wherever the reader is scrolled (RDR-48).
+    @Test func theHighlightIsOnTheMessageCommandDBookmarksAsTheReaderScrolls() async throws {
+        let reader = try await openReader()
+        defer { reader.close() }
+        let clipView = reader.scrollView.contentView
+        let target = reader.bookmarkState.target
+
+        for fraction in [0.5, 0.2] {
+            try await reader.fixture.scroll(reader.scrollView, to: (clipView.documentRect.height - clipView.bounds.height) * fraction)
+            try await reader.fixture.waitUntil {
+                !reader.paging.isLoading && !reader.controller.isRestoring
+                    && target.shown?.entryID == reader.controller.visibleEntryIDs(minimumVisibleHeight: MessageBookmarkNavigation.minimumVisibleHeight).first
+            }
+            let shown = try #require(target.shown)
+            #expect(shown.frame == reader.controller.entryFrameInStack(at: shown.entryID))
+
+            try reader.commands.toggleBookmark()
+
+            #expect(reader.savedBookmarks.contains { $0.entryID == shown.entryID })
+        }
+        #expect(reader.savedBookmarks.count == 2)
+    }
+
+    /// Near the end the jumped-to message stays below the top, and ⌘D acts on it; so does the highlight.
+    @Test func afterAJumpNearTheEndTheHighlightIsOnTheJumpedToMessage() async throws {
+        let reader = try await openReader(bookmarks: [bookmark("a", at: 598)])
+        defer { reader.close() }
+
+        try reader.commands.goToAdjacentBookmark(true)
+        try await reader.fixture.waitUntil {
+            !reader.paging.isLoading && !reader.controller.isRestoring && reader.bookmarkState.target.shown?.entryID == id(598)
+        }
+
+        #expect(reader.bookmarkState.target.shown?.entryID == id(598))
+        #expect(reader.controller.visibleEntryIDs(minimumVisibleHeight: MessageBookmarkNavigation.minimumVisibleHeight).first != id(598))
     }
 }

@@ -24,6 +24,11 @@ extension EnvironmentValues {
 /// label or tags shows them in the reader's card while the pointer is on it (RDR-51); any other letter is inert to the
 /// pointer, so the reader keeps at most 26 hover areas.
 struct TranscriptBookmarkMarker: View {
+    /// The chip's side: 20 + 4 fills the 24-point gutter (TranscriptScrollView's padding).
+    @MainActor static var side: CGFloat { min(InterfaceScale.points(16), 20) }
+    /// Between the chip and the text.
+    static let gapToText: CGFloat = 4
+
     let entryID: Int
     let topPadding: CGFloat
     @Environment(\.transcriptBookmarkLetters) private var letters
@@ -31,7 +36,7 @@ struct TranscriptBookmarkMarker: View {
 
     var body: some View {
         if let bookmark = letters.bookmark(forEntryID: entryID) {
-            let side = min(InterfaceScale.points(16), 20)   // 20 + 4 fills the 24-point gutter (TranscriptScrollView's padding)
+            let side = Self.side
             let hasDetails = bookmark.label != nil || !bookmark.tags.isEmpty
             Text(verbatim: bookmark.letter)
                 .font(ThemeFont.caption.weight(.semibold))
@@ -48,7 +53,9 @@ struct TranscriptBookmarkMarker: View {
                 }
                 .allowsHitTesting(hasDetails && hover != nil)
                 .padding(.top, topPadding)
-                .alignmentGuide(.leading) { $0[.trailing] + 4 }
+                // In the gutter, left of the text. The leading alignment guide this used, set from the chip's trailing edge, left
+                // the chip over the text's first characters in a rendering of the reader (performance.md item 34).
+                .offset(x: -(side + Self.gapToText))
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text(Self.accessibilityLabel(of: bookmark)))
         }

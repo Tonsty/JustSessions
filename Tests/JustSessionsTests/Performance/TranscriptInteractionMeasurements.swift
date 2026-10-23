@@ -33,6 +33,24 @@ struct TranscriptInteractionMeasurements {
         #expect(entryCount > 0) // Record-only: the numbers above are the result.
     }
 
+    /// Reading as the app's readers do, with the bookmark commands on: a store and a paging model, so each scroll update
+    /// finds the message being read and highlights it (RDR-48, PERF-73). The paging model loads nothing.
+    @Test(arguments: [240, 640])
+    func readingWithTheBookmarkCommandsOn(entryCount: Int) async throws {
+        guard SidebarInteractionMeasurements.isEnabled else { return }
+        let harness = try await TranscriptPerfHarness(entryCount: entryCount, bookmarkCommands: true)
+        defer { harness.close() }
+        for isAccessibilityOn in [false, true] {
+            try await harness.setAccessibility(isAccessibilityOn)
+            let label = "transcript N=\(entryCount), bookmark commands on, accessibility \(isAccessibilityOn ? "on" : "off")"
+            try await harness.resetViewport(to: .top)
+            perfReport(label, "AppKit views in the window", harness.viewCount)
+            for (name, value) in try await harness.measureScrolling() { perfReport(label, name, value) }
+            for (name, value) in try await harness.measureHitTesting() { perfReport(label, name, value) }
+        }
+        #expect(entryCount > 0) // Record-only: the numbers above are the result.
+    }
+
     /// The same reading with a letter beside 26 messages, so the markers' cost shows beside the plain reader's. Labelled,
     /// each letter takes the pointer for its hover card (RDR-51, PERF-73).
     @Test(arguments: [(240, false), (640, false), (240, true), (640, true)])
@@ -63,7 +81,8 @@ final class TranscriptPerfHarness {
 
     /// With `bookmarkCount`, that many of the first messages are bookmarked, `labelled` with a label and two tags. The reader
     /// isn't paged, so the markers show and the bookmark commands stay off.
-    init(entryCount: Int, bookmarkCount: Int = 0, labelled: Bool = false) async throws {
+    /// With `bookmarkCommands`, the reader keeps bookmarks and has a paging model, as the app's readers do.
+    init(entryCount: Int, bookmarkCount: Int = 0, labelled: Bool = false, bookmarkCommands: Bool = false) async throws {
         _ = NSApplication.shared
         settings = try IsolatedUserDefaults()
         let conversation = TranscriptScrollViewFixture.conversation("transcript-perf-\(entryCount)")
@@ -79,10 +98,14 @@ final class TranscriptPerfHarness {
             MessageBookmarks(bookmarksByConversationID: [conversation.id: bookmarks]).save(to: settings.userDefaults)
             store = ConversationStore(adapters: [], userDefaults: settings.userDefaults, startsBackgroundPolling: false)
         }
+        if bookmarkCommands, store == nil {
+            store = ConversationStore(adapters: [], userDefaults: settings.userDefaults, startsBackgroundPolling: false)
+        }
         hostingView = NSHostingView(rootView: AnyView(
             TranscriptScrollView(
                 conversation: conversation, transcript: transcript,
-                positionStore: TranscriptReadingPositionStore(), searchState: searchState, store: store
+                positionStore: TranscriptReadingPositionStore(), searchState: searchState,
+                paging: bookmarkCommands ? TranscriptPagingModel() : nil, store: store
             )
             .defaultAppStorage(settings.userDefaults)
         ))

@@ -34,6 +34,10 @@ final class TranscriptScrollPositionController {
     var tracksTranscriptBottom = true
     let entrySeekingRequests = PassthroughSubject<Int, Never>()
     let viewportUpdates = PassthroughSubject<TranscriptPagingViewport, Never>()
+    /// After every scroll update, restoration step, and layout, for what follows the message being read: the bookmark
+    /// target's highlight (RDR-48). Layouts are coalesced into one send on the next turn of the run loop.
+    let readingUpdates = PassthroughSubject<Void, Never>()
+    private var hasScheduledReadingUpdate = false
 
     var pagingViewport: TranscriptPagingViewport? {
         guard let clipView = scrollView?.contentView else { return nil }
@@ -55,6 +59,24 @@ final class TranscriptScrollPositionController {
         entryGeometries = geometries
         geometryIndexByEntry = Dictionary(uniqueKeysWithValues: geometries.indices.map { (geometries[$0].entryIndex, $0) })
         geometryDidLayout()
+        scheduleReadingUpdate()
+    }
+
+    /// Not during the layout pass itself, which mustn't change what views read.
+    private func scheduleReadingUpdate() {
+        guard !hasScheduledReadingUpdate, !isStopped else { return }
+        hasScheduledReadingUpdate = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.hasScheduledReadingUpdate = false
+            if !self.isStopped { self.readingUpdates.send() }
+        }
+    }
+
+    /// The row of the entry at `index` in the entries' own layout, as an overlay on the stack is placed.
+    func entryFrameInStack(at index: Int) -> CGRect? {
+        guard let geometryIndex = geometryIndexByEntry[index], entryGeometries.indices.contains(geometryIndex) else { return nil }
+        return entryGeometries[geometryIndex].frame
     }
 
     func register(_ geometryView: TranscriptEntryGeometryView, in scrollView: NSScrollView) {
@@ -160,6 +182,7 @@ final class TranscriptScrollPositionController {
             let hasReadingPosition = self.recordPosition()
             // Recheck after restoration and layout, even if the first visible message did not change.
             if hasReadingPosition, let viewport = self.pagingViewport { self.viewportUpdates.send(viewport) }
+            self.readingUpdates.send()
         }
     }
 
@@ -175,7 +198,8 @@ final class TranscriptScrollPositionController {
         case .entry(let index, let offset):
             guard let entryFrame = entryFrameInClipView(at: index), entryFrame.height > 0 else { return }
             restoredEntryFrame = entryFrame
-            proposedBounds.origin.y = entryFrame.minY + min(offset, max(0, entryFrame.height - 1))
+            // The offset is from the reader's top, below the toolbar (`readableBounds(of:)`).
+            proposedBounds.origin.y = entryFrame.minY + min(offset, max(0, entryFrame.height - 1)) - clipView.contentInsets.top
         }
         let geometry = RestorationGeometry(documentRect: clipView.documentRect, viewportBounds: clipView.bounds, entryFrame: restoredEntryFrame)
         let currentTime = ProcessInfo.processInfo.systemUptime
@@ -208,8 +232,8 @@ final class TranscriptScrollPositionController {
         guard pendingRestoration == nil, !isStopped, let scrollView, let geometryView,
               geometryView.enclosingScrollView === scrollView else { return nil }
         let clipView = scrollView.contentView
-        let visibleBounds = clipView.bounds
-        if tracksTranscriptBottom, clipView.documentRect.maxY - visibleBounds.maxY <= 2 { return .bottom }
+        if tracksTranscriptBottom, clipView.documentRect.maxY - clipView.bounds.maxY <= 2 { return .bottom }
+        let visibleBounds = Self.readableBounds(of: clipView)
         let localVisibleBounds = geometryView.convert(visibleBounds, from: clipView)
         guard let geometry = firstGeometry(overlapping: localVisibleBounds) else { return nil }
         let entryFrame = geometryView.convert(geometry.frame, to: clipView)
@@ -240,7 +264,7 @@ final class TranscriptScrollPositionController {
     /// good: once its page left, it would no longer be laid out and would hold again.
     private func forgetSeekTargetOutOfView() {
         guard let index = seekTargetStorage, pendingRestoration == nil, let frame = entryFrameInClipView(at: index),
-              let clipView = scrollView?.contentView, !frame.intersects(clipView.bounds) else { return }
+              let clipView = scrollView?.contentView, !frame.intersects(Self.readableBounds(of: clipView)) else { return }
         seekTargetStorage = nil
     }
 
@@ -264,11 +288,22 @@ final class TranscriptScrollPositionController {
     /// The entries with at least `minimumVisibleHeight` points of their rows on screen, top to bottom. Run only by a command.
     func visibleEntryIDs(minimumVisibleHeight: CGFloat) -> [Int] {
         guard let scrollView, let geometryView, geometryView.enclosingScrollView === scrollView else { return [] }
-        let bounds = geometryView.convert(scrollView.contentView.bounds, from: scrollView.contentView)
+        let bounds = geometryView.convert(Self.readableBounds(of: scrollView.contentView), from: scrollView.contentView)
         guard let first = firstGeometryIndex(overlapping: bounds) else { return [] }
         return entryGeometries[first...].prefix { $0.frame.minY < bounds.maxY }
             .filter { min($0.frame.maxY, bounds.maxY) - max($0.frame.minY, bounds.minY) >= minimumVisibleHeight }
             .map(\.entryIndex)
+    }
+
+    /// The part of the clip view the reader shows: its bounds without its content insets. The reading toolbar, and Find's
+    /// bar under it, are a safe-area inset over the scroll view's top (`TranscriptScrollView`), and the text scrolls on
+    /// under them, so a message there isn't on screen. Positions, the message being read, and jumps measure from its top.
+    static func readableBounds(of clipView: NSClipView) -> CGRect {
+        let insets = clipView.contentInsets
+        var bounds = clipView.bounds
+        bounds.origin.y += insets.top
+        bounds.size.height = max(0, bounds.height - insets.top - insets.bottom)
+        return bounds
     }
 
     func entryFrameInClipView(at index: Int) -> CGRect? {

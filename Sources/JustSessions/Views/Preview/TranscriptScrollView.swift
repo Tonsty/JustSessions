@@ -102,6 +102,7 @@ struct TranscriptScrollView: View {
                 }
                 .onChange(of: isActive) {
                     if !isActive { searchState.close() } else { prefetchIfNeeded() }
+                    updateBookmarkTarget()
                 }
                 .onChange(of: searchState.isPresented) { positionController.restoreRecordedPosition() }
                 .onChange(of: readingFontSize) { positionController.restoreRecordedPosition() }
@@ -114,6 +115,7 @@ struct TranscriptScrollView: View {
                 // A fresh window's request is taken as its first page shows (initial), a later one as it comes.
                 .onChange(of: readingRequests?.navigationRevision ?? 0, initial: true) { takeReadingNavigation() }
                 .onReceive(positionController.viewportUpdates) { prefetchIfNeeded(in: $0) }
+                .onReceive(positionController.readingUpdates) { updateBookmarkTarget() }
                 .onReceive(textSelection.trackingEnded) { prefetchIfNeeded() }
                 .onAppear {
                     positionController.tracksTranscriptBottom = paging?.hasLater != true
@@ -144,6 +146,15 @@ struct TranscriptScrollView: View {
                     }
                     TranscriptEntriesStack(transcript: transcript, provider: conversation.provider, positionController: positionController)
                         .equatable()
+                        // In the entries' own coordinates, where the target's row is measured.
+                        .overlay(alignment: .topLeading) {
+                            if bookmarksAreEnabled {
+                                TranscriptBookmarkTargetMarks(target: bookmarkState.target)
+                                    .frame(width: TranscriptBookmarkTargetMarks.gutterWidth)
+                                    .offset(x: -TranscriptBookmarkTargetMarks.gutterWidth)
+                                    .accessibilityHidden(true)
+                            }
+                        }
                     if let paging, paging.hasLater {
                         TranscriptPageBoundary(isEarlier: false, isLoading: paging.isLoading, action: loadLaterPage)
                             .disabled(!isActive)

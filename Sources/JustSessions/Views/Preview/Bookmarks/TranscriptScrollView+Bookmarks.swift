@@ -33,6 +33,19 @@ extension TranscriptScrollView {
             seekTarget: positionController.seekTarget)
     }
 
+    /// Highlights the message ⌘D would bookmark now (RDR-48): `messageBeingRead`, as ⌘D finds it, after every scroll update,
+    /// restoration step, and layout. None while ⌘D would do nothing: in a reader that keeps no bookmarks, one not active,
+    /// or while a jump's page loads.
+    func updateBookmarkTarget() {
+        guard bookmarksAreEnabled, isActive, bookmarkState.loadingJump == nil, bookmarkState.loadingEntryJump == nil,
+              let entry = messageBeingRead, let frame = positionController.entryFrameInStack(at: entry.id) else {
+            bookmarkState.target.show(nil)
+            return
+        }
+        bookmarkState.target.show(TranscriptBookmarkTarget.Shown(
+            entryID: entry.id, frame: frame, topPadding: TranscriptEntryView.topPadding(startsTurn: entry.startsTurn)))
+    }
+
     func toggleBookmarkOnMessageBeingRead() {
         // Until a jump's page arrives, the message on screen is one the reader is leaving.
         guard bookmarksAreEnabled, bookmarkState.loadingJump == nil, bookmarkState.loadingEntryJump == nil else { return }

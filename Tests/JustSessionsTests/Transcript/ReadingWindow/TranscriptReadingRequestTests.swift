@@ -25,7 +25,7 @@ struct TranscriptReadingRequestTests {
         func showsAtTop(_ entryID: Int) -> Bool {
             guard let scrollView = fixture.readerScrollView, let controller = fixture.positionController, !controller.isRestoring,
                   let frame = controller.entryFrameInClipView(at: entryID) else { return false }
-            return abs(frame.minY - scrollView.contentView.bounds.minY - 6) < 1
+            return abs(frame.minY - TranscriptScrollPositionController.readableBounds(of: scrollView.contentView).minY - 6) < 1
         }
 
         var visiblePosition: TranscriptReadingPosition? { fixture.readerScrollView.flatMap(fixture.visiblePosition(in:)) }

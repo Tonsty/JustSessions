@@ -28,7 +28,7 @@ struct TranscriptSeekTargetTests {
         controller.seek(toEntryAt: id(20))
         try await fixture.waitUntil {
             guard !controller.isRestoring, let frame = controller.entryFrameInClipView(at: id(20)) else { return false }
-            return abs(frame.minY - scrollView.contentView.bounds.minY - 6) < 1
+            return abs(frame.minY - TranscriptScrollPositionController.readableBounds(of: scrollView.contentView).minY - 6) < 1
         }
         return (scrollView, controller)
     }

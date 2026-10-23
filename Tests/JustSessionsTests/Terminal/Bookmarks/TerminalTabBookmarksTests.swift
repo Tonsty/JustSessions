@@ -337,7 +337,7 @@ struct TerminalTabBookmarksTests {
         contentView.layoutSubtreeIfNeeded()
         guard let controller = geometryView(in: contentView)?.controller, !controller.isRestoring,
               let scrollView = controller.scrollView, let frame = controller.entryFrameInClipView(at: entryID) else { return false }
-        return abs(frame.minY - scrollView.contentView.bounds.minY - 6) < 1
+        return abs(frame.minY - TranscriptScrollPositionController.readableBounds(of: scrollView.contentView).minY - 6) < 1
     }
 
     private static func geometryView(in view: NSView) -> TranscriptEntryGeometryView? {
