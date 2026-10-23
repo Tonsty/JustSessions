@@ -1,5 +1,50 @@
 [
   {
+    "version": "1.2.18",
+    "publishedOn": "2026-10-23",
+    "title": {
+      "en": "Bookmarks and a conversation map",
+      "zh-Hans": "书签与对话地图"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "Bookmark messages with ⌘D in the reader or a CLI tab; ⌘' and ⇧⌘' go through them in the reader.",
+            "zh-Hans": "在阅读器或 CLI 标签页中按 ⌘D 为消息添加书签，⌘' 和 ⇧⌘' 在阅读器中逐个前往。"
+          },
+          {
+            "en": "View → Show Conversation Map draws each CLI tab's conversation beside it; click a message to read it.",
+            "zh-Hans": "「显示」→「显示对话地图」会在每个 CLI 标签页旁画出其对话；点按消息即可阅读。"
+          }
+        ]
+      },
+      {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "On SSH hosts with tmux, Claude Code tabs show /rename names and follow /clear; restart running ones once.",
+            "zh-Hans": "SSH 主机 tmux 中，Claude Code 标签页显示 /rename 名称、跟随 /clear；运行中需重启。"
+          }
+        ]
+      },
+      {
+        "kind": "fixed",
+        "items": [
+          {
+            "en": "Fixed /rename after Claude Code's /branch not reaching its tab until the next refresh.",
+            "zh-Hans": "修复了 Claude Code 执行 /branch 后，/rename 要到下次刷新才显示在标签页上的问题。"
+          },
+          {
+            "en": "Fixed a new Ghostty tab's CLI sometimes staying too small until the tab was resized.",
+            "zh-Hans": "修复了 Ghostty 新标签页中的 CLI 有时显示过小、直到调整标签页大小才恢复的问题。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.17",
     "publishedOn": "2026-10-18",
     "title": {
