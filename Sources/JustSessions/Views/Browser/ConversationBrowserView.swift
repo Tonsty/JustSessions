@@ -166,7 +166,8 @@ struct ConversationBrowserView: View {
                         provider: provider,
                         host: request.host,
                         folder: request.folder,
-                        creatingMissingFolder: request.creatingMissingFolder
+                        creatingMissingFolder: request.creatingMissingFolder,
+                        deletesSessionWhenClosed: request.deletesSessionWhenClosed
                     )
                 case .plainTerminal:
                     try await store.openPlainTerminal(
@@ -216,9 +217,14 @@ struct ConversationBrowserView: View {
     /// A tab still waiting to be shown runs nothing, so it closes without asking what to do with its CLI; so does a tab
     /// whose CLI or shell already ended, which also ends the dead tmux session that kept a failed CLI's output. A tab
     /// whose CLI can keep running in tmux, or a plain terminal, closes without asking too once you chose Don't ask
-    /// again, doing what you chose: for that tab's host, or for every plain terminal.
+    /// again, doing what you chose: for that tab's host, or for every plain terminal. A tab whose session is deleted
+    /// when it closes deletes it without asking: ticking the box in the New session sheet asked.
     private func requestClosingTerminal(_ id: UUID?) {
         guard let id, let closingTab = store.terminalSessions.first(where: { $0.id == id }) else { return }
+        guard !store.deletesSessionWhenClosed(closingTab) else {
+            store.closeTabDeletingItsSession(id)
+            return
+        }
         switch closingTab.closingNeed {
         case .nothingStarted:
             store.closeTerminal(id)

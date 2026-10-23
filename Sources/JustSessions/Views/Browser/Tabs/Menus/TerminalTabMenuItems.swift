@@ -22,10 +22,25 @@ struct TerminalTabMenuItems: View {
         TerminalTabSplitMenuItems(splitMenu: store.splitMenu(forTab: tab.id)) { action in
             store.performSplitAction(action, fromTab: tab.id, closeTab: onCloseTab)
         }
-        Button(tab.isPlainTerminal ? "Close terminal…" : "Close Tab…", systemImage: "xmark", role: .destructive) {
+        if store.deletesSessionWhenClosed(tab) {
+            closingDeletingSessionItems
+        } else {
+            Button(tab.isPlainTerminal ? "Close terminal…" : "Close Tab…", systemImage: "xmark", role: .destructive) {
+                onCloseTab(tab.id)
+            }
+            closingWithSessionItems
+        }
+    }
+
+    /// A session started with Delete the session when its tab closes goes with its tab, without asking, unless Keep
+    /// session takes that back.
+    @ViewBuilder private var closingDeletingSessionItems: some View {
+        Button("Keep session", systemImage: "tray.and.arrow.down") {
+            store.keepSessionAfterClosing(tab)
+        }
+        Button("Close and delete session", systemImage: "trash", role: .destructive) {
             onCloseTab(tab.id)
         }
-        closingWithSessionItems
     }
 
     /// A new session's tab can't be renamed or shared until it is linked to the session its CLI writes.

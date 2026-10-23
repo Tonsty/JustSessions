@@ -147,6 +147,7 @@ struct TerminalTabGroupSection: View {
             isSplitPartnerHovered: isPartnerHovered,
             showsLeadingSeparator: showsLeadingSeparator,
             groupColor: color,
+            deletesSessionWhenClosed: store.deletesSessionWhenClosed(session),
             menuItems: TerminalTabMenuItems(
                 store: store, tab: session, onRename: onRenameConversation, onCloseTab: onCloseTab,
                 onDelete: onDeleteConversation

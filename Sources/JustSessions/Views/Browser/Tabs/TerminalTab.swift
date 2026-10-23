@@ -28,6 +28,8 @@ struct TerminalTab: View {
     let showsLeadingSeparator: Bool
     /// The color of the tab's group, which outlines the tab while it is active.
     let groupColor: ThemeColor
+    /// Closing the tab deletes its session; see `ConversationStore.deletesSessionWhenClosed(_:)`.
+    var deletesSessionWhenClosed = false
     /// What a right-click anywhere on the tab offers, its × included.
     let menuItems: TerminalTabMenuItems
     let onHoverChange: (Bool) -> Void
@@ -46,6 +48,7 @@ struct TerminalTab: View {
                     TerminalTabTitle(title: session.displayTitle)
                         // Only the title's label, so the tab still reads its status first.
                         .accessibilityLabel(replacingWith: splitAccessibilityLabel)
+                    if deletesSessionWhenClosed { DeletedWhenTabClosesIndicator() }
                 }
                 // The padding is inside the button, so a click anywhere in the tab but its × selects it.
                 .padding(.leading, 10)

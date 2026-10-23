@@ -21,7 +21,9 @@ extension ConversationStore {
         guard !matches.isEmpty else { return }
         for session in waitingSessions {
             guard let conversation = matches[session.id] else { continue }
+            let previousConversationID = session.conversation?.id
             session.synchronize(conversation: conversation, displayTitle: title(for: conversation))
+            carryDeletionWhenClosed(of: session, from: previousConversationID)
             adoptSessionTmuxName(for: session)
         }
         // Sidebar rows look up open terminals through the store, which does not see a tab's own changes.

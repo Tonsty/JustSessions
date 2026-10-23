@@ -5,13 +5,14 @@ import Foundation
 extension ConversationStore {
     /// A new Claude Code session starts with an id of its own when the host's CLI takes one, and its tmux session
     /// has that session's name from the start; see `RemoteClaudeSessionIDFlagSupport`. See
-    /// `launchNewSession(provider:in:initialPrompt:runsInTmux:)` for the rest.
+    /// `launchNewSession(provider:in:initialPrompt:runsInTmux:deletesSessionWhenClosed:)` for the rest.
     func launchNewRemoteSession(
         provider: ConversationProvider,
         host: String,
         projectPath: String,
         initialPrompt: String? = nil,
-        runsInTmux: Bool = true
+        runsInTmux: Bool = true,
+        deletesSessionWhenClosed: Bool = false
     ) {
         connectIfDisconnected(.ssh(host))
         let startCommand = customStartCommand(for: provider, on: .ssh(host))
@@ -45,6 +46,7 @@ extension ConversationStore {
             sessionIDsKnownAtLaunch: preassignedSessionID == nil ? sessionIDsKnownAtLaunch(of: provider, on: .ssh(host)) : [],
             tmuxSessionName: tmuxSessionName
         )
+        session.deletesSessionWhenClosed = deletesSessionWhenClosed
         session.onProcessFinished = { [weak self] in self?.refreshRemoteHost(host) }
         openTerminal(session)
     }
