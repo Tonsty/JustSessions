@@ -29,12 +29,33 @@ struct KiroAdapterTests {
         #expect(untitled.updatedAt == ISO8601TimestampParser.shared.date(from: "2099-01-01T00:00:00Z"))
     }
 
+    /// Kiro CLI 2.16's terminal UI runs the chat as an ACP agent and marks every session it starts `subagent`, the tab's own
+    /// main session included; before this, none of its sessions was listed and a new Kiro tab never linked.
+    @Test func listsAMainSessionMarkedSubagentThatNamesNoParent() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let sessionID = UUID().uuidString.lowercased()
+        try KiroSessionFolderFixture(sessionsDirectory: root).writeSession(
+            id: sessionID, projectPath: "/Users/me/app", title: "Fix the build", createdReason: "subagent",
+            messageLines: [KiroSessionFolderFixture.prompt("Fix the build"), KiroSessionFolderFixture.reply]
+        )
+
+        let found = try KiroAdapter(sessionsDirectory: root).discover()
+
+        #expect(found.map(\.sessionID) == [sessionID])
+        #expect(found.first?.suggestedTitle == "Fix the build")
+    }
+
     @Test func skipsSubagentUnusedAndMalformedSessions() throws {
         let root = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
         let fixture = KiroSessionFolderFixture(sessionsDirectory: root)
         let prompt = [KiroSessionFolderFixture.prompt("Hi")]
-        try fixture.writeSession(id: UUID().uuidString, projectPath: "/Users/me/app", createdReason: "subagent", messageLines: prompt)
+        try fixture.writeSession(id: UUID().uuidString, projectPath: "/Users/me/app", createdReason: "subagent",
+                                 parentSessionID: UUID().uuidString.lowercased(), messageLines: prompt)
+        try fixture.writeSession(id: UUID().uuidString, projectPath: "/Users/me/app", parentSessionID: UUID().uuidString.lowercased(),
+                                 messageLines: prompt)
+        try fixture.writeSession(id: UUID().uuidString, projectPath: "/Users/me/app", createdReason: "subagent", messageLines: [])
         try fixture.writeSession(id: UUID().uuidString, projectPath: "/Users/me/app", messageLines: [])
         try fixture.writeSession(id: "not-a-uuid", projectPath: "/Users/me/app", messageLines: prompt)
         try fixture.writeSession(id: UUID().uuidString, projectPath: "relative/app", messageLines: prompt)

@@ -9,12 +9,14 @@ struct KiroSessionFolderFixture {
         projectPath: String,
         title: String? = nil,
         createdReason: String? = nil,
+        parentSessionID: String? = nil,
         updatedAt: String = "2026-09-30T10:00:00.000Z",
         messageLines: [String]
     ) throws {
         try FileManager.default.createDirectory(at: sessionsDirectory, withIntermediateDirectories: true)
         var members = [#""session_id":"\#(sessionID)""#, #""cwd":"\#(projectPath)""#, #""updated_at":"\#(updatedAt)""#]
         if let title { members.append(#""title":"\#(title)""#) }
+        if let parentSessionID { members.append(#""parent_session_id":"\#(parentSessionID)""#) }
         if let createdReason { members.append(#""session_created_reason":"\#(createdReason)""#) }
         members.append(#""session_state":{"conversation":{"history":[{"title":"not the session's"}]}}"#)
         try "{\(members.joined(separator: ","))}".write(
