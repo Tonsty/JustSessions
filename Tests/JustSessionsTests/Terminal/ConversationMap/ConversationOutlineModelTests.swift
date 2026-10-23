@@ -154,7 +154,9 @@ struct ConversationOutlineModelTests {
     }
 
     /// A relink while a read runs, before the old session's watch is cancelled: the new session's reader reads at once,
-    /// not after the old session's read finishes.
+    /// not after the old session's read finishes. The old read still running when the new outline shows is the proof, so
+    /// the wait has no limit of its own: a v1.2.18 release run gave the 10-message read 1 second beside the
+    /// 200,000-message one on the runner's 3 shared threads, and it took longer.
     @Test func aRelinkReadsTheNewSessionWhileTheOldReadRuns() async throws {
         let large = try TranscriptPagingFixture(count: 200_000)
         let small = try TranscriptPagingFixture(count: 10)
@@ -166,8 +168,9 @@ struct ConversationOutlineModelTests {
         try #require(model.outline == nil, "the first read must still be running when the tab relinks")
         let second = OutlineWatch(model, small.conversation)
         defer { first.cancel(); second.cancel() }
-        try await expectEventually(timeout: .seconds(1)) { model.outline?.blocks.count == 10 }
+        try await expectEventually { model.outline?.blocks.count == 10 || first.hasEnded }
         try #require(!first.hasEnded, "the first read must still be running when the new session's outline shows")
+        #expect(model.outline?.blocks.count == 10)
     }
 
     /// A read of a reader no longer installed that finishes without being cancelled, as in its last page when the tab
