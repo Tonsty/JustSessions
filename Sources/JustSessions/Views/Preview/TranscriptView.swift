@@ -32,56 +32,77 @@ struct TranscriptView: View {
     var body: some View {
         content
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(TranscriptBookmarkTargetReporter(
-                target: waitingNavigationTarget,
-                // Only while no scroll view shows (its own reporter is TranscriptScrollView.swift:91), so a window has one.
-                isActive: isActive && readingRequests != nil && paging.transcript?.entries.isEmpty != false))
-            .task(id: LoadKey(conversationID: conversation.id, updatedAt: conversation.updatedAt)) {
-                if isActive { refresh() }
-            }
-            .onChange(of: isActive) {
-                if isActive { refresh() } else { paging.cancel() }
-            }
-            .onChange(of: matchReveal?.id) {
-                if isActive { refresh() }
-            }
-            .onChange(of: readingRequests?.findRevision ?? 0, initial: true) {
-                if (readingRequests?.findRevision ?? 0) > 0 { searchState.show() }
-            }
-            .onChange(of: readingRequests?.navigationRevision ?? 0) { readAgainForNavigation() }
-            .onChange(of: paging.revision) {
-                dropMatchRevealABookmarkJumpReplaced()
-                if let loadingMatchReveal {
-                    searchState.reveal(loadingMatchReveal.query, at: loadingMatchReveal.entryID)
-                    self.loadingMatchReveal = nil
-                }
-                // A bookmark's page can hold only records the reader hides, as at the end of a file; "No messages yet"
-                // would offer no way back. Show the latest messages and say the message is gone.
-                if let bookmark = bookmarkState.loadingJump, paging.transcript?.entries.isEmpty == true {
-                    bookmarkState.finishLoadingJump()
-                    bookmarkState.show(.missing(bookmark))
-                    bookmarkState.carrySeekTarget(bookmark.entryID)
-                    readingPositionStore.record(.bottom, for: conversation.id)
-                    paging.latest()
-                }
-                // A map click's page holding no message shows the latest instead, as a bookmark's does.
-                if bookmarkState.loadingEntryJump != nil, paging.transcript?.entries.isEmpty == true {
-                    bookmarkState.finishLoadingEntryJump()
-                    readingPositionStore.record(.bottom, for: conversation.id)
-                    paging.latest()
-                }
-                if paging.transcript?.entries.isEmpty == true, bookmarkState.loadingJump == nil, bookmarkState.loadingEntryJump == nil {
-                    takeNavigationMetByEmptyPage()
-                }
-            }
-            .onChange(of: paging.errorMessage) {
-                // The error shows under the pages; nothing waits for the jump's page.
-                if paging.errorMessage != nil {
-                    bookmarkState.cancelLoadingJump()
-                    readingRequests?.discardNavigation()
-                }
-            }
+            .background(TranscriptBookmarkTargetReporter(target: waitingNavigationTarget, isActive: reportsWaitingNavigationTarget))
+            .task(id: loadKey) { refreshIfActive() }
+            .onChange(of: isActive) { activeChanged() }
+            .onChange(of: matchReveal?.id) { refreshIfActive() }
+            .onChange(of: findRevision, initial: true) { findRequested() }
+            .onChange(of: navigationRevision) { readAgainForNavigation() }
+            .onChange(of: paging.revision) { pagesArrived() }
+            .onChange(of: paging.errorMessage) { readFailed() }
             .onDisappear { paging.cancel() }
+    }
+
+    // `body` calls these instead of holding their statements: Swift type-checks a closure's statements with the modifier
+    // chain around it, and the release runner's compiler gave up on `body` with them inline.
+
+    /// Only while no scroll view shows (its own reporter is TranscriptScrollView.swift:91), so a window has one.
+    private var reportsWaitingNavigationTarget: Bool {
+        isActive && readingRequests != nil && paging.transcript?.entries.isEmpty != false
+    }
+
+    private var loadKey: LoadKey { LoadKey(conversationID: conversation.id, updatedAt: conversation.updatedAt) }
+    private var findRevision: Int { readingRequests?.findRevision ?? 0 }
+    private var navigationRevision: Int { readingRequests?.navigationRevision ?? 0 }
+
+    private func refreshIfActive() {
+        if isActive { refresh() }
+    }
+
+    private func activeChanged() {
+        if isActive { refresh() } else { paging.cancel() }
+    }
+
+    private func findRequested() {
+        if findRevision > 0 { searchState.show() }
+    }
+
+    /// Opens Find at a reveal whose pages arrived, and shows the latest messages when a jump's page came back empty.
+    private func pagesArrived() {
+        dropMatchRevealABookmarkJumpReplaced()
+        if let loadingMatchReveal {
+            searchState.reveal(loadingMatchReveal.query, at: loadingMatchReveal.entryID)
+            self.loadingMatchReveal = nil
+        }
+        // A bookmark's page can hold only records the reader hides, as at the end of a file; "No messages yet"
+        // would offer no way back. Show the latest messages and say the message is gone.
+        if let bookmark = bookmarkState.loadingJump, pagesAreEmpty {
+            bookmarkState.finishLoadingJump()
+            bookmarkState.show(.missing(bookmark))
+            bookmarkState.carrySeekTarget(bookmark.entryID)
+            readingPositionStore.record(.bottom, for: conversation.id)
+            paging.latest()
+        }
+        // A map click's page holding no message shows the latest instead, as a bookmark's does.
+        if bookmarkState.loadingEntryJump != nil, pagesAreEmpty {
+            bookmarkState.finishLoadingEntryJump()
+            readingPositionStore.record(.bottom, for: conversation.id)
+            paging.latest()
+        }
+        if pagesAreEmpty, bookmarkState.loadingJump == nil, bookmarkState.loadingEntryJump == nil {
+            takeNavigationMetByEmptyPage()
+        }
+    }
+
+    /// Read again at each use: `paging.latest()` above may change the pages.
+    private var pagesAreEmpty: Bool { paging.transcript?.entries.isEmpty == true }
+
+    /// The error shows under the pages; nothing waits for the jump's page.
+    private func readFailed() {
+        if paging.errorMessage != nil {
+            bookmarkState.cancelLoadingJump()
+            readingRequests?.discardNavigation()
+        }
     }
 
     /// ⌘' and ⇧⌘' while the window's first page loads, or it shows no messages: they add to the request waiting, or go on
