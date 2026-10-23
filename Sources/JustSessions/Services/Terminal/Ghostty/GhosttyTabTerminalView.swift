@@ -302,7 +302,8 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
         _ = PseudoTerminalHelpers.setWinSize(masterPtyDescriptor: process.childfd, windowSize: &size)
     }
 
-    fileprivate var processWindowSize: winsize {
+    /// The size the pseudo-terminal reports to the process: Ghostty's grid, or an estimate before Ghostty lays out text.
+    var processWindowSize: winsize {
         viewport.map(Self.windowSize(of:)) ?? estimatedWindowSize
     }
 
@@ -316,17 +317,25 @@ final class GhosttyTabTerminalView: AppTerminalView, TabTerminalView {
     }
 
     /// The grid a process started before Ghostty has laid out any text gets: what the view's frame holds at the
-    /// terminal font's size, which Ghostty corrects once it lays the text out.
+    /// terminal font's size, which Ghostty corrects once it lays the text out. It has a size in pixels too, as a
+    /// SwiftTerm tab's does. With none, tmux asks the terminal for its size, and Ghostty, not laid out yet, answers
+    /// with a provisional grid; an answer that reached tmux after Ghostty's first resize kept the CLI that small.
     private var estimatedWindowSize: winsize {
         let preferences = appearancePreferences.validated
         let font = preferences.fontFamily.font(size: preferences.fontSize)
         let cellWidth = font.maximumAdvancement.width
         let cellHeight = (font.ascender - font.descender + font.leading).rounded(.up)
         guard cellWidth > 0, cellHeight > 0 else { return winsize(ws_row: 24, ws_col: 80, ws_xpixel: 0, ws_ypixel: 0) }
-        let columns = Int(bounds.width / cellWidth)
-        let rows = Int(bounds.height / cellHeight)
-        guard columns > 0, rows > 0 else { return winsize(ws_row: 24, ws_col: 80, ws_xpixel: 0, ws_ypixel: 0) }
-        return winsize(ws_row: UInt16(clamping: rows), ws_col: UInt16(clamping: columns), ws_xpixel: 0, ws_ypixel: 0)
+        var columns = Int(bounds.width / cellWidth)
+        var rows = Int(bounds.height / cellHeight)
+        if columns <= 0 || rows <= 0 { (columns, rows) = (80, 24) }
+        let scale = window?.backingScaleFactor ?? NSScreen.main?.backingScaleFactor ?? 1
+        return winsize(
+            ws_row: UInt16(clamping: rows),
+            ws_col: UInt16(clamping: columns),
+            ws_xpixel: UInt16(clamping: Int(CGFloat(columns) * cellWidth * scale)),
+            ws_ypixel: UInt16(clamping: Int(CGFloat(rows) * cellHeight * scale))
+        )
     }
 
     private func observeAppearance(in store: TerminalAppearanceStore, themeStore: AppThemeStore) {
