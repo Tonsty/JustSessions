@@ -24,4 +24,31 @@ enum RemoteKiroConversationDeletion {
             """
         return RemoteCLICommandBuilder.loginShellCommand("sh -c \(ShellQuoting.quoted(script))", on: host)
     }
+
+    /// A V3 session's folder, `<workspace folder>/<sess_ id>` in the `sessions` folder that holds `sessions/cli`
+    /// (`sessionsFolder`); see `KiroV3Session`. Kiro deletes the whole folder.
+    static func v3Command(sessionID: String, workspaceFolderName: String, projectPath: String, sessionsFolder: String,
+                          host: String) -> String {
+        let script = """
+            dir=\(sessionsFolder)
+            id=\(ShellQuoting.quoted(sessionID))
+            session="${dir%/cli}"/\(ShellQuoting.quoted(workspaceFolderName))/"$id"
+            [ -f "$session/\(KiroV3Session.metadataFileName)" ] && [ -f "$session/\(KiroV3Session.messagesFileName)" ] \\
+              || exit \(RemoteConversationDeletion.missingTranscriptExitStatus)
+            if [ -d \(ShellQuoting.quoted(projectPath)) ]; then
+              cd \(ShellQuoting.quoted(projectPath)) || exit 1
+            fi
+            KIRO_HOME="${dir%/sessions/cli}" kiro-cli chat --delete-session "$id"
+            kiro_exit_status=$?
+            if [ "$kiro_exit_status" -ne 0 ]; then
+              echo "Kiro CLI exited with code $kiro_exit_status." >&2
+              exit 1
+            fi
+            if [ -e "$session" ]; then
+              echo 'Kiro CLI reported success, but the session folder is still present.' >&2
+              exit 1
+            fi
+            """
+        return RemoteCLICommandBuilder.loginShellCommand("sh -c \(ShellQuoting.quoted(script))", on: host)
+    }
 }
