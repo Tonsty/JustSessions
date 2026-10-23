@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>#idea #todo</key>
+	<string>#想法 #待办</string>
 	<key>%@ (%lld of %lld)</key>
 	<string>%1$@（%2$lld/%3$lld）</string>
 	<key>%@ (imported)</key>
@@ -78,6 +80,8 @@
 	<string>%@，%@，终端已打开，尚未保存</string>
 	<key>%lld bookmarks</key>
 	<string>%lld 个书签</string>
+	<key>%lld bookmarks belong to sessions no host lists now.</key>
+	<string>%lld 个书签属于目前没有主机列出的会话。</string>
 	<key>%lld earlier entries are not shown. Resume the session to see all of it.</key>
 	<string>未显示前面的 %lld 条记录。继续会话可查看全部内容。</string>
 	<key>%lld hours</key>
@@ -122,8 +126,12 @@
 	<string>**继续**（或双击会话）会在原来的 CLI 和文件夹中接着这段对话。**分支** 会从对话的副本开始一个新会话，原会话保持不变，仅部分 CLI 支持。</string>
 	<key>**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab, or press **⌥⌘N**, to show two side by side.</key>
 	<string>**⌘N** 可用任一已安装的 CLI 开始会话，或打开普通终端。标签页按项目分组，侧边栏的 **已打开** 会列出全部标签页。右键单击标签页或按 **⌥⌘N**，可将两个并排显示。</string>
+	<key>+%lld</key>
+	<string>+%lld</string>
 	<key>1 bookmark</key>
 	<string>1 个书签</string>
+	<key>1 bookmark belongs to a session no host lists now.</key>
+	<string>1 个书签属于目前没有主机列出的会话。</string>
 	<key>1 message</key>
 	<string>1 条消息</string>
 	<key>1 session is still running: its tab closes and its CLI ends first.</key>
@@ -138,6 +146,8 @@
 	<string>仍在 tmux 中运行的 CLI 会重新连接。其他会话在选中标签时继续，包括 Mac 重启后的会话。普通终端会在原文件夹打开新 shell。</string>
 	<key>A blue dot means a CLI finished a turn you haven't seen yet.</key>
 	<string>蓝点表示 CLI 完成了一轮，你还没看。</string>
+	<key>A name to know it by</key>
+	<string>起个好认的名称</string>
 	<key>A plain terminal has no conversation to bookmark.</key>
 	<string>普通终端没有可添加书签的对话。</string>
 	<key>A port goes in `~/.ssh/config`. Add these lines there, then enter %@.</key>
@@ -154,6 +164,8 @@
 	<string>辅助功能</string>
 	<key>Actual Size</key>
 	<string>实际大小</string>
+	<key>Add #%@</key>
+	<string>添加 #%@</string>
 	<key>Add SSH host</key>
 	<string>添加 SSH 主机</string>
 	<key>Add SSH host…</key>
@@ -194,10 +206,14 @@
 	<string>添加项目…</string>
 	<key>Add tab to new split view</key>
 	<string>向新拆分视图添加标签页</string>
+	<key>Add tag %@</key>
+	<string>添加标签 %@</string>
 	<key>Adjusted to stay readable</key>
 	<string>已调整为易读的颜色</string>
 	<key>All 26 letters are in use. Remove a bookmark to add another.</key>
 	<string>26 个字母都已用完。请先移除一个书签，再添加新的。</string>
+	<key>All Bookmarks</key>
+	<string>所有书签</string>
 	<key>All sessions</key>
 	<string>全部会话</string>
 	<key>All time</key>
@@ -644,6 +660,12 @@
 	<string>每台主机各有自己的选项，适用于 CLI 可在该主机的 tmux 中保持运行的标签。终端的 shell 总会随标签一起结束。关闭对话框中的“不再询问”也会设置这些选项。</string>
 	<key>Edit</key>
 	<string>编辑</string>
+	<key>Edit Bookmark…</key>
+	<string>编辑书签…</string>
+	<key>Edit bookmark %@…</key>
+	<string>编辑书签 %@…</string>
+	<key>Edit bookmark…</key>
+	<string>编辑书签…</string>
 	<key>End %lld sessions</key>
 	<string>结束 %lld 个会话</string>
 	<key>End and close this terminal</key>
@@ -830,6 +852,8 @@
 	<string>在 **项目** 中清除所有筛选，然后单击该主机的刷新按钮。</string>
 	<key>In a tab linked to a session, bookmark its latest message, or remove its bookmark</key>
 	<string>在已关联会话的标签页中，为其最新消息添加书签，或移除它的书签</string>
+	<key>In a tab linked to a session, label and tag its latest message's bookmark</key>
+	<string>在已关联会话的标签页中，为其最新消息的书签设置名称和标签</string>
 	<key>In a tab linked to a session, open its reading window at the next bookmark</key>
 	<string>在已关联会话的标签页中，在阅读窗口中前往下一个书签</string>
 	<key>In a tab linked to a session, open its reading window at the previous bookmark</key>
@@ -880,6 +904,10 @@
 	<string>保持运行会让这些 CLI 继续在 tmux 中运行；点击会话即可重新连接。结束会话会停止这些 CLI。其他标签的 CLI 和 shell 无论如何都会停止。</string>
 	<key>Keyboard shortcuts</key>
 	<string>键盘快捷键</string>
+	<key>Label</key>
+	<string>名称</string>
+	<key>Label and tag the bookmark of the message you're reading</key>
+	<string>为正在阅读的消息的书签设置名称和标签</string>
 	<key>Larger reading text</key>
 	<string>增大阅读字号</string>
 	<key>Larger text</key>
@@ -1022,6 +1050,10 @@
 	<string>此对话中没有书签。按 ⌘D 可为正在阅读的消息添加书签。</string>
 	<key>No bookmarks in this session. Press ⌘D to bookmark its latest message.</key>
 	<string>此会话中没有书签。按 ⌘D 可为最新一条消息添加书签。</string>
+	<key>No bookmarks match.</key>
+	<string>没有匹配的书签。</string>
+	<key>No bookmarks yet. Press ⌘D to bookmark a message.</key>
+	<string>还没有书签。按 ⌘D 为消息添加书签。</string>
 	<key>No matches</key>
 	<string>无匹配项</string>
 	<key>No matching open tabs</key>
@@ -1342,8 +1374,12 @@
 	<string>正在扫描对话</string>
 	<key>Scanning sessions…</key>
 	<string>正在扫描会话…</string>
+	<key>Search bookmarks</key>
+	<string>搜索书签</string>
 	<key>Search covers the entries shown in this preview.</key>
 	<string>搜索范围为此预览中显示的记录。</string>
+	<key>Search labels, tags, and messages, or type #tag. Choose a bookmark to read it.</key>
+	<string>可搜索名称、标签和消息，或输入 #标签。选择书签即可阅读。</string>
 	<key>Search open tabs</key>
 	<string>搜索已打开的标签</string>
 	<key>Search open tabs by title, project, or host</key>
@@ -1378,6 +1414,8 @@
 	<string>发送反馈 ↗</string>
 	<key>Separate Views</key>
 	<string>取消拆分视图</string>
+	<key>Separate tags with spaces or commas. Search for #tag in the sidebar or in All Bookmarks.</key>
+	<string>用空格或逗号分隔标签。可在侧栏或「所有书签」中搜索 #标签。</string>
 	<key>Separate views</key>
 	<string>取消拆分视图</string>
 	<key>Session %lld of %lld</key>
@@ -1420,12 +1458,16 @@
 	<string>再显示 %lld 个会话</string>
 	<key>Show %lld subagent sessions</key>
 	<string>显示 %lld 个子代理会话</string>
+	<key>Show All Bookmarks…</key>
+	<string>显示所有书签…</string>
 	<key>Show Conversation Map</key>
 	<string>显示对话地图</string>
 	<key>Show Sidebar</key>
 	<string>显示侧栏</string>
 	<key>Show a tip in the sidebar each time JustSessions opens</key>
 	<string>每次打开 JustSessions 时在侧栏显示一条提示</string>
+	<key>Show all bookmarks, in every session</key>
+	<string>显示所有会话中的书签</string>
 	<key>Show archived</key>
 	<string>显示已归档</string>
 	<key>Show explanation</key>
@@ -1560,6 +1602,8 @@
 	<string>标签页和窗口</string>
 	<key>Tabs grouped by project</key>
 	<string>标签页按项目分组</string>
+	<key>Tags</key>
+	<string>标签</string>
 	<key>Take the Tour</key>
 	<string>查看引导</string>
 	<key>Take the tour</key>
@@ -1654,6 +1698,8 @@
 	<string>同时会删除 %lld 个子代理会话。</string>
 	<key>This also deletes 1 subagent session.</key>
 	<string>同时会删除 1 个子代理会话。</string>
+	<key>This bookmark was removed in another window.</key>
+	<string>此书签已在另一个窗口中移除。</string>
 	<key>This changes the display name in JustSessions.</key>
 	<string>仅修改 JustSessions 中的显示名称。</string>
 	<key>This file isn't an iTerm2 color preset.</key>

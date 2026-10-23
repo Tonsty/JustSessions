@@ -7,5 +7,6 @@ struct TranscriptMatchReveal: Equatable {
     let conversationID: String
     /// The reader's ID for the entry with the match.
     let entryID: Int
+    /// Empty for a bookmark the sidebar found by its label or tag (SBF-05): the reader shows its message without Find.
     let query: String
 }

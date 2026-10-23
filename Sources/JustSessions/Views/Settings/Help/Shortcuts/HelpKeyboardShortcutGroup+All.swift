@@ -29,8 +29,10 @@ extension HelpKeyboardShortcutGroup {
                 HelpKeyboardShortcut(keys: "⇧⌘G", "⇧Return", action: "Previous match"),
                 HelpKeyboardShortcut(keys: "Esc", action: "Close find"),
                 HelpKeyboardShortcut(keys: "⌘D", action: "Bookmark the message you're reading, or remove its bookmark"),
+                HelpKeyboardShortcut(keys: "⇧⌘D", action: "Label and tag the bookmark of the message you're reading"),
                 HelpKeyboardShortcut(keys: "⌘'", action: "Next bookmark"),
                 HelpKeyboardShortcut(keys: "⇧⌘'", action: "Previous bookmark"),
+                HelpKeyboardShortcut(keys: "⌥⌘B", action: "Show all bookmarks, in every session"),
             ]),
             HelpKeyboardShortcutGroup(title: "Text size, in the terminals or the conversation shown", shortcuts: [
                 HelpKeyboardShortcut(keys: "⌘+", "⌘=", action: "Larger text"),
@@ -56,6 +58,7 @@ extension HelpKeyboardShortcutGroup {
                     action: "Find in the terminal. In a tab linked to a session, find in its conversation in a reading window."
                 ),
                 HelpKeyboardShortcut(keys: "⌘D", action: "In a tab linked to a session, bookmark its latest message, or remove its bookmark"),
+                HelpKeyboardShortcut(keys: "⇧⌘D", action: "In a tab linked to a session, label and tag its latest message's bookmark"),
                 HelpKeyboardShortcut(keys: "⌘'", action: "In a tab linked to a session, open its reading window at the next bookmark"),
                 HelpKeyboardShortcut(keys: "⇧⌘'", action: "In a tab linked to a session, open its reading window at the previous bookmark"),
                 HelpKeyboardShortcut(keys: "⌘G", "Return", action: "Older match"),

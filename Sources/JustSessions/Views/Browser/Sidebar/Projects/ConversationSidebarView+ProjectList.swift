@@ -52,6 +52,7 @@ extension ConversationSidebarView {
                                 subagentRows: subagentRows,
                                 onToggleSubagents: { subagentRows.toggle($0.id) },
                                 messageMatches: messageMatches,
+                                bookmarkMatches: bookmarkMatches,
                                 onToggleExpansion: { toggleExpansion(of: project.id) },
                                 onShowMoreSessions: { hiddenSessionCount in
                                     sessionRowLimits.showMore(inProject: project.id, hiddenSessionCount: hiddenSessionCount)

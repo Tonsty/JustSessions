@@ -27,15 +27,45 @@ struct ConversationBrowserView: View {
     @StateObject private var updateManager = SparkleUpdateManager()
     @StateObject private var onboardingTour = OnboardingTour()
 
-    private var filteredProjection: FilteredSidebarProjection {
+    /// While searching, each session's bookmarks whose label or tags hold the search text (SBF-05). Bookmarks are read
+    /// only while there is text, so ⌘D redraws the browser only during a search.
+    private var bookmarkMatches: [String: [MessageBookmark]] {
+        guard !searchText.isEmpty, let query = MessageBookmarkQuery(searchText) else { return [:] }
+        return store.messageBookmarks.matches(for: query, includingSnippets: false)
+    }
+
+    private func makeFilteredProjection(bookmarkMatches: [String: [MessageBookmark]]) -> FilteredSidebarProjection {
         store.filteredSidebarProjection(
             providerFilter: providerFilter,
             recencyFilter: recencyFilter,
             statusFilter: statusFilter,
             archiveFilter: archiveFilter,
             searchText: searchText,
-            messageMatchConversationIDs: Set(messageSearch.results.matchesByConversationID.keys)
+            messageMatchConversationIDs: Set(messageSearch.results.matchesByConversationID.keys).union(bookmarkMatches.keys)
         )
+    }
+
+    /// A session a search found by a bookmark's label or tag, or in its messages, opens its reader there, even while its
+    /// CLI runs; the bookmark first, since its words were chosen.
+    private func selectConversation(_ conversation: Conversation, bookmarkMatches: [String: [MessageBookmark]]) {
+        if !searchText.isEmpty, let bookmark = bookmarkMatches[conversation.id]?.first {
+            sessionSelection.selectOnly(conversation.id)
+            store.selectTerminal(nil)
+            transcriptMatchReveal = TranscriptMatchReveal(conversationID: conversation.id, entryID: bookmark.entryID, query: "")
+        } else if !searchText.isEmpty, let match = messageSearch.match(for: conversation.id) {
+            sessionSelection.selectOnly(conversation.id)
+            store.selectTerminal(nil)
+            transcriptMatchReveal = TranscriptMatchReveal(
+                conversationID: conversation.id, entryID: match.entryID, query: messageSearch.results.query
+            )
+        // A session whose CLI runs opens on its terminal. Its row stays highlighted through its tab, so,
+        // as for a new session's row, the selection clears and the highlight follows the tabs.
+        } else if store.showRunningCLI(for: conversation) {
+            sessionSelection.clear()
+        } else {
+            sessionSelection.selectOnly(conversation.id)
+            store.selectTerminal(nil)
+        }
     }
 
     /// Projects on every host that a new session can start in, most recent first.
@@ -51,7 +81,8 @@ struct ConversationBrowserView: View {
     var body: some View {
         // Nothing in this body reads the selected tab, or anything else a tab switch changes: what does is read in the
         // modifiers and small views below, so a switch redraws them and not the sidebar's every row.
-        let filteredProjection = filteredProjection
+        let bookmarkMatches = bookmarkMatches
+        let filteredProjection = makeFilteredProjection(bookmarkMatches: bookmarkMatches)
 
         ResizableSidebarLayout(isSidebarHidden: isSidebarHidden) {
             ConversationSidebarView(
@@ -69,24 +100,9 @@ struct ConversationBrowserView: View {
                 waitingSessionCount: filteredProjection.waitingSessionCount,
                 archivedSessionCount: filteredProjection.archivedSessionCount,
                 messageMatches: searchText.isEmpty ? [:] : messageSearch.results.matchesByConversationID,
+                bookmarkMatches: bookmarkMatches,
                 onNewSession: { newSessionSheetHost = defaultNewSessionHost },
-                onSelectConversation: { conversation in
-                    // A session a search found in messages opens its reader at the match, even while its CLI runs.
-                    if !searchText.isEmpty, let match = messageSearch.match(for: conversation.id) {
-                        sessionSelection.selectOnly(conversation.id)
-                        store.selectTerminal(nil)
-                        transcriptMatchReveal = TranscriptMatchReveal(
-                            conversationID: conversation.id, entryID: match.entryID, query: messageSearch.results.query
-                        )
-                    // A session whose CLI runs opens on its terminal. Its row stays highlighted through its tab, so,
-                    // as for a new session's row, the selection clears and the highlight follows the tabs.
-                    } else if store.showRunningCLI(for: conversation) {
-                        sessionSelection.clear()
-                    } else {
-                        sessionSelection.selectOnly(conversation.id)
-                        store.selectTerminal(nil)
-                    }
-                },
+                onSelectConversation: { selectConversation($0, bookmarkMatches: bookmarkMatches) },
                 onRenameConversation: onRename,
                 onRenameProject: onRenameProject,
                 onRequestDeletion: onRequestDeletion,
@@ -184,6 +200,7 @@ struct ConversationBrowserView: View {
             plainTerminalCloseChoiceSettingsStore: .shared
         ))
         .modifier(SeveralTabsCloseConfirmation(store: store, request: $closingSeveralTabs))
+        .modifier(AllBookmarksPresenter(store: store))
         .modifier(OnboardingTipsPresenter(
             store: store,
             tour: onboardingTour,
@@ -242,7 +259,7 @@ struct ConversationBrowserView: View {
 
     var workspaceTabCommandsEnabled: Bool {
         newSessionSheetHost == nil && appWideSheet == nil && closingTerminalID == nil && closingSeveralTabs == nil
-            && store.hostCheck == nil && store.hostDisconnectQuestion == nil
+            && store.hostCheck == nil && store.hostDisconnectQuestion == nil && !store.showsAllBookmarks
     }
 
     /// Check this host…'s sheet, which the sidebar and an ended tab open through the store.

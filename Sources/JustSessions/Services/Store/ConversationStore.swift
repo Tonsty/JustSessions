@@ -33,6 +33,8 @@ final class ConversationStore {
     var messageIndexer: SessionMessageIndexer { readService.messageIndexer }
     /// What the main window's alert shows, if anything.
     private(set) var alert: StoreAlert?
+    /// Whether the window shows All Bookmarks (RDR-52), which Bookmarks → Show All Bookmarks… asks for (`AllBookmarksCommand`).
+    var showsAllBookmarks = false
     /// Alerts that came while `alert` was shown. Each is shown once the ones before it are dismissed, since
     /// SwiftUI keeps showing an alert whose content changes under it.
     private var waitingAlerts: [StoreAlert] = []
@@ -437,6 +439,29 @@ final class ConversationStore {
 
     func updateMessageBookmark(_ bookmark: MessageBookmark, entryID: Int, snippet: String, in conversation: Conversation) {
         changeSavedCustomization(\.messageBookmarks) { $0.update(bookmark, entryID: entryID, snippet: snippet, conversationID: conversation.id) }
+    }
+
+    /// The message's bookmark, adding one when it has none, for Edit Bookmark… (⇧⌘D). Nil for an entry that is
+    /// neither your message nor a reply.
+    func ensureMessageBookmark(on entry: TranscriptEntry, in conversation: Conversation) -> MessageBookmarkEnsuring? {
+        guard let kind = MessageBookmark.Kind(entry.content) else { return nil }
+        let snippet = MessageBookmarkNavigation.snippet(of: entry) ?? ""
+        var ensuring = MessageBookmarkEnsuring.allLettersInUse
+        changeSavedCustomization(\.messageBookmarks) {
+            ensuring = $0.ensure(entryID: entry.id, kind: kind, snippet: snippet, conversationID: conversation.id)
+        }
+        return ensuring
+    }
+
+    /// Saves a bookmark's label and tags; nil when another window removed the bookmark meanwhile (RDR-51).
+    @discardableResult
+    func setMessageBookmarkDetails(of bookmark: MessageBookmark, label: String?, tags: [String],
+                                   in conversation: Conversation) -> MessageBookmark? {
+        var saved: MessageBookmark?
+        changeSavedCustomization(\.messageBookmarks) {
+            saved = $0.setDetails(of: bookmark, label: label, tags: tags, conversationID: conversation.id)
+        }
+        return saved
     }
 
     /// Changes a name, pin, archiving, or bookmark, which every workspace window shares. The change starts from what is saved,

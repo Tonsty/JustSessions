@@ -55,7 +55,9 @@ struct TranscriptScrollView: View {
     var body: some View {
         ScrollViewReader { scrollProxy in
             transcriptScrollView
+                .transcriptBookmarkHoverCard(bookmarkState.hover)
                 .overlay(alignment: .bottom) { TranscriptBookmarkNoticeCard(state: bookmarkState, onRemoveBookmark: removeBookmark) }
+                .messageBookmarkEditor(bookmarkState.editor, store: store)
                 .safeAreaInset(edge: .top, spacing: 0) {
                     VStack(spacing: 0) {
                         TranscriptReadingToolbar(

@@ -43,6 +43,53 @@ struct MessageBookmarks: Equatable {
         return .added(added)
     }
 
+    /// The message's bookmark, adding one with the lowest free letter when it has none; never removes one (⇧⌘D).
+    mutating func ensure(entryID: Int, kind: MessageBookmark.Kind, snippet: String, conversationID: String) -> MessageBookmarkEnsuring {
+        if let existing = bookmarks(forConversationID: conversationID).first(where: { $0.entryID == entryID }) {
+            return .existing(existing)
+        }
+        switch toggle(entryID: entryID, kind: kind, snippet: snippet, conversationID: conversationID) {
+        case .added(let added): return .added(added)
+        case .removed, .allLettersInUse: return .allLettersInUse   // .removed is not reached: the message had none
+        }
+    }
+
+    /// Sets the label and tags of the bookmark with this letter on this message, kept to `MessageBookmarkDetails`' rules.
+    /// Nil, changing nothing, when another window removed it meanwhile.
+    @discardableResult
+    mutating func setDetails(of bookmark: MessageBookmark, label: String?, tags: [String], conversationID: String) -> MessageBookmark? {
+        var bookmarks = bookmarks(forConversationID: conversationID)
+        guard let index = bookmarks.firstIndex(where: { $0.letter == bookmark.letter && $0.entryID == bookmark.entryID }) else {
+            return nil
+        }
+        bookmarks[index].label = label.flatMap(MessageBookmarkDetails.label(from:))
+        bookmarks[index].tags = MessageBookmarkDetails.tags(from: tags)
+        set(bookmarks, forConversationID: conversationID)
+        return bookmarks[index]
+    }
+
+    /// Every tag in use, in any session, the most used first, then by name; each once whatever its case.
+    var allTags: [String] {
+        var counts: [String: (tag: String, count: Int)] = [:]
+        for bookmark in bookmarksByConversationID.values.joined() {
+            for tag in bookmark.tags {
+                let key = MessageBookmarkDetails.searchKey(tag)
+                counts[key] = (counts[key]?.tag ?? tag, (counts[key]?.count ?? 0) + 1)
+            }
+        }
+        return counts.values.sorted {
+            $0.count != $1.count ? $0.count > $1.count : $0.tag.localizedStandardCompare($1.tag) == .orderedAscending
+        }.map(\.tag)
+    }
+
+    /// Each session's bookmarks that `query` finds, in conversation order; sessions with none are left out.
+    func matches(for query: MessageBookmarkQuery, includingSnippets: Bool) -> [String: [MessageBookmark]] {
+        bookmarksByConversationID.compactMapValues { bookmarks in
+            let found = bookmarks.filter { query.matches($0, includingSnippet: includingSnippets) }
+            return found.isEmpty ? nil : found
+        }
+    }
+
     /// Only the bookmark with this letter on this message, never one that took the letter since.
     mutating func remove(_ bookmark: MessageBookmark, conversationID: String) {
         set(bookmarks(forConversationID: conversationID).filter { $0.letter != bookmark.letter || $0.entryID != bookmark.entryID },
@@ -54,7 +101,7 @@ struct MessageBookmarks: Equatable {
     }
 
     /// After a jump found the message at another part of its record, or with more of its text. If another bookmark
-    /// already marks that message, the moved one goes.
+    /// already marks that message, the moved one goes. A moved bookmark keeps its label and tags.
     mutating func update(_ bookmark: MessageBookmark, entryID: Int, snippet: String, conversationID: String) {
         var bookmarks = bookmarks(forConversationID: conversationID)
         guard let index = bookmarks.firstIndex(where: { $0.letter == bookmark.letter && $0.entryID == bookmark.entryID }) else { return }

@@ -9,6 +9,7 @@ struct TranscriptBookmarkMenu: View {
     let onGoTo: (MessageBookmark) -> Void
     let onGoToAdjacent: (_ forward: Bool) -> Void
     let onToggle: () -> Void
+    let onEdit: () -> Void
     let onRemoveAll: () -> Void
     @Environment(\.locale) private var locale
     @State private var isConfirmingRemoveAll = false
@@ -19,7 +20,12 @@ struct TranscriptBookmarkMenu: View {
             if bookmarks.isEmpty { Text("No bookmarks in this conversation") }
             ForEach(bookmarks, id: \.letter) { bookmark in
                 Button { onGoTo(bookmark) } label: {
-                    Text("\(bookmark.letter) · \(speaker(of: bookmark)): \(bookmark.menuSnippet)")
+                    // A label names the bookmark; without one, who wrote the message and its first words do.
+                    if bookmark.label != nil {
+                        Text(verbatim: menuTitle(of: bookmark))
+                    } else {
+                        Text("\(bookmark.letter) · \(speaker(of: bookmark)): \(bookmark.menuSnippet)")
+                    }
                 }
             }
             Divider()
@@ -27,6 +33,7 @@ struct TranscriptBookmarkMenu: View {
             Button("Previous bookmark") { onGoToAdjacent(false) }.disabled(bookmarks.isEmpty)
             Divider()
             Button("Add or remove bookmark", action: onToggle)
+            Button("Edit bookmark…", action: onEdit)
             if bookmarks.count >= MessageBookmarks.letters.count {
                 Text("All 26 letters are in use. Remove a bookmark to add another.")
             }
@@ -50,6 +57,12 @@ struct TranscriptBookmarkMenu: View {
             Text("The conversation itself isn't changed.")
         }
         .dismissesOnClickOutside(isPresented: $isConfirmingRemoveAll)
+    }
+
+    /// `a · Label  #tag #tag`.
+    private func menuTitle(of bookmark: MessageBookmark) -> String {
+        let tags = bookmark.tags.isEmpty ? "" : "  " + MessageBookmarkDetails.typedText(of: bookmark.tags)
+        return "\(bookmark.letter) · \(bookmark.menuTitle)\(tags)"
     }
 
     private func speaker(of bookmark: MessageBookmark) -> String {
