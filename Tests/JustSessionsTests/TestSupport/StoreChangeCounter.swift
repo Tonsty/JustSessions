@@ -49,6 +49,7 @@ final class StoreChangeCounter {
         _ = store.titleAliases
         _ = store.projectDisplayNames
         _ = store.pinnedItems
+        _ = store.messageBookmarks
         _ = store.sidebarProjectList
         _ = store.terminalSessions
         _ = store.tabStateRevision

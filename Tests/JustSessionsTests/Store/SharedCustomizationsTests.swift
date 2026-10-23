@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import JustSessions
 
-/// Names, pins, and archiving belong to the app, so every workspace window shows each change, and a change in one
+/// Names, pins, archiving, and bookmarks belong to the app, so every workspace window shows each change, and a change in one
 /// window never loses another's. Each window used to save its own copy, loaded when it opened, over the others'.
 @MainActor
 struct SharedCustomizationsTests {
@@ -70,5 +70,85 @@ struct SharedCustomizationsTests {
         #expect(secondWindow.projectDisplayName(forProjectPath: "/work/app") == "The App")
         #expect(secondWindow.pinnedItems.isPinned(conversationID: conversation.id))
         #expect(secondWindow.archivedSessions.isArchived(conversationID: conversation.id))
+    }
+
+    @Test func aBookmarkShowsInEveryWindow() throws {
+        let isolatedUserDefaults = try IsolatedUserDefaults()
+        defer { isolatedUserDefaults.removeSuite() }
+        let registry = WorkspaceWindowRegistry()
+        let conversation = Conversation.fixture(title: "Suggested")
+        let firstWindow = ConversationStore(adapters: [], userDefaults: isolatedUserDefaults.userDefaults, windowRegistry: registry)
+        let secondWindow = ConversationStore(adapters: [], userDefaults: isolatedUserDefaults.userDefaults, windowRegistry: registry)
+
+        firstWindow.toggleMessageBookmark(on: message(record: 4), in: conversation)
+        #expect(secondWindow.messageBookmarks.bookmarks(forConversationID: conversation.id).map(\.letter) == ["a"])
+
+        secondWindow.removeAllMessageBookmarks(in: conversation)
+        #expect(firstWindow.messageBookmarks.bookmarks(forConversationID: conversation.id).isEmpty)
+    }
+
+    /// The letter comes from what is saved, so a window that missed the other's bookmark still takes the next one.
+    @Test func twoWindowsNeverHandOutTheSameLetter() throws {
+        let isolatedUserDefaults = try IsolatedUserDefaults()
+        defer { isolatedUserDefaults.removeSuite() }
+        let conversation = Conversation.fixture(title: "Suggested")
+        let unaware = ConversationStore(adapters: [], userDefaults: isolatedUserDefaults.userDefaults)
+        let other = ConversationStore(adapters: [], userDefaults: isolatedUserDefaults.userDefaults)
+
+        let first = other.toggleMessageBookmark(on: message(record: 1), in: conversation)
+        let second = unaware.toggleMessageBookmark(on: message(record: 2), in: conversation)
+        let relaunched = ConversationStore(adapters: [], userDefaults: isolatedUserDefaults.userDefaults)
+
+        guard case .added(let a) = first, case .added(let b) = second else {
+            Issue.record("Both toggles should add a bookmark")
+            return
+        }
+        #expect([a.letter, b.letter] == ["a", "b"])
+        #expect(relaunched.messageBookmarks.bookmarks(forConversationID: conversation.id).map(\.letter) == ["a", "b"])
+    }
+
+    /// A reading window whose workspace window closed hears of no other window's bookmarks. ⌘D there acts on what it
+    /// shows: on a message it shows without one, it keeps the bookmark another window added rather than removing it.
+    @Test func aWindowThatMissedABookmarkKeepsItRatherThanRemovingIt() throws {
+        let isolatedUserDefaults = try IsolatedUserDefaults()
+        defer { isolatedUserDefaults.removeSuite() }
+        let conversation = Conversation.fixture(title: "Suggested")
+        let unaware = ConversationStore(adapters: [], userDefaults: isolatedUserDefaults.userDefaults)
+        let other = ConversationStore(adapters: [], userDefaults: isolatedUserDefaults.userDefaults)
+        let added = other.toggleMessageBookmark(on: message(record: 1), in: conversation)
+
+        let toggle = unaware.toggleMessageBookmark(on: message(record: 1), in: conversation)
+        let relaunched = ConversationStore(adapters: [], userDefaults: isolatedUserDefaults.userDefaults)
+
+        #expect(toggle == added)
+        #expect(relaunched.messageBookmarks.bookmarks(forConversationID: conversation.id).map(\.letter) == ["a"])
+        #expect(unaware.messageBookmarks.bookmarks(forConversationID: conversation.id).map(\.letter) == ["a"])
+    }
+
+    /// And on a message it still shows with a bookmark another window removed, it doesn't bookmark the message again.
+    @Test func aWindowThatMissedARemovalDoesNotBookmarkTheMessageAgain() throws {
+        let isolatedUserDefaults = try IsolatedUserDefaults()
+        defer { isolatedUserDefaults.removeSuite() }
+        let conversation = Conversation.fixture(title: "Suggested")
+        let other = ConversationStore(adapters: [], userDefaults: isolatedUserDefaults.userDefaults)
+        other.toggleMessageBookmark(on: message(record: 1), in: conversation)
+        let unaware = ConversationStore(adapters: [], userDefaults: isolatedUserDefaults.userDefaults)
+        other.toggleMessageBookmark(on: message(record: 1), in: conversation)
+
+        let toggle = unaware.toggleMessageBookmark(on: message(record: 1), in: conversation)
+        let relaunched = ConversationStore(adapters: [], userDefaults: isolatedUserDefaults.userDefaults)
+
+        guard case .removed(let removed) = toggle else {
+            Issue.record("The toggle should remove the bookmark the window shows")
+            return
+        }
+        #expect(removed.letter == "a")
+        #expect(relaunched.messageBookmarks.bookmarks(forConversationID: conversation.id).isEmpty)
+        #expect(unaware.messageBookmarks.bookmarks(forConversationID: conversation.id).isEmpty)
+    }
+
+    private func message(record: Int) -> TranscriptEntry {
+        TranscriptEntry(id: TranscriptPageIdentity.entryID(record: record, part: 0), content: .userMessage("Message \(record)"),
+                        timestamp: nil, startsTurn: true)
     }
 }

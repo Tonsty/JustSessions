@@ -7,7 +7,7 @@ extension TerminalContextMenu {
     /// in the tab bar.
     var conversationItems: [NSMenuItem] {
         let renameItem = ActionMenuItem(title: localized("Rename"), systemImage: "pencil", isEnabled: tab.conversation != nil) {
-            if let conversation = tab.conversation { onRename(conversation) }
+            if let conversation = store.conversationToRename(fromTab: tab) { onRename(conversation) }
         }
         guard let conversation = tab.conversation else { return [renameItem, .separator()] }
         return [renameItem, .separator()]

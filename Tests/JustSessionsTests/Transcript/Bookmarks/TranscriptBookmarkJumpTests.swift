@@ -1,0 +1,373 @@
+import AppKit
+import Testing
+@testable import JustSessions
+
+/// ⌘D, ⌘', and ⇧⌘' in a hosted reader, through the commands the Bookmarks menu finds for the key window.
+@MainActor
+@Suite(.serialized)
+struct TranscriptBookmarkJumpTests {
+    /// A reader of a 600-message session that keeps bookmarks, open at the latest page (records 520 to 599) unless
+    /// another position is given.
+    @MainActor
+    private struct Reader {
+        let files: TranscriptPagingFixture
+        let fixture: TranscriptScrollViewFixture
+        let paging: TranscriptPagingModel
+        let store: ConversationStore
+        let bookmarkState: TranscriptBookmarkState
+        let searchState: TranscriptSearchState
+        let scrollView: NSScrollView
+        let controller: TranscriptScrollPositionController
+
+        /// Made anew each time the reader's view updates, so it acts on the pages shown.
+        var commands: TranscriptBookmarkCommandTarget {
+            get throws { try #require(TranscriptBookmarkTargetRegistry.shared.target(keyWindow: fixture.window)) }
+        }
+
+        var savedBookmarks: [MessageBookmark] {
+            store.messageBookmarks.bookmarks(forConversationID: files.conversation.id)
+        }
+
+        /// Whether the entry's top is 6 points below the reader's, where a jump puts it, with nothing left to load or restore.
+        func showsAtTop(_ entryID: Int) -> Bool {
+            guard !paging.isLoading, !controller.isRestoring, let frame = controller.entryFrameInClipView(at: entryID) else { return false }
+            return abs(frame.minY - scrollView.contentView.bounds.minY - 6) < 1
+        }
+
+        func close() {
+            fixture.close()
+            files.remove()
+        }
+    }
+
+    private func id(_ record: Int) -> Int { TranscriptPageIdentity.entryID(record: record, part: 0) }
+
+    /// The way a bookmark saved on the fixture's message at `record` reads.
+    private func bookmark(_ letter: String, at record: Int) -> MessageBookmark {
+        MessageBookmark(letter: letter, entryID: id(record), kind: .assistant, snippet: "Message \(record), line 0:")
+    }
+
+    private func openReader(bookmarks: [MessageBookmark] = [], at position: TranscriptReadingPosition? = nil) async throws -> Reader {
+        let files = try TranscriptPagingFixture(count: 600)
+        let fixture = try TranscriptScrollViewFixture()
+        let conversation = files.conversation
+        MessageBookmarks(bookmarksByConversationID: [conversation.id: bookmarks]).save(to: fixture.settings.userDefaults)
+        let store = ConversationStore(adapters: [], userDefaults: fixture.settings.userDefaults, startsBackgroundPolling: false)
+        let paging = TranscriptPagingModel()
+        paging.refresh(conversation, position: position)
+        try await expectEventually { !paging.isLoading }
+        if let position { fixture.positionStore.record(position, for: conversation.id) }
+        let bookmarkState = TranscriptBookmarkState()
+        let searchState = TranscriptSearchState()
+        let scrollView = try await fixture.show(conversation, transcript: try #require(paging.transcript), paging: paging,
+                                                searchState: searchState, store: store, bookmarkState: bookmarkState)
+        let controller = try #require(fixture.positionController)
+        try await fixture.waitUntil { !paging.isLoading && !controller.isRestoring }
+        return Reader(files: files, fixture: fixture, paging: paging, store: store, bookmarkState: bookmarkState,
+                      searchState: searchState, scrollView: scrollView, controller: controller)
+    }
+
+    /// For a reader that loads its own pages (`showReader`), whose model the test can't reach.
+    private func showsAtTop(_ entryID: Int, in fixture: TranscriptScrollViewFixture) -> Bool {
+        guard let scrollView = fixture.readerScrollView, let controller = fixture.positionController, !controller.isRestoring,
+              let frame = controller.entryFrameInClipView(at: entryID) else { return false }
+        return abs(frame.minY - scrollView.contentView.bounds.minY - 6) < 1
+    }
+
+    @Test func goingToALoadedBookmarkPutsItsMessageAtTheTop() async throws {
+        let reader = try await openReader(bookmarks: [bookmark("a", at: 560)])
+        defer { reader.close() }
+
+        try reader.commands.goToAdjacentBookmark(false)
+
+        #expect(reader.controller.seekTarget == id(560))
+        try await reader.fixture.waitUntil { reader.showsAtTop(id(560)) }
+        #expect(reader.showsAtTop(id(560)))
+        // More of the message's text is saved than the bookmark had.
+        #expect(reader.savedBookmarks.first?.snippet == "Message 560, line 0: keep this reading position.")
+    }
+
+    @Test func goingToAnUnloadedBookmarkLoadsItsPage() async throws {
+        let reader = try await openReader(bookmarks: [bookmark("a", at: 50)])
+        defer { reader.close() }
+
+        try reader.commands.goToAdjacentBookmark(true)
+
+        #expect(reader.bookmarkState.loadingJump?.entryID == id(50))
+        #expect(reader.controller.seekTarget == id(50))
+        try await reader.fixture.waitUntil { reader.showsAtTop(id(50)) }
+        #expect(reader.showsAtTop(id(50)))
+        #expect(reader.bookmarkState.loadingJump == nil)
+        #expect(reader.controller.seekTarget == id(50))
+    }
+
+    @Test func nextAndPreviousWrapAroundTheEnds() async throws {
+        let reader = try await openReader(bookmarks: [bookmark("a", at: 540), bookmark("b", at: 570)])
+        defer { reader.close() }
+
+        var seekTargets: [Int?] = []
+        for forward in [true, true, true, false, false] {
+            try reader.commands.goToAdjacentBookmark(forward)
+            let seekTarget = reader.controller.seekTarget
+            seekTargets.append(seekTarget)
+            try await reader.fixture.waitUntil { seekTarget.map(reader.showsAtTop) == true }
+        }
+
+        #expect(seekTargets == [id(540), id(570), id(540), id(570), id(540)])
+    }
+
+    /// Each press goes on from the last one's target, before the reader has moved, as while ⌘' is held.
+    @Test func rapidRepeatedNextVisitsEachBookmarkInTurn() async throws {
+        let reader = try await openReader(bookmarks: [bookmark("a", at: 540), bookmark("b", at: 555), bookmark("c", at: 570)])
+        defer { reader.close() }
+
+        let commands = try reader.commands
+        commands.goToAdjacentBookmark(true)
+        commands.goToAdjacentBookmark(true)
+        commands.goToAdjacentBookmark(true)
+
+        #expect(reader.controller.seekTarget == id(570))
+        try await reader.fixture.waitUntil { reader.showsAtTop(id(570)) }
+        #expect(reader.showsAtTop(id(570)))
+        #expect(reader.controller.seekTarget == id(570))
+    }
+
+    /// The end of the conversation keeps the message below the reader's top, where another message is the first on screen.
+    @Test func commandDRightAfterAJumpNearTheEndActsOnTheJumpedToMessage() async throws {
+        let reader = try await openReader(bookmarks: [bookmark("a", at: 598)])
+        defer { reader.close() }
+        try reader.commands.goToAdjacentBookmark(true)
+        try await reader.fixture.waitUntil { !reader.paging.isLoading && !reader.controller.isRestoring }
+        #expect(reader.controller.visibleEntryIDs(minimumVisibleHeight: MessageBookmarkNavigation.minimumVisibleHeight).first != id(598))
+        #expect(reader.controller.seekTarget == id(598))
+
+        try reader.commands.toggleBookmark()
+
+        #expect(reader.savedBookmarks.isEmpty)
+    }
+
+    @Test func commandDBookmarksTheMessageAtTheTopAndRemovesItAgain() async throws {
+        let reader = try await openReader()
+        defer { reader.close() }
+        let clipView = reader.scrollView.contentView
+        try await reader.fixture.scroll(reader.scrollView, to: (clipView.documentRect.height - clipView.bounds.height) / 2)
+        try await reader.fixture.waitUntil { !reader.paging.isLoading && !reader.controller.isRestoring }
+        let top = try #require(reader.controller.visibleEntryIDs(minimumVisibleHeight: MessageBookmarkNavigation.minimumVisibleHeight).first)
+
+        try reader.commands.toggleBookmark()
+
+        #expect(reader.savedBookmarks.map(\.letter) == ["a"])
+        #expect(reader.savedBookmarks.first?.entryID == top)
+
+        try reader.commands.toggleBookmark()
+
+        #expect(reader.savedBookmarks.isEmpty)
+    }
+
+    /// Find's matches cover only the pages loaded, and a new page would select its first one.
+    @Test func aJumpThatLoadsAPageClosesFindAndKeepsItsQuery() async throws {
+        let reader = try await openReader(bookmarks: [bookmark("a", at: 50)])
+        defer { reader.close() }
+        reader.searchState.show()
+        reader.searchState.query = "Message 59"
+        try await reader.fixture.waitUntil {
+            !reader.searchState.isSearching && reader.searchState.selectedMatch != nil && !reader.controller.isRestoring
+        }
+
+        try reader.commands.goToAdjacentBookmark(true)
+
+        #expect(!reader.searchState.isPresented)
+        #expect(reader.searchState.query == "Message 59")
+        try await reader.fixture.waitUntil { reader.showsAtTop(id(50)) }
+        #expect(reader.showsAtTop(id(50)))
+    }
+
+    @Test func aJumpToALoadedMessageKeepsFindOpen() async throws {
+        let reader = try await openReader(bookmarks: [bookmark("a", at: 560)])
+        defer { reader.close() }
+        reader.searchState.show()
+        reader.searchState.query = "Message 59"
+        try await reader.fixture.waitUntil {
+            !reader.searchState.isSearching && reader.searchState.selectedMatch != nil && !reader.controller.isRestoring
+        }
+        let selectedMatch = reader.searchState.selectedMatch
+
+        try reader.commands.goToAdjacentBookmark(true)
+
+        try await reader.fixture.waitUntil { reader.showsAtTop(id(560)) }
+        #expect(reader.showsAtTop(id(560)))
+        #expect(reader.searchState.isPresented)
+        #expect(reader.searchState.selectedMatch == selectedMatch)
+    }
+
+    /// A page on its way would restore the place it was asked for over a jump to a message already loaded.
+    @Test func aJumpWhileAPageLoadsAsksForItsOwnPage() async throws {
+        let start = TranscriptReadingPosition.entry(index: id(300), offset: -6)
+        let reader = try await openReader(bookmarks: [bookmark("a", at: 340)], at: start)
+        defer { reader.close() }
+        reader.paging.later(preserving: start)
+        #expect(reader.paging.isLoading)
+
+        try reader.commands.goToAdjacentBookmark(true)
+
+        #expect(reader.bookmarkState.loadingJump?.entryID == id(340))
+        try await reader.fixture.waitUntil { reader.showsAtTop(id(340)) }
+        #expect(reader.showsAtTop(id(340)))
+        #expect(reader.controller.seekTarget == id(340))
+    }
+
+    @Test func aMissingBookmarkStaysListedShowsWhereItWasAndPreviousMovesPastIt() async throws {
+        let rewritten = MessageBookmark(letter: "b", entryID: id(540), kind: .assistant, snippet: "A reply rewritten since")
+        let reader = try await openReader(bookmarks: [bookmark("a", at: 520), rewritten])
+        defer { reader.close() }
+
+        try reader.commands.goToAdjacentBookmark(false)
+
+        #expect(reader.bookmarkState.notice == .missing(rewritten))
+        try await reader.fixture.waitUntil { reader.showsAtTop(id(540)) }
+        #expect(reader.showsAtTop(id(540)))
+        #expect(reader.savedBookmarks.contains(rewritten))
+
+        try reader.commands.goToAdjacentBookmark(false)
+
+        #expect(reader.controller.seekTarget == id(520))
+        try await reader.fixture.waitUntil { reader.showsAtTop(id(520)) }
+        #expect(reader.showsAtTop(id(520)))
+        #expect(reader.bookmarkState.notice == nil)
+    }
+
+    @Test func togglingWithAll26LettersUsedSaysWhy() async throws {
+        let bookmarks = MessageBookmarks.letters.enumerated().map { record, letter in bookmark(letter, at: record) }
+        let reader = try await openReader(bookmarks: bookmarks)
+        defer { reader.close() }
+
+        try reader.commands.toggleBookmark()
+
+        #expect(reader.bookmarkState.notice == .allLettersInUse)
+        #expect(reader.savedBookmarks == bookmarks)
+    }
+
+    @Test func nextWithNoBookmarksSaysSo() async throws {
+        let reader = try await openReader()
+        defer { reader.close() }
+
+        try reader.commands.goToAdjacentBookmark(true)
+
+        #expect(reader.bookmarkState.notice == .noBookmarks)
+    }
+
+    /// First asks for a page of its own, which must not be taken for the jump's when it arrives: the first page ends before
+    /// the bookmark's record, so the jump would say its message is gone.
+    @Test func goingToFirstMessageEndsALoadingJump() async throws {
+        let reader = try await openReader(bookmarks: [bookmark("a", at: 300)])
+        defer { reader.close() }
+        var startedJump = false
+
+        try await reader.fixture.pressButton(labeled: "First message") {
+            TranscriptBookmarkTargetRegistry.shared.target(keyWindow: reader.fixture.window)?.goToAdjacentBookmark(true)
+            startedJump = reader.bookmarkState.loadingJump != nil
+        }
+
+        #expect(startedJump)
+        try await reader.fixture.waitUntil {
+            !reader.paging.isLoading && reader.fixture.visiblePosition(in: reader.scrollView)?.entryIndex == id(0)
+        }
+        #expect(reader.fixture.visiblePosition(in: reader.scrollView)?.entryIndex == id(0))
+        #expect(reader.bookmarkState.loadingJump == nil)
+        #expect(reader.bookmarkState.notice == nil)
+        #expect(reader.controller.seekTarget == nil)
+    }
+
+    @Test func aBookmarkedMessageShowsItsLetter() async throws {
+        let reader = try await openReader(bookmarks: [bookmark("a", at: 598)])
+        defer { reader.close() }
+
+        #expect(try await reader.fixture.hasAccessibilityElement(labeled: "Bookmark a"))
+    }
+
+    /// `.around` reads forward to the end of the file for a visible entry; past the last message there is none.
+    @Test func aBookmarkOnlyHiddenRecordsFollowShowsTheLatestMessages() async throws {
+        let files = try TranscriptPagingFixture(count: 300)
+        defer { files.remove() }
+        let tokenCount = #"{"timestamp":"2026-10-02T12:00:00.000Z","type":"event_msg","payload":{"type":"token_count"}}"# + "\n"
+        try (TranscriptPagingFixture.data(count: 300) + Data(String(repeating: tokenCount, count: 300).utf8)).write(to: files.file)
+        let fixture = try TranscriptScrollViewFixture()
+        defer { fixture.close() }
+        let gone = MessageBookmark(letter: "a", entryID: id(450), kind: .assistant, snippet: "Message 450, line 0:")
+        MessageBookmarks(bookmarksByConversationID: [files.conversation.id: [gone]]).save(to: fixture.settings.userDefaults)
+        let store = ConversationStore(adapters: [], userDefaults: fixture.settings.userDefaults, startsBackgroundPolling: false)
+        fixture.positionStore.record(.entry(index: id(0), offset: -6), for: files.conversation.id)
+        fixture.showReader(files.conversation, store: store)
+        try await fixture.waitUntil { fixture.readerScrollView.flatMap(fixture.visiblePosition(in:))?.entryIndex == id(0) }
+
+        try #require(TranscriptBookmarkTargetRegistry.shared.target(keyWindow: fixture.window)).goToAdjacentBookmark(true)
+
+        try await fixture.waitUntil { fixture.readerScrollView.flatMap(fixture.visiblePosition(in:)) == .bottom }
+        #expect(fixture.readerScrollView.flatMap(fixture.visiblePosition(in:)) == .bottom)
+        #expect(try await fixture.hasAccessibilityElement(
+            labeled: "Bookmark a's message is no longer in this conversation. This is where it was."
+        ))
+        #expect(store.messageBookmarks.bookmarks(forConversationID: files.conversation.id) == [gone])
+    }
+
+    /// A sidebar match reveal whose page is still loading, then a jump made before it arrives: the jump is the newer
+    /// request, so its page arrives without Find opening over it or the bookmark being taken for missing. With
+    /// `fileChanges`, the session's file also changes before the jump's page arrives, refreshing the reader.
+    private func jumpWhileAMatchRevealLoads(fileChanges: Bool) async throws {
+        let files = try TranscriptPagingFixture(count: 600)
+        defer { files.remove() }
+        let fixture = try TranscriptScrollViewFixture()
+        defer { fixture.close() }
+        MessageBookmarks(bookmarksByConversationID: [files.conversation.id: [bookmark("a", at: 50)]]).save(to: fixture.settings.userDefaults)
+        let store = ConversationStore(adapters: [], userDefaults: fixture.settings.userDefaults, startsBackgroundPolling: false)
+        fixture.showReader(files.conversation, store: store)
+        try await fixture.waitUntil { fixture.readerScrollView.flatMap(fixture.visiblePosition(in:)) == .bottom }
+        let commands = try #require(TranscriptBookmarkTargetRegistry.shared.target(keyWindow: fixture.window))
+        let reveal = TranscriptMatchReveal(conversationID: files.conversation.id, entryID: id(300), query: "Message 300")
+
+        fixture.showReader(files.conversation, matchReveal: reveal, store: store)
+        fixture.hostingView.layoutSubtreeIfNeeded()
+        commands.goToAdjacentBookmark(true)
+        if fileChanges {
+            fixture.showReader(files.conversation, matchReveal: reveal, store: store)
+            fixture.hostingView.layoutSubtreeIfNeeded()
+        }
+
+        try await fixture.waitUntil { showsAtTop(id(50), in: fixture) }
+        #expect(showsAtTop(id(50), in: fixture))
+        #expect(fixture.positionController?.seekTarget == id(50))
+        #expect(fixture.textFieldValues.isEmpty)
+        #expect(try await !fixture.hasAccessibilityElement(
+            labeled: "Bookmark a's message is no longer in this conversation. This is where it was."
+        ))
+    }
+
+    @Test func aJumpMadeWhileAMatchRevealLoadsLandsWithFindClosed() async throws {
+        try await jumpWhileAMatchRevealLoads(fileChanges: false)
+    }
+
+    @Test func aFileChangeAfterAJumpThatReplacedAMatchRevealStillLandsOnTheBookmark() async throws {
+        try await jumpWhileAMatchRevealLoads(fileChanges: true)
+    }
+
+    /// The session's file changing refreshes the reader, which must still ask for the jump's page.
+    @Test func aFileChangeDuringAJumpStillLandsOnTheBookmark() async throws {
+        let files = try TranscriptPagingFixture(count: 600)
+        defer { files.remove() }
+        let fixture = try TranscriptScrollViewFixture()
+        defer { fixture.close() }
+        MessageBookmarks(bookmarksByConversationID: [files.conversation.id: [bookmark("a", at: 50)]]).save(to: fixture.settings.userDefaults)
+        let store = ConversationStore(adapters: [], userDefaults: fixture.settings.userDefaults, startsBackgroundPolling: false)
+        fixture.showReader(files.conversation, store: store)
+        try await fixture.waitUntil { fixture.readerScrollView.flatMap(fixture.visiblePosition(in:)) == .bottom }
+
+        try #require(TranscriptBookmarkTargetRegistry.shared.target(keyWindow: fixture.window)).goToAdjacentBookmark(true)
+        // Each `conversation` has a new `updatedAt`, as a session whose file changed does.
+        fixture.showReader(files.conversation, store: store)
+        fixture.hostingView.layoutSubtreeIfNeeded()
+
+        try await fixture.waitUntil { showsAtTop(id(50), in: fixture) }
+        #expect(showsAtTop(id(50), in: fixture))
+        #expect(fixture.positionController?.seekTarget == id(50))
+    }
+}

@@ -76,6 +76,8 @@
 	<string>%@, %@, open terminal, not saved yet</string>
 	<key>%lld</key>
 	<string>%lld</string>
+	<key>%lld bookmarks</key>
+	<string>%lld bookmarks</string>
 	<key>%lld earlier entries are not shown. Resume the session to see all of it.</key>
 	<string>%lld earlier entries are not shown. Resume the session to see all of it.</string>
 	<key>%lld hours</key>
@@ -108,6 +110,8 @@
 	<string>**Resume**, or a double-click, continues the conversation in its CLI and original folder. **Branch**, where the CLI supports it, starts a new session from a copy and leaves the original as it was.</string>
 	<key>**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab, or press **⌥⌘N**, to show two side by side.</key>
 	<string>**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab, or press **⌥⌘N**, to show two side by side.</string>
+	<key>1 bookmark</key>
+	<string>1 bookmark</string>
 	<key>1 message</key>
 	<string>1 message</string>
 	<key>1 session is still running: its tab closes and its CLI ends first.</key>
@@ -122,6 +126,8 @@
 	<string>A CLI still running in tmux reattaches. Other sessions resume when you select their tab, including after a Mac restart. Plain terminals open a new shell in their folder.</string>
 	<key>A blue dot means a CLI finished a turn you haven't seen yet.</key>
 	<string>A blue dot means a CLI finished a turn you haven't seen yet.</string>
+	<key>A plain terminal has no conversation to bookmark.</key>
+	<string>A plain terminal has no conversation to bookmark.</string>
 	<key>A port goes in `~/.ssh/config`. Add these lines there, then enter %@.</key>
 	<string>A port goes in `~/.ssh/config`. Add these lines there, then enter %@.</string>
 	<key>A session whose subagents ran sessions of their own gets a chevron before its icon. Click it to list them under the session and read them. Kiro's aren't listed; on SSH hosts, only Codex's and Antigravity's are.</key>
@@ -156,8 +162,14 @@
 	<string>Add a server you reach over SSH to browse and resume its sessions here.</string>
 	<key>Add anyway</key>
 	<string>Add anyway</string>
+	<key>Add bookmark</key>
+	<string>Add bookmark</string>
 	<key>Add host</key>
 	<string>Add host</string>
+	<key>Add or Remove Bookmark</key>
+	<string>Add or Remove Bookmark</string>
+	<key>Add or remove bookmark</key>
+	<string>Add or remove bookmark</string>
 	<key>Add or restore a project on %@</key>
 	<string>Add or restore a project on %@</string>
 	<key>Add or restore a project on this Mac</key>
@@ -174,6 +186,8 @@
 	<string>Add tab to new split view</string>
 	<key>Adjusted to stay readable</key>
 	<string>Adjusted to stay readable</string>
+	<key>All 26 letters are in use. Remove a bookmark to add another.</key>
+	<string>All 26 letters are in use. Remove a bookmark to add another.</string>
 	<key>All sessions</key>
 	<string>All sessions</string>
 	<key>All time</key>
@@ -260,6 +274,16 @@
 	<string>Back to the tab or session shown before</string>
 	<key>Background</key>
 	<string>Background</string>
+	<key>Bookmark %@</key>
+	<string>Bookmark %@</string>
+	<key>Bookmark %@'s message is no longer in this conversation. This is where it was.</key>
+	<string>Bookmark %@'s message is no longer in this conversation. This is where it was.</string>
+	<key>Bookmark the message you're reading, or remove its bookmark</key>
+	<string>Bookmark the message you're reading, or remove its bookmark</string>
+	<key>Bookmarks</key>
+	<string>Bookmarks</string>
+	<key>Bookmarks (⌘D, ⌘', ⇧⌘')</key>
+	<string>Bookmarks (⌘D, ⌘', ⇧⌘')</string>
 	<key>Branch</key>
 	<string>Branch</string>
 	<key>Browse and resume sessions on another machine.</key>
@@ -454,6 +478,8 @@
 	<string>Continue</string>
 	<key>Continue any past session in its own CLI and folder: just double-click it.</key>
 	<string>Continue any past session in its own CLI and folder: just double-click it.</string>
+	<key>Conversation map</key>
+	<string>Conversation map</string>
 	<key>Copied</key>
 	<string>Copied</string>
 	<key>Copies %@'s sessions to this Mac.</key>
@@ -644,6 +670,8 @@
 	<string>Find in this conversation</string>
 	<key>Finding the folder on %@…</key>
 	<string>Finding the folder on %@…</string>
+	<key>Finding the latest message…</key>
+	<string>Finding the latest message…</string>
 	<key>Finished its turn</key>
 	<string>Finished its turn</string>
 	<key>Finishes its turn</key>
@@ -710,6 +738,8 @@
 	<string>Go</string>
 	<key>Go to a tab by its position</key>
 	<string>Go to a tab by its position</string>
+	<key>Go to bookmark %@</key>
+	<string>Go to bookmark %@</string>
 	<key>Go to the first available message</key>
 	<string>Go to the first available message</string>
 	<key>Go to the latest message</key>
@@ -718,6 +748,8 @@
 	<string>Got it</string>
 	<key>Help</key>
 	<string>Help</string>
+	<key>Hide Conversation Map</key>
+	<string>Hide Conversation Map</string>
 	<key>Hide Sidebar</key>
 	<string>Hide Sidebar</string>
 	<key>Hide or show the sidebar</key>
@@ -754,6 +786,12 @@
 	<string>Improved</string>
 	<key>In **Projects**, clear the filters, then click the host's refresh button.</key>
 	<string>In **Projects**, clear the filters, then click the host's refresh button.</string>
+	<key>In a tab linked to a session, bookmark its latest message, or remove its bookmark</key>
+	<string>In a tab linked to a session, bookmark its latest message, or remove its bookmark</string>
+	<key>In a tab linked to a session, open its reading window at the next bookmark</key>
+	<string>In a tab linked to a session, open its reading window at the next bookmark</string>
+	<key>In a tab linked to a session, open its reading window at the previous bookmark</key>
+	<string>In a tab linked to a session, open its reading window at the previous bookmark</string>
 	<key>Install `rsync` and the CLIs you use on the host.</key>
 	<string>Install `rsync` and the CLIs you use on the host.</string>
 	<key>Interface language</key>
@@ -918,8 +956,12 @@
 	<string>Newer match (⇧⌘G or ⇧Return)</string>
 	<key>Next</key>
 	<string>Next</string>
+	<key>Next Bookmark</key>
+	<string>Next Bookmark</string>
 	<key>Next Tab</key>
 	<string>Next Tab</string>
+	<key>Next bookmark</key>
+	<string>Next bookmark</string>
 	<key>Next match</key>
 	<string>Next match</string>
 	<key>Next match (⌘G or Return)</key>
@@ -936,12 +978,20 @@
 	<string>No Claude Code, Codex, Antigravity, Pi, or OpenCode session is waiting for you</string>
 	<key>No archived projects</key>
 	<string>No archived projects</string>
+	<key>No bookmarks in this conversation</key>
+	<string>No bookmarks in this conversation</string>
+	<key>No bookmarks in this conversation. Press ⌘D to bookmark the message you're reading.</key>
+	<string>No bookmarks in this conversation. Press ⌘D to bookmark the message you're reading.</string>
+	<key>No bookmarks in this session. Press ⌘D to bookmark its latest message.</key>
+	<string>No bookmarks in this session. Press ⌘D to bookmark its latest message.</string>
 	<key>No matches</key>
 	<string>No matches</string>
 	<key>No matching open tabs</key>
 	<string>No matching open tabs</string>
 	<key>No matching projects or sessions</key>
 	<string>No matching projects or sessions</string>
+	<key>No messages in this session yet.</key>
+	<string>No messages in this session yet.</string>
 	<key>No messages yet</key>
 	<string>No messages yet</string>
 	<key>No open tabs</key>
@@ -966,6 +1016,8 @@
 	<string>Not asked yet</string>
 	<key>Not found on %@: %@.</key>
 	<string>Not found on %@: %@.</string>
+	<key>Not linked yet</key>
+	<string>Not linked yet</string>
 	<key>Note</key>
 	<string>Note</string>
 	<key>Nothing on %@ listens on a port that localhost reaches.</key>
@@ -988,6 +1040,8 @@
 	<string>Once Claude Code, Codex, or another supported CLI saves a conversation, it shows up here, grouped by project.</string>
 	<key>Only renames it in JustSessions. Leave empty to use the folder name (%@).</key>
 	<string>Only renames it in JustSessions. Leave empty to use the folder name (%@).</string>
+	<key>Only your messages and the CLI's replies can be bookmarked.</key>
+	<string>Only your messages and the CLI's replies can be bookmarked.</string>
 	<key>Open</key>
 	<string>Open</string>
 	<key>Open Link</key>
@@ -1014,6 +1068,8 @@
 	<string>Open in its default app</string>
 	<key>Open in new window</key>
 	<string>Open in new window</string>
+	<key>Open in reading window</key>
+	<string>Open in reading window</string>
 	<key>Open project in</key>
 	<string>Open project in</string>
 	<key>Open project in Finder</key>
@@ -1068,8 +1124,12 @@
 	<string>Prefer Ghostty's renderer? Pick it in Settings → Appearance → Terminal → Engine. New tabs use it.</string>
 	<key>Preview</key>
 	<string>Preview</string>
+	<key>Previous Bookmark</key>
+	<string>Previous Bookmark</string>
 	<key>Previous Tab</key>
 	<string>Previous Tab</string>
+	<key>Previous bookmark</key>
+	<string>Previous bookmark</string>
 	<key>Previous match</key>
 	<string>Previous match</string>
 	<key>Previous match (⇧⌘G or ⇧Return)</key>
@@ -1132,6 +1192,16 @@
 	<string>Release notes</string>
 	<key>Remove</key>
 	<string>Remove</string>
+	<key>Remove all</key>
+	<string>Remove all</string>
+	<key>Remove all bookmarks in this conversation?</key>
+	<string>Remove all bookmarks in this conversation?</string>
+	<key>Remove all bookmarks…</key>
+	<string>Remove all bookmarks…</string>
+	<key>Remove bookmark</key>
+	<string>Remove bookmark</string>
+	<key>Remove bookmark %@</key>
+	<string>Remove bookmark %@</string>
 	<key>Remove host</key>
 	<string>Remove host</string>
 	<key>Rename</key>
@@ -1300,6 +1370,8 @@
 	<string>Show %lld more</string>
 	<key>Show %lld more sessions</key>
 	<string>Show %lld more sessions</string>
+	<key>Show Conversation Map</key>
+	<string>Show Conversation Map</string>
 	<key>Show Sidebar</key>
 	<string>Show Sidebar</string>
 	<key>Show a tip in the sidebar each time JustSessions opens</key>
@@ -1472,6 +1544,8 @@
 	<string>The check of %@'s shell startup didn't finish.</string>
 	<key>The check's commands didn't run in %@'s login shell, so nothing else could be checked. The app's commands start the same way, so sessions there can't start either.</key>
 	<string>The check's commands didn't run in %@'s login shell, so nothing else could be checked. The app's commands start the same way, so sessions there can't start either.</string>
+	<key>The conversation itself isn't changed.</key>
+	<string>The conversation itself isn't changed.</string>
 	<key>The folder is listed under %@ in the sidebar, ready for new sessions.</key>
 	<string>The folder is listed under %@ in the sidebar, ready for new sessions.</string>
 	<key>The host needs:</key>
@@ -1530,6 +1604,8 @@
 	<string>This session is open in another window.</string>
 	<key>This session will be permanently deleted on %@. SSH hosts have no Trash, so this cannot be undone.</key>
 	<string>This session will be permanently deleted on %@. SSH hosts have no Trash, so this cannot be undone.</string>
+	<key>This tab isn't linked to its session yet. Bookmarks work once it is.</key>
+	<string>This tab isn't linked to its session yet. Bookmarks work once it is.</string>
 	<key>Time range</key>
 	<string>Time range</string>
 	<key>Tip</key>

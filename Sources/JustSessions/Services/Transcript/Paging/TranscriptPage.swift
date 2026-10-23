@@ -35,6 +35,9 @@ struct TranscriptPageLimits: Sendable {
     var targetByteCount = 1 << 20
     var maximumRecordByteCount = 16 << 20
     var maximumTextLength = 12_000
+    /// Consecutive tool calls a page merges into one row. The conversation map merges none, so each call keeps its own
+    /// record and a run's last record is known (`ConversationOutline.Block.lastRecord`); message IDs don't change.
+    var maximumMergedToolCallCount = 50
 }
 
 enum TranscriptPagingError: LocalizedError {

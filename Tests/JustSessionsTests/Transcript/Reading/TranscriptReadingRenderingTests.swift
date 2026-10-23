@@ -43,7 +43,7 @@ struct TranscriptReadingRenderingTests {
                                         suggestedTitle: "Read before you resume", updatedAt: .now, sourceFile: sourceFile)
         let content = SessionReadingView(
             store: store, conversation: conversation, readingPositionStore: TranscriptReadingPositionStore(),
-            findRequests: SessionReadingFindRequests()
+            requests: SessionReadingRequests()
         )
             .defaultAppStorage(settings.userDefaults)
         let fixture = ThemeSurfaceRenderingFixture(content: AnyView(content), size: CGSize(width: 760, height: 900), colorScheme: .light)

@@ -9,7 +9,8 @@ final class TranscriptScrollViewFixture {
     /// The transcript's saved settings, such as its reading width, live here instead of in the app's own settings.
     let settings: IsolatedUserDefaults
     let hostingView: NSHostingView<AnyView>
-    private let window: NSWindow
+    /// The window the reader is in, which the bookmark commands find it by.
+    let window: NSWindow
 
     init(width: CGFloat = 780, height: CGFloat = 480) throws {
         _ = NSApplication.shared
@@ -22,20 +23,26 @@ final class TranscriptScrollViewFixture {
 
     func show(
         _ conversation: Conversation, transcript: TranscriptContent, paging: TranscriptPagingModel? = nil,
-        isActive: Bool = true, searchState: TranscriptSearchState = TranscriptSearchState()
+        isActive: Bool = true, searchState: TranscriptSearchState = TranscriptSearchState(),
+        store: ConversationStore? = nil, bookmarkState: TranscriptBookmarkState = TranscriptBookmarkState()
     ) async throws -> NSScrollView {
         hostingView.rootView = AnyView(TranscriptPagingTestReader(
             conversation: conversation, transcript: transcript, positionStore: positionStore, paging: paging,
-            isActive: isActive, searchState: searchState
+            isActive: isActive, searchState: searchState, store: store, bookmarkState: bookmarkState
         ).id(conversation.id).defaultAppStorage(settings.userDefaults))
         try await settleLayout()
         return try #require(descendant(ofType: NSScrollView.self, in: hostingView))
     }
 
-    /// Hosts the whole reader, which loads its own pages, as the preview does.
-    func showReader(_ conversation: Conversation, matchReveal: TranscriptMatchReveal? = nil) {
+    /// Hosts the whole reader, which loads its own pages, as the preview does, or as a reading window does with
+    /// `readingRequests`.
+    func showReader(
+        _ conversation: Conversation, matchReveal: TranscriptMatchReveal? = nil, store: ConversationStore? = nil,
+        readingRequests: SessionReadingRequests? = nil
+    ) {
         hostingView.rootView = AnyView(TranscriptView(
-            conversation: conversation, readingPositionStore: positionStore, matchReveal: matchReveal
+            conversation: conversation, readingPositionStore: positionStore, matchReveal: matchReveal,
+            readingRequests: readingRequests, store: store
         ).defaultAppStorage(settings.userDefaults))
     }
 
@@ -47,6 +54,11 @@ final class TranscriptScrollViewFixture {
     /// What the text fields show, such as Find's query.
     var textFieldValues: [String] {
         descendants(ofType: NSTextField.self, in: hostingView).filter(\.isEditable).map(\.stringValue)
+    }
+
+    /// The transcript's text blocks, each with the entry it shows in its `selectionKey`.
+    var textViews: [TranscriptTextView] {
+        descendants(ofType: TranscriptTextView.self, in: hostingView)
     }
 
     func settleLayout() async throws {
@@ -96,22 +108,31 @@ final class TranscriptScrollViewFixture {
     /// accessibility API; calling them by selector keeps the build free of deprecation warnings.
     ///
     /// The enhanced user interface is app-wide, and other main-actor tests can run while the press waits for layout.
-    /// They only see SwiftUI build its accessibility elements, but two presses must not overlap: the first to finish
-    /// would turn the setting off while the other still searches. Call this only from one test at a time.
-    func pressButton(labeled label: String) async throws {
-        let getValue = NSSelectorFromString("accessibilityAttributeValue:")
-        let setValue = NSSelectorFromString("accessibilitySetValue:forAttribute:")
-        let enhancedUserInterface = "AXEnhancedUserInterface" as NSString
-        let earlierValue = NSApp.perform(getValue, with: enhancedUserInterface)?.takeUnretainedValue() as? NSNumber
-        NSApp.perform(setValue, with: NSNumber(value: true), with: enhancedUserInterface)
-        defer { NSApp.perform(setValue, with: earlierValue ?? NSNumber(value: false), with: enhancedUserInterface) }
+    /// They only see SwiftUI build its accessibility elements. Presses and searches in other suites may overlap: the
+    /// setting stays on until the last of them ends (`enhancedUserInterfaceUsers`).
+    ///
+    /// The button is pressed straight after `action` runs, before anything it starts can finish, such as a page load.
+    func pressButton(labeled label: String, rightAfter action: () -> Void = {}) async throws {
+        turnOnEnhancedUserInterface()
+        defer { restoreEnhancedUserInterface() }
         try await settleLayout()
         let button = try #require(
             accessibilityElement(labeled: label, in: hostingView),
             "No accessibility element is labeled \"\(label)\". SwiftUI builds them only after NSApp's AXEnhancedUserInterface turns on; check that setting it still works before looking for a missing button."
         )
+        action()
         #expect(button.accessibilityPerformPress?() == true)
         try await settleLayout()
+    }
+
+    /// Whether VoiceOver would find an element that reads `label`, such as a bookmark's letter or a notice: an element's
+    /// label, or a text's value, which SwiftUI gives no label. Like `pressButton(labeled:)`, it turns the enhanced user
+    /// interface on for the search.
+    func hasAccessibilityElement(labeled label: String) async throws -> Bool {
+        turnOnEnhancedUserInterface()
+        defer { restoreEnhancedUserInterface() }
+        try await settleLayout()
+        return accessibilityElement(reading: label, in: hostingView) != nil
     }
 
     func close() {
@@ -122,6 +143,11 @@ final class TranscriptScrollViewFixture {
 
     func visiblePosition(in scrollView: NSScrollView) -> TranscriptReadingPosition? {
         descendant(ofType: TranscriptEntryGeometryView.self, in: hostingView)?.controller.currentReadingPosition()
+    }
+
+    /// The shown reader's position controller, which keeps its reading position and a bookmark jump's seek target.
+    var positionController: TranscriptScrollPositionController? {
+        descendant(ofType: TranscriptEntryGeometryView.self, in: hostingView)?.controller
     }
 
     /// The frames of the entries on screen, in the scroll view's visible area. Entries fill the transcript column's
@@ -158,6 +184,38 @@ final class TranscriptScrollViewFixture {
         }, omittedEntryCount: omittedEntryCount)
     }
 
+    /// A transcript as a paged reader shows it: each entry's ID is its record's (`TranscriptPageIdentity`), and positions
+    /// use those IDs.
+    static func pagedTranscript(_ contents: [TranscriptEntry.Content]) -> TranscriptContent {
+        TranscriptContent(entries: contents.indices.map { index in
+            TranscriptEntry(id: TranscriptPageIdentity.entryID(record: index, part: 0), content: contents[index], timestamp: nil, startsTurn: true)
+        }, omittedEntryCount: 0, usesEntryIDsForPositions: true)
+    }
+
+    /// How many presses and searches have the enhanced user interface on, across fixtures, and its value before the first.
+    private static var enhancedUserInterfaceUsers = 0
+    private static var enhancedUserInterfaceBeforeUse: NSNumber?
+
+    /// Turns on the setting an assistive app turns on; see `pressButton(labeled:)`.
+    private func turnOnEnhancedUserInterface() {
+        if Self.enhancedUserInterfaceUsers == 0 {
+            Self.enhancedUserInterfaceBeforeUse = NSApp.perform(NSSelectorFromString("accessibilityAttributeValue:"), with: Self.enhancedUserInterface)?
+                .takeUnretainedValue() as? NSNumber
+            NSApp.perform(NSSelectorFromString("accessibilitySetValue:forAttribute:"), with: NSNumber(value: true), with: Self.enhancedUserInterface)
+        }
+        Self.enhancedUserInterfaceUsers += 1
+    }
+
+    /// Puts back the earlier value once the last press or search that turned the setting on has ended.
+    private func restoreEnhancedUserInterface() {
+        Self.enhancedUserInterfaceUsers -= 1
+        guard Self.enhancedUserInterfaceUsers == 0 else { return }
+        NSApp.perform(NSSelectorFromString("accessibilitySetValue:forAttribute:"), with: Self.enhancedUserInterfaceBeforeUse ?? NSNumber(value: false),
+                      with: Self.enhancedUserInterface)
+    }
+
+    private static let enhancedUserInterface = "AXEnhancedUserInterface" as NSString
+
     /// SwiftUI's accessibility elements are Objective-C objects without a Swift protocol conformance, so the search
     /// looks their accessibility methods up dynamically.
     private func accessibilityElement(labeled label: String, in element: AnyObject) -> AnyObject? {
@@ -166,6 +224,21 @@ final class TranscriptScrollViewFixture {
             if let match = accessibilityElement(labeled: label, in: child as AnyObject) { return match }
         }
         return nil
+    }
+
+    private func accessibilityElement(reading text: String, in element: AnyObject) -> AnyObject? {
+        if element.accessibilityLabel?() == text || accessibilityValue(of: element) == text { return element }
+        for child in element.accessibilityChildren?() ?? [] {
+            if let match = accessibilityElement(reading: text, in: child as AnyObject) { return match }
+        }
+        return nil
+    }
+
+    /// Read by selector: looked up dynamically, `accessibilityValue` is taken for a string, and a scroller's is a number.
+    private func accessibilityValue(of element: AnyObject) -> String? {
+        let selector = NSSelectorFromString("accessibilityValue")
+        guard element.responds(to: selector) else { return nil }
+        return element.perform(selector)?.takeUnretainedValue() as? String
     }
 
     private func descendant<ViewType: NSView>(ofType type: ViewType.Type, in view: NSView) -> ViewType? {
@@ -188,9 +261,12 @@ private struct TranscriptPagingTestReader: View {
     let paging: TranscriptPagingModel?
     let isActive: Bool
     let searchState: TranscriptSearchState
+    let store: ConversationStore?
+    let bookmarkState: TranscriptBookmarkState
 
     var body: some View {
         TranscriptScrollView(conversation: conversation, transcript: paging?.transcript ?? transcript,
-                             positionStore: positionStore, isActive: isActive, searchState: searchState, paging: paging)
+                             positionStore: positionStore, isActive: isActive, searchState: searchState, paging: paging,
+                             store: store, bookmarkState: bookmarkState)
     }
 }

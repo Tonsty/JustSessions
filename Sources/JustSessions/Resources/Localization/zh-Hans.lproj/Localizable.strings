@@ -58,6 +58,8 @@
 	<string>%1$@ · %2$@ 子代理 · %3$@</string>
 	<key>%@ · %@ subagent · %@ · %@</key>
 	<string>%1$@ · %2$@ 子代理 · %3$@ · %4$@</string>
+	<key>%@ · %@: %@</key>
+	<string>%1$@ · %2$@：%3$@</string>
 	<key>%@ · ⌘-click to select multiple projects; Shift-click to select a range</key>
 	<string>%@ · 按住 ⌘ 点击选择多个项目；按住 Shift 点击选择一个范围</string>
 	<key>%@'s interactive startup files start another program, so CLIs start without them. A PATH set only in those files doesn't reach the CLIs.</key>
@@ -74,6 +76,8 @@
 	<string>%1$@，%2$@ 子代理，%3$@</string>
 	<key>%@, %@, open terminal, not saved yet</key>
 	<string>%@，%@，终端已打开，尚未保存</string>
+	<key>%lld bookmarks</key>
+	<string>%lld 个书签</string>
 	<key>%lld earlier entries are not shown. Resume the session to see all of it.</key>
 	<string>未显示前面的 %lld 条记录。继续会话可查看全部内容。</string>
 	<key>%lld hours</key>
@@ -118,6 +122,8 @@
 	<string>**继续**（或双击会话）会在原来的 CLI 和文件夹中接着这段对话。**分支** 会从对话的副本开始一个新会话，原会话保持不变，仅部分 CLI 支持。</string>
 	<key>**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab, or press **⌥⌘N**, to show two side by side.</key>
 	<string>**⌘N** 可用任一已安装的 CLI 开始会话，或打开普通终端。标签页按项目分组，侧边栏的 **已打开** 会列出全部标签页。右键单击标签页或按 **⌥⌘N**，可将两个并排显示。</string>
+	<key>1 bookmark</key>
+	<string>1 个书签</string>
 	<key>1 message</key>
 	<string>1 条消息</string>
 	<key>1 session is still running: its tab closes and its CLI ends first.</key>
@@ -132,6 +138,8 @@
 	<string>仍在 tmux 中运行的 CLI 会重新连接。其他会话在选中标签时继续，包括 Mac 重启后的会话。普通终端会在原文件夹打开新 shell。</string>
 	<key>A blue dot means a CLI finished a turn you haven't seen yet.</key>
 	<string>蓝点表示 CLI 完成了一轮，你还没看。</string>
+	<key>A plain terminal has no conversation to bookmark.</key>
+	<string>普通终端没有可添加书签的对话。</string>
 	<key>A port goes in `~/.ssh/config`. Add these lines there, then enter %@.</key>
 	<string>端口要写在 `~/.ssh/config` 中。把下面几行加进去，再输入 %@。</string>
 	<key>A session whose subagents ran sessions of their own gets a chevron before its icon. Click it to list them under the session and read them. Kiro's aren't listed; on SSH hosts, only Codex's and Antigravity's are.</key>
@@ -164,8 +172,14 @@
 	<string>添加一台可通过 SSH 连接的服务器，就能在这里浏览并继续它上面的会话。</string>
 	<key>Add anyway</key>
 	<string>仍然添加</string>
+	<key>Add bookmark</key>
+	<string>添加书签</string>
 	<key>Add host</key>
 	<string>添加主机</string>
+	<key>Add or Remove Bookmark</key>
+	<string>添加或移除书签</string>
+	<key>Add or remove bookmark</key>
+	<string>添加或移除书签</string>
 	<key>Add or restore a project on %@</key>
 	<string>在 %@ 上添加或恢复项目</string>
 	<key>Add or restore a project on this Mac</key>
@@ -182,6 +196,8 @@
 	<string>向新拆分视图添加标签页</string>
 	<key>Adjusted to stay readable</key>
 	<string>已调整为易读的颜色</string>
+	<key>All 26 letters are in use. Remove a bookmark to add another.</key>
+	<string>26 个字母都已用完。请先移除一个书签，再添加新的。</string>
 	<key>All sessions</key>
 	<string>全部会话</string>
 	<key>All time</key>
@@ -274,6 +290,20 @@
 	<string>回到之前显示的标签页或会话</string>
 	<key>Background</key>
 	<string>背景</string>
+	<key>Bookmark %@</key>
+	<string>书签 %@</string>
+	<key>Bookmark %@ added · %@: %@</key>
+	<string>已添加书签 %1$@ · %2$@：%3$@</string>
+	<key>Bookmark %@ removed · %@: %@</key>
+	<string>已移除书签 %1$@ · %2$@：%3$@</string>
+	<key>Bookmark %@'s message is no longer in this conversation. This is where it was.</key>
+	<string>书签 %@ 的消息已不在此对话中，这里是它原来的位置。</string>
+	<key>Bookmark the message you're reading, or remove its bookmark</key>
+	<string>为正在阅读的消息添加书签，或移除它的书签</string>
+	<key>Bookmarks</key>
+	<string>书签</string>
+	<key>Bookmarks (⌘D, ⌘', ⇧⌘')</key>
+	<string>书签（⌘D、⌘'、⇧⌘'）</string>
 	<key>Branch</key>
 	<string>分支</string>
 	<key>Branch %lld sessions</key>
@@ -478,6 +508,8 @@
 	<string>继续</string>
 	<key>Continue any past session in its own CLI and folder: just double-click it.</key>
 	<string>双击任意会话，就能在原来的 CLI 和文件夹里接着聊。</string>
+	<key>Conversation map</key>
+	<string>对话地图</string>
 	<key>Copied</key>
 	<string>已复制</string>
 	<key>Copies %@'s sessions to this Mac.</key>
@@ -680,6 +712,8 @@
 	<string>在这段对话中查找</string>
 	<key>Finding the folder on %@…</key>
 	<string>正在查找 %@ 上的文件夹…</string>
+	<key>Finding the latest message…</key>
+	<string>正在查找最新消息…</string>
 	<key>Finished its turn</key>
 	<string>已完成一轮</string>
 	<key>Finishes its turn</key>
@@ -744,6 +778,8 @@
 	<string>前往</string>
 	<key>Go to a tab by its position</key>
 	<string>按位置切换到标签页</string>
+	<key>Go to bookmark %@</key>
+	<string>前往书签 %@</string>
 	<key>Go to the first available message</key>
 	<string>跳到第一条可用消息</string>
 	<key>Go to the latest message</key>
@@ -754,6 +790,8 @@
 	<string>帮助</string>
 	<key>Hide %lld subagent sessions</key>
 	<string>隐藏 %lld 个子代理会话</string>
+	<key>Hide Conversation Map</key>
+	<string>隐藏对话地图</string>
 	<key>Hide Sidebar</key>
 	<string>隐藏侧栏</string>
 	<key>Hide or show the sidebar</key>
@@ -790,6 +828,12 @@
 	<string>改进</string>
 	<key>In **Projects**, clear the filters, then click the host's refresh button.</key>
 	<string>在 **项目** 中清除所有筛选，然后单击该主机的刷新按钮。</string>
+	<key>In a tab linked to a session, bookmark its latest message, or remove its bookmark</key>
+	<string>在已关联会话的标签页中，为其最新消息添加书签，或移除它的书签</string>
+	<key>In a tab linked to a session, open its reading window at the next bookmark</key>
+	<string>在已关联会话的标签页中，在阅读窗口中前往下一个书签</string>
+	<key>In a tab linked to a session, open its reading window at the previous bookmark</key>
+	<string>在已关联会话的标签页中，在阅读窗口中前往上一个书签</string>
 	<key>Install `rsync` and the CLIs you use on the host.</key>
 	<string>在主机上安装 `rsync` 和需要使用的 CLI。</string>
 	<key>Interface language</key>
@@ -950,8 +994,12 @@
 	<string>较新的匹配项（⇧⌘G 或 ⇧Return）</string>
 	<key>Next</key>
 	<string>下一步</string>
+	<key>Next Bookmark</key>
+	<string>下一个书签</string>
 	<key>Next Tab</key>
 	<string>下一个标签</string>
+	<key>Next bookmark</key>
+	<string>下一个书签</string>
 	<key>Next match</key>
 	<string>下一个匹配项</string>
 	<key>Next match (⌘G or Return)</key>
@@ -968,12 +1016,20 @@
 	<string>没有等待你处理的 Claude Code、Codex、Antigravity、Pi 或 OpenCode 会话</string>
 	<key>No archived projects</key>
 	<string>没有已归档的项目</string>
+	<key>No bookmarks in this conversation</key>
+	<string>此对话中没有书签</string>
+	<key>No bookmarks in this conversation. Press ⌘D to bookmark the message you're reading.</key>
+	<string>此对话中没有书签。按 ⌘D 可为正在阅读的消息添加书签。</string>
+	<key>No bookmarks in this session. Press ⌘D to bookmark its latest message.</key>
+	<string>此会话中没有书签。按 ⌘D 可为最新一条消息添加书签。</string>
 	<key>No matches</key>
 	<string>无匹配项</string>
 	<key>No matching open tabs</key>
 	<string>没有匹配的已打开标签</string>
 	<key>No matching projects or sessions</key>
 	<string>无匹配的项目或会话</string>
+	<key>No messages in this session yet.</key>
+	<string>此会话中还没有消息。</string>
 	<key>No messages yet</key>
 	<string>暂无消息</string>
 	<key>No open tabs</key>
@@ -1000,6 +1056,8 @@
 	<string>尚未请求</string>
 	<key>Not found on %@: %@.</key>
 	<string>%@ 上未找到：%@。</string>
+	<key>Not linked yet</key>
+	<string>尚未关联</string>
 	<key>Note</key>
 	<string>提示</string>
 	<key>Nothing on %@ listens on a port that localhost reaches.</key>
@@ -1022,6 +1080,8 @@
 	<string>Claude Code、Codex 或其他支持的 CLI 保存对话后，它会按项目出现在这里。</string>
 	<key>Only renames it in JustSessions. Leave empty to use the folder name (%@).</key>
 	<string>仅在 JustSessions 中重命名。留空可使用文件夹名称（%@）。</string>
+	<key>Only your messages and the CLI's replies can be bookmarked.</key>
+	<string>只能为你的消息和 CLI 的回复添加书签。</string>
 	<key>Open</key>
 	<string>打开</string>
 	<key>Open Link</key>
@@ -1048,6 +1108,8 @@
 	<string>用默认 App 打开</string>
 	<key>Open in new window</key>
 	<string>在新窗口中打开</string>
+	<key>Open in reading window</key>
+	<string>在阅读窗口中打开</string>
 	<key>Open project in</key>
 	<string>打开项目于</string>
 	<key>Open project in Finder</key>
@@ -1104,8 +1166,12 @@
 	<string>想用 Ghostty 渲染终端？在 设置 → 外观 → 终端 → 引擎 里选择，之后新开的标签页生效。</string>
 	<key>Preview</key>
 	<string>预览</string>
+	<key>Previous Bookmark</key>
+	<string>上一个书签</string>
 	<key>Previous Tab</key>
 	<string>上一个标签</string>
+	<key>Previous bookmark</key>
+	<string>上一个书签</string>
 	<key>Previous match</key>
 	<string>上一个匹配项</string>
 	<key>Previous match (⇧⌘G or ⇧Return)</key>
@@ -1168,6 +1234,16 @@
 	<string>更新说明</string>
 	<key>Remove</key>
 	<string>移除</string>
+	<key>Remove all</key>
+	<string>全部移除</string>
+	<key>Remove all bookmarks in this conversation?</key>
+	<string>要移除此对话中的所有书签吗？</string>
+	<key>Remove all bookmarks…</key>
+	<string>移除所有书签…</string>
+	<key>Remove bookmark</key>
+	<string>移除书签</string>
+	<key>Remove bookmark %@</key>
+	<string>移除书签 %@</string>
 	<key>Remove host</key>
 	<string>移除主机</string>
 	<key>Rename</key>
@@ -1344,6 +1420,8 @@
 	<string>再显示 %lld 个会话</string>
 	<key>Show %lld subagent sessions</key>
 	<string>显示 %lld 个子代理会话</string>
+	<key>Show Conversation Map</key>
+	<string>显示对话地图</string>
 	<key>Show Sidebar</key>
 	<string>显示侧栏</string>
 	<key>Show a tip in the sidebar each time JustSessions opens</key>
@@ -1520,6 +1598,8 @@
 	<string>%@ 的 shell 启动配置检查未完成。</string>
 	<key>The check's commands didn't run in %@'s login shell, so nothing else could be checked. The app's commands start the same way, so sessions there can't start either.</key>
 	<string>检查命令未能在 %@ 的登录 shell 中运行，因此无法检查其他项目。App 的命令以同样方式启动，所以那里的会话也无法启动。</string>
+	<key>The conversation itself isn't changed.</key>
+	<string>对话本身不会改变。</string>
 	<key>The folder is listed under %@ in the sidebar, ready for new sessions.</key>
 	<string>该文件夹会列在侧边栏的 %@ 下，可直接在其中新建会话。</string>
 	<key>The host needs:</key>
@@ -1582,6 +1662,8 @@
 	<string>这个会话已在另一个窗口中打开。</string>
 	<key>This session will be permanently deleted on %@. SSH hosts have no Trash, so this cannot be undone.</key>
 	<string>%@ 上的此会话将被永久删除。SSH 主机没有废纸篓，此操作无法撤销。</string>
+	<key>This tab isn't linked to its session yet. Bookmarks work once it is.</key>
+	<string>此标签页尚未关联到会话。关联后即可使用书签。</string>
 	<key>Time range</key>
 	<string>时间范围</string>
 	<key>Tip</key>

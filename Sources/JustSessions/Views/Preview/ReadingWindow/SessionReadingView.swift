@@ -5,7 +5,7 @@ struct SessionReadingView: View {
     let store: ConversationStore
     let conversation: Conversation
     let readingPositionStore: TranscriptReadingPositionStore
-    let findRequests: SessionReadingFindRequests
+    let requests: SessionReadingRequests
 
     private var currentConversation: Conversation {
         store.conversation(withID: conversation.id) ?? conversation
@@ -37,7 +37,9 @@ struct SessionReadingView: View {
             TranscriptView(
                 conversation: conversation,
                 readingPositionStore: readingPositionStore,
-                findRequestRevision: findRequests.revision
+                readingRequests: requests,
+                // A session deleted while its window stays open has had its bookmarks forgotten; none are saved again.
+                store: store.conversation(withID: conversation.id) == nil ? nil : store
             )
                 .id(conversation.id)
         }

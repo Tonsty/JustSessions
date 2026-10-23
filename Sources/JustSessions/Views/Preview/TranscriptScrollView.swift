@@ -12,6 +12,11 @@ struct TranscriptScrollView: View {
     @State var restoredPagingRevision: Int?
     @AppStorage(TranscriptReadingTextSize.userDefaultsKey) private var readingFontSize = TranscriptReadingTextSize.defaultSize
     @State var searchState: TranscriptSearchState
+    /// Keeps the session's message bookmarks; see `TranscriptScrollView+Bookmarks`.
+    let store: ConversationStore?
+    @State var bookmarkState: TranscriptBookmarkState
+    /// A reading window's requests from a tab or the map; see `TranscriptScrollView+ReadingRequests`.
+    let readingRequests: SessionReadingRequests?
     @State var searchIndex: TranscriptSearchIndex?
     @State var indexedTranscript: TranscriptContent?
     @State var indexedQuery = ""
@@ -25,15 +30,19 @@ struct TranscriptScrollView: View {
     init(
         conversation: Conversation, transcript: TranscriptContent, positionStore: TranscriptReadingPositionStore,
         isActive: Bool = true, searchState: TranscriptSearchState = TranscriptSearchState(), paging: TranscriptPagingModel? = nil,
-        onOpenInNewWindow: (() -> Void)? = nil
+        onOpenInNewWindow: (() -> Void)? = nil, store: ConversationStore? = nil,
+        bookmarkState: TranscriptBookmarkState = TranscriptBookmarkState(), readingRequests: SessionReadingRequests? = nil
     ) {
         self.conversation = conversation
         self.transcript = transcript
         self.isActive = isActive
         self.paging = paging
         self.onOpenInNewWindow = onOpenInNewWindow
+        self.store = store
+        self.readingRequests = readingRequests
         _restoredPagingRevision = State(initialValue: paging?.revision)
         _searchState = State(initialValue: searchState)
+        _bookmarkState = State(initialValue: bookmarkState)
         let initialPosition = (positionStore.position(for: conversation.id) ?? .bottom).resolved(in: transcript)
         self.initialPosition = initialPosition
         _positionController = State(initialValue: TranscriptScrollPositionController(
@@ -46,6 +55,7 @@ struct TranscriptScrollView: View {
     var body: some View {
         ScrollViewReader { scrollProxy in
             transcriptScrollView
+                .overlay(alignment: .bottom) { TranscriptBookmarkNoticeCard(state: bookmarkState, onRemoveBookmark: removeBookmark) }
                 .safeAreaInset(edge: .top, spacing: 0) {
                     VStack(spacing: 0) {
                         TranscriptReadingToolbar(
@@ -55,7 +65,8 @@ struct TranscriptScrollView: View {
                             onFirstMessage: showFirstMessage,
                             onLatestMessage: showLatestMessage,
                             onFind: searchState.show,
-                            onOpenInNewWindow: onOpenInNewWindow
+                            onOpenInNewWindow: onOpenInNewWindow,
+                            bookmarkMenu: bookmarkMenu
                         )
                         .disabled(!isActive)
                         if searchState.isPresented {
@@ -75,12 +86,15 @@ struct TranscriptScrollView: View {
                     navigationRevision: searchState.navigationRevision,
                     positionController: positionController
                 ))
+                .environment(\.transcriptBookmarkLetters, TranscriptBookmarkLetters(bookmarks))
                 .background(TranscriptSearchKeyboardShortcuts(searchState: searchState, isActive: isActive))
+                .background(TranscriptBookmarkTargetReporter(target: bookmarkCommandTarget, isActive: isActive))
                 .task(id: SearchRequest(query: searchState.query, isPresented: searchState.isPresented && isActive, transcript: transcript)) {
                     await updateSearch()
                 }
                 .onChange(of: searchState.navigationRevision) {
                     guard let match = searchState.selectedMatch else { return }
+                    positionController.clearSeekTarget()
                     positionController.restore(.entry(index: match.entryIndex, offset: -6))
                     scrollProxy.scrollTo(match.entryIndex, anchor: .top)
                 }
@@ -90,10 +104,19 @@ struct TranscriptScrollView: View {
                 .onChange(of: searchState.isPresented) { positionController.restoreRecordedPosition() }
                 .onChange(of: readingFontSize) { positionController.restoreRecordedPosition() }
                 .onChange(of: readingWidth) { positionController.restoreRecordedPosition() }
-                .onChange(of: paging?.revision) { restorePagedPosition(using: scrollProxy) }
+                .onChange(of: paging?.revision) {
+                    restorePagedPosition(using: scrollProxy)
+                    settleBookmarkJump()
+                    settleEntryJump()
+                }
+                // A fresh window's request is taken as its first page shows (initial), a later one as it comes.
+                .onChange(of: readingRequests?.navigationRevision ?? 0, initial: true) { takeReadingNavigation() }
                 .onReceive(positionController.viewportUpdates) { prefetchIfNeeded(in: $0) }
                 .onReceive(textSelection.trackingEnded) { prefetchIfNeeded() }
-                .onAppear { positionController.tracksTranscriptBottom = paging?.hasLater != true }
+                .onAppear {
+                    positionController.tracksTranscriptBottom = paging?.hasLater != true
+                    if let entryID = bookmarkState.takeCarriedSeekTarget() { positionController.setSeekTarget(entryID) }
+                }
                 .onReceive(positionController.entrySeekingRequests) { index in
                     scrollProxy.scrollTo(index, anchor: .top)
                 }

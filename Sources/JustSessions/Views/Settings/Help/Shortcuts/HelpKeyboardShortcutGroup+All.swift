@@ -1,8 +1,9 @@
 import SwiftUI
 
 extension HelpKeyboardShortcutGroup {
-    /// Every shortcut JustSessions adds. The Back and Forward, tab, sidebar, text size, and Settings shortcuts are menu
-    /// commands (`WorkspaceNavigationCommands`, `WorkspaceTabCommands`, `SidebarToggleCommands`, `TextZoomCommands`,
+    /// Every shortcut JustSessions adds. The Back and Forward, tab, sidebar, text size, bookmark, and Settings shortcuts
+    /// are menu commands (`WorkspaceNavigationCommands`, `WorkspaceTabCommands`, `SidebarToggleCommands`,
+    /// `TextZoomCommands`, `TranscriptBookmarkCommands`, which a selected tab answers through `TerminalTabBookmarks`,
     /// `AppWideSheetCommands`); Control-Tab is `WorkspaceTabCycleShortcuts`, ⌘= is `ZoomInEqualsKey`, Find is
     /// `TranscriptSearchKeyboardShortcuts` in the conversation and `TerminalFindShortcuts` in a tab, the terminal's line
     /// editing keys are `TerminalEditingKey`, and ⌘A in a CLI's prompt is `TerminalPromptSelection`.
@@ -27,6 +28,9 @@ extension HelpKeyboardShortcutGroup {
                 HelpKeyboardShortcut(keys: "⌘G", "Return", action: "Next match"),
                 HelpKeyboardShortcut(keys: "⇧⌘G", "⇧Return", action: "Previous match"),
                 HelpKeyboardShortcut(keys: "Esc", action: "Close find"),
+                HelpKeyboardShortcut(keys: "⌘D", action: "Bookmark the message you're reading, or remove its bookmark"),
+                HelpKeyboardShortcut(keys: "⌘'", action: "Next bookmark"),
+                HelpKeyboardShortcut(keys: "⇧⌘'", action: "Previous bookmark"),
             ]),
             HelpKeyboardShortcutGroup(title: "Text size, in the terminals or the conversation shown", shortcuts: [
                 HelpKeyboardShortcut(keys: "⌘+", "⌘=", action: "Larger text"),
@@ -51,6 +55,9 @@ extension HelpKeyboardShortcutGroup {
                     keys: "⌘F",
                     action: "Find in the terminal. In a tab linked to a session, find in its conversation in a reading window."
                 ),
+                HelpKeyboardShortcut(keys: "⌘D", action: "In a tab linked to a session, bookmark its latest message, or remove its bookmark"),
+                HelpKeyboardShortcut(keys: "⌘'", action: "In a tab linked to a session, open its reading window at the next bookmark"),
+                HelpKeyboardShortcut(keys: "⇧⌘'", action: "In a tab linked to a session, open its reading window at the previous bookmark"),
                 HelpKeyboardShortcut(keys: "⌘G", "Return", action: "Older match"),
                 HelpKeyboardShortcut(keys: "⇧⌘G", "⇧Return", action: "Newer match"),
                 HelpKeyboardShortcut(keys: "Esc", action: "Close find, while its field has the keyboard"),

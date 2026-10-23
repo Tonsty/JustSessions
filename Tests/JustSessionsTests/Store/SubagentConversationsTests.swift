@@ -70,6 +70,21 @@ struct SubagentConversationsTests {
         #expect(store.deletionPlan(for: [alone]).deletedSubagentCount == 0)
     }
 
+    /// A subagent listed again under one of its own subagents, as two copies of one session can be, is listed once.
+    @Test func descendantSubagentsListEachSessionOnce() throws {
+        let settings = try IsolatedUserDefaults()
+        defer { settings.removeSuite() }
+        let store = ConversationStore(adapters: [], userDefaults: settings.userDefaults)
+        let parent = Conversation.fixture(provider: .claude)
+        let subagent = Conversation.fixture(provider: .claude, parentSessionID: parent.sessionID)
+        let nested = Conversation.fixture(provider: .claude, parentSessionID: subagent.sessionID)
+        let subagentAgain = Conversation.fixture(provider: .claude, sessionID: subagent.sessionID, parentSessionID: nested.sessionID)
+        store.replaceConversations(on: .thisMac, with: [parent, subagent, nested, subagentAgain])
+
+        #expect(store.descendantSubagents(of: parent).map(\.id) == [subagent.id, nested.id])
+        #expect(store.descendantSubagentCount(of: parent) == 2)
+    }
+
     @Test func aSubagentIsNeitherLaunchedNorDeletedOnItsOwn() throws {
         let settings = try IsolatedUserDefaults()
         defer { settings.removeSuite() }

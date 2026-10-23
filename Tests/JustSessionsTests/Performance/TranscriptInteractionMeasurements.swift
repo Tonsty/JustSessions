@@ -32,6 +32,23 @@ struct TranscriptInteractionMeasurements {
         }
         #expect(entryCount > 0) // Record-only: the numbers above are the result.
     }
+
+    /// The same reading with a letter beside 26 messages, so the markers' cost shows beside the plain reader's.
+    @Test(arguments: [240, 640])
+    func readingWithTwentySixBookmarks(entryCount: Int) async throws {
+        guard SidebarInteractionMeasurements.isEnabled else { return }
+        let harness = try await TranscriptPerfHarness(entryCount: entryCount, bookmarkCount: 26)
+        defer { harness.close() }
+        for isAccessibilityOn in [false, true] {
+            try await harness.setAccessibility(isAccessibilityOn)
+            let label = "transcript N=\(entryCount), 26 bookmarks, accessibility \(isAccessibilityOn ? "on" : "off")"
+            try await harness.resetViewport(to: .top)
+            perfReport(label, "AppKit views in the window", harness.viewCount)
+            for (name, value) in try await harness.measureScrolling() { perfReport(label, name, value) }
+            for (name, value) in try await harness.measureHitTesting() { perfReport(label, name, value) }
+        }
+        #expect(entryCount > 0) // Record-only: the numbers above are the result.
+    }
 }
 
 @MainActor
@@ -42,14 +59,27 @@ final class TranscriptPerfHarness {
     private let searchState = TranscriptSearchState()
     private var earlierAccessibilityValue: NSNumber?
 
-    init(entryCount: Int) async throws {
+    /// With `bookmarkCount`, that many of the first messages are bookmarked. The reader isn't paged, so the markers show
+    /// and the bookmark commands stay off.
+    init(entryCount: Int, bookmarkCount: Int = 0) async throws {
         _ = NSApplication.shared
         settings = try IsolatedUserDefaults()
         let conversation = TranscriptScrollViewFixture.conversation("transcript-perf-\(entryCount)")
+        let transcript = Self.transcript(count: entryCount)
+        var store: ConversationStore?
+        if bookmarkCount > 0 {
+            let messages = transcript.entries.compactMap { entry in MessageBookmark.Kind(entry.content).map { (entry, kind: $0) } }
+            let bookmarks = zip(MessageBookmarks.letters, messages.prefix(bookmarkCount)).map { letter, message in
+                MessageBookmark(letter: letter, entryID: message.0.id, kind: message.kind,
+                                snippet: MessageBookmarkNavigation.snippet(of: message.0) ?? "")
+            }
+            MessageBookmarks(bookmarksByConversationID: [conversation.id: bookmarks]).save(to: settings.userDefaults)
+            store = ConversationStore(adapters: [], userDefaults: settings.userDefaults, startsBackgroundPolling: false)
+        }
         hostingView = NSHostingView(rootView: AnyView(
             TranscriptScrollView(
-                conversation: conversation, transcript: Self.transcript(count: entryCount),
-                positionStore: TranscriptReadingPositionStore(), searchState: searchState
+                conversation: conversation, transcript: transcript,
+                positionStore: TranscriptReadingPositionStore(), searchState: searchState, store: store
             )
             .defaultAppStorage(settings.userDefaults)
         ))

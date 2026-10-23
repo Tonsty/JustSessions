@@ -11,16 +11,19 @@ extension ConversationStore {
         subagentIndex.subagents(ofConversationID: conversation.id)
     }
 
-    /// How many subagent sessions `conversation` started, counting their own subagents, at any depth. A subagent that
-    /// names one of the sessions above it as its own subagent counts once, as the sidebar lists it once.
-    func descendantSubagentCount(of conversation: Conversation) -> Int {
+    /// The subagent sessions `conversation` started, and theirs, at any depth, each once. A subagent that names one of
+    /// the sessions above it as its own subagent is listed once, as the sidebar lists it once.
+    func descendantSubagents(of conversation: Conversation) -> [Conversation] {
         var counted: Set<String> = [conversation.id]
-        var pending = [conversation]
+        var pending = [conversation], found: [Conversation] = []
         while let next = pending.popLast() {
             for subagent in subagents(of: next) where counted.insert(subagent.id).inserted {
-                pending.append(subagent)
+                pending.append(subagent); found.append(subagent)
             }
         }
-        return counted.count - 1
+        return found
     }
+
+    /// How many subagent sessions `conversation` started, counting their own subagents, at any depth.
+    func descendantSubagentCount(of conversation: Conversation) -> Int { descendantSubagents(of: conversation).count }
 }

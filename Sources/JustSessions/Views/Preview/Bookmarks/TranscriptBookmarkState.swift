@@ -1,0 +1,93 @@
+import AppKit
+import Observation
+
+enum TranscriptBookmarkNotice: Equatable {
+    case noBookmarks, allLettersInUse, nothingToBookmark
+    case missing(MessageBookmark)
+
+    /// A hint goes by itself; a missing message's notice waits, since it offers Remove bookmark.
+    var hidesByItself: Bool { if case .missing = self { false } else { true } }
+
+    func text(language: AppInterfaceLanguage?) -> String {
+        switch self {
+        case .noBookmarks: AppLocalization.string("No bookmarks in this conversation. Press ⌘D to bookmark the message you're reading.", language: language)
+        case .allLettersInUse: AppLocalization.string("All 26 letters are in use. Remove a bookmark to add another.", language: language)
+        case .nothingToBookmark: AppLocalization.string("Only your messages and the CLI's replies can be bookmarked.", language: language)
+        case .missing(let bookmark): AppLocalization.string("Bookmark \(bookmark.letter)'s message is no longer in this conversation. This is where it was.", language: language)
+        }
+    }
+}
+
+/// One reader's bookmark state that outlives its scroll view, which an empty page removes: a jump whose page is
+/// loading, and the notice shown. `TranscriptView` owns it, as it owns Find's state.
+@MainActor
+@Observable
+final class TranscriptBookmarkState {
+    nonisolated static let hintDuration: Duration = .seconds(4)
+
+    /// A jump whose page is loading. `TranscriptView.refresh()` asks for it rather than for the place the pages shown still
+    /// record, as it does a match reveal. The next page to arrive is this jump's: First, Latest, and a new match reveal end
+    /// it first, a reveal from before it no longer asks for its own page (`loadingJumpCount`), and Load earlier or later
+    /// never starts while a page loads (TranscriptPagingModel `earlier`/`later`).
+    @ObservationIgnored private(set) var loadingJump: MessageBookmark?
+    /// How many jumps have asked for a page. A match reveal still loading from before the latest one has lost its page to
+    /// it, and `TranscriptView` drops it, as a newer reveal ends a loading jump.
+    @ObservationIgnored private(set) var loadingJumpCount = 0
+    /// A map entry jump whose page is loading (RDR-50); `TranscriptView.refresh()` asks for it, as for `loadingJump`.
+    @ObservationIgnored private(set) var loadingEntryJump: Int?
+    private(set) var notice: TranscriptBookmarkNotice?
+    @ObservationIgnored private var noticeHidingTask: Task<Void, Never>?
+    @ObservationIgnored private var carriedSeekTarget: Int?
+
+    func startLoadingJump(_ bookmark: MessageBookmark) {
+        loadingEntryJump = nil
+        loadingJump = bookmark
+        loadingJumpCount += 1
+    }
+    func startLoadingEntryJump(_ entryID: Int) {
+        loadingJump = nil
+        loadingEntryJump = entryID
+        loadingJumpCount += 1
+    }
+    /// First, Latest, and a match reveal end either kind of jump.
+    func cancelLoadingJump() {
+        loadingJump = nil
+        loadingEntryJump = nil
+    }
+    @discardableResult func finishLoadingJump() -> MessageBookmark? { defer { loadingJump = nil }; return loadingJump }
+    @discardableResult func finishLoadingEntryJump() -> Int? { defer { loadingEntryJump = nil }; return loadingEntryJump }
+
+    func show(_ notice: TranscriptBookmarkNotice) {
+        self.notice = notice
+        noticeHidingTask?.cancel()
+        noticeHidingTask = nil
+        if notice.hidesByItself {
+            noticeHidingTask = Task { [weak self] in
+                try? await Task.sleep(for: Self.hintDuration)
+                guard !Task.isCancelled, self?.notice == notice else { return }
+                self?.notice = nil
+            }
+        }
+        announce(notice.text(language: nil))
+    }
+
+    func dismissNotice() {
+        noticeHidingTask?.cancel()
+        noticeHidingTask = nil
+        if notice != nil { notice = nil }
+    }
+
+    /// VoiceOver doesn't follow the reader's scroll, so a jump and each notice are spoken.
+    func announce(_ text: String) { Self.announce(text) }
+
+    /// Also for a tab's notices (TerminalBookmarkNoticeState), which no reader shows.
+    static func announce(_ text: String) {
+        guard let application = NSApp else { return }
+        NSAccessibility.post(element: application, notification: .announcementRequested,
+                             userInfo: [.announcement: text, .priority: NSAccessibilityPriorityLevel.high.rawValue])
+    }
+
+    /// The missing bookmark an empty page left the reader past, for the reader that replaces it (see `TranscriptView`).
+    func carrySeekTarget(_ entryID: Int) { carriedSeekTarget = entryID }
+    func takeCarriedSeekTarget() -> Int? { defer { carriedSeekTarget = nil }; return carriedSeekTarget }
+}

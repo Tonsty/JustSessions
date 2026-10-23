@@ -4,15 +4,16 @@ import SwiftUI
 @MainActor
 final class SessionReadingWindowController: NSWindowController, NSWindowDelegate {
     let readingWindow: NSWindow
-    let findRequests = SessionReadingFindRequests()
+    let requests = SessionReadingRequests()
+    /// Where the reader is, starting at `initialPosition`.
+    let readingPositionStore = TranscriptReadingPositionStore()
     private let onClose: () -> Void
 
     init(conversation: Conversation, store: ConversationStore, initialPosition: TranscriptReadingPosition?, onClose: @escaping () -> Void) {
         self.onClose = onClose
-        let positionStore = TranscriptReadingPositionStore()
-        if let initialPosition { positionStore.record(initialPosition, for: conversation.id) }
+        if let initialPosition { readingPositionStore.record(initialPosition, for: conversation.id) }
         let content = SessionReadingView(
-            store: store, conversation: conversation, readingPositionStore: positionStore, findRequests: findRequests
+            store: store, conversation: conversation, readingPositionStore: readingPositionStore, requests: requests
         )
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 820, height: 760),
                               styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)

@@ -41,7 +41,8 @@ struct SessionPreviewPane: View {
                             SessionReadingWindowManager.shared.open(
                                 conversation, store: store, initialPosition: readingPositionStore.position(for: conversation.id)
                             )
-                        }
+                        },
+                        store: store
                     )
                         .id(conversation.id)
                 }

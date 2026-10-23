@@ -1,13 +1,17 @@
 import Foundation
 
 extension ConversationStore {
-    /// Each tab takes its session as the list now has it. Through the index, so a list of thousands costs nothing
-    /// beyond the tabs (PERF-88).
+    /// Each tab takes its session as the list now has it, and a tab waiting for the session its CLI moved to keeps the
+    /// name the CLI gave that one (see `followClaudeSessionSwitch`). Through the index, so a list of thousands costs
+    /// nothing beyond the tabs (PERF-88).
     func synchronizeTerminalTitles() {
         for session in terminalSessions {
             if let conversation = session.conversation,
                let current = conversationIndex.conversation(withID: conversation.id) {
-                session.synchronize(conversation: current, displayTitle: title(for: current))
+                session.synchronize(
+                    conversation: current,
+                    displayTitle: titleWhileWaitingForUnlistedSession(of: session) ?? title(for: current)
+                )
             }
         }
     }

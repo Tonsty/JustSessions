@@ -33,6 +33,47 @@ struct ConversationStoreDeletionTests {
         #expect(ArchivedSessions.load(from: sandbox.userDefaults).archivedConversationIDs == [kept.id])
     }
 
+    @Test func deletingASessionForgetsItsAndItsSubagentsBookmarks() async throws {
+        let sandbox = try DeletionSandbox()
+        defer { sandbox.remove() }
+        let deleted = try sandbox.savedConversation(.claude, title: "Deleted")
+        let subagent = Conversation.fixture(provider: .claude, projectPath: deleted.projectPath, parentSessionID: deleted.sessionID)
+        let kept = try sandbox.savedConversation(.claude, title: "Kept")
+        let store = sandbox.makeStore(listing: [deleted, subagent, kept])
+        for conversation in [deleted, subagent, kept] { store.toggleMessageBookmark(on: bookmarkableMessage, in: conversation) }
+
+        store.delete(deleted)
+        try await expectEventually { !store.isDeletingSessions }
+
+        #expect(store.conversations.map(\.id) == [kept.id])
+        #expect(Set(MessageBookmarks.load(from: sandbox.userDefaults).bookmarksByConversationID.keys) == [kept.id])
+        #expect(Set(store.messageBookmarks.bookmarksByConversationID.keys) == [kept.id])
+        // Off the list at once, so a reading window left open on the subagent's session keeps no bookmarks.
+        #expect(store.conversation(withID: subagent.id) == nil)
+    }
+
+    /// Antigravity leaves a session's subagents on disk as conversations of their own, so their bookmarks stay.
+    @Test func deletingAnAntigravitySessionKeepsItsSubagentsBookmarks() async throws {
+        let sandbox = try DeletionSandbox()
+        defer { sandbox.remove() }
+        let deleted = try sandbox.savedConversation(.antigravity, title: "Deleted")
+        let subagent = Conversation.fixture(provider: .antigravity, projectPath: deleted.projectPath, parentSessionID: deleted.sessionID)
+        let store = sandbox.makeStore(listing: [deleted, subagent])
+        for conversation in [deleted, subagent] { store.toggleMessageBookmark(on: bookmarkableMessage, in: conversation) }
+
+        store.delete(deleted)
+        try await expectEventually { !store.isDeletingSessions }
+
+        #expect(store.conversations.isEmpty)
+        #expect(Set(MessageBookmarks.load(from: sandbox.userDefaults).bookmarksByConversationID.keys) == [subagent.id])
+        #expect(store.conversation(withID: subagent.id) != nil)
+    }
+
+    private var bookmarkableMessage: TranscriptEntry {
+        TranscriptEntry(id: TranscriptPageIdentity.entryID(record: 2, part: 0), content: .userMessage("Keep this"),
+                        timestamp: nil, startsTurn: true)
+    }
+
     @Test func aRefusedDeletionShowsTheToolsReasonAndKeepsTheSession() async throws {
         let sandbox = try DeletionSandbox()
         defer { sandbox.remove() }

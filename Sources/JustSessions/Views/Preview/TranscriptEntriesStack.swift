@@ -7,7 +7,8 @@ import SwiftUI
 ///
 /// Laying out every entry is costly, so the entries are their own view, compared by their inputs. These stay the same
 /// while you scroll or search, so SwiftUI leaves the entries, and their layout, alone. Each entry's `id` lets
-/// `ScrollViewProxy.scrollTo` bring it into view; nothing asks SwiftUI to track which one is at the top.
+/// `ScrollViewProxy.scrollTo` bring it into view; nothing asks SwiftUI to track which one is at the top. A bookmark's
+/// letter is an overlay reading only `transcriptBookmarkLetters`.
 struct TranscriptEntriesStack: View, Equatable {
     let transcript: TranscriptContent
     let provider: ConversationProvider
@@ -18,6 +19,13 @@ struct TranscriptEntriesStack: View, Equatable {
             ForEach(transcript.positionedEntries) { positionedEntry in
                 let entryIndex = positionedEntry.id
                 TranscriptEntryView(entry: positionedEntry.entry, assistantName: provider.rawValue, assistantNameColor: provider.textColor)
+                    .overlay(alignment: .topLeading) {
+                        // Only your messages and the CLI's replies can be bookmarked; other rows get no marker view at all.
+                        if MessageBookmark.Kind(positionedEntry.entry.content) != nil {
+                            TranscriptBookmarkMarker(entryID: entryIndex,
+                                                     topPadding: TranscriptEntryView.topPadding(startsTurn: positionedEntry.entry.startsTurn))
+                        }
+                    }
                     .environment(\.transcriptSearchEntryIndex, entryIndex)
                     .id(entryIndex)
             }

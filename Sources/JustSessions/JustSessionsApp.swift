@@ -26,8 +26,10 @@ struct JustSessionsApp: App {
         .defaultSize(width: 1100, height: 720)
         .commands {
             WorkspaceNavigationCommands()
+            TranscriptBookmarkCommands()
             WorkspaceTabCommands()
             SidebarToggleCommands()
+            ConversationMapCommands()
             TextZoomCommands()
             AppWideSheetCommands()
         }

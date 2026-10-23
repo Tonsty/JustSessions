@@ -14,8 +14,11 @@ struct TranscriptEntryView: View {
         }
         .font(.system(size: fontSize))
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, entry.startsTurn ? 28 : 12)
+        .padding(.top, Self.topPadding(startsTurn: entry.startsTurn))
     }
+
+    /// Space above an entry, more where a speaker's turn starts; `TranscriptBookmarkMarker` lines up with it.
+    static func topPadding(startsTurn: Bool) -> CGFloat { startsTurn ? 28 : 12 }
 
     @ViewBuilder
     private var entryContent: some View {

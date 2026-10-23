@@ -221,6 +221,8 @@ No difference stands out from the load's noise:
 | 31 | [A Pi session's name was looked for in its last 256 KB on every refresh](#31-a-pi-sessions-name-was-looked-for-in-its-last-256-kb-on-every-refresh) | Done: #277 |
 | 32 | [The activity sync went through every listed session for every tmux session](#32-the-activity-sync-went-through-every-listed-session-for-every-tmux-session) | Done: #294 |
 | 33 | [The sidebar looked up an SSH host's project paths on this Mac's disk](#33-the-sidebar-looked-up-an-ssh-hosts-project-paths-on-this-macs-disk) | Done: this change |
+| 34 | [Bookmark letters beside messages](#34-bookmark-letters-beside-messages) | Done: this change |
+| 35 | [The conversation map beside CLI tabs](#35-the-conversation-map-beside-cli-tabs) | Done: this change; every measured limit met after a second pass, 3 not measured |
 
 ### 1. Timestamp parsing
 
@@ -872,6 +874,130 @@ The two gaps, 36–44 ms, came with the launch and with the opening of the new s
 - **The labels are still worked out in the sidebar's body:** each render groups a host's projects by name, which the numbers above include.
 - **Not changed:** the same profile found `TerminalSurfaceCoordinator.tick` → `ghostty_surface_draw` waiting for the GPU (`waitUntilCompleted`) on the main thread, about 1.4 s of small stutters after switching to a Ghostty tab with streaming output.
 
+### 34. Bookmark letters beside messages
+
+**Evidence:** a bookmark's letter is drawn beside its message in the reader, which is the hot path items 4 and 8 took apart. A per-entry AppKit view, a new input to `TranscriptEntriesStack`, or a new read in `TranscriptSearchContext` would bring back the costs those items removed (PERF-60 to PERF-63).
+
+**Change:** the letters are one Equatable `@Entry`, `transcriptBookmarkLetters`, set beside `transcriptSearchContext`. `TranscriptBookmarkMarker` is a SwiftUI overlay, attached only to your messages and the CLI's replies, that reads only that value and draws nothing for a message with no letter. There is no representable, and bookmarks are not an input of `TranscriptEntriesStack`, `TranscriptEntryView`, or `TranscriptSearchContext`, so the stack's `==` is unchanged. The overlay doesn't change the entry's size, so the layout measures as before. A bookmark change re-runs `TranscriptScrollView.body` once and redraws the markers. Scrolling reads no bookmarks: after a jump, each scroll update looks up the jumped-to row's frame until it leaves the viewport (`forgetSeekTargetOutOfView()`), and checks one optional otherwise. The commands measure the viewport only when run (`visibleEntryIDs(minimumVisibleHeight:)`).
+
+**Measured:** `TranscriptInteractionMeasurements`, release build, `main` and the branch run alternately, three runs each, medians, with 0 and 26 bookmarks on the branch (`readingWithTwentySixBookmarks`):
+
+```sh
+for run in 1 2 3; do JUSTSESSIONS_PERF=1 swift test -c release --filter TranscriptInteractionMeasurements; done
+```
+
+Compared: `86869dc4` (`main`) and this change on it, built from separate checkouts. Apple M4 Pro (12 cores), 24 GB, macOS 26.6.1, Swift 6.4. The machine wasn't isolated.
+
+| Entries and accessibility | Scroll p50, `main` / 0 / 26 bookmarks | 200 hit tests, `main` / 0 / 26 bookmarks |
+| --- | --- | --- |
+| 240, off | 7.8 / 8.2 / 8.7 ms | 329 / 327 / 334 ms |
+| 240, on | 8.3 / 7.9 / 8.7 ms | 333 / 323 / 333 ms |
+| 640, off | 26.9 / 25.8 / 27.0 ms | 979 / 879 / 881 ms |
+| 640, on | 27.3 / 26.2 / 26.9 ms | 939 / 854 / 903 ms |
+
+Load average: 9.8 at the first run, just after the builds, falling to 3.0 by the last.
+
+**Result:** without bookmarks the reader scrolls and hit-tests as `main` does, within run-to-run noise (`main` alone ranged 7.5–8.1 ms at 240 entries). 26 letters at 240 entries add about 0.5–0.9 ms to the median step in every run, and about 1.1–1.4 ms at p95 (10.5 against 9.1 ms with accessibility off, 9.9 against 8.8 on), well inside a frame; at 640 entries the difference is within noise. The window's AppKit view count is the same with and without bookmarks (1,726 at 240 entries, 4,526 at 640). The 26 bookmarks are the first 26 messages, on screen as scrolling starts, about one message in five: a denser case than a session's few bookmarks.
+
+**Rerun with the conversation map, 21 October 2026 ([item 35](#35-the-conversation-map-beside-cli-tabs)):** the same suite on the same Mac, one test at a time (`--no-parallel`), three runs a tree. Every number was lower on both trees (`main`'s scroll p50 at 240 entries 4.5–4.8 ms against 7.5–8.1 ms above), and the comparison held: without bookmarks the median step and hit tests overlap `main`, and 26 letters at 240 entries add 0.4–0.5 ms to the median step (5.2 against 4.7 ms off, 5.4 against 5.0 on). Two differences fall outside the runs' overlap. `main`'s window holds 1,724 AppKit views at 240 entries and 4,524 at 640, 2 fewer than this change's at both sizes, so not one per entry; the run above, before the map existed, already counted 1,726 and 4,526 but didn't count `main`'s, and which 2 views they are wasn't traced. At 240 entries with accessibility on, the p95 step without bookmarks was 6.2, 10.0, and 6.1 ms against `main`'s 5.5, 5.3, and 5.7.
+
+**Rerun after the snippet change, 21 October 2026 ([item 35](#35-the-conversation-map-beside-cli-tabs)):** `MessageBookmarkNavigation.snippet(of:)`, which makes the text a bookmark is saved with and matched on, now takes its words in one pass that stops at 80 characters. It returns the same text as before (`MessageBookmarkSnippetPropertyTests`), and scrolling doesn't call it. The suite ran once on `main` and twice on the branch after the change, one test at a time. Median step at 240 entries off and on, then 640 off and on: `main` 3.6, 3.8, 14.4, 13.9 ms; the branch 3.8, 3.4, 14.8, 14.8 and 3.6, 3.2, 14.5, 14.6 ms. 200 hit tests: `main` 320, 320, 855, 828 ms; the branch 326, 326, 886, 853 and 309, 308, 810, 839 ms. The hit tests fall on both sides of `main`'s in three of the four cases. At 640 entries the median step was 0.1 to 0.9 ms above `main`'s single run, as in the rerun above, where three runs a tree overlapped. Scrolling doesn't run the changed code, but one `main` run can't rule out a small difference. View counts are as in the rerun above.
+
+**Limits:**
+- **Absolute numbers are this Mac's:** they sit above PERF-60's, which an M4 Max measured; the comparison is between the columns.
+- **Not measured:** a bookmark jump's scroll updates, which look up one row's frame until it leaves the viewport; the harness doesn't jump.
+
+### 35. The conversation map beside CLI tabs
+
+**Evidence:** View → Show Conversation Map (TAB-09, TAB-10) puts a column beside every CLI tab, reads an outline of each tab's session from its file, and draws it next to the terminal: the hot paths of PERF-80 to PERF-84 and item 25. A read on the main thread, a terminal view that takes the map as an input, or a map that keeps working while its tab or window is out of sight would bring back the costs those items removed.
+
+**Change:** as PERF-89 states. The map is never an input of `EmbeddedTerminalView` or `TerminalInsetView`, and its column's width depends only on the menu item and the interface size, so drawing it doesn't redraw or resize a terminal. `ConversationOutlineReader`, an actor, reads the outline at utility priority with the reader's decoder, without preparing Markdown or decoding images. The tab's `ConversationOutlineModel` keeps it in memory only and never publishes it through `ConversationStore`. As the file grows, the reader extends the outline from its last block's record (PERF-69); a Pi branch left, a truncated file, or a rewritten one is read in full. Only a map on screen works: on this Mac it `stat`s its file, and a SQLite database's `-wal`, once a second, and an SSH copy every 5 seconds. After a change it reads at most every 2 seconds, or four times as long as its last finished read of the session shown took, up to 30 seconds; a read cancelled by hiding the map, or left behind by a relink, doesn't delay the next. A read that finds nothing new publishes nothing. A hidden tab's column draws only its background, and a map in a minimized, hidden, or covered window checks and reads nothing. One Canvas draws the map, one bar per row or per pixel row, and it reads no tab selection.
+
+**Second pass, after the first round missed three limits:** a stage profile, a temporary test in a release build on the same Mac, timed each part of a read. It split the 95 MiB Pi file's 1.98 s cold read into 580 ms of shared reading (the line index, the branch scan, and decoding every page with the outline's limits and no Markdown) and 1.39 s of building the outline. Snippets took 1.31 s of that: 860 ms parsing each reply's first 400 characters as Markdown, and about 380 ms splitting words. The OpenCode session's 417 ms was 228 ms of reading and 190 ms of building, 180 ms of it snippets. Three changes followed, each held to the old output by a randomized test against the old code:
+- **Snippet words in one pass:** `MessageBookmarkNavigation.collapsedHead(of:)`, which the reader's bookmarks share, takes each segment's words until they reach 80 characters, byte by byte while the text is ASCII and by `Character` otherwise, instead of splitting the first 320 characters, joining them, and cutting. Saved bookmarks are matched on this text, so it must not change. `MessageBookmarkSnippetPropertyTests` compares 5,000 random inputs and edge cases, such as CR LF, a combining mark just past the cut, Unicode spaces, and emoji sequences, with the old split. On the Pi file's replies it went from about 420 to 75 ms.
+- **No parse for a plain head:** `ConversationOutlineBuilder.isMarkdownInert(_:)` scans the head's bytes. A head with no character Markdown acts on, no line that starts like a block (including the `:` of a table delimiter row, which needs no pipes), no control byte but LF, no U+FEFF, and no space Markdown would strip beside a non-ASCII byte gives the same words unparsed, so it skips the parse; when the 320-character cut ended its words, it's parsed anyway. `ConversationOutlineSnippetTests` compares 3,000 random heads with the parsed snippet. An adversarial review fuzzed about 1.2 million heads against Foundation's parse and found only the delimiter row, now rejected. The parse was skipped for every reply of the Pi file (22,682) and the OpenCode session (5,000), and for none of the 27 MiB Codex log's 704.
+- **Pi's branch scan in chunks:** `TranscriptPiPageIndex.records` reads lines in chunks of up to 1 MiB, a longer line on its own, instead of a seek and read for each. It still throws for a line over the record limit and for a file cut short since it was indexed; a chunk stops before a line over the limit, so the two errors come in the same order as a line at a time. The reader's preview, message search, and ⌘D share it (PERF-67). `TranscriptPiPageIndexTests` compares chunk sizes from 1 byte to 1 MiB with a line-at-a-time scan on random Pi trees.
+
+**Measured:** `ConversationOutlineMeasurements` (new), `TerminalFairnessMeasurements` with a new scenario that shows two maps beside PERF-82's tabs, each following a Codex file of 200 messages that grows by a 1 KB record every 100 ms, and the terminal and reader suites rerun against `main`. Release builds, `main` and the branch run alternately, three runs each, one test at a time, after a build without `JUSTSESSIONS_PERF` and with the bundled tmux exported as `JUSTSESSIONS_TEST_TMUX_RUNTIME`:
+
+```sh
+for run in 1 2 3; do JUSTSESSIONS_PERF=1 swift test -c release --skip-build --no-parallel --filter 'ConversationOutlineMeasurements|TerminalFairnessMeasurements|TerminalVisibilityMeasurements|TerminalWindowVisibilityMeasurements|TerminalEngineMeasurements|TranscriptInteractionMeasurements'; done
+swift test -c release --skip-build --filter 'aHiddenTabDoesNoOutlineWork|followingPublishesNothingThroughTheStore'
+```
+
+`main` ran the same suites without `ConversationOutlineMeasurements`. The same three runs a tree without `--no-parallel` aren't used: Swift Testing then runs the suites at the same time in one process (`.serialized` orders only a suite's own tests), and those runs showed main-thread gaps of 0.6 to 5.2 s, 589 to 606 ms in the map-off typing scenario alone, so they can't support any limit under about 1 s.
+
+Compared: `86869dc4` (`main`) and this change on it, built from separate checkouts. Apple M4 Pro (12 cores), 24 GB, macOS 26.6.1, Swift 6.4, tmux 3.7c, under `caffeinate -d -i -u`. The machine wasn't isolated: the load average was 2.1 to 3.0 before each run. One branch run was slower throughout the reader suite (scroll p50 7.8 against 4.7 ms in the other two); the medians keep it.
+
+The second round ran after the second pass, on the same Mac, the same day, the same way: `ConversationOutlineMeasurements` and `TerminalFairnessMeasurements` three times on the branch, and `TerminalEngineMeasurements` five times a tree, alternating with `main`. The load average was 2.5 to 3.6 before each run. Steam used about one core throughout both rounds.
+
+Outline reads, first round → second round, each the median of three runs of 5 reads; `hasChanged()` is the mean of 10,000 calls:
+
+| Operation | 27 MiB Codex | 100 MiB Codex | 95 MiB Pi | OpenCode, 10,000 messages | Plan's limit |
+| --- | --- | --- | --- | --- | --- |
+| Cold `update()` | 295 → 286 ms | 135 → 133 ms | 1,908 → 627 ms | 399 → 243 ms | 300 ms / 170 ms / 1.6 s / 350 ms |
+| One-record append | 0.2 → 0.2 ms | 0.2 → 0.2 ms | 119 → 71 ms | 1.4 → 1.3 ms | 40 ms / none / 1.5 s / 15 ms |
+| Replaced by a copy with one more record | 10.9 → 10.1 ms | 38.4 → 35.3 ms | 153.4 → 106.1 ms | not measured | 150 ms |
+| `hasChanged()` | 2.0 → 1.9 µs | 2.0 → 1.9 µs | 2.0 → 1.9 µs | 3.2 → 3.1 µs | 50 µs |
+| `latestMessage()` (⌘D), warm | 4.5 → 4.6 ms | 1.0 → 0.9 ms | 0.7 → 0.7 ms | 1.7 → 1.6 ms | 20 ms |
+| `latestMessage()` (⌘D), cold | 13.4 → 13.1 ms | 34.4 → 33.0 ms | 147.9 → 102.1 ms | 1.7 → 1.7 ms | 150 ms |
+| Blocks / messages, both rounds | 1,583 / 880 | 211 / 211 | 45,364 / 34,023 | 15,000 / 10,000 | |
+| Outline bytes a block / a message, both rounds | 206 / 370 | 189 / 189 | 202 / 270 | 210 / 315 | 3 MB per 10,000 blocks |
+
+The second round's three runs: cold 286.3, 291.1, 280.2 ms (27 MiB Codex), 627.0, 628.4, 620.5 ms (Pi), and 246.3, 241.4, 242.5 ms (OpenCode); the Pi file replaced by a copy 105.1, 109.5, 106.1 ms; Pi's cold ⌘D 102.7, 102.1, 101.8 ms.
+
+Drawing `ConversationMapCanvas` with `ImageRenderer`, 10,000 blocks and 26 bookmarks in 70 × 800 pt at 2×, p50 of 20 renders: 0.8 ms in both rounds (0.9, 0.8, 0.8 in the second; limit 4 ms).
+
+Typing beside one visible and five hidden tabs each printing 25,000 lines a second (PERF-82), the same run without and with the two maps, second round:
+
+| Run | Keystroke-to-echo p50, off / on | p95, off / on | Longest main-thread gap, off / on | Reads, each map | Process CPU, off / on |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 1.9 / 1.9 ms | 6.6 / 5.7 ms | 33.4 / 25.2 ms | 3, 3 | 104 / 107% |
+| 2 | 2.0 / 1.8 ms | 4.2 / 4.4 ms | 26.4 / 24.4 ms | 3, 3 | 107 / 108% |
+| 3 | 1.8 / 1.9 ms | 4.7 / 4.2 ms | 25.0 / 25.4 ms | 3, 3 | 105 / 107% |
+
+The first round's three runs gave p50 1.9 / 1.9, 1.8 / 2.0, and 1.9 / 2.0 ms, and longest gaps 26.1 / 28.6, 25.9 / 26.9, and 29.0 / 26.8 ms. Every keystroke echoed, 60 of 60, in every scenario of both rounds.
+
+Against `main`, medians; the engine rows are the second round's, five runs a tree, and the rest the first round's, three runs a tree:
+
+| Measurement | `main` | Branch | Runs |
+| --- | --- | --- | --- |
+| PERF-82's scenario without maps: echo p50 / p95, longest gap | 2.0 / 5.6 ms, 25.8 ms | 1.9 / 6.3 ms, 26.1 ms | overlap |
+| Hidden streaming, coalesced, N=5 / N=10, CPU of one core | 16.1 / 19.1% | 17.2 / 18.1% | overlap |
+| Window in sight / covered / minimized, CPU of one core | 41.4 / 40.8 / 5.6% | 40.9 / 40.4 / 5.5% | overlap |
+| Ghostty bulk 20 MB: CPU / main-thread CPU | 345.2 / 61.3% | 345.8 / 61.3% | overlap |
+| Ghostty bulk 20 MB: frames drawn, seconds | 50, 0.26 s | 52, 0.25 s | overlap |
+| Every repaint row (1, 5, and 10 tabs, three engines), SwiftTerm and Metal bulk | | | overlap |
+| Reader scroll p50, 240 / 640 entries, accessibility off | 4.6 / 16.9 ms | 4.7 / 17.4 ms | overlap |
+| Reader scroll p50, 240 / 640 entries, accessibility on | 4.7 / 16.8 ms | 5.0 / 17.8 ms | overlap |
+| Reader scroll p95, 240 entries, accessibility on | 5.5 ms | 6.2 ms | branch higher |
+| Reader, 200 hit tests, 240 / 640 entries, accessibility off | 322 / 871 ms | 316 / 845 ms | overlap |
+| AppKit views in the reader's window, 240 / 640 entries | 1,724 / 4,524 | 1,726 / 4,526 | branch higher |
+
+Without maps, some typing rows also fall outside the runs' overlap. Higher on the branch: in the quiet tab alone, echo p95 11.4 against `main`'s 10.6 ms and draw p50 54.3 against 53.9 ms; beside five hidden flooders, echo p50 38.0 against 33.7 ms and draw p50 112.7 against 108.7 ms; beside one visible and five hidden flooding as fast as they can, the longest gap 49.0 against 47.9 ms; at 5,000 lines a second, the longest gap 42.1 against 39.4 ms. Lower on the branch: the worst draw beside one visible and five hidden, 145.4 against 151.5 ms, and draw p95 at 5,000 lines a second, 70.0 against 72.3 ms. The flooders parsed more lines on the branch in two scenarios.
+
+Ghostty bulk output, 20 MB, CPU of one core: in the first round the branch took 351.8% against `main`'s 341.1% (355.5, 348.4, 351.8 against 341.1, 338.9, 342.9), outside the runs' overlap. Five runs a tree in the second round didn't reproduce it: 339.1, 347.7, 341.9, 353.3, 345.8% on the branch against 338.8, 346.7, 342.3, 347.9, 345.2% on `main`. Over all 15 repetitions a tree, the medians were 343.6 and 345.8% (Mann-Whitney p = 0.85), and each tree's repetitions ranged over 24 to 26 points, more than the first round's gap of 10.7. Main-thread CPU, the longest gap (24.6 against 23.9 ms), frames, and seconds overlap too. `TerminalEngineMeasurements` drives `GhosttyTabTerminalView` directly and never creates a `TerminalSession`, a `TerminalWorkspaceView`, or any part of the map, and the change touches no Ghostty or engine source file. What moved the first round wasn't found.
+
+Shared code, after the second pass: item 34's reader suite reran (see its note), and `OpenCodeTranscriptPagingMeasurements` ran twice a tree at 10,000 messages. `main` and the branch: the latest page 2.2, 2.3 and 2.1, 2.3 ms; 5 earlier pages 13.4, 14.0 and 13.2, 13.6 ms; a page in the middle 2.2, 2.5 and 2.2, 2.3 ms; the whole session for message search 306.7, 313.3 and 310.2, 321.8 ms. The change touches no OpenCode code.
+
+**Result:** after the second pass, every limit of the plan that was measured is met in all three runs. Cold reads took 286 ms (27 MiB Codex), 133 ms (100 MiB), 627 ms (Pi), and 243 ms (OpenCode), against 300 ms, 170 ms, 1.6 s, and 350 ms. The Pi file replaced by a copy took 106 ms against 150 ms, and Pi's cold ⌘D 102 ms against 150 ms. Block and message counts and bytes a block didn't change on any of the four files. The map leaves typing where PERF-82 put it: with two maps following growing sessions, echo p50 was within 0.2 ms of the same run without them in all six runs (+0.0, -0.2, +0.1 ms in the second round; +0.0, +0.2, +0.1 in the first, where run 2 sits on the limit at the log's 0.1 ms resolution). p95 stayed inside the map-off range, and the longest gap moved by -8.2, -2.0, and +0.4 ms (+2.5, +1.0, and -2.2 in the first round). Each map read 3 times in every run. `aHiddenTabDoesNoOutlineWork` (0 reads, 0 checks) and `followingPublishesNothingThroughTheStore` pass. Hidden tabs and minimized windows cost what they cost on `main` (first round). Ghostty bulk output matches `main` in five runs a tree: the first round's 3% was noise.
+
+After the review fixes (a line-start `:` now forces the parse; a Pi chunk stops before an over-limit line), three more runs at load 2.4–4.0 gave cold reads of 294 ms (304.1, 294.3, 293.7) for the 27 MiB Codex log, 134 ms (100 MiB), 636 ms (Pi), and 251 ms (OpenCode); the Pi file replaced by a copy took 110 ms. Each is within 3–4% of the second round. The Codex log's first run, over its 300 ms limit, came at the highest load; the fixes don't touch its path, since every one of its replies was already parsed.
+
+The first round, before the second pass, missed three limits in all three runs: the Pi cold read, 1.91 s (1.88, 1.93, 1.91) against 1.6 s; the OpenCode cold read, 399 ms (390, 399, 403) against 350 ms; and the Pi file replaced by a copy, 153.4 ms (152.2, 153.4, 154.4) against 150 ms. The 27 MiB Codex cold read took 301.5 ms in one run, and Pi's cold `latestMessage()` 150.0 ms in one. The reader's window holds 2 more AppKit views than `main`'s, the same 2 at both sizes; item 34's run, before the map, counted the same 1,726 and 4,526. Not measured: item 25's tab switch with 3 CLI tabs holding 10,000-block outlines, the toggle burst with 10 CLI tabs, and a covered window or one on another Space.
+
+**Limits:**
+- **The Pi and OpenCode limits are met for plain-prose replies:** both generated files' replies are prose with no Markdown, so no reply head is parsed. Any head with Markdown is. Foundation's parse took about 38 µs a head on the Pi file's prose and 100 to 150 µs on the Codex log's Markdown. A 95 MiB Pi session whose 22,682 replies all needed it would take an estimated 1.5 s with prose heads and 2.9 to 4.0 s with heads like Codex's, against 1.6 s; not measured. Getting under the limit then would need snippets made only when shown, or a Markdown stripper of the outline's own. The first needs each reply's text again: kept in memory, past the plan's 3 MB per 10,000 blocks, or read again on hover. The second makes the map's snippet differ from the bookmark's.
+- **The 27 MiB Codex cold read has the thinnest margin:** 286 ms against 300 ms (280 to 291 in three runs), 9 ms faster than the first round. All 704 of its replies are parsed, about 104 ms of the read in the stage profile.
+- **The shared reader was within every limit:** in the stage profile, before the second pass, reading every page with the outline's limits and no Markdown took 580 ms of the Pi file's 1.6 s and 228 ms of the OpenCode session's 350 ms. No limit was out of reach because of the reader; the misses were the outline's own snippets. The 27 MiB Codex log's read wasn't split into stages.
+- **Pi scans its branch again on every change:** a one-record append took 71 ms against Codex's 0.2 ms. A growing Pi session's map then reads every 2 seconds, about 4% of a utility thread's time, and waits 2.5 s after its 0.63 s first read (four times as long); derived from the numbers above, not measured in the app.
+- **OpenCode's database is shared:** a write to any session changes the database's `-wal`, so every OpenCode map on screen reads again. With 10,000 messages, a read after one new record took 1.3 ms and a change check 3.1 µs, and a read that finds nothing new publishes nothing. Several maps while other sessions write weren't measured.
+- **Clicks on a huge session are approximate:** squeezed to the column's height, a map of 10,000 messages draws one bar a pixel row, so a click opens a message within a few of the one aimed at; the hover card names what a click opens. Not measured.
+- **The typing scenario's maps follow small files:** each read a 200-message Codex file 3 times. Typing beside a map's 0.63 s Pi read wasn't measured; reads run off the main thread at utility priority.
+- **Not measured:** item 25's tab switch, which needs the app-level click method; the toggle burst, a manual Time Profiler check; a covered window or another Space, since macOS reports no occlusion to tests; OpenCode replaced by a copy, which the suite reads only for files; and `TerminalEngineMeasurements.memory()`. `aHiddenTabDoesNoOutlineWork` and `followingPublishesNothingThroughTheStore` assert their zeros and print no number. The chunked branch scan speeds the Pi preview and Pi message search too, but neither has a suite; ⌘D's cold read, which reads the last page as the preview does without Markdown, is the only number, and no real large Pi session was read. The second round ran the typing suite on the branch only and didn't rerun the hidden-tab or window suites; outside the map scenario, the second pass touches none of their code.
+- **Run several suites with `--no-parallel`:** without it they disturb each other, as above. In those runs the map-on echo p50 was about 8 ms above map-off in all three (10.6, 9.4, 10.0 against 2.0 ms); whether the map or the suite running beside it caused that wasn't isolated.
+- **Absolute numbers are this Mac's:** the reader's sit below item 34's on the same Mac (see its rerun note); the comparison is between the columns.
+
 ## How to profile
 
 Attach to a running copy, so you keep your windows and sessions. Record in chunks, so you can analyze finished chunks while still using the app:
@@ -888,16 +1014,17 @@ Or open the trace in Instruments. Keep these points in mind:
 - **Leave the SwiftUI instrument out of CPU profiles.** Its tracing shows up in the samples. Record it separately and briefly to find which state changes cause updates.
 - **Profile a build made like the release.** The release is built on GitHub's `macos-latest` runner, with the macOS 26.5 SDK for v1.0.8. A build with a newer local SDK can compile some calls differently, as item 3 shows. Check a binary's SDK with `otool -l <binary> | grep -A4 LC_BUILD_VERSION`, and build with the Command Line Tools' SDK by setting `DEVELOPER_DIR=/Library/Developer/CommandLineTools`.
 - **Test with an accessibility client running.** Many users run Raycast or a window manager, and SwiftUI's accessibility work only happens while one is connected.
-- **Measurement suites:** the suites in `Tests/JustSessionsTests/Performance/` record only with `JUSTSESSIONS_PERF=1`; see their doc comments.
+- **Measurement suites:** the suites in `Tests/JustSessionsTests/Performance/` record only with `JUSTSESSIONS_PERF=1`; see their doc comments. To run several in one command, add `--no-parallel`: otherwise Swift Testing runs them at the same time and they disturb each other's timings (item 35).
   - `MessageSearchReadingMeasurements`: reading generated sessions with images for message search, decoding the images and leaving them undecoded.
   - `IncrementalMessageSearchMeasurements`: a growing Codex session's search text, read in full on every change against resumed, for 10, 100, and 500 MiB logs and a realistic 27 MiB one.
   - `SharedWorkspaceReadMeasurements`: isolated and app-shared message indexing and full discovery with one, two, and four workspace consumers.
   - `SidebarInteractionMeasurements`: sidebar interactions.
   - `TerminalVisibilityMeasurements`: hidden terminals.
   - `TerminalWindowVisibilityMeasurements`: a selected terminal while its window is in sight, covered, or minimized.
-  - `TerminalFairnessMeasurements`: keystroke-to-echo time in a quiet terminal while other terminals flood, visible and hidden, at full and at set rates.
+  - `TerminalFairnessMeasurements`: keystroke-to-echo time in a quiet terminal while other terminals flood, visible and hidden, at full and at set rates, and with two conversation maps following growing sessions.
   - `TerminalEngineMeasurements`: Ghostty and SwiftTerm tabs under the same output, and their memory; see [Terminal engines](#terminal-engines-ghostty-and-swiftterm) and [Build and release](build-and-release.md#performance-measurements) for the commands.
   - `TranscriptInteractionMeasurements`: scrolling, hit testing, and opening Find in a 240- and 640-entry transcript, with SwiftUI's accessibility off and on. Run it with `JUSTSESSIONS_PERF=1 swift test -c release --filter TranscriptInteractionMeasurements`.
   - `OpenCodeTranscriptPagingMeasurements`: paging through OpenCode sessions of 1,000 and 10,000 messages, and reading them for message search.
   - `TranscriptImageDecodingMeasurements`: opening one, two, or four readers of a session full of screenshots, then opening it again.
+  - `ConversationOutlineMeasurements`: reading a tab's conversation-map outline cold, after a one-record append, and after its file is replaced by a copy, its change check, ⌘D's newest message, and its size, for 27 and 100 MiB Codex logs, a 95 MiB Pi file, and a 10,000-message OpenCode session; and drawing a 10,000-block map (PERF-89, PERF-90).
   - `TabBarDragMeasurements`: one pointer move while a tab, or a group by its label, is dragged along a bar of 18 tabs in 3 groups.

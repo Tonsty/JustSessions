@@ -22,6 +22,11 @@ final class TerminalSession: ObservableObject, Identifiable {
     let terminalView: any TabTerminalView
     /// The tab's find bar, which searches its terminal; see `TerminalFindShortcuts` for when ⌘F opens it.
     let findState: TerminalFindState
+    /// The conversation map's outline of the linked session and its reader for ⌘D (TAB-10, TRM-74), kept with the tab so
+    /// it follows the tab to another window.
+    let conversationOutline: ConversationOutlineModel
+    /// What ⌘D, ⌘', and ⇧⌘' say over the terminal; see `TerminalTabBookmarks`.
+    let bookmarkNotices: TerminalBookmarkNoticeState
     /// The session id a new Claude Code tab was started with (`--session-id`), when the CLI accepts one.
     let preassignedSessionID: String?
     /// For a Branch tab, the session it forked. The CLI runs a new session, so this one is never the tab's own.
@@ -41,8 +46,11 @@ final class TerminalSession: ObservableObject, Identifiable {
     /// Refreshes spent picking up a new session's first prompt as its title; see new session discovery.
     var titleRefreshCount = 0
     /// The session the tab's CLI is in, which no refresh had listed when the tab found it, once a refresh looked for
-    /// it; see `followClaudeSessionSwitch` and `followCodexThreads`.
+    /// it; see `followCodexThreads` and `followLiveSessions`.
     var cliSessionIDRefreshedFor: String?
+    /// For a Claude Code tab, the session its CLI moved to that no refresh has listed yet; see
+    /// `followClaudeSessionSwitch`.
+    var unlistedClaudeSession: UnlistedClaudeSession?
     /// The title the tab's CLI last gave its terminal. A Codex CLI's title names its thread; see `CodexThreadTitle`.
     private(set) var terminalTitle: String?
     var onProcessFinished: (() -> Void)?
@@ -152,6 +160,8 @@ final class TerminalSession: ObservableObject, Identifiable {
         let terminalView = engine.makeTabTerminalView(frame: NSRect(x: 0, y: 0, width: 900, height: 600))
         self.terminalView = terminalView
         self.findState = TerminalFindState(finder: terminalView)
+        self.conversationOutline = ConversationOutlineModel()
+        self.bookmarkNotices = TerminalBookmarkNoticeState()
         self.processObserver = TerminalProcessObserver()
         self.linkOpener = TerminalLinkOpener(host: host, workingDirectory: projectPath)
         self.sshFileDrop = host.sshDestination.map { TerminalSSHFileDrop(host: $0) }
@@ -260,11 +270,13 @@ final class TerminalSession: ObservableObject, Identifiable {
     /// Hangs up on the tab's process with SIGHUP, as closing a terminal window does. An interactive shell ignores the
     /// SIGTERM of the terminal's `terminate()`, which also leaves the terminal open, so a plain terminal's shell would
     /// otherwise outlive its tab. A tmux client detaches on SIGHUP and leaves its CLI running, or ends the session of a
-    /// failed CLI it still shows. A copy of files dropped on the tab to its SSH host stops.
+    /// failed CLI it still shows. A copy of files dropped on the tab to its SSH host stops, and its conversation map's outline and bookmark notice go.
     func close() {
         guard !isClosed else { return }
         isClosed = true
         sshFileDrop?.cancel()
+        conversationOutline.release()
+        bookmarkNotices.dismiss()
         guard hasStarted && !hasProcessExited else { return }
         let processID = self.processID
         // kill(0) or kill(-1) would signal the app itself or every process of the user.

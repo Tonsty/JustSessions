@@ -31,14 +31,25 @@ actor TranscriptPageSource {
         self.decodesImages = decodesImages
     }
 
-    func read(_ request: TranscriptPageRequest, refreshIndex: Bool = false) throws -> TranscriptPage {
+    /// `limits` overrides the source's page sizes for one call; the conversation map passes its own, keeping the reader's
+    /// text and record cuts so entry IDs stay the reader's. Without `preparesMarkdown`, replies are not parsed (PERF-89).
+    func read(
+        _ request: TranscriptPageRequest, refreshIndex: Bool = false, limits pageLimits: TranscriptPageLimits? = nil,
+        preparesMarkdown: Bool = true
+    ) throws -> TranscriptPage {
         try Task.checkCancellation()
+        let limits = pageLimits ?? self.limits
+        let page = try readPage(request, refreshIndex: refreshIndex, limits: limits)
+        return preparesMarkdown ? try page.preparingMarkdown() : page
+    }
+
+    private func readPage(_ request: TranscriptPageRequest, refreshIndex: Bool, limits: TranscriptPageLimits) throws -> TranscriptPage {
         if provider == .antigravity {
-            return try AntigravityTranscriptPageSource.read(file, request: request, limits: limits).preparingMarkdown()
+            return try AntigravityTranscriptPageSource.read(file, request: request, limits: limits)
         }
         if provider == .opencode {
             guard let sessionID else { throw OpenCodeDatabaseError.unreadable }
-            return try OpenCodeTranscriptPageSource.read(file, sessionID: sessionID, request: request, limits: limits).preparingMarkdown()
+            return try OpenCodeTranscriptPageSource.read(file, sessionID: sessionID, request: request, limits: limits)
         }
         if fileIndex == nil || refreshIndex {
             let updatedIndex = try TranscriptFileIndex.read(file, updating: fileIndex)
@@ -49,7 +60,8 @@ actor TranscriptPageSource {
         let handle = try FileHandle(forReadingFrom: file)
         defer { try? handle.close() }
         if provider == .pi, piRecordIndices == nil {
-            piRecordIndices = try TranscriptPiPageIndex.records(in: index, handle: handle, limits: limits)
+            // The source's own limits, never a call's: the cached branch must not depend on who asked first.
+            piRecordIndices = try TranscriptPiPageIndex.records(in: index, handle: handle, limits: self.limits)
         }
         let recordIndices = piRecordIndices
         let recordCount = recordIndices?.count ?? index.lineStarts.count
@@ -72,6 +84,6 @@ actor TranscriptPageSource {
                     }
                 }
             }
-        ).preparingMarkdown()
+        )
     }
 }

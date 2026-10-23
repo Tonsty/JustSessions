@@ -49,7 +49,11 @@ extension ConversationStore {
         openTerminal(session)
     }
 
-    func startRemoteNewSessionPolling(interval: Duration = .seconds(10)) {
+    /// How often an SSH host is copied again while a tab there waits for its session to be listed: a new session's or
+    /// branch's tab, or a Claude Code tab whose CLI moved to another session (see `followClaudeSessionSwitch`).
+    static let refreshIntervalWhileWaitingForRemoteSession: TimeInterval = 10
+
+    func startRemoteNewSessionPolling(interval: Duration = .seconds(refreshIntervalWhileWaitingForRemoteSession)) {
         runPeriodically(every: interval) { store in
             for host in store.hostsWithRemoteNewSessionsToFollow() { store.refreshRemoteHost(host) }
         }

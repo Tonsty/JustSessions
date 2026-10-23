@@ -74,7 +74,7 @@ final class TranscriptScrollPositionController {
                 .store(in: &observations)
             NotificationCenter.default.publisher(for: NSScrollView.willStartLiveScrollNotification, object: scrollView)
                 .sink { [weak self] _ in
-                    MainActor.assumeIsolated { self?.pendingRestoration = nil }
+                    MainActor.assumeIsolated { self?.pendingRestoration = nil; self?.seekTargetStorage = nil }
                 }
                 .store(in: &observations)
             monitorScrollWheel()
@@ -96,6 +96,7 @@ final class TranscriptScrollPositionController {
 
     func stop() {
         isStopped = true
+        seekTargetStorage = nil
         observations.removeAll()
         geometryView = nil
         entryGeometries.removeAll()
@@ -116,11 +117,13 @@ final class TranscriptScrollPositionController {
         }
     }
 
-    /// Scrolling over the transcript ends a restoration once it has put the reader in place, and carries on from there.
+    /// Scrolling over the transcript ends a restoration once it has put the reader in place, forgets a bookmark jump's
+    /// seek target, and carries on from there.
     /// A mouse wheel posts no live-scroll notification, and neither does momentum after a page loads, so the restoration
     /// otherwise pulled the view back on every update until the wheel stopped, and the reader bounced. Before that, the
     /// restoration still applies, or the reader would lose its place to the page that just loaded above it.
     func handOverToScrolling() {
+        seekTargetStorage = nil
         guard pendingRestoration != nil, hasAppliedRestoration else { return }
         pendingRestoration = nil
         restorationGeometry = nil
@@ -153,6 +156,7 @@ final class TranscriptScrollPositionController {
             guard let self, !self.isStopped else { return }
             self.hasScheduledUpdate = false
             self.restorePositionIfNeeded()
+            self.forgetSeekTargetOutOfView()
             let hasReadingPosition = self.recordPosition()
             // Recheck after restoration and layout, even if the first visible message did not change.
             if hasReadingPosition, let viewport = self.pagingViewport { self.viewportUpdates.send(viewport) }
@@ -219,6 +223,52 @@ final class TranscriptScrollPositionController {
         guard let first = firstGeometryIndex(overlapping: localVisibleBounds) else { return [] }
         return entryGeometries[first...].prefix { $0.frame.minY < localVisibleBounds.maxY }
             .map { geometryView.convert($0.frame, to: clipView) }
+    }
+
+    /// The entry a bookmark jump last went to; see `TranscriptScrollView+Bookmarks`. Next and previous go on from it, and ⌘D
+    /// acts on it: the reading position is unknown while a restoration is pending (`currentReadingPosition()`), and an entry
+    /// near the end can't reach the top (`constrainBoundsRect`). It lasts while pending, while its row overlaps the viewport,
+    /// or while it isn't laid out (a page loading, or a missing message), until a scroll over the transcript.
+    private var seekTargetStorage: Int?
+
+    var seekTarget: Int? {
+        forgetSeekTargetOutOfView()
+        return seekTargetStorage
+    }
+
+    /// A seek target moved out of view without a wheel, as by the keyboard or a selection's autoscroll, is forgotten for
+    /// good: once its page left, it would no longer be laid out and would hold again.
+    private func forgetSeekTargetOutOfView() {
+        guard let index = seekTargetStorage, pendingRestoration == nil, let frame = entryFrameInClipView(at: index),
+              let clipView = scrollView?.contentView, !frame.intersects(clipView.bounds) else { return }
+        seekTargetStorage = nil
+    }
+
+    /// Goes to a loaded entry as Find does: recorded first, so a page that loads meanwhile restores it (`earlier`/`later`
+    /// read `recordedPosition` on arrival), then restored and brought into view, as `restoreRecordedPosition()` does.
+    func seek(toEntryAt index: Int) {
+        seekTargetStorage = index
+        positionStore.record(.entry(index: index, offset: -6), for: conversationID)
+        restore(.entry(index: index, offset: -6))
+        entrySeekingRequests.send(index)
+    }
+
+    /// With `recordingPosition`, a refresh goes there rather than to the place recorded before (`TranscriptView.refresh()`).
+    func setSeekTarget(_ index: Int, recordingPosition: Bool = false) {
+        seekTargetStorage = index
+        if recordingPosition { positionStore.record(.entry(index: index, offset: -6), for: conversationID) }
+    }
+
+    func clearSeekTarget() { seekTargetStorage = nil }
+
+    /// The entries with at least `minimumVisibleHeight` points of their rows on screen, top to bottom. Run only by a command.
+    func visibleEntryIDs(minimumVisibleHeight: CGFloat) -> [Int] {
+        guard let scrollView, let geometryView, geometryView.enclosingScrollView === scrollView else { return [] }
+        let bounds = geometryView.convert(scrollView.contentView.bounds, from: scrollView.contentView)
+        guard let first = firstGeometryIndex(overlapping: bounds) else { return [] }
+        return entryGeometries[first...].prefix { $0.frame.minY < bounds.maxY }
+            .filter { min($0.frame.maxY, bounds.maxY) - max($0.frame.minY, bounds.minY) >= minimumVisibleHeight }
+            .map(\.entryIndex)
     }
 
     func entryFrameInClipView(at index: Int) -> CGRect? {
