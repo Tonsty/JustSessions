@@ -21,6 +21,8 @@ struct SidebarProjectSection: View {
     let subagentRows: SidebarSubagentRows
     let onToggleSubagents: (Conversation) -> Void
     let messageMatches: [String: SessionMessageMatch]
+    /// While searching, each session's bookmarks the search found by label or tag (SBF-05).
+    var bookmarkMatches: [String: [MessageBookmark]] = [:]
     let onToggleExpansion: () -> Void
     /// Lists more of the project's sessions, given how many are hidden.
     let onShowMoreSessions: (Int) -> Void
@@ -165,6 +167,7 @@ struct SidebarProjectSection: View {
             subagentCount: listedSubagents(of: conversation).count,
             isShowingSubagents: subagentRows.isExpanded(conversation.id),
             messageMatch: messageMatches[conversation.id],
+            bookmarkMatches: bookmarkMatches[conversation.id] ?? [],
             onClick: onClickConversation,
             onToggleSubagents: { onToggleSubagents(conversation) },
             onRename: onRenameConversation,

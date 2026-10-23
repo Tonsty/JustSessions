@@ -7,6 +7,8 @@ struct TranscriptBookmarkCommandTarget {
     let toggleBookmark: @MainActor () -> Void
     let goToAdjacentBookmark: @MainActor (_ forward: Bool) -> Void
     let contextMenuItems: @MainActor (_ entryID: Int) -> [NSMenuItem]
+    /// Edit Bookmark… (⇧⌘D): the message's bookmark, adding one first when it has none (RDR-51).
+    var editBookmark: @MainActor () -> Void = {}
 }
 
 /// The visible reader of a window, as `TextZoomTargetRegistry` finds what a window shows.

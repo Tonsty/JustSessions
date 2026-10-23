@@ -16,7 +16,7 @@ struct TranscriptReadingToolbarWidthTests {
             fontSize: .constant(TranscriptReadingTextSize.defaultSize), readingWidth: .constant(.readable), messageCount: 12_345,
             onFirstMessage: {}, onLatestMessage: {}, onFind: {},
             bookmarkMenu: TranscriptBookmarkMenu(bookmarks: bookmarks, assistantName: ConversationProvider.codex.rawValue,
-                                                 onGoTo: { _ in }, onGoToAdjacent: { _ in }, onToggle: {}, onRemoveAll: {})
+                                                 onGoTo: { _ in }, onGoToAdjacent: { _ in }, onToggle: {}, onEdit: {}, onRemoveAll: {})
         )
         let hostingController = NSHostingController(rootView: toolbar)
 

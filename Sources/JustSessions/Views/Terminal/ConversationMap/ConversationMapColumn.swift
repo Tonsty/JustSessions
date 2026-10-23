@@ -11,12 +11,15 @@ struct ConversationMapColumn: View, Equatable {
     let isShown: Bool
     let store: ConversationStore
     let hover: ConversationMapHover
+    /// The tab's Edit Bookmark… sheet, which a bookmark letter's right-click menu opens (TAB-10).
+    var editor: MessageBookmarkEditorRequests? = nil
     @AppStorage(ConversationMapVisibility.userDefaultsKey) private var showsMap = ConversationMapVisibility.isShownByDefault
     @Environment(\.tabBarTerminalPalette) private var terminalPalette
 
     nonisolated static func == (first: Self, second: Self) -> Bool {
         first.model === second.model && first.conversation == second.conversation && first.provider == second.provider
             && first.isShown == second.isShown && first.store === second.store && first.hover === second.hover
+            && first.editor === second.editor
     }
 
     var body: some View {
@@ -24,7 +27,8 @@ struct ConversationMapColumn: View, Equatable {
             if showsMap {
                 terminalPalette.backgroundColor
                 if isShown {
-                    ConversationMapView(model: model, conversation: conversation, provider: provider, store: store, hover: hover)
+                    ConversationMapView(model: model, conversation: conversation, provider: provider, store: store, hover: hover,
+                                        editor: editor)
                 }
             }
         }

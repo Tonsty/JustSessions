@@ -44,7 +44,7 @@ For people who prefer the command line. JustSessions adds a native Mac workspace
 
 ![JustSessions' conversation reader, with reading controls and sessions grouped by project and machine](docs/images/session-overview.jpg)
 
-[Reading controls](docs/guides/session-management.md#preview-before-you-resume) cover text size, images, history paging, bookmarks (also from a tab), the conversation map beside CLI tabs, and search limits.
+[Reading controls](docs/guides/session-management.md#preview-before-you-resume) cover text size, images, history paging, bookmarks with labels and tags (also from a tab, and searchable across sessions), the conversation map beside CLI tabs, and search limits.
 
 ## Work on any host.
 

@@ -8,7 +8,7 @@ import SwiftUI
 /// Laying out every entry is costly, so the entries are their own view, compared by their inputs. These stay the same
 /// while you scroll or search, so SwiftUI leaves the entries, and their layout, alone. Each entry's `id` lets
 /// `ScrollViewProxy.scrollTo` bring it into view; nothing asks SwiftUI to track which one is at the top. A bookmark's
-/// letter is an overlay reading only `transcriptBookmarkLetters`.
+/// letter is an overlay reading only `transcriptBookmarkLetters` and the reader's hover card.
 struct TranscriptEntriesStack: View, Equatable {
     let transcript: TranscriptContent
     let provider: ConversationProvider
