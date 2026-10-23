@@ -1,5 +1,37 @@
 [
   {
+    "version": "1.2.19",
+    "publishedOn": "2026-10-23",
+    "title": {
+      "en": "Bookmark labels and tags",
+      "zh-Hans": "书签名称与标签"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "Give a bookmark a label and tags with ⇧⌘D; point at its letter to see them.",
+            "zh-Hans": "按 ⇧⌘D 为书签添加名称和标签；指向其字母即可查看。"
+          },
+          {
+            "en": "Bookmarks → Show All Bookmarks… (⌥⌘B) lists every session's bookmarks; search them or type #tag.",
+            "zh-Hans": "「书签」→「显示所有书签…」(⌥⌘B) 列出所有会话的书签，可搜索或输入 #标签。"
+          }
+        ]
+      },
+      {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "The sidebar's search also finds bookmarks by their label or tag.",
+            "zh-Hans": "侧栏搜索也能按名称或标签找到书签。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.18",
     "publishedOn": "2026-10-23",
     "title": {
