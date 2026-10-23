@@ -2,12 +2,14 @@ import SwiftUI
 
 extension TranscriptScrollView {
     func showFirstMessage() {
+        forgetBookmarkJump()
         if let paging { paging.first(); return }
         guard let index = displayedEntryIndices.first else { return }
         positionController.restore(.entry(index: index, offset: -6))
     }
 
     func showLatestMessage() {
+        forgetBookmarkJump()
         if let paging { paging.latest(); return }
         positionController.restore(.bottom)
     }

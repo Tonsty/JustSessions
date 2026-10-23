@@ -94,7 +94,8 @@ struct WorkspaceDetailView: View {
                                     linkUnderPointer: linkUnderPointer
                                 ).makeMenu()
                             },
-                            onOpenLink: { link in TerminalLinkActions(store: store, tab: session).openClicked(link) }
+                            onOpenLink: { link in TerminalLinkActions(store: store, tab: session).openClicked(link) },
+                            store: store
                         )
                         // A split's terminal keeps its place inside the pane's outline, above the mini toolbar, while
                         // another tab shows too, so selecting another tab resizes no terminal.
@@ -157,6 +158,12 @@ struct WorkspaceDetailView: View {
         .overlay { TabHoverCardOverlay(store: store, controller: hoverCards) }
         .background(TabHoverCardEventWatcher(controller: hoverCards))
         .background(TerminalFindShortcuts(selectedTabFind: store.selectedTerminal?.findState, onFind: findInSelectedTab))
+        // ⌘D, ⌘', and ⇧⌘' in the selected tab (TRM-74). The preview's reporter is active only while no tab is selected
+        // (SessionPreviewPane), so one window never has two.
+        .background(TranscriptBookmarkTargetReporter(
+            target: TerminalTabBookmarks(store: store).commandTarget,
+            isActive: store.selectedTerminalID != nil && !store.selectsShownSplitChooser
+        ))
         .onChange(of: store.terminalSplits.map(\.id) + store.terminalSplitChoosers.map(\.id)) { _, splitViewIDs in
             // Forget the pane widths of splits and split choosers that are gone.
             splitFractions = splitFractions.filter { splitViewIDs.contains($0.key) }

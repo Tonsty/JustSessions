@@ -16,6 +16,7 @@ extension ConversationStore {
               hostRefreshStatuses[.ssh(host)] != .refreshing else { return nil }
         let discovery = discovery ?? remoteSessionDiscovery
         hostRefreshStatuses[.ssh(host)] = .refreshing
+        remoteHostCopies.noteStart(of: host)
         return Task.detached(priority: .userInitiated) {
             // The last copy lists right away; the host may be slow or offline.
             if let mirroredConversations = try? discovery.readMirror(host: host), !mirroredConversations.isEmpty {
@@ -114,6 +115,7 @@ extension ConversationStore {
         forgetRemoteShellStartup(on: host)
         forgetHostChecks(on: host)
         hostRefreshStatuses.removeValue(forKey: .ssh(host))
+        remoteHostCopies.forget(host)
         remoteSessionCopySteps.removeValue(forKey: .ssh(host))
         tmuxSessionNamesByHost.removeValue(forKey: .ssh(host))
         installedProvidersByHost.removeValue(forKey: .ssh(host))
@@ -184,6 +186,11 @@ extension ConversationStore {
     private func setRemoteHostRefreshStatus(_ status: HostRefreshStatus, host: String) {
         guard remoteHostList.hosts.contains(host) else { return }
         hostRefreshStatuses[.ssh(host)] = status
+        if case .failed = status {
+            remoteHostCopies.noteEnd(of: host, failed: true)
+        } else {
+            remoteHostCopies.noteEnd(of: host, failed: false)
+        }
         remoteSessionCopySteps.removeValue(forKey: .ssh(host))
         // A Try Again that waited for this refresh can start now.
         startQueuedDeletion()

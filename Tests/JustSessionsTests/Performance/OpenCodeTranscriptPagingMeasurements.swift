@@ -57,7 +57,8 @@ struct OpenCodeTranscriptPagingMeasurements {
         return times.sorted()[2]
     }
 
-    private static func addSession(to database: OpenCodeDatabaseFixture, messageCount: Int) throws {
+    /// Also builds `ConversationOutlineMeasurements`' OpenCode session.
+    static func addSession(to database: OpenCodeDatabaseFixture, messageCount: Int) throws {
         try database.addSession(sessionID)
         let diff = #"{"file":"Sources/App/Settings.swift","before":"\#(String(repeating: "let value = 1\\n", count: 300))","after":"\#(String(repeating: "let value = 2\\n", count: 300))","additions":300,"deletions":300}"#
         var messages: [(id: String, session: String, createdAt: Int64, data: String)] = []

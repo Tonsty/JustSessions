@@ -52,6 +52,26 @@ struct TerminalEditingKeyTests {
         }
     }
 
+    /// ⌘D, ⌘', and ⇧⌘' are the Bookmarks menu's in a tab too (TRM-74): SwiftTerm hands every key it doesn't take to
+    /// `super` (SelectableTerminalView+EditingKeys.swift), so the menu gets them and the CLI never does.
+    @Test func aSwiftTermTerminalLeavesTheBookmarkShortcutsToTheMenu() async throws {
+        let fixture = try KeyRecordingTerminalFixture(engine: .swiftTerm)
+        defer { fixture.tearDown() }
+        try await fixture.start()
+        let windowNumber = fixture.window.windowNumber
+
+        for key in [
+            Self.key(kVK_ANSI_D, "d", modifiers: .command, windowNumber: windowNumber),
+            Self.key(kVK_ANSI_Quote, "'", modifiers: .command, windowNumber: windowNumber),
+            Self.key(kVK_ANSI_Quote, "\"", modifiers: [.command, .shift], windowNumber: windowNumber),
+        ] {
+            #expect(!fixture.terminalView.performKeyEquivalent(with: key))
+        }
+
+        try await Task.sleep(for: .milliseconds(200))
+        #expect(fixture.receivedInput.isEmpty, "Received bytes: \(Array(fixture.receivedInput.utf8))")
+    }
+
     @Test func onlyTheKeysWithCommandAloneAreEditingKeys() {
         #expect(Self.commandKeys(windowNumber: 0).map(TerminalEditingKey.init) == [
             .moveToLineStart, .moveToLineEnd, .deleteToLineStart, .undo,

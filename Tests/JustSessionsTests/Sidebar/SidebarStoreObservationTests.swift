@@ -47,4 +47,31 @@ struct SidebarStoreObservationTests {
         #expect(publications.count == 1)
         #expect(store.sshHostsNeedingLogIn.isEmpty)
     }
+
+    /// A bookmark changes only the bookmarks, so the sidebar's lists don't re-run for it (PERF-05).
+    @Test func aBookmarkChangePublishesOnlyBookmarks() throws {
+        let settings = try IsolatedUserDefaults()
+        defer { settings.removeSuite() }
+        let store = ConversationStore(adapters: [], userDefaults: settings.userDefaults, sessionNotifier: RecordingSessionNotifier(), startsBackgroundPolling: false)
+        let conversation = Conversation.fixture()
+        store.replaceConversations(on: .thisMac, with: [conversation])
+        let entry = TranscriptEntry(id: TranscriptPageIdentity.entryID(record: 1, part: 0), content: .userMessage("Hello"),
+                                    timestamp: nil, startsTurn: true)
+        let sidebar = StoreChangeCounter(store) {
+            _ = $0.conversations
+            _ = $0.titleAliases
+            _ = $0.pinnedItems
+            _ = $0.archivedSessions
+        }
+        let bookmarks = StoreChangeCounter(store) { _ = $0.messageBookmarks }
+        defer { sidebar.cancel(); bookmarks.cancel() }
+        // The counter counts once per turn, so the change that saves nothing comes first.
+        store.removeMessageBookmark(MessageBookmark(letter: "a", entryID: entry.id, kind: .user, snippet: "Hello"), in: conversation)
+        #expect(bookmarks.count == 0)
+
+        store.toggleMessageBookmark(on: entry, in: conversation)
+
+        #expect(bookmarks.count == 1)
+        #expect(sidebar.count == 0)
+    }
 }

@@ -31,7 +31,7 @@ struct TerminalTabMenuItems: View {
     /// A new session's tab can't be renamed or shared until it is linked to the session its CLI writes.
     @ViewBuilder private var sessionItems: some View {
         Button("Rename", systemImage: "pencil") {
-            if let conversation = tab.conversation { onRename(conversation) }
+            if let conversation = store.conversationToRename(fromTab: tab) { onRename(conversation) }
         }
         .disabled(tab.conversation == nil)
         if let conversation = tab.conversation {

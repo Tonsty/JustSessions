@@ -1,0 +1,225 @@
+import SwiftUI
+
+/// A shown CLI tab's map: follows its session while its window is on screen, draws it in one Canvas, and opens the
+/// reading window where clicked. Reads its tab's outline, the session's bookmarks, and its window's visibility, never
+/// the selected tab (performance.md item 25).
+struct ConversationMapView: View {
+    let model: ConversationOutlineModel
+    let conversation: Conversation?
+    let provider: ConversationProvider
+    let store: ConversationStore
+    let hover: ConversationMapHover
+    @State private var isWindowVisible = false
+    @Environment(\.tabBarTerminalPalette) private var terminalPalette
+    @Environment(\.displayScale) private var displayScale
+    @Environment(\.locale) private var locale
+
+    private struct FollowKey: Equatable {
+        let source: String?
+        let isOnScreen: Bool
+    }
+
+    /// The reader's key (TranscriptPagingModel), so a relink (/clear) follows the new session.
+    private var followKey: FollowKey {
+        FollowKey(source: conversation.map { $0.id + "|" + $0.sourceFile.path }, isOnScreen: isWindowVisible)
+    }
+
+    private var language: AppInterfaceLanguage { AppInterfaceLanguage(identifier: locale.identifier) }
+
+    var body: some View {
+        let colors = ConversationMapColors(palette: terminalPalette, provider: provider)
+        let bookmarks = conversation.map { store.messageBookmarks.bookmarks(forConversationID: $0.id) } ?? []
+        // A ZStack, not a Group: while the first read runs it shows nothing else, and the reader and task still need a view.
+        ZStack(alignment: .top) {
+            WindowVisibilityReader { isWindowVisible = $0 }
+                .accessibilityHidden(true)
+            if let conversation, let outline = model.outline, outline.rowCount > 0 {
+                drawing(outline, bookmarks: bookmarks, colors: colors, conversation: conversation)
+            } else if conversation == nil {
+                ConversationMapEmptyState(text: "Not linked yet", color: colors.caption)
+            } else if model.outline != nil {
+                ConversationMapEmptyState(text: "No messages yet", color: colors.caption)
+            } else if model.couldNotRead {
+                ConversationMapEmptyState(text: "Could not read this session", color: colors.caption)
+            }
+            // Otherwise the first read is running: the background only, no spinner (performance.md item 19).
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .task(id: followKey, priority: .utility) {
+            guard followKey.isOnScreen, let conversation else { return }
+            await model.watch(conversation)
+        }
+    }
+
+    private func drawing(_ outline: ConversationOutline, bookmarks: [MessageBookmark], colors: ConversationMapColors,
+                         conversation: Conversation) -> some View {
+        GeometryReader { geometry in
+            let chipSide = ConversationMapMetrics.chipSide
+            let layout = ConversationMapLayout(rowCount: outline.rowCount, height: geometry.size.height,
+                                               naturalPitch: ConversationMapMetrics.naturalRowPitch,
+                                               verticalInset: ConversationMapMetrics.verticalInset)
+            let chips = layout.chips(for: bookmarks, in: outline, side: chipSide, height: geometry.size.height)
+            ZStack(alignment: .topLeading) {
+                ConversationMapHoverBand(hover: hover, color: colors.hoverBand)
+                ConversationMapCanvas(outline: outline, layout: layout, chips: chips, colors: colors,
+                                      pixel: 1 / max(1, displayScale), chipSide: chipSide, letterFont: ThemeFont.caption.weight(.semibold))
+                    .equatable()
+            }
+            .contentShape(Rectangle())
+            .onContinuousHover(coordinateSpace: .local) { phase in
+                switch phase {
+                case .active(let point):
+                    showCard(at: point, outline: outline, layout: layout, chips: chips, bookmarks: bookmarks, size: geometry.size)
+                case .ended:
+                    hover.hide()
+                }
+            }
+            // A growing or squeezed outline moves the blocks under a still pointer: rebuild its card where it points.
+            .onChange(of: outline.revision) {
+                if let point = hover.point {
+                    showCard(at: point, outline: outline, layout: layout, chips: chips, bookmarks: bookmarks, size: geometry.size)
+                }
+            }
+            // A relink or an emptied session takes the drawing, and its tracking area, without an `.ended`.
+            .onDisappear { hover.hide() }
+            .onTapGesture(count: 1, coordinateSpace: .local) { point in
+                hover.hide()
+                if let bookmark = layout.bookmark(at: point, chips: chips, bookmarks: bookmarks, width: geometry.size.width, side: chipSide) {
+                    open(.bookmark(bookmark), conversation)
+                } else if let index = outline.blockIndex(atRow: layout.row(atY: point.y)),
+                          let entryID = outline.targetEntryID(forBlockAt: index) {
+                    open(.entry(entryID), conversation)
+                }
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Conversation map"))
+        .accessibilityValue(Text(verbatim: ConversationMapAccessibility.value(messageCount: outline.messageCount,
+                                                                              bookmarkCount: bookmarks.count, language: language)))
+        .accessibilityAction(named: Text("Open in reading window")) { open(nil, conversation) }
+        .accessibilityActions {
+            ForEach(bookmarks, id: \.letter) { bookmark in
+                Button("Go to bookmark \(bookmark.letter)") { open(.bookmark(bookmark), conversation) }
+            }
+        }
+        .accessibilityIdentifier("terminal.conversation-map")
+    }
+
+    /// Opens the session's reading window, or moves the one open, without selecting anything (RDR-45, RDR-50).
+    private func open(_ navigation: SessionReadingNavigation?, _ conversation: Conversation) {
+        SessionReadingWindowManager.shared.open(store.conversation(withID: conversation.id) ?? conversation, store: store, navigation: navigation)
+    }
+
+    /// The card for the block under the pointer, or under the chip there. Rebuilt only when that block or the outline changes.
+    private func showCard(at point: CGPoint, outline: ConversationOutline, layout: ConversationMapLayout,
+                          chips: [ConversationMapLayout.Chip], bookmarks: [MessageBookmark], size: CGSize) {
+        let chipBookmark = layout.bookmark(at: point, chips: chips, bookmarks: bookmarks, width: size.width,
+                                           side: ConversationMapMetrics.chipSide)
+        guard let index = chipBookmark.flatMap(outline.blockIndex(for:)) ?? outline.blockIndex(atRow: layout.row(atY: point.y)) else {
+            hover.hide()
+            return
+        }
+        guard index != hover.card?.blockIndex || outline.revision != hover.card?.revision else { return }
+        let block = outline.blocks[index]
+        let speaker = switch block.kind {
+        case .user, .image: AppLocalization.string("You", language: language)
+        case .assistant: provider.rawValue
+        case .toolRun: block.toolCallCount == 1
+            ? AppLocalization.string("1 tool call", language: language)
+            : AppLocalization.string("\(block.toolCallCount) tool calls", language: language)
+        }
+        let rowY = layout.y(ofRow: outline.rowStarts[index])
+        hover.show(ConversationMapHover.Card(
+            blockIndex: index,
+            revision: outline.revision,
+            speaker: speaker,
+            timestamp: block.timestamp,
+            snippet: block.kind == .image ? AppLocalization.string("Image", language: language) : block.snippet,
+            letter: bookmarks.first { outline.blockIndex(for: $0) == index }?.letter,
+            top: min(max(0, rowY - 8), max(0, size.height - InterfaceScale.points(110))),
+            bandMinY: rowY,
+            bandHeight: max(1 / max(1, displayScale), CGFloat(max(1, block.lineWidths.count)) * layout.pitch),
+            trailingInset: ConversationMapMetrics.columnWidth + 6
+        ), at: point)
+    }
+}
+
+/// The map's one Canvas: no view per block, no TimelineView, no animation. Equal by outline revision, layout, chips,
+/// colors, and pixel, so a parent update or a hover never redraws it.
+struct ConversationMapCanvas: View, Equatable {
+    let outline: ConversationOutline
+    let layout: ConversationMapLayout
+    let chips: [ConversationMapLayout.Chip]
+    let colors: ConversationMapColors
+    let pixel: CGFloat
+    let chipSide: CGFloat
+    let letterFont: Font
+
+    nonisolated static func == (first: Self, second: Self) -> Bool {
+        first.outline.revision == second.outline.revision && first.layout == second.layout && first.chips == second.chips
+            && first.colors == second.colors && first.pixel == second.pixel && first.chipSide == second.chipSide
+            && first.letterFont == second.letterFont
+    }
+
+    var body: some View {
+        Canvas { context, size in
+            let barsMinX = ConversationMapMetrics.leadingInset
+            let chipX = size.width - ConversationMapMetrics.chipGap - chipSide
+            let barsWidth = max(0, chipX - ConversationMapMetrics.chipGap - barsMinX)
+            context.fill(Path(CGRect(x: 0, y: 0, width: pixel, height: size.height)), with: .color(Color(hexValue: colors.hairline)))
+            // One path and one fill per ink.
+            var paths: [ConversationMapLayout.Ink: Path] = [:]
+            for bar in layout.bars(for: outline, pixel: pixel) {
+                paths[bar.ink, default: Path()].addRect(CGRect(x: barsMinX, y: bar.minY,
+                                                               width: max(pixel, bar.widthFraction * barsWidth), height: bar.height))
+            }
+            for ink in ConversationMapLayout.Ink.allCases {
+                if let path = paths[ink] { context.fill(path, with: .color(Color(hexValue: colors.hex(for: ink)))) }
+            }
+            let chipColor = Color(hexValue: colors.chip)
+            for chip in chips {
+                context.fill(Path(CGRect(x: barsMinX, y: chip.rowY, width: chipX - barsMinX, height: pixel)), with: .color(chipColor))
+                let rect = CGRect(x: chipX, y: chip.chipY, width: chipSide, height: chipSide)
+                context.fill(RoundedRectangle(.small).path(in: rect), with: .color(chipColor))
+                context.draw(Text(verbatim: chip.letter).font(letterFont).foregroundStyle(Color(hexValue: colors.chipText)),
+                             at: CGPoint(x: rect.midX, y: rect.midY))
+            }
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+/// What the column says in place of a drawing, in the contrast-checked caption color.
+struct ConversationMapEmptyState: View {
+    let text: LocalizedStringKey
+    let color: UInt32
+
+    var body: some View {
+        Text(text)
+            .font(ThemeFont.caption)
+            .foregroundStyle(Color(hexValue: color))
+            .multilineTextAlignment(.center)
+            .padding(6)
+            .frame(maxWidth: .infinity, alignment: .top)
+            .accessibilityLabel(Text("Conversation map"))
+            .accessibilityValue(Text(text))
+    }
+}
+
+enum ConversationMapAccessibility {
+    /// "N messages, M bookmarks", for VoiceOver.
+    @MainActor static func value(messageCount: Int, bookmarkCount: Int, language: AppInterfaceLanguage?) -> String {
+        let messages = messageCount == 1 ? AppLocalization.string("1 message", language: language)
+                                         : AppLocalization.string("\(messageCount) messages", language: language)
+        let bookmarks = bookmarkCount == 1 ? AppLocalization.string("1 bookmark", language: language)
+                                           : AppLocalization.string("\(bookmarkCount) bookmarks", language: language)
+        return AppLocalization.string("\(messages), \(bookmarks)", language: language)
+    }
+}
+
+extension Color {
+    /// The map's opaque colors, worked out as 0xRRGGBB values from the terminal's palette (`ConversationMapColors`).
+    init(hexValue: UInt32) {
+        self.init(nsColor: NSColor(hexValue: hexValue))
+    }
+}

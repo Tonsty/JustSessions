@@ -46,7 +46,7 @@ enum TranscriptPageReader {
             // Hidden records do not need to remain in memory while looking for the next visible message.
             if entries.isEmpty { records.removeLast() }
         }
-        return TranscriptPage(entries: TranscriptPageAssembler.entries(in: records), records: lowerBound..<upperBound,
+        return TranscriptPage(entries: TranscriptPageAssembler.entries(in: records, maximumMergedToolCallCount: limits.maximumMergedToolCallCount), records: lowerBound..<upperBound,
                               totalRecordCount: recordCount, decodedByteCount: byteCount,
                               precedingSpeaker: try speaker(before: lowerBound, limit: limits.maximumRecordCount, decode: decode))
     }

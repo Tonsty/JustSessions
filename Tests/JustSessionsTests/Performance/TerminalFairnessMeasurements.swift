@@ -3,6 +3,7 @@ import Darwin
 import Foundation
 import ObjectiveC
 import SwiftTerm
+import SwiftUI
 import Testing
 @testable import JustSessions
 
@@ -12,7 +13,9 @@ import Testing
 /// flooders draw; hidden ones are batched as the workspace batches them.
 /// Reports `Perf | <scenario> | <metric> | <value>` lines for each keystroke's time until its bytes reach the quiet
 /// terminal (`dataReceived`) and until the quiet view next draws, as p50, p95, and worst; plus the flooders' throughput
-/// and the main thread's longest gap. See docs/development/performance.md.
+/// and the main thread's longest gap. With maps following growing sessions, that many conversation-map columns show
+/// beside the terminals (PERF-89, PERF-90), each following a Codex file that grows by a 1 KB record every 100 ms.
+/// See docs/development/performance.md.
 ///
 ///     JUSTSESSIONS_PERF=1 swift test -c release --filter TerminalFairnessMeasurements
 @MainActor
@@ -24,11 +27,14 @@ struct TerminalFairnessMeasurements {
         /// Lines a second each flooder prints; nil for as fast as it can, about 50 MB/s. A fast build log is about
         /// 2 MB/s: 25,000 of these 76-byte lines a second.
         var linesPerSecond: Int? = nil
+        /// Conversation-map columns shown with the map on, each following its own growing session file.
+        var mapsFollowingGrowingSessions = 0
         var description: String {
             let rate = linesPerSecond.map { " at \($0.formatted()) lines/s each" } ?? " as fast as they can"
+            let maps = mapsFollowingGrowingSessions > 0 ? ", with \(mapsFollowingGrowingSessions) maps following growing sessions" : ""
             switch (visibleFlooders, hiddenFlooders) {
-            case (0, 0): return "quiet tab alone"
-            default: return "quiet tab beside \(visibleFlooders) visible and \(hiddenFlooders) hidden flooding tabs\(rate)"
+            case (0, 0): return "quiet tab alone\(maps)"
+            default: return "quiet tab beside \(visibleFlooders) visible and \(hiddenFlooders) hidden flooding tabs\(rate)\(maps)"
             }
         }
     }
@@ -40,6 +46,7 @@ struct TerminalFairnessMeasurements {
         Scenario(visibleFlooders: 0, hiddenFlooders: 5),
         Scenario(visibleFlooders: 1, hiddenFlooders: 5),
         Scenario(visibleFlooders: 1, hiddenFlooders: 5, linesPerSecond: 25_000),
+        Scenario(visibleFlooders: 1, hiddenFlooders: 5, linesPerSecond: 25_000, mapsFollowingGrowingSessions: 2),
         Scenario(visibleFlooders: 1, hiddenFlooders: 5, linesPerSecond: 5_000),
     ]
 
@@ -56,6 +63,11 @@ struct TerminalFairnessMeasurements {
             perfReport(label, "longest main-thread gap", perfMilliseconds(result.longestMainThreadGap))
             perfReport(label, "flood lines parsed, all flooders", result.floodLines.formatted())
             perfReport(label, "process CPU % of one core", String(format: "%.0f", result.cpuPercent))
+            if scenario.mapsFollowingGrowingSessions > 0 {
+                perfReport(label, "map outline reads", result.mapReadCounts.map(String.init).joined(separator: ", "))
+                // A map that never read measured nothing.
+                #expect(result.mapReadCounts.allSatisfy { $0 > 0 }, "\(label): a map never read its session")
+            }
             try await Task.sleep(for: .milliseconds(500))
         }
         #expect(!Self.scenarios.isEmpty) // Record-only: the numbers above are the result.
@@ -81,6 +93,7 @@ private struct FairnessResult {
     let longestMainThreadGap: Duration
     let floodLines: Int
     let cpuPercent: Double
+    let mapReadCounts: [Int]
 }
 
 @MainActor
@@ -94,6 +107,9 @@ private final class FairnessBench {
     private let appearanceStore: TerminalAppearanceStore
     private let themeStore: AppThemeStore
     private let settings: IsolatedUserDefaults
+    private var mapModels: [ConversationOutlineModel] = []
+    private var mapFiles: [URL] = []
+    private var mapGrowth: Task<Void, Never>?
 
     init(scenario: TerminalFairnessMeasurements.Scenario) throws {
         _ = NSApplication.shared
@@ -108,7 +124,9 @@ private final class FairnessBench {
         window.orderFrontRegardless()
         // Visible tabs share the window side by side, as split panes do.
         let visibleCount = 1 + scenario.visibleFlooders
-        let paneWidth = Self.frame.width / CGFloat(visibleCount)
+        // The maps take the window's right, as each column takes its tab's.
+        let mapsWidth = CGFloat(scenario.mapsFollowingGrowingSessions) * ConversationMapMetrics.columnWidth
+        let paneWidth = (Self.frame.width - mapsWidth) / CGFloat(visibleCount)
         func pane(_ index: Int) -> NSRect { NSRect(x: paneWidth * CGFloat(index), y: 0, width: paneWidth, height: Self.frame.height) }
         quiet = Self.makeView(frame: pane(0), appearanceStore: appearanceStore, themeStore: themeStore)
         window.contentView?.addSubview(quiet)
@@ -123,6 +141,52 @@ private final class FairnessBench {
             view.setWorkspaceActive(false)
             window.contentView?.addSubview(view)
             flooders.append(view)
+        }
+        if scenario.mapsFollowingGrowingSessions > 0 { try addMaps(width: mapsWidth) }
+    }
+
+    /// Columns as `TerminalWorkspaceView` shows them, with the map on, each linked to a Codex file of 200 messages.
+    private func addMaps(width: CGFloat) throws {
+        settings.userDefaults.set(true, forKey: ConversationMapVisibility.userDefaultsKey)
+        let store = ConversationStore(adapters: [], userDefaults: settings.userDefaults, startsBackgroundPolling: false)
+        var columns: [ConversationMapColumn] = []
+        for index in 0..<scenario.mapsFollowingGrowingSessions {
+            let file = folder.appendingPathComponent("map-\(index).jsonl")
+            try TranscriptPagingFixture.data(count: 200).write(to: file)
+            let model = ConversationOutlineModel()
+            mapFiles.append(file)
+            mapModels.append(model)
+            columns.append(ConversationMapColumn(model: model, conversation: .fixture(provider: .codex, sessionID: "map-\(index)", sourceFile: file),
+                                                 provider: .codex, isShown: true, store: store, hover: ConversationMapHover()))
+        }
+        let host = NSHostingView(rootView: HStack(spacing: 0) {
+            ForEach(columns.indices, id: \.self) { columns[$0].equatable() }
+        }
+        .defaultAppStorage(settings.userDefaults)
+        // macOS reports no occlusion to a test process.
+        .environment(\.ignoresWindowOcclusion, true))
+        host.frame = NSRect(x: Self.frame.width - width, y: 0, width: width, height: Self.frame.height)
+        window.contentView?.addSubview(host)
+    }
+
+    /// Appends a 1 KB Codex reply to each map's file every 100 ms, off the main thread.
+    private func growMapSessions() {
+        let files = mapFiles
+        guard !files.isEmpty else { return }
+        mapGrowth = Task.detached(priority: .utility) {
+            let text = String(repeating: "Growing reply text. ", count: 45)
+            var record = 0
+            while !Task.isCancelled {
+                let line = #"{"timestamp":"2026-10-02T12:00:00.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"Reply \#(record): \#(text)"}]}}"# + "\n"
+                for file in files {
+                    guard let handle = try? FileHandle(forWritingTo: file) else { continue }
+                    _ = try? handle.seekToEnd()
+                    try? handle.write(contentsOf: Data(line.utf8))
+                    try? handle.close()
+                }
+                record += 1
+                try? await Task.sleep(for: .milliseconds(100))
+            }
         }
     }
 
@@ -160,6 +224,7 @@ private final class FairnessBench {
         defer { probe.uninstall() }
         let floodCounter = FloodLineCounter(views: flooders)
         for flooder in flooders { start(flooder, command: "exec /usr/bin/perl flood.pl") }
+        growMapSessions()
         // Let the flood get going before typing.
         try await Task.sleep(for: .milliseconds(700))
 
@@ -183,9 +248,11 @@ private final class FairnessBench {
         let cpu = fairnessProcessCPUSeconds() - cpuStart
         let seconds = Double(elapsed.components.seconds) + Double(elapsed.components.attoseconds) / 1e18
         let (received, drawn, echoed) = probe.results()
+        mapGrowth?.cancel()
         return FairnessResult(
             sent: sent, echoed: echoed, receivedLatency: received, drawLatency: drawn,
-            longestMainThreadGap: heartbeat.longestGap, floodLines: floodCounter.lines, cpuPercent: cpu / seconds * 100
+            longestMainThreadGap: heartbeat.longestGap, floodLines: floodCounter.lines, cpuPercent: cpu / seconds * 100,
+            mapReadCounts: mapModels.map(\.readCount)
         )
     }
 
@@ -207,6 +274,8 @@ private final class FairnessBench {
             ClosedTabProcessReaper.reapOnceExited(processID)
             view.removeFromSuperview()
         }
+        mapGrowth?.cancel()
+        for model in mapModels { model.release() }
         window.contentView = nil
         window.close()
         try? FileManager.default.removeItem(at: folder)

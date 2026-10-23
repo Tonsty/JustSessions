@@ -74,6 +74,10 @@ struct GhosttyKeyBindingTests {
             USKey(description: "Shift-Command-=", keyCode: 24, characters: "+", modifierFlags: [.command, .shift]),
             USKey(description: "Command-=", keyCode: 24, characters: "=", modifierFlags: command),
             USKey(description: "Command--", keyCode: 27, characters: "-", modifierFlags: command),
+            // TranscriptBookmarkCommands: without Ghostty's shortcuts cleared, Command-D would split the terminal
+            USKey(description: "Command-D", keyCode: 2, characters: "d", modifierFlags: command),
+            USKey(description: "Command-'", keyCode: 39, characters: "'", modifierFlags: command),
+            USKey(description: "Shift-Command-'", keyCode: 39, characters: "\"", modifierFlags: [.command, .shift]),
         ]
         for shortcut in shortcuts {
             #expect(!terminal.view.performKeyEquivalent(with: terminal.keyEvent(shortcut, .keyDown)), "\(shortcut)")

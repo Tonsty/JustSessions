@@ -9,13 +9,23 @@ struct TranscriptReadingToolbar: View {
     var onFind: (() -> Void)?
     /// Set in the workspace preview only; a reading window has no button that opens another.
     var onOpenInNewWindow: (() -> Void)?
+    /// Set when the reader keeps bookmarks.
+    var bookmarkMenu: TranscriptBookmarkMenu? = nil
 
     var body: some View {
         HStack(spacing: 14) {
-            Text(messageCount == 1 ? "1 message" : "\(messageCount) messages")
-                .font(ThemeFont.caption)
-                .foregroundStyle(ThemePalette.secondaryText)
-            Spacer(minLength: 8)
+            // A narrow reading window shortens the count to its number, then leaves it out, so the buttons keep one line.
+            ViewThatFits(in: .horizontal) {
+                Text(messageCount == 1 ? "1 message" : "\(messageCount) messages")
+                Text(messageCount, format: .number)
+                Color.clear.frame(width: 0, height: 0)
+            }
+            .font(ThemeFont.caption)
+            .foregroundStyle(ThemePalette.secondaryText)
+            .lineLimit(1)
+            .frame(maxWidth: .infinity, alignment: .leading)   // takes what the buttons leave, as a Spacer did
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(messageCount == 1 ? "1 message" : "\(messageCount) messages"))
             if let onFind {
                 Button("Find in conversation", systemImage: "magnifyingglass", action: onFind)
                     .labelStyle(.iconOnly)
@@ -40,6 +50,7 @@ struct TranscriptReadingToolbar: View {
                     .help("Go to the first available message")
                 Button("Latest message", systemImage: "arrow.down.to.line", action: onLatestMessage)
                     .help("Go to the latest message")
+                if let bookmarkMenu { bookmarkMenu }
             }
             .labelStyle(.iconOnly)
             if let onOpenInNewWindow {

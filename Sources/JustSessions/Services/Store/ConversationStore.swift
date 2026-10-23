@@ -40,6 +40,7 @@ final class ConversationStore {
     private(set) var projectDisplayNames: ProjectDisplayNames
     private(set) var pinnedItems: PinnedItems
     private(set) var archivedSessions: ArchivedSessions
+    private(set) var messageBookmarks: MessageBookmarks
     var sidebarProjectList: SidebarProjectList
     private var terminalSessionsStorage: [TerminalSession] = [] {
         didSet {
@@ -133,6 +134,8 @@ final class ConversationStore {
     @ObservationIgnored var hostsAskingForBackgroundCheck: Set<String> = []
     /// Each host's last refresh, this Mac's included.
     var hostRefreshStatuses: [SessionHost: HostRefreshStatus] = [:]
+    /// When this window's copies of each SSH host started and ended; see `RemoteHostCopies`. Nothing shows it.
+    @ObservationIgnored var remoteHostCopies = RemoteHostCopies()
     /// SSH hosts whose last refresh asked for a password, a code, or a new host key's approval, so their headings
     /// offer Connect…; see `ConversationStore+SSHLogin`.
     var sshHostsNeedingLogIn: Set<String> = []
@@ -250,6 +253,7 @@ final class ConversationStore {
         self.projectDisplayNames = ProjectDisplayNames.load(from: userDefaults)
         self.pinnedItems = PinnedItems.load(from: userDefaults)
         self.archivedSessions = ArchivedSessions.load(from: userDefaults)
+        self.messageBookmarks = MessageBookmarks.load(from: userDefaults)
         self.sidebarProjectList = SidebarProjectList.load(from: userDefaults)
         self.remoteHostList = RemoteHostList.load(from: userDefaults)
         self.remoteHostsUsingTmuxPrefix = RemoteHostsUsingTmuxPrefix.load(from: userDefaults)
@@ -282,6 +286,14 @@ final class ConversationStore {
         thisMacRefreshTask?.cancel()
         thisMacRefreshTask = nil
         isRefreshQueued = false
+    }
+
+    /// This window's scan of this Mac, or another window's, which a refresh asked for here would join (see
+    /// `WorkspaceReadService`); either may have read the session folders before the change that prompted the refresh.
+    var isThisMacScanUnderWay: Bool {
+        isScanningThisMac || windowRegistry.stores.contains {
+            $0 !== self && $0.readService === readService && $0.isScanningThisMac
+        }
     }
 
     /// Scans the session folders on this Mac. SSH hosts refresh on their own, so a slow host never holds this up.
@@ -346,7 +358,7 @@ final class ConversationStore {
         adapters.first { $0.provider == provider }
     }
 
-    // MARK: - Titles, project names, and pins
+    // MARK: - Titles, project names, pins, and bookmarks
 
     func title(for conversation: Conversation) -> String {
         titleAliases.title(for: conversation)
@@ -379,7 +391,7 @@ final class ConversationStore {
         changeSavedCustomization(\.pinnedItems) { $0.setPinned(isPinned, conversationID: conversation.id) }
     }
 
-    /// Archiving only hides the sessions from the Projects list; files, open tabs, names, and pins are kept.
+    /// Archiving only hides the sessions from the Projects list; files, open tabs, names, pins, and bookmarks are kept.
     func setArchived(_ isArchived: Bool, conversations: [Conversation]) {
         changeSavedCustomization(\.archivedSessions) { $0.setArchived(isArchived, conversationIDs: conversations.map(\.id)) }
     }
@@ -394,7 +406,40 @@ final class ConversationStore {
         changeSavedCustomization(\.pinnedItems) { $0.movePinnedConversation(conversationID, to: placement) }
     }
 
-    /// Changes a name, pin, or archiving, which every workspace window shares. The change starts from what is saved,
+    /// Adds a bookmark with the lowest free letter to the message, or removes the one it has. The letter is chosen from what
+    /// is saved, so two windows never hand out the same one. Whether to add or remove follows what this window shows: a
+    /// reading window whose workspace window closed hears of no other window's change, and must not remove a bookmark it
+    /// doesn't show. Nil for an entry that is neither your message nor a reply.
+    @discardableResult
+    func toggleMessageBookmark(on entry: TranscriptEntry, in conversation: Conversation) -> MessageBookmarkToggle? {
+        guard let kind = MessageBookmark.Kind(entry.content) else { return nil }
+        let shown = messageBookmarks.bookmarks(forConversationID: conversation.id).first { $0.entryID == entry.id }
+        let snippet = MessageBookmarkNavigation.snippet(of: entry) ?? ""
+        var toggle = MessageBookmarkToggle.allLettersInUse
+        changeSavedCustomization(\.messageBookmarks) { bookmarks in
+            let saved = bookmarks.bookmarks(forConversationID: conversation.id).first { $0.entryID == entry.id }
+            switch (shown, saved) {
+            case (nil, let saved?): toggle = .added(saved)   // another window added it
+            case (let shown?, nil): toggle = .removed(shown)   // another window removed it
+            default: toggle = bookmarks.toggle(entryID: entry.id, kind: kind, snippet: snippet, conversationID: conversation.id)
+            }
+        }
+        return toggle
+    }
+
+    func removeMessageBookmark(_ bookmark: MessageBookmark, in conversation: Conversation) {
+        changeSavedCustomization(\.messageBookmarks) { $0.remove(bookmark, conversationID: conversation.id) }
+    }
+
+    func removeAllMessageBookmarks(in conversation: Conversation) {
+        changeSavedCustomization(\.messageBookmarks) { $0.removeAll(forConversationIDs: [conversation.id]) }
+    }
+
+    func updateMessageBookmark(_ bookmark: MessageBookmark, entryID: Int, snippet: String, in conversation: Conversation) {
+        changeSavedCustomization(\.messageBookmarks) { $0.update(bookmark, entryID: entryID, snippet: snippet, conversationID: conversation.id) }
+    }
+
+    /// Changes a name, pin, archiving, or bookmark, which every workspace window shares. The change starts from what is saved,
     /// not from this window's copy: another window may have changed it since this one loaded it, and saving this
     /// window's copy lost that change. Every window then shows the result.
     private func changeSavedCustomization<Customization: SavedCustomization>(
@@ -689,11 +734,18 @@ final class ConversationStore {
         startQueuedDeletion()
     }
 
-    /// Takes the deleted sessions off the list in one change, and forgets their custom titles, pins, and archiving.
+    /// Takes the deleted sessions off the list in one change, and forgets their custom titles, pins, archiving, and
+    /// bookmarks, with the bookmarks of the subagents' sessions deleted with them.
     private func removeDeletedConversations(_ deleted: [Conversation]) {
         guard !deleted.isEmpty else { return }
         let deletedIDs = Set(deleted.map(\.id))
+        // Some CLIs delete a session's subagents' sessions with it; Antigravity's stay as conversations of their own.
+        let deletedSubagentIDs = Set(deleted.filter(\.provider.deletesSubagentsWithSession).flatMap { descendantSubagents(of: $0).map(\.id) })
         conversations.removeAll { deletedIDs.contains($0.id) }
+        // Gone at once, as their sessions are, rather than at the next refresh; a reading window left open on one then
+        // keeps no bookmarks (`SessionReadingView`).
+        let keptSubagents = subagentConversations.filter { !deletedIDs.contains($0.id) && !deletedSubagentIDs.contains($0.id) }
+        if keptSubagents.count != subagentConversations.count { subagentConversations = keptSubagents }
 
         changeSavedCustomization(\.titleAliases) { aliases in
             for conversationID in deletedIDs { aliases.removeTitle(forConversationID: conversationID) }
@@ -702,6 +754,7 @@ final class ConversationStore {
             for conversationID in deletedIDs { pins.setPinned(false, conversationID: conversationID) }
         }
         changeSavedCustomization(\.archivedSessions) { $0.setArchived(false, conversationIDs: deletedIDs) }
+        changeSavedCustomization(\.messageBookmarks) { $0.removeAll(forConversationIDs: deletedIDs.union(deletedSubagentIDs)) }
     }
 
     // MARK: - Tabs
