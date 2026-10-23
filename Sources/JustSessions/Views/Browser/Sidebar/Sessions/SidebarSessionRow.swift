@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// A session under its project: tool icon and title, then a pin, an archive box, and either its CLI's status or how long ago it was active.
+/// A session under its project: tool icon and title, then a pin, an archive box, an hourglass for a session deleted
+/// when its tab closes, and either its CLI's status or how long ago it was active.
 /// The status gives way to a ⋯ while the pointer is over the row, which opens the same menu as a right-click.
 struct SidebarSessionRow: View {
     let store: ConversationStore
@@ -40,6 +41,7 @@ struct SidebarSessionRow: View {
         let isHighlighted = sessionSelection.contains(conversation.id) || tabs.contains { $0.id == store.selectedTerminalID }
         let isPinned = store.pinnedItems.isPinned(conversationID: conversation.id)
         let isArchived = store.archivedSessions.isArchived(conversationID: conversation.id)
+        let isDeletedWhenTabCloses = store.sessionsDeletedWhenTabCloses.isDeletedWhenTabCloses(conversationID: conversation.id)
         let statusDescription = statusSource.map(statusDescription(of:))
 
         Button {
@@ -54,6 +56,7 @@ struct SidebarSessionRow: View {
                         Text(title)
                         if isPinned { PinnedIndicator() }
                         if isArchived { ArchivedIndicator() }
+                        if isDeletedWhenTabCloses { DeletedWhenTabClosesIndicator() }
                     }
                 },
                 detail: messageMatch == nil && bookmarkMatches.isEmpty ? nil

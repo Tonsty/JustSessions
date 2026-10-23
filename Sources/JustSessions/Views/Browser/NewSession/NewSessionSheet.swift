@@ -8,6 +8,7 @@ struct NewSessionSheet: View {
     @State private var projectPath: String
     @State private var isStarting = false
     @State private var isCreatingMissingFolder = false
+    @State private var deletesSessionWhenClosed = false
     /// The folder as typed, on its host, when the host reported it missing. Editing the path or switching hosts
     /// withdraws the offer to create it.
     @State private var missingFolder: MissingFolder?
@@ -150,6 +151,14 @@ struct NewSessionSheet: View {
                 recentProjects: recentProjectsOnSelectedHost,
                 missingFolder: offersToCreateMissingFolder ? trimmedProjectPath : nil
             )
+
+            if case .cli(let provider) = startingKind {
+                NewSessionDeleteWhenClosedToggle(
+                    deletesSessionWhenClosed: $deletesSessionWhenClosed,
+                    provider: provider,
+                    host: selectedHost
+                )
+            }
         } footer: {
             if isStarting && selectedHost != .thisMac {
                 ProgressView().controlSize(.small)
@@ -191,7 +200,8 @@ struct NewSessionSheet: View {
             kind: startingKind,
             host: selectedHost,
             folder: trimmedProjectPath,
-            creatingMissingFolder: offersToCreateMissingFolder
+            creatingMissingFolder: offersToCreateMissingFolder,
+            deletesSessionWhenClosed: startingKind != .plainTerminal && deletesSessionWhenClosed
         )
         isStarting = true
         isCreatingMissingFolder = request.creatingMissingFolder

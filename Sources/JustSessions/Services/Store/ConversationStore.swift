@@ -43,6 +43,7 @@ final class ConversationStore {
     private(set) var pinnedItems: PinnedItems
     private(set) var archivedSessions: ArchivedSessions
     private(set) var messageBookmarks: MessageBookmarks
+    private(set) var sessionsDeletedWhenTabCloses: SessionsDeletedWhenTabCloses
     var sidebarProjectList: SidebarProjectList
     private var terminalSessionsStorage: [TerminalSession] = [] {
         didSet {
@@ -256,6 +257,7 @@ final class ConversationStore {
         self.pinnedItems = PinnedItems.load(from: userDefaults)
         self.archivedSessions = ArchivedSessions.load(from: userDefaults)
         self.messageBookmarks = MessageBookmarks.load(from: userDefaults)
+        self.sessionsDeletedWhenTabCloses = SessionsDeletedWhenTabCloses.load(from: userDefaults)
         self.sidebarProjectList = SidebarProjectList.load(from: userDefaults)
         self.remoteHostList = RemoteHostList.load(from: userDefaults)
         self.remoteHostsUsingTmuxPrefix = RemoteHostsUsingTmuxPrefix.load(from: userDefaults)
@@ -398,6 +400,13 @@ final class ConversationStore {
         changeSavedCustomization(\.archivedSessions) { $0.setArchived(isArchived, conversationIDs: conversations.map(\.id)) }
     }
 
+    /// Whether closing the sessions' tab deletes them; see `SessionsDeletedWhenTabCloses`.
+    func setDeletedWhenTabCloses(_ isDeleted: Bool, conversationIDs: [String]) {
+        changeSavedCustomization(\.sessionsDeletedWhenTabCloses) {
+            $0.setDeletedWhenTabCloses(isDeleted, conversationIDs: conversationIDs)
+        }
+    }
+
     /// From a drag in the sidebar: pins the project if it is not pinned yet, at `placement` among the pinned ones.
     func movePinnedProject(_ projectPath: String, to placement: PinnedPlacement) {
         changeSavedCustomization(\.pinnedItems) { $0.movePinnedProject(projectPath, to: placement) }
@@ -464,9 +473,9 @@ final class ConversationStore {
         return saved
     }
 
-    /// Changes a name, pin, archiving, or bookmark, which every workspace window shares. The change starts from what is saved,
-    /// not from this window's copy: another window may have changed it since this one loaded it, and saving this
-    /// window's copy lost that change. Every window then shows the result.
+    /// Changes a name, pin, archiving, bookmark, or deletion when a tab closes, which every workspace window shares.
+    /// The change starts from what is saved, not from this window's copy: another window may have changed it since
+    /// this one loaded it, and saving this window's copy lost that change. Every window then shows the result.
     private func changeSavedCustomization<Customization: SavedCustomization>(
         _ customization: ReferenceWritableKeyPath<ConversationStore, Customization>,
         _ change: (inout Customization) -> Void
@@ -759,8 +768,8 @@ final class ConversationStore {
         startQueuedDeletion()
     }
 
-    /// Takes the deleted sessions off the list in one change, and forgets their custom titles, pins, archiving, and
-    /// bookmarks, with the bookmarks of the subagents' sessions deleted with them.
+    /// Takes the deleted sessions off the list in one change, and forgets their custom titles, pins, archiving,
+    /// deletion when their tab closes, and bookmarks, with the bookmarks of the subagents' sessions deleted with them.
     private func removeDeletedConversations(_ deleted: [Conversation]) {
         guard !deleted.isEmpty else { return }
         let deletedIDs = Set(deleted.map(\.id))
@@ -780,6 +789,9 @@ final class ConversationStore {
         }
         changeSavedCustomization(\.archivedSessions) { $0.setArchived(false, conversationIDs: deletedIDs) }
         changeSavedCustomization(\.messageBookmarks) { $0.removeAll(forConversationIDs: deletedIDs.union(deletedSubagentIDs)) }
+        changeSavedCustomization(\.sessionsDeletedWhenTabCloses) {
+            $0.setDeletedWhenTabCloses(false, conversationIDs: deletedIDs)
+        }
     }
 
     // MARK: - Tabs

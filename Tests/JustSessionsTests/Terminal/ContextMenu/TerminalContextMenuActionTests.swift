@@ -34,6 +34,29 @@ struct TerminalContextMenuActionTests {
         #expect(fixture.tabsAskedToClose.isEmpty)
     }
 
+    /// A session started with Delete the session when its tab closes offers Keep session and Close and delete session
+    /// in place of the other closing items. Close and delete session asks to close the tab, as its × does, which
+    /// deletes the session without asking; Keep session takes the choice back.
+    @Test(arguments: TerminalEngine.allCases)
+    func aTabWhoseSessionGoesWithItOffersKeepSessionAndCloseAndDelete(engine: TerminalEngine) throws {
+        let fixture = try TerminalContextMenuFixture()
+        defer { fixture.tearDown() }
+        let conversation = Conversation.fixture()
+        let tab = fixture.openTab(engine: engine, conversation: conversation)
+        fixture.store.setDeletedWhenTabCloses(true, conversationIDs: [conversation.id])
+        let menu = fixture.menu(for: tab)
+
+        #expect(TerminalContextMenuFixture.titles(of: menu).suffix(2) == ["Keep session", "Close and delete session"])
+        try TerminalContextMenuFixture.choose(TerminalContextMenuFixture.item("Close and delete session", in: menu))
+        #expect(fixture.tabsAskedToClose == [tab.id])
+
+        try TerminalContextMenuFixture.choose(TerminalContextMenuFixture.item("Keep session", in: menu))
+        #expect(!fixture.store.deletesSessionWhenClosed(tab))
+        #expect(TerminalContextMenuFixture.titles(of: fixture.menu(for: tab)).suffix(3) == [
+            "Close Tab…", "Close and end session", "Close and delete session…",
+        ])
+    }
+
     /// Close and delete session… asks the window to delete the tab's session, whose dialog confirms first; the tab
     /// stays open until then.
     @Test(arguments: TerminalEngine.allCases)

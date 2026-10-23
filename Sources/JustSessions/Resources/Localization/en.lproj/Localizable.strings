@@ -26,6 +26,8 @@
 	<string>%@ Click to see what the check found.</string>
 	<key>%@ could not be refreshed: %@</key>
 	<string>%@ could not be refreshed: %@</string>
+	<key>%@ deletes it permanently.</key>
+	<string>%@ deletes it permanently.</string>
 	<key>%@ didn't answer the rest of the check within %lld seconds, or the connection dropped.</key>
 	<string>%@ didn't answer the rest of the check within %lld seconds, or the connection dropped.</string>
 	<key>%@ has no tool that lists its ports. Type the port instead.</key>
@@ -454,6 +456,8 @@
 	<string>Close without asking</string>
 	<key>Closing tabs</key>
 	<string>Closing tabs</string>
+	<key>Closing the tab ends the CLI and deletes the session without asking again. Closing the window or quitting JustSessions keeps it until its tab closes. Keep session in the tab's menu keeps it after all.</key>
+	<string>Closing the tab ends the CLI and deletes the session without asking again. Closing the window or quitting JustSessions keeps it until its tab closes. Keep session in the tab's menu keeps it after all.</string>
 	<key>Collapse all groups</key>
 	<string>Collapse all groups</string>
 	<key>Collapse group</key>
@@ -588,12 +592,18 @@
 	<string>Delete sessions?</string>
 	<key>Delete session…</key>
 	<string>Delete session…</string>
+	<key>Delete the session when its tab closes</key>
+	<string>Delete the session when its tab closes</string>
+	<key>Deleted when its tab closes</key>
+	<string>Deleted when its tab closes</string>
 	<key>Delete…</key>
 	<string>Delete…</string>
 	<key>Deleting %lld of %lld…</key>
 	<string>Deleting %lld of %lld…</string>
 	<key>Deleting sessions</key>
 	<string>Deleting sessions</string>
+	<key>Deleting when the tab closes</key>
+	<string>Deleting when the tab closes</string>
 	<key>Deletion progress</key>
 	<string>Deletion progress</string>
 	<key>Disconnect</key>
@@ -826,8 +836,12 @@
 	<string>It didn't print its version within %lld seconds.</string>
 	<key>It failed when asked for its version, so it may fail to start sessions too.</key>
 	<string>It failed when asked for its version, so it may fail to start sessions too.</string>
+	<key>It is deleted permanently on %@. SSH hosts have no Trash.</key>
+	<string>It is deleted permanently on %@. SSH hosts have no Trash.</string>
 	<key>It isn't on the PATH of %@'s login shell, so tabs start it from this folder.</key>
 	<string>It isn't on the PATH of %@'s login shell, so tabs start it from this folder.</string>
+	<key>It moves to the Trash.</key>
+	<string>It moves to the Trash.</string>
 	<key>Its CLI, still running on %@, ends first.</key>
 	<string>Its CLI, still running on %@, ends first.</string>
 	<key>Its open tabs close, and the CLIs and shells running in them stop.</key>
@@ -862,6 +876,8 @@
 	<string>Keep running leaves their CLIs running in tmux; click a session to reattach. End sessions stops them.</string>
 	<key>Keep running leaves their CLIs running in tmux; click a session to reattach. End sessions stops them. The other tabs' CLIs and shells stop either way.</key>
 	<string>Keep running leaves their CLIs running in tmux; click a session to reattach. End sessions stops them. The other tabs' CLIs and shells stop either way.</string>
+	<key>Keep session</key>
+	<string>Keep session</string>
 	<key>Keyboard shortcuts</key>
 	<string>Keyboard shortcuts</string>
 	<key>Label</key>

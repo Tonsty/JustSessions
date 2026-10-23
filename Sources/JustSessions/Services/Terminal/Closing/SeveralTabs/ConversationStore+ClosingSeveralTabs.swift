@@ -1,15 +1,17 @@
 import Foundation
 
 /// Closing several tabs with one answer, such as every tab of a group from its menu. Each tab closes as it would on
-/// its own: a tab that hasn't started leaves its tmux session alone, and an ended one ends its dead tmux session.
+/// its own: a tab that hasn't started leaves its tmux session alone, an ended one ends its dead tmux session, and one
+/// whose session is deleted when its tab closes deletes it.
 extension ConversationStore {
-    /// What closing these tabs asks, with the choices saved with Don't ask again, each tab's for its own host.
+    /// What closing these tabs asks, with the choices saved with Don't ask again, each tab's for its own host. Tabs
+    /// whose sessions are deleted when they close ask nothing.
     func closingQuestion(
         forTabs ids: [UUID],
         tabCloseChoices: TabCloseChoicesByHost,
         plainTerminalCloseChoice: PlainTerminalCloseChoice
     ) -> SeveralTabsClosingQuestion {
-        let tabs = terminalSessions.filter { ids.contains($0.id) }
+        let tabs = terminalSessions.filter { ids.contains($0.id) && !deletesSessionWhenClosed($0) }
             .map { (need: $0.closingNeed, tabCloseChoice: tabCloseChoices.choice(for: $0.host)) }
         return SeveralTabsClosingQuestion(tabs: tabs, plainTerminalCloseChoice: plainTerminalCloseChoice)
     }
@@ -30,6 +32,10 @@ extension ConversationStore {
         let tabsToClose = terminalSessions.filter { ids.contains($0.id) }
         let selectedLast = tabsToClose.filter { $0.id != selectedTerminalID } + tabsToClose.filter { $0.id == selectedTerminalID }
         for tab in selectedLast {
+            if deletesSessionWhenClosed(tab) {
+                closeTabDeletingItsSession(tab.id)
+                continue
+            }
             switch tab.closingNeed {
             case .nothingStarted:
                 closeTerminal(tab.id)

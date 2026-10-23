@@ -175,12 +175,14 @@ extension ConversationStore {
 
     /// Opens a tab running a new session of the tool in the folder, on the folder's host. `initialPrompt` is sent as
     /// the session's first message; with `runsInTmux` off, the CLI runs in the tab's terminal itself, so it doesn't
-    /// depend on tmux working, as the agent that fixes a host's tmux needs.
+    /// depend on tmux working, as the agent that fixes a host's tmux needs. With `deletesSessionWhenClosed`, closing
+    /// the tab deletes the session; see `SessionsDeletedWhenTabCloses`.
     func launchNewSession(
         provider: ConversationProvider,
         in location: ProjectLocation,
         initialPrompt: String? = nil,
-        runsInTmux: Bool = true
+        runsInTmux: Bool = true,
+        deletesSessionWhenClosed: Bool = false
     ) throws {
         switch location.host {
         case .thisMac:
@@ -188,7 +190,8 @@ extension ConversationStore {
                 provider: provider,
                 projectPath: location.path,
                 initialPrompt: initialPrompt,
-                runsInTmux: runsInTmux
+                runsInTmux: runsInTmux,
+                deletesSessionWhenClosed: deletesSessionWhenClosed
             )
         case .ssh(let destination):
             launchNewRemoteSession(
@@ -196,7 +199,8 @@ extension ConversationStore {
                 host: destination,
                 projectPath: location.path,
                 initialPrompt: initialPrompt,
-                runsInTmux: runsInTmux
+                runsInTmux: runsInTmux,
+                deletesSessionWhenClosed: deletesSessionWhenClosed
             )
         }
     }
@@ -214,7 +218,8 @@ extension ConversationStore {
         provider: ConversationProvider,
         projectPath: String,
         initialPrompt: String?,
-        runsInTmux: Bool
+        runsInTmux: Bool,
+        deletesSessionWhenClosed: Bool
     ) throws {
         let expandedPath = (projectPath as NSString).expandingTildeInPath
         let standardizedPath = URL(fileURLWithPath: expandedPath).standardizedFileURL.path
@@ -255,6 +260,7 @@ extension ConversationStore {
             sessionIDsKnownAtLaunch: sessionIDsKnownAtLaunch(of: provider, on: .thisMac),
             tmuxSessionName: tabCommand.tmuxSessionName
         )
+        session.deletesSessionWhenClosed = deletesSessionWhenClosed
         // A CLI that exits on its own leaves its tab open; list what it saved without waiting for the tab to close.
         session.onProcessFinished = { [weak self] in self?.refreshThisMac() }
         openTerminal(session)

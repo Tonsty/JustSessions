@@ -5,4 +5,6 @@ struct NewSessionRequest {
     let host: SessionHost
     let folder: String
     let creatingMissingFolder: Bool
+    /// A tool's session is deleted when its tab closes; never set for a terminal, which is no session.
+    let deletesSessionWhenClosed: Bool
 }

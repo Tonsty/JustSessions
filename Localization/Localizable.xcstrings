@@ -116,6 +116,16 @@
         }
       }
     },
+    "%@ deletes it permanently.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 会永久删除它。"
+          }
+        }
+      }
+    },
     "%@ didn't answer the rest of the check within %lld seconds, or the connection dropped.": {
       "localizations": {
         "zh-Hans": {
@@ -2732,6 +2742,16 @@
         }
       }
     },
+    "Closing the tab ends the CLI and deletes the session without asking again. Closing the window or quitting JustSessions keeps it until its tab closes. Keep session in the tab's menu keeps it after all.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭标签会结束 CLI 并删除会话，不再询问。关闭窗口或退出 JustSessions 会保留它，直到它的标签关闭。在标签菜单中选择“保留会话”即可改为保留。"
+          }
+        }
+      }
+    },
     "Collapse all groups": {
       "localizations": {
         "zh-Hans": {
@@ -3502,6 +3522,26 @@
         }
       }
     },
+    "Delete the session when its tab closes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭标签时删除会话"
+          }
+        }
+      }
+    },
+    "Deleted when its tab closes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标签关闭时将被删除"
+          }
+        }
+      }
+    },
     "Delete…": {
       "localizations": {
         "zh-Hans": {
@@ -3528,6 +3568,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在删除会话"
+          }
+        }
+      }
+    },
+    "Deleting when the tab closes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭标签时删除"
           }
         }
       }
@@ -4769,12 +4819,32 @@
         }
       }
     },
+    "It is deleted permanently on %@. SSH hosts have no Trash.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它将在 %@ 上被永久删除。SSH 主机没有废纸篓。"
+          }
+        }
+      }
+    },
     "It isn't on the PATH of %@'s login shell, so tabs start it from this folder.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "它不在 %@ 登录 shell 的 PATH 中，因此标签页从这个文件夹启动它。"
+          }
+        }
+      }
+    },
+    "It moves to the Trash.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它将移到废纸篓。"
           }
         }
       }
@@ -4938,6 +5008,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "保持运行会让这些 CLI 继续在 tmux 中运行；点击会话即可重新连接。结束会话会停止这些 CLI。其他标签的 CLI 和 shell 无论如何都会停止。"
+          }
+        }
+      }
+    },
+    "Keep session": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留会话"
           }
         }
       }

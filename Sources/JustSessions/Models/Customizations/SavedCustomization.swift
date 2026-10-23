@@ -1,7 +1,8 @@
 import Foundation
 
 /// A choice made in the app and kept in settings, which every workspace window shows: session and project names,
-/// pins, archiving, and message bookmarks. See `ConversationStore.changeSavedCustomization(_:_:)`.
+/// pins, archiving, message bookmarks, and sessions deleted when their tab closes. See
+/// `ConversationStore.changeSavedCustomization(_:_:)`.
 protocol SavedCustomization: Equatable {
     static func load(from userDefaults: UserDefaults) -> Self
     func save(to userDefaults: UserDefaults)
@@ -12,3 +13,4 @@ extension ProjectDisplayNames: SavedCustomization {}
 extension PinnedItems: SavedCustomization {}
 extension ArchivedSessions: SavedCustomization {}
 extension MessageBookmarks: SavedCustomization {}
+extension SessionsDeletedWhenTabCloses: SavedCustomization {}

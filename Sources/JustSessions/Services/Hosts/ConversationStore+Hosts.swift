@@ -35,12 +35,13 @@ extension ConversationStore {
 
     /// From the New Session sheet. The typed folder is looked up on its host first, so a missing folder is reported
     /// before a tab opens, or created when `creatingMissingFolder` is set, and the tab waits under the path the CLI
-    /// records for its session.
+    /// records for its session. With `deletesSessionWhenClosed`, closing the tab deletes the session.
     func launchNewSession(
         provider: ConversationProvider,
         host: SessionHost,
         folder: String,
         creatingMissingFolder: Bool = false,
+        deletesSessionWhenClosed: Bool = false,
         resolver: RemoteFolderResolver = RemoteFolderResolver()
     ) async throws {
         let location = try await projectLocation(
@@ -49,7 +50,7 @@ extension ConversationStore {
             creatingMissingFolder: creatingMissingFolder,
             resolver: resolver
         )
-        try launchNewSession(provider: provider, in: location)
+        try launchNewSession(provider: provider, in: location, deletesSessionWhenClosed: deletesSessionWhenClosed)
     }
 
     /// A folder typed in the New Session sheet or Add project, looked up on its host, which fails when it is missing
