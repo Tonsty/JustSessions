@@ -915,6 +915,18 @@ Load average: 9.8 at the first run, just after the builds, falling to 3.0 by the
 JUSTSESSIONS_PERF=1 swift test -c release --no-parallel --filter TranscriptInteractionMeasurements
 ```
 
+**Rerun with the mark of the message being read, 23 October 2026 (RDR-48):** each scroll update now finds the message ⌘D would bookmark, the first of your messages or the CLI's replies with 16 points below the reading toolbar, and marks it in the gutter. `readingWithTheBookmarkCommandsOn` measures the reader as the app runs it, with a store and a paging model, which turn the bookmark commands and the mark on; the other cases have no paging model. `main` (`7835b6c0`, with this suite file copied in) and the branch ran alternately, three runs each, one test at a time, load average 2.6–3.7.
+
+- **A SwiftUI overlay was too slow.** Drawn by a SwiftUI view on the entries that read an observable target, the mark put the median step's median 1.8–2.1 ms above `main`'s at 240 entries and 4.6–5.3 ms at 640, growing with the entries. Two runs per variant on the branch found why: finding the target without showing it measured as doing nothing (240 entries: 9.2–10.3 against 8.8–11.0 ms; 640: 31.2–32.0 against 28.9–32.3 ms), and showing it cost it all (11.1–11.5 and 33.8–37.6 ms).
+- **So the mark is AppKit's.** `TranscriptBookmarkTarget` isn't observable; the reader hands it the target, and it moves one `NSView` the size of the message in a gutter view of its own, whose `updateNSView` runs only when the theme or the bookmarks change.
+- **Median step with the commands on**, accessibility off then on: at 240 entries `main` 5.0–5.2 and 5.2–5.4 ms, the branch 5.0–5.2 and 5.0–5.4 ms; at 640, `main` 17.1–17.9 and 16.9–18.7 ms, the branch 16.9–17.8 and 17.1–17.6 ms. p95 overlaps everywhere; at 640 entries with accessibility off the branch's three runs sat at the top of `main`'s range (19.3–19.5 against 18.3–19.3 ms). 200 hit tests overlap in every case. Without the commands both trees match.
+- **AppKit views:** 3 more with the commands on (1,734 against 1,731 at 240 entries, 4,534 against 4,531 at 640): SwiftUI's host for the gutter view, the gutter view, and the mark.
+- **Letters moved into the gutter.** A rendering of the reader showed each letter over its message's first characters: the leading alignment guide `TranscriptBookmarkMarker` set from its trailing edge didn't move it. It now takes an offset. Nothing about its cost changed.
+
+```sh
+JUSTSESSIONS_PERF=1 swift test -c release --no-parallel --filter 'TranscriptInteractionMeasurements/(reading\(entryCount:\)|readingWithTheBookmarkCommandsOn)'
+```
+
 **Limits:**
 - **Absolute numbers are this Mac's:** they sit above PERF-60's, which an M4 Max measured; the comparison is between the columns.
 - **Not measured:** a bookmark jump's scroll updates, which look up one row's frame until it leaves the viewport; the harness doesn't jump.

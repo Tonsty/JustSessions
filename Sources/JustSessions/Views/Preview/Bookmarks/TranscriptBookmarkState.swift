@@ -40,6 +40,8 @@ final class TranscriptBookmarkState {
     @ObservationIgnored let editor = MessageBookmarkEditorRequests()
     /// The card a labelled or tagged letter shows under the pointer (RDR-51).
     @ObservationIgnored let hover = TranscriptBookmarkHover()
+    /// The message ⌘D would bookmark, highlighted beside it (RDR-48).
+    @ObservationIgnored let target = TranscriptBookmarkTarget()
     @ObservationIgnored private var noticeHidingTask: Task<Void, Never>?
     @ObservationIgnored private var carriedSeekTarget: Int?
 
