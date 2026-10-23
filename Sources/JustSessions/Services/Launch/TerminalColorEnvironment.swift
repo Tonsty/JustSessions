@@ -20,11 +20,12 @@ enum TerminalColorEnvironment {
         return cleanedEnvironment
     }
 
-    /// What a CLI in the embedded terminal runs with: `inheritedEnvironment` without the variables above or
-    /// Ghostty's (see `GhosttyAppEnvironment`), describing the terminal as the truecolor xterm it emulates.
+    /// What a CLI in the embedded terminal runs with: `inheritedEnvironment` without the variables above, Ghostty's
+    /// (see `GhosttyAppEnvironment`), or a Claude Code session's the app was opened from (see
+    /// `ClaudeCodeSessionEnvironment`), describing the terminal as the truecolor xterm it emulates.
     static func embeddedTerminalEnvironment(from inheritedEnvironment: [String: String]) -> [String: String] {
-        var environment = GhosttyAppEnvironment.removingGhosttyVariables(
-            from: removingColorDisablingVariables(from: inheritedEnvironment)
+        var environment = ClaudeCodeSessionEnvironment.removingSessionVariables(
+            from: GhosttyAppEnvironment.removingGhosttyVariables(from: removingColorDisablingVariables(from: inheritedEnvironment))
         )
         environment["TERM"] = "xterm-256color"
         environment["COLORTERM"] = "truecolor"

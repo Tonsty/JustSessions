@@ -48,13 +48,14 @@ struct KiroAdapter: ConversationAdapter {
         ).delete(conversation)
     }
 
-    /// Nil for a session another one started, such as a subagent's, and for one opened but never used, whose
-    /// messages file is missing or empty.
+    /// Nil for a session another one started, such as a subagent's, which names its parent, and for one opened but never
+    /// used, whose messages file is missing or empty. `session_created_reason` is `subagent` for main sessions too
+    /// (`KiroSessionMetadata.createdReason`), so it doesn't hide one.
     private func conversation(describedBy metadataFile: URL) -> Conversation? {
         let messagesFile = metadataFile.deletingPathExtension().appendingPathExtension("jsonl")
         guard let messagesSize = (try? messagesFile.resourceValues(forKeys: [.fileSizeKey]))?.fileSize, messagesSize > 0,
               let metadata = KiroSessionMetadata(file: metadataFile),
-              metadata.createdReason != "subagent",
+              metadata.parentSessionID == nil,
               provider.isValidSessionID(metadata.sessionID),
               metadataFile.lastPathComponent == "\(metadata.sessionID).json",
               metadata.projectPath.hasPrefix("/") else { return nil }

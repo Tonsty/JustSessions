@@ -54,4 +54,48 @@ struct TerminalColorEnvironmentTests {
         #expect(environment["GHOSTTY_RESOURCES_DIR"] == nil)
         #expect(environment["HOME"] == "/Users/example")
     }
+
+    /// An app opened from a shell inside a Claude Code session inherits that session's variables; a Claude Code it starts
+    /// would take itself for that session's child and save no transcript (`ClaudeCodeSessionEnvironment`).
+    @Test func aCLIDoesNotInheritAClaudeCodeSessionTheAppWasOpenedFrom() {
+        let parentSession = Dictionary(uniqueKeysWithValues: ClaudeCodeSessionEnvironment.variableNames.map { ($0, "parent") })
+        let settings = [
+            "CLAUDE_CONFIG_DIR": "/Users/example/.claude-work", "ANTHROPIC_API_KEY": "key", "CLAUDE_CODE_USE_BEDROCK": "1",
+            "CLAUDE_CODE_FORCE_SESSION_PERSISTENCE": "1", "HOME": "/Users/example",
+        ]
+
+        let environment = TerminalColorEnvironment.embeddedTerminalEnvironment(from: parentSession.merging(settings) { $1 })
+
+        #expect(ClaudeCodeSessionEnvironment.variableNames.allSatisfy { environment[$0] == nil })
+        #expect(settings.allSatisfy { environment[$0.key] == $0.value })
+        #expect(ClaudeCodeSessionEnvironment.variableNames.contains("CLAUDE_CODE_CHILD_SESSION"))
+    }
+
+    /// The tmux session a CLI starts in takes its variables from the tab's command (`ThisMacTmuxServer`), so a Claude Code
+    /// started there doesn't see the marker either.
+    @Test func aCLIStartedInThisMacsTmuxDoesNotSeeTheChildSessionMarker() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let binaryDirectory = root.appendingPathComponent("bin")
+        let projectDirectory = root.appendingPathComponent("project")
+        try FileManager.default.createDirectory(at: binaryDirectory, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: projectDirectory, withIntermediateDirectories: true)
+        try writeExecutableScript("#!/bin/sh\nexit 0\n", to: binaryDirectory.appendingPathComponent("claude"))
+        let resolver = NativeCLICommandResolver(
+            searchDirectories: [binaryDirectory.path],
+            inheritedEnvironment: ["CLAUDECODE": "1", "CLAUDE_CODE_CHILD_SESSION": "1", "CLAUDE_PID": "97524", "HOME": root.path],
+            bundledTmuxDirectory: nil
+        )
+
+        let command = try resolver.resolveNewSession(provider: .claude, projectPath: projectDirectory.path)
+        let tmuxCommand = ThisMacTmuxServer(executablePath: "/usr/bin/true", environment: [:])
+            .command(attachingTo: "justsessions-claude-new-test", running: command)
+
+        for name in ["CLAUDECODE", "CLAUDE_CODE_CHILD_SESSION", "CLAUDE_PID"] {
+            #expect(!command.environment.contains { $0.hasPrefix(name + "=") })
+            #expect(!tmuxCommand.arguments.contains { $0.hasPrefix(name + "=") })
+            #expect(!tmuxCommand.environment.contains { $0.hasPrefix(name + "=") })
+        }
+        #expect(command.environment.contains("HOME=\(root.path)"))
+    }
 }

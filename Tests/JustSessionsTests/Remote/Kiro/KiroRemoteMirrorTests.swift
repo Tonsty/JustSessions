@@ -11,7 +11,8 @@ struct KiroRemoteMirrorTests {
         let sessionID = UUID().uuidString.lowercased()
         let fixture = KiroSessionFolderFixture(sessionsDirectory: sessionsDirectory)
         try fixture.writeSession(id: sessionID, projectPath: "/home/me/paper", title: "Build fix", messageLines: KiroTranscriptSamples.lines)
-        try fixture.writeSession(id: UUID().uuidString, projectPath: "/home/me/paper", createdReason: "subagent", messageLines: KiroTranscriptSamples.lines)
+        try fixture.writeSession(id: UUID().uuidString, projectPath: "/home/me/paper", createdReason: "subagent", parentSessionID: sessionID,
+                                 messageLines: KiroTranscriptSamples.lines)
         try "private lock".write(to: sessionsDirectory.appendingPathComponent("\(sessionID).lock"), atomically: true, encoding: .utf8)
         try "private prompt history".write(to: sessionsDirectory.appendingPathComponent("\(sessionID).history"), atomically: true, encoding: .utf8)
         let subagentDirectory = sessionsDirectory.appendingPathComponent("\(sessionID)/subagents")

@@ -9,8 +9,11 @@ struct KiroSessionMetadata: Equatable {
     let projectPath: String
     let title: String?
     let updatedAt: Date?
-    /// Why the session was made, such as `subagent` for one another session started.
+    /// Why the session was made. Kiro CLI 2.16 writes `subagent` for every session its terminal UI starts, the main one
+    /// included, since the UI runs the chat as an ACP agent (`kiro-cli-chat acp`), so this doesn't tell a subagent's apart.
     let createdReason: String?
+    /// The session that started this one, for a subagent's, a tangent's, or a rewind's; nil for a main session.
+    let parentSessionID: String?
 
     init?(object: [String: Any]) {
         guard let sessionID = object["session_id"] as? String,
@@ -20,6 +23,7 @@ struct KiroSessionMetadata: Equatable {
         self.title = object["title"] as? String
         self.updatedAt = ConversationMetadata.date(object["updated_at"])
         self.createdReason = object["session_created_reason"] as? String
+        self.parentSessionID = (object["parent_session_id"] as? String).flatMap { $0.isEmpty ? nil : $0 }
     }
 
     init?(file: URL) {
