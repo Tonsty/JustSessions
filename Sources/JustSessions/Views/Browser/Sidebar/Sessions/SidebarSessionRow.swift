@@ -12,6 +12,8 @@ struct SidebarSessionRow: View {
     let isShowingSubagents: Bool
     /// While searching, the session's first match in its messages, shown under the title.
     var messageMatch: SessionMessageMatch? = nil
+    /// While searching, the session's bookmarks whose label or tags hold the search text (SBF-05), shown first.
+    var bookmarkMatches: [MessageBookmark] = []
     let onClick: (Conversation) -> Void
     let onToggleSubagents: () -> Void
     let onRename: (Conversation) -> Void
@@ -54,7 +56,8 @@ struct SidebarSessionRow: View {
                         if isArchived { ArchivedIndicator() }
                     }
                 },
-                detail: messageMatch.map { SidebarSessionMessageSnippet(snippet: $0.snippet) }
+                detail: messageMatch == nil && bookmarkMatches.isEmpty ? nil
+                    : SidebarSessionMatchDetail(bookmarks: bookmarkMatches, messageMatch: messageMatch)
             ) {
                 statusOrMoreActionsRoom(statusSource, description: statusDescription)
             }
@@ -73,7 +76,8 @@ struct SidebarSessionRow: View {
                 )
             }
         }
-        .accessibilityValue(Text(verbatim: messageMatch?.snippet.text ?? ""))
+        .accessibilityValue(Text(verbatim: ([SidebarSessionBookmarkMatch.text(of: bookmarkMatches)] + [messageMatch?.snippet.text])
+            .compactMap { $0 }.joined(separator: ", ")))
         // Over the button rather than in it, so a click on the ⋯ opens its menu instead of selecting the session.
         .overlay(alignment: .trailing) {
             // In the view tree only while the pointer is over the row; see `SidebarProjectRow`.

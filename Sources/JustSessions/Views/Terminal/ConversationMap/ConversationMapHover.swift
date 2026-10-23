@@ -13,6 +13,9 @@ final class ConversationMapHover {
         let timestamp: Date?
         let snippet: String
         let letter: String?
+        /// The bookmark's label and tags (RDR-51), which the card shows above and below its message's first words.
+        var label: String? = nil
+        var tags: [String] = []
         /// The card's top in the map column, kept inside its height.
         let top: CGFloat
         let bandMinY: CGFloat
@@ -61,12 +64,19 @@ struct ConversationMapHoverCard: View {
                                 .foregroundStyle(ThemePalette.secondaryText)
                         }
                     }
+                    if let label = card.label {
+                        Text(verbatim: label)
+                            .font(ThemeFont.callout.weight(.semibold))
+                            .foregroundStyle(ThemePalette.ink)
+                            .lineLimit(2)
+                    }
                     if !card.snippet.isEmpty {
                         Text(verbatim: card.snippet)
                             .font(ThemeFont.callout)
-                            .foregroundStyle(ThemePalette.ink)
+                            .foregroundStyle(card.label == nil ? ThemePalette.ink : ThemePalette.secondaryText)
                             .lineLimit(3)
                     }
+                    MessageBookmarkTagList(tags: card.tags)
                 }
             }
             .padding(.trailing, card.trailingInset)

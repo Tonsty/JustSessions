@@ -71,7 +71,7 @@ struct TranscriptView: View {
     private func pagesArrived() {
         dropMatchRevealABookmarkJumpReplaced()
         if let loadingMatchReveal {
-            searchState.reveal(loadingMatchReveal.query, at: loadingMatchReveal.entryID)
+            if !loadingMatchReveal.query.isEmpty { searchState.reveal(loadingMatchReveal.query, at: loadingMatchReveal.entryID) }
             self.loadingMatchReveal = nil
         }
         // A bookmark's page can hold only records the reader hides, as at the end of a file; "No messages yet"

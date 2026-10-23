@@ -4,6 +4,8 @@
 <dict>
 	<key></key>
 	<string></string>
+	<key>#idea #todo</key>
+	<string>#idea #todo</string>
 	<key>%@ %@</key>
 	<string>%@ %@</string>
 	<key>%@ %@ — %@</key>
@@ -78,6 +80,8 @@
 	<string>%lld</string>
 	<key>%lld bookmarks</key>
 	<string>%lld bookmarks</string>
+	<key>%lld bookmarks belong to sessions no host lists now.</key>
+	<string>%lld bookmarks belong to sessions no host lists now.</string>
 	<key>%lld earlier entries are not shown. Resume the session to see all of it.</key>
 	<string>%lld earlier entries are not shown. Resume the session to see all of it.</string>
 	<key>%lld hours</key>
@@ -110,8 +114,12 @@
 	<string>**Resume**, or a double-click, continues the conversation in its CLI and original folder. **Branch**, where the CLI supports it, starts a new session from a copy and leaves the original as it was.</string>
 	<key>**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab, or press **⌥⌘N**, to show two side by side.</key>
 	<string>**⌘N** starts a session in any installed CLI, or a plain terminal. Tabs group by project, and **Open tabs** in the sidebar lists them all. Right-click a tab, or press **⌥⌘N**, to show two side by side.</string>
+	<key>+%lld</key>
+	<string>+%lld</string>
 	<key>1 bookmark</key>
 	<string>1 bookmark</string>
+	<key>1 bookmark belongs to a session no host lists now.</key>
+	<string>1 bookmark belongs to a session no host lists now.</string>
 	<key>1 message</key>
 	<string>1 message</string>
 	<key>1 session is still running: its tab closes and its CLI ends first.</key>
@@ -126,6 +134,8 @@
 	<string>A CLI still running in tmux reattaches. Other sessions resume when you select their tab, including after a Mac restart. Plain terminals open a new shell in their folder.</string>
 	<key>A blue dot means a CLI finished a turn you haven't seen yet.</key>
 	<string>A blue dot means a CLI finished a turn you haven't seen yet.</string>
+	<key>A name to know it by</key>
+	<string>A name to know it by</string>
 	<key>A plain terminal has no conversation to bookmark.</key>
 	<string>A plain terminal has no conversation to bookmark.</string>
 	<key>A port goes in `~/.ssh/config`. Add these lines there, then enter %@.</key>
@@ -144,6 +154,8 @@
 	<string>Accessibility</string>
 	<key>Actual Size</key>
 	<string>Actual Size</string>
+	<key>Add #%@</key>
+	<string>Add #%@</string>
 	<key>Add SSH host</key>
 	<string>Add SSH host</string>
 	<key>Add SSH host…</key>
@@ -184,10 +196,14 @@
 	<string>Add project…</string>
 	<key>Add tab to new split view</key>
 	<string>Add tab to new split view</string>
+	<key>Add tag %@</key>
+	<string>Add tag %@</string>
 	<key>Adjusted to stay readable</key>
 	<string>Adjusted to stay readable</string>
 	<key>All 26 letters are in use. Remove a bookmark to add another.</key>
 	<string>All 26 letters are in use. Remove a bookmark to add another.</string>
+	<key>All Bookmarks</key>
+	<string>All Bookmarks</string>
 	<key>All sessions</key>
 	<string>All sessions</string>
 	<key>All time</key>
@@ -606,6 +622,12 @@
 	<string>Each host has its own choice for tabs whose CLI can keep running in tmux there. A terminal's shell always ends with its tab. Don't ask again in the close dialog sets these too.</string>
 	<key>Edit</key>
 	<string>Edit</string>
+	<key>Edit Bookmark…</key>
+	<string>Edit Bookmark…</string>
+	<key>Edit bookmark %@…</key>
+	<string>Edit bookmark %@…</string>
+	<key>Edit bookmark…</key>
+	<string>Edit bookmark…</string>
 	<key>End and close this terminal</key>
 	<string>End and close this terminal</string>
 	<key>End session</key>
@@ -788,6 +810,8 @@
 	<string>In **Projects**, clear the filters, then click the host's refresh button.</string>
 	<key>In a tab linked to a session, bookmark its latest message, or remove its bookmark</key>
 	<string>In a tab linked to a session, bookmark its latest message, or remove its bookmark</string>
+	<key>In a tab linked to a session, label and tag its latest message's bookmark</key>
+	<string>In a tab linked to a session, label and tag its latest message's bookmark</string>
 	<key>In a tab linked to a session, open its reading window at the next bookmark</key>
 	<string>In a tab linked to a session, open its reading window at the next bookmark</string>
 	<key>In a tab linked to a session, open its reading window at the previous bookmark</key>
@@ -840,6 +864,10 @@
 	<string>Keep running leaves their CLIs running in tmux; click a session to reattach. End sessions stops them. The other tabs' CLIs and shells stop either way.</string>
 	<key>Keyboard shortcuts</key>
 	<string>Keyboard shortcuts</string>
+	<key>Label</key>
+	<string>Label</string>
+	<key>Label and tag the bookmark of the message you're reading</key>
+	<string>Label and tag the bookmark of the message you're reading</string>
 	<key>Larger reading text</key>
 	<string>Larger reading text</string>
 	<key>Larger text</key>
@@ -984,6 +1012,10 @@
 	<string>No bookmarks in this conversation. Press ⌘D to bookmark the message you're reading.</string>
 	<key>No bookmarks in this session. Press ⌘D to bookmark its latest message.</key>
 	<string>No bookmarks in this session. Press ⌘D to bookmark its latest message.</string>
+	<key>No bookmarks match.</key>
+	<string>No bookmarks match.</string>
+	<key>No bookmarks yet. Press ⌘D to bookmark a message.</key>
+	<string>No bookmarks yet. Press ⌘D to bookmark a message.</string>
 	<key>No matches</key>
 	<string>No matches</string>
 	<key>No matching open tabs</key>
@@ -1298,8 +1330,12 @@
 	<string>Scanning conversations</string>
 	<key>Scanning sessions…</key>
 	<string>Scanning sessions…</string>
+	<key>Search bookmarks</key>
+	<string>Search bookmarks</string>
 	<key>Search covers the entries shown in this preview.</key>
 	<string>Search covers the entries shown in this preview.</string>
+	<key>Search labels, tags, and messages, or type #tag. Choose a bookmark to read it.</key>
+	<string>Search labels, tags, and messages, or type #tag. Choose a bookmark to read it.</string>
 	<key>Search open tabs</key>
 	<string>Search open tabs</string>
 	<key>Search open tabs by title, project, or host</key>
@@ -1332,6 +1368,8 @@
 	<string>Send feedback ↗</string>
 	<key>Separate Views</key>
 	<string>Separate Views</string>
+	<key>Separate tags with spaces or commas. Search for #tag in the sidebar or in All Bookmarks.</key>
+	<string>Separate tags with spaces or commas. Search for #tag in the sidebar or in All Bookmarks.</string>
 	<key>Separate views</key>
 	<string>Separate views</string>
 	<key>Session %lld of %lld</key>
@@ -1370,12 +1408,16 @@
 	<string>Show %lld more</string>
 	<key>Show %lld more sessions</key>
 	<string>Show %lld more sessions</string>
+	<key>Show All Bookmarks…</key>
+	<string>Show All Bookmarks…</string>
 	<key>Show Conversation Map</key>
 	<string>Show Conversation Map</string>
 	<key>Show Sidebar</key>
 	<string>Show Sidebar</string>
 	<key>Show a tip in the sidebar each time JustSessions opens</key>
 	<string>Show a tip in the sidebar each time JustSessions opens</string>
+	<key>Show all bookmarks, in every session</key>
+	<string>Show all bookmarks, in every session</string>
 	<key>Show archived</key>
 	<string>Show archived</string>
 	<key>Show explanation</key>
@@ -1506,6 +1548,8 @@
 	<string>Tabs and windows</string>
 	<key>Tabs grouped by project</key>
 	<string>Tabs grouped by project</string>
+	<key>Tags</key>
+	<string>Tags</string>
 	<key>Take the Tour</key>
 	<string>Take the Tour</string>
 	<key>Take the tour</key>
@@ -1596,6 +1640,8 @@
 	<string>This also deletes %lld subagent sessions.</string>
 	<key>This also deletes 1 subagent session.</key>
 	<string>This also deletes 1 subagent session.</string>
+	<key>This bookmark was removed in another window.</key>
+	<string>This bookmark was removed in another window.</string>
 	<key>This changes the display name in JustSessions.</key>
 	<string>This changes the display name in JustSessions.</string>
 	<key>This file isn't an iTerm2 color preset.</key>

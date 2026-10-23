@@ -9,6 +9,8 @@ struct ConversationMapView: View {
     let provider: ConversationProvider
     let store: ConversationStore
     let hover: ConversationMapHover
+    /// Opens Edit Bookmark… from a letter's right-click menu; nil leaves the menu out, as in tests.
+    var editor: MessageBookmarkEditorRequests? = nil
     @State private var isWindowVisible = false
     @Environment(\.tabBarTerminalPalette) private var terminalPalette
     @Environment(\.displayScale) private var displayScale
@@ -64,6 +66,12 @@ struct ConversationMapView: View {
                 ConversationMapCanvas(outline: outline, layout: layout, chips: chips, colors: colors,
                                       pixel: 1 / max(1, displayScale), chipSide: chipSide, letterFont: ThemeFont.caption.weight(.semibold))
                     .equatable()
+                if let editor {
+                    ConversationMapChipMenus(chips: chips, bookmarks: bookmarks, width: geometry.size.width, side: chipSide,
+                                             onOpen: { hover.hide(); open(.bookmark($0), conversation) },
+                                             onEdit: { editor.open($0, in: conversation) },
+                                             onRemove: { store.removeMessageBookmark($0, in: conversation) })
+                }
             }
             .contentShape(Rectangle())
             .onContinuousHover(coordinateSpace: .local) { phase in
@@ -100,6 +108,9 @@ struct ConversationMapView: View {
         .accessibilityActions {
             ForEach(bookmarks, id: \.letter) { bookmark in
                 Button("Go to bookmark \(bookmark.letter)") { open(.bookmark(bookmark), conversation) }
+                if let editor {
+                    Button("Edit bookmark \(bookmark.letter)…") { editor.open(bookmark, in: conversation) }
+                }
             }
         }
         .accessibilityIdentifier("terminal.conversation-map")
@@ -119,7 +130,10 @@ struct ConversationMapView: View {
             hover.hide()
             return
         }
-        guard index != hover.card?.blockIndex || outline.revision != hover.card?.revision else { return }
+        let bookmark = bookmarks.first { outline.blockIndex(for: $0) == index }
+        guard index != hover.card?.blockIndex || outline.revision != hover.card?.revision
+                || bookmark?.letter != hover.card?.letter || bookmark?.label != hover.card?.label || bookmark?.tags != hover.card?.tags
+        else { return }
         let block = outline.blocks[index]
         let speaker = switch block.kind {
         case .user, .image: AppLocalization.string("You", language: language)
@@ -135,8 +149,11 @@ struct ConversationMapView: View {
             speaker: speaker,
             timestamp: block.timestamp,
             snippet: block.kind == .image ? AppLocalization.string("Image", language: language) : block.snippet,
-            letter: bookmarks.first { outline.blockIndex(for: $0) == index }?.letter,
-            top: min(max(0, rowY - 8), max(0, size.height - InterfaceScale.points(110))),
+            letter: bookmark?.letter,
+            label: bookmark?.label,
+            tags: bookmark?.tags ?? [],
+            // Room for the card's height: more with a label or tags.
+            top: min(max(0, rowY - 8), max(0, size.height - InterfaceScale.points(bookmark?.label != nil || bookmark?.tags.isEmpty == false ? 170 : 110))),
             bandMinY: rowY,
             bandHeight: max(1 / max(1, displayScale), CGFloat(max(1, block.lineWidths.count)) * layout.pitch),
             trailingInset: ConversationMapMetrics.columnWidth + 6
@@ -186,6 +203,36 @@ struct ConversationMapCanvas: View, Equatable {
             }
         }
         .accessibilityHidden(true)
+    }
+}
+
+/// A right-click on a bookmark's letter offers Edit bookmark… and Remove bookmark (TAB-10). One clear square per chip,
+/// in drawing order, so where letters overlap the one on top takes it, as a click does (`ConversationMapLayout.bookmark(at:)`).
+/// A click on one opens its bookmark, as a click on the map there would, so it never depends on the map's own gesture.
+struct ConversationMapChipMenus: View {
+    let chips: [ConversationMapLayout.Chip]
+    let bookmarks: [MessageBookmark]
+    let width: CGFloat
+    let side: CGFloat
+    let onOpen: (MessageBookmark) -> Void
+    let onEdit: (MessageBookmark) -> Void
+    let onRemove: (MessageBookmark) -> Void
+
+    var body: some View {
+        ForEach(chips, id: \.letter) { chip in
+            if let bookmark = bookmarks.first(where: { $0.letter == chip.letter }) {
+                Color.clear
+                    .frame(width: side, height: side)
+                    .contentShape(Rectangle())
+                    .onTapGesture { onOpen(bookmark) }
+                    .contextMenu {
+                        Button("Edit bookmark \(bookmark.letter)…") { onEdit(bookmark) }
+                        Button("Remove bookmark \(bookmark.letter)") { onRemove(bookmark) }
+                    }
+                    .offset(x: width - ConversationMapMetrics.chipGap - side, y: chip.chipY)
+                    .accessibilityHidden(true)   // the map's own element has these actions
+            }
+        }
     }
 }
 

@@ -4,6 +4,16 @@
     "": {
       "shouldTranslate": false
     },
+    "#idea #todo": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "#想法 #待办"
+          }
+        }
+      }
+    },
     "%@ %@": {
       "shouldTranslate": false
     },
@@ -462,6 +472,16 @@
         }
       }
     },
+    "%lld bookmarks belong to sessions no host lists now.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个书签属于目前没有主机列出的会话。"
+          }
+        }
+      }
+    },
     "%lld earlier entries are not shown. Resume the session to see all of it.": {
       "localizations": {
         "zh-Hans": {
@@ -790,12 +810,32 @@
         }
       }
     },
+    "+%lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%lld"
+          }
+        }
+      }
+    },
     "1 bookmark": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "1 个书签"
+          }
+        }
+      }
+    },
+    "1 bookmark belongs to a session no host lists now.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 个书签属于目前没有主机列出的会话。"
           }
         }
       }
@@ -866,6 +906,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "蓝点表示 CLI 完成了一轮，你还没看。"
+          }
+        }
+      }
+    },
+    "A name to know it by": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "起个好认的名称"
           }
         }
       }
@@ -949,6 +999,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "实际大小"
+          }
+        }
+      }
+    },
+    "Add #%@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加 #%@"
           }
         }
       }
@@ -1153,6 +1213,16 @@
         }
       }
     },
+    "Add tag %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加标签 %@"
+          }
+        }
+      }
+    },
     "Adjusted to stay readable": {
       "localizations": {
         "zh-Hans": {
@@ -1169,6 +1239,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "26 个字母都已用完。请先移除一个书签，再添加新的。"
+          }
+        }
+      }
+    },
+    "All Bookmarks": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有书签"
           }
         }
       }
@@ -3592,6 +3672,36 @@
         }
       }
     },
+    "Edit Bookmark…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑书签…"
+          }
+        }
+      }
+    },
+    "Edit bookmark %@…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑书签 %@…"
+          }
+        }
+      }
+    },
+    "Edit bookmark…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑书签…"
+          }
+        }
+      }
+    },
     "End %lld sessions": {
       "localizations": {
         "en": {
@@ -4579,6 +4689,16 @@
         }
       }
     },
+    "In a tab linked to a session, label and tag its latest message's bookmark": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在已关联会话的标签页中，为其最新消息的书签设置名称和标签"
+          }
+        }
+      }
+    },
     "In a tab linked to a session, open its reading window at the next bookmark": {
       "localizations": {
         "zh-Hans": {
@@ -4828,6 +4948,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "键盘快捷键"
+          }
+        }
+      }
+    },
+    "Label": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称"
+          }
+        }
+      }
+    },
+    "Label and tag the bookmark of the message you're reading": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为正在阅读的消息的书签设置名称和标签"
           }
         }
       }
@@ -5541,6 +5681,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "此会话中没有书签。按 ⌘D 可为最新一条消息添加书签。"
+          }
+        }
+      }
+    },
+    "No bookmarks match.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有匹配的书签。"
+          }
+        }
+      }
+    },
+    "No bookmarks yet. Press ⌘D to bookmark a message.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有书签。按 ⌘D 为消息添加书签。"
           }
         }
       }
@@ -7175,12 +7335,32 @@
         }
       }
     },
+    "Search bookmarks": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索书签"
+          }
+        }
+      }
+    },
     "Search covers the entries shown in this preview.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "搜索范围为此预览中显示的记录。"
+          }
+        }
+      }
+    },
+    "Search labels, tags, and messages, or type #tag. Choose a bookmark to read it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可搜索名称、标签和消息，或输入 #标签。选择书签即可阅读。"
           }
         }
       }
@@ -7357,6 +7537,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "取消拆分视图"
+          }
+        }
+      }
+    },
+    "Separate tags with spaces or commas. Search for #tag in the sidebar or in All Bookmarks.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用空格或逗号分隔标签。可在侧栏或「所有书签」中搜索 #标签。"
           }
         }
       }
@@ -7595,6 +7785,16 @@
         }
       }
     },
+    "Show All Bookmarks…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示所有书签…"
+          }
+        }
+      }
+    },
     "Show Conversation Map": {
       "localizations": {
         "zh-Hans": {
@@ -7621,6 +7821,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "每次打开 JustSessions 时在侧栏显示一条提示"
+          }
+        }
+      }
+    },
+    "Show all bookmarks, in every session": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示所有会话中的书签"
           }
         }
       }
@@ -8307,6 +8517,16 @@
         }
       }
     },
+    "Tags": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标签"
+          }
+        }
+      }
+    },
     "Take the Tour": {
       "localizations": {
         "zh-Hans": {
@@ -8785,6 +9005,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "同时会删除 1 个子代理会话。"
+          }
+        }
+      }
+    },
+    "This bookmark was removed in another window.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此书签已在另一个窗口中移除。"
           }
         }
       }

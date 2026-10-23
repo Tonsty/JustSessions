@@ -16,11 +16,13 @@ struct TranscriptTextViewBookmarkMenuTests {
     private func id(_ record: Int) -> Int { TranscriptPageIdentity.entryID(record: record, part: 0) }
 
     /// Shows the transcript in a reader that keeps bookmarks, its pages not loaded, as a jump never needs here.
-    private func show(in fixture: TranscriptScrollViewFixture, saving bookmarks: [MessageBookmark] = []) async throws -> ConversationStore {
+    private func show(in fixture: TranscriptScrollViewFixture, saving bookmarks: [MessageBookmark] = [],
+                      bookmarkState: TranscriptBookmarkState = TranscriptBookmarkState()) async throws -> ConversationStore {
         MessageBookmarks(bookmarksByConversationID: bookmarks.isEmpty ? [:] : [conversation.id: bookmarks])
             .save(to: fixture.settings.userDefaults)
         let store = ConversationStore(adapters: [], userDefaults: fixture.settings.userDefaults, startsBackgroundPolling: false)
-        _ = try await fixture.show(conversation, transcript: transcript, paging: TranscriptPagingModel(), store: store)
+        _ = try await fixture.show(conversation, transcript: transcript, paging: TranscriptPagingModel(), store: store,
+                                   bookmarkState: bookmarkState)
         return store
     }
 
@@ -61,6 +63,24 @@ struct TranscriptTextViewBookmarkMenuTests {
         #expect(menu.items.first?.title == "Remove bookmark a")
         menu.performActionForItem(at: 0)
         #expect(store.messageBookmarks.bookmarks(forConversationID: conversation.id).isEmpty)
+    }
+
+    /// The fixture's borderless window takes no sheet, so this checks the reader's request, which its window shows.
+    @Test func aBookmarkedMessagesMenuOffersEditWhichAsksForTheEditor() async throws {
+        let fixture = try TranscriptScrollViewFixture()
+        defer { fixture.close() }
+        let bookmark = MessageBookmark(letter: "a", entryID: id(1), kind: .assistant, snippet: "The release branch pins an older toolchain.")
+        let bookmarkState = TranscriptBookmarkState()
+        let store = try await show(in: fixture, saving: [bookmark], bookmarkState: bookmarkState)
+
+        let menu = try menu(forEntry: id(1), in: fixture)
+
+        #expect(menu.items.dropFirst().first?.title == "Edit bookmark a…")
+        #expect(menu.items.dropFirst(2).first?.isSeparatorItem == true)
+        menu.performActionForItem(at: 1)
+        #expect(bookmarkState.editor.request?.bookmark == bookmark)
+        #expect(bookmarkState.editor.request?.conversation.id == conversation.id)
+        #expect(store.messageBookmarks.bookmarks(forConversationID: conversation.id) == [bookmark])   // editing adds nothing
     }
 
     @Test func aNotesMenuHasNoBookmarkItem() async throws {

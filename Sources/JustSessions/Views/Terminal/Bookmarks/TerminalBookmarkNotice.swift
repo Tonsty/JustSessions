@@ -16,7 +16,7 @@ enum TerminalBookmarkNotice: Equatable {
         case .added(let bookmark, let name):
             return AppLocalization.string("Bookmark \(bookmark.letter) added · \(speaker(bookmark, name)): \(bookmark.menuSnippet)", language: language)
         case .removed(let bookmark, let name):
-            return AppLocalization.string("Bookmark \(bookmark.letter) removed · \(speaker(bookmark, name)): \(bookmark.menuSnippet)", language: language)
+            return AppLocalization.string("Bookmark \(bookmark.letter) removed · \(speaker(bookmark, name)): \(bookmark.menuTitle)", language: language)
         case .plainTerminal: return AppLocalization.string("A plain terminal has no conversation to bookmark.", language: language)
         case .notLinkedYet: return AppLocalization.string("This tab isn't linked to its session yet. Bookmarks work once it is.", language: language)
         case .noMessagesYet: return AppLocalization.string("No messages in this session yet.", language: language)
@@ -34,6 +34,8 @@ enum TerminalBookmarkNotice: Equatable {
 @Observable
 final class TerminalBookmarkNoticeState {
     private(set) var notice: TerminalBookmarkNotice?
+    /// Edit Bookmark… in this tab (TRM-74) or from its map (TAB-10); `TerminalWorkspaceView` presents it.
+    @ObservationIgnored let editor = MessageBookmarkEditorRequests()
     @ObservationIgnored private var hidingTask: Task<Void, Never>?
     @ObservationIgnored private var lastCommand: Task<Void, Never>?
 

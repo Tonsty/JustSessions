@@ -17,6 +17,8 @@ struct ConversationSidebarView: View {
     let archivedSessionCount: Int
     /// While searching, the first match in each session whose messages hold the search text.
     var messageMatches: [String: SessionMessageMatch] = [:]
+    /// While searching, each session's bookmarks whose label or tags hold the search text (SBF-05).
+    var bookmarkMatches: [String: [MessageBookmark]] = [:]
     let onNewSession: () -> Void
     let onSelectConversation: (Conversation) -> Void
     let onRenameConversation: (Conversation) -> Void

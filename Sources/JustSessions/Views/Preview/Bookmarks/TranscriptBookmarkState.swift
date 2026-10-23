@@ -36,6 +36,10 @@ final class TranscriptBookmarkState {
     /// A map entry jump whose page is loading (RDR-50); `TranscriptView.refresh()` asks for it, as for `loadingJump`.
     @ObservationIgnored private(set) var loadingEntryJump: Int?
     private(set) var notice: TranscriptBookmarkNotice?
+    /// Edit Bookmark… in this reader (RDR-51); `MessageBookmarkEditorPresenter` reads its request.
+    @ObservationIgnored let editor = MessageBookmarkEditorRequests()
+    /// The card a labelled or tagged letter shows under the pointer (RDR-51).
+    @ObservationIgnored let hover = TranscriptBookmarkHover()
     @ObservationIgnored private var noticeHidingTask: Task<Void, Never>?
     @ObservationIgnored private var carriedSeekTarget: Int?
 

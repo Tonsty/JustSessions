@@ -14,14 +14,16 @@ extension TranscriptScrollView {
         guard bookmarksAreEnabled else { return nil }
         return TranscriptBookmarkCommandTarget(toggleBookmark: toggleBookmarkOnMessageBeingRead,
                                                goToAdjacentBookmark: goToAdjacentBookmark(forward:),
-                                               contextMenuItems: bookmarkMenuItems(forEntryAt:))
+                                               contextMenuItems: bookmarkMenuItems(forEntryAt:),
+                                               editBookmark: editBookmarkOnMessageBeingRead)
     }
 
     var bookmarkMenu: TranscriptBookmarkMenu? {
         guard bookmarksAreEnabled else { return nil }
         return TranscriptBookmarkMenu(bookmarks: bookmarks, assistantName: conversation.provider.rawValue,
                                       onGoTo: goToBookmark, onGoToAdjacent: goToAdjacentBookmark(forward:),
-                                      onToggle: toggleBookmarkOnMessageBeingRead, onRemoveAll: removeAllBookmarks)
+                                      onToggle: toggleBookmarkOnMessageBeingRead, onEdit: editBookmarkOnMessageBeingRead,
+                                      onRemoveAll: removeAllBookmarks)
     }
 
     var messageBeingRead: TranscriptEntry? {
@@ -36,6 +38,23 @@ extension TranscriptScrollView {
         guard bookmarksAreEnabled, bookmarkState.loadingJump == nil, bookmarkState.loadingEntryJump == nil else { return }
         guard let entry = messageBeingRead else { bookmarkState.show(.nothingToBookmark); return }
         toggleBookmark(on: entry)
+    }
+
+    /// Edit Bookmark… (⇧⌘D): the bookmark of the message being read, added first when it has none (RDR-51).
+    func editBookmarkOnMessageBeingRead() {
+        guard bookmarksAreEnabled, bookmarkState.loadingJump == nil, bookmarkState.loadingEntryJump == nil else { return }
+        guard let entry = messageBeingRead else { bookmarkState.show(.nothingToBookmark); return }
+        editBookmark(on: entry)
+    }
+
+    func editBookmark(on entry: TranscriptEntry) {
+        switch store?.ensureMessageBookmark(on: entry, in: conversation) {
+        case .existing(let bookmark), .added(let bookmark):
+            bookmarkState.dismissNotice()
+            bookmarkState.editor.open(bookmark, in: conversation)
+        case .allLettersInUse: bookmarkState.show(.allLettersInUse)
+        case nil: break
+        }
     }
 
     func toggleBookmark(on entry: TranscriptEntry) {
@@ -130,15 +149,20 @@ extension TranscriptScrollView {
         bookmarkState.dismissNotice()
     }
 
-    /// Add bookmark or Remove bookmark for the right-clicked message; see `TranscriptTextView+Bookmarks`.
+    /// Add bookmark, or Remove bookmark and Edit bookmark…, for the right-clicked message; see `TranscriptTextView+Bookmarks`.
     func bookmarkMenuItems(forEntryAt entryID: Int) -> [NSMenuItem] {
         guard bookmarksAreEnabled, let entry = transcript.entries.first(where: { $0.id == entryID }),
               MessageBookmark.Kind(entry.content) != nil else { return [] }
         let bookmarks = bookmarks
         if let bookmark = bookmarks.first(where: { $0.entryID == entryID }) {
-            return [ActionMenuItem(title: AppLocalization.string("Remove bookmark \(bookmark.letter)"), systemImage: "bookmark.slash") {
-                toggleBookmark(on: entry)
-            }]
+            return [
+                ActionMenuItem(title: AppLocalization.string("Remove bookmark \(bookmark.letter)"), systemImage: "bookmark.slash") {
+                    toggleBookmark(on: entry)
+                },
+                ActionMenuItem(title: AppLocalization.string("Edit bookmark \(bookmark.letter)…"), systemImage: "pencil") {
+                    editBookmark(on: entry)
+                },
+            ]
         }
         guard bookmarks.count < MessageBookmarks.letters.count else {
             // The stock menu enables every item that has an action, whatever isEnabled says; these have none.

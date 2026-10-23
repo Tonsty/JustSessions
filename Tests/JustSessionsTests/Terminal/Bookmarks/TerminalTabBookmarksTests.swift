@@ -82,6 +82,53 @@ struct TerminalTabBookmarksTests {
         #expect(harness.store.selectedTerminalID == harness.tab.id)
     }
 
+    @Test func shiftCommandDBookmarksTheNewestMessageAndOpensItsEditor() async throws {
+        let files = try TranscriptPagingFixture(count: 30)
+        defer { files.remove() }
+        let harness = try Harness(conversation: files.conversation)
+        defer { harness.close() }
+
+        let task = try #require(harness.bookmarks.editLatestMessage(in: harness.tab))
+        await task.value
+
+        let saved = try #require(harness.savedBookmarks.first)
+        #expect(saved.entryID == id(29))
+        #expect(harness.tab.bookmarkNotices.editor.request?.bookmark == saved)
+        #expect(harness.tab.bookmarkNotices.editor.request?.conversation.id == files.conversation.id)
+        #expect(harness.tab.bookmarkNotices.notice == nil)
+        #expect(harness.store.selectedTerminalID == harness.tab.id)
+    }
+
+    /// Unlike ⌘D, it never removes: a bookmarked newest message keeps its bookmark and its label.
+    @Test func shiftCommandDKeepsAnExistingBookmark() async throws {
+        let files = try TranscriptPagingFixture(count: 30)
+        defer { files.remove() }
+        var labelled = bookmark("c", at: 29)
+        labelled.label = "Where it ended"
+        let harness = try Harness(conversation: files.conversation, bookmarks: [labelled])
+        defer { harness.close() }
+
+        let task = try #require(harness.bookmarks.editLatestMessage(in: harness.tab))
+        await task.value
+
+        #expect(harness.savedBookmarks == [labelled])
+        #expect(harness.tab.bookmarkNotices.editor.request?.bookmark == labelled)
+    }
+
+    @Test func shiftCommandDWithAll26LettersUsedSaysWhyAndOpensNothing() async throws {
+        let files = try TranscriptPagingFixture(count: 30)
+        defer { files.remove() }
+        let full = MessageBookmarks.letters.enumerated().map { bookmark($1, at: $0) }
+        let harness = try Harness(conversation: files.conversation, bookmarks: full)
+        defer { harness.close() }
+
+        let task = try #require(harness.bookmarks.editLatestMessage(in: harness.tab))
+        await task.value
+
+        #expect(harness.tab.bookmarkNotices.notice == .allLettersInUse)
+        #expect(harness.tab.bookmarkNotices.editor.request == nil)
+    }
+
     @Test func aSecondCommandDRemovesIt() async throws {
         let files = try TranscriptPagingFixture(count: 30)
         defer { files.remove() }

@@ -68,13 +68,14 @@ struct TerminalWorkspaceView: View {
                 // Every CLI tab, linked or not, so linking never resizes its terminal; the column sizes itself from the toggle.
                 if let provider = session.provider, let store {
                     ConversationMapColumn(model: session.conversationOutline, conversation: session.conversation, provider: provider,
-                                          isShown: isShown, store: store, hover: mapHover)
+                                          isShown: isShown, store: store, hover: mapHover, editor: session.bookmarkNotices.editor)
                         .equatable()
                 }
             }
             // Over the terminal beside the map, as the find bar floats over it; reads the hover in its own body.
             .overlay(alignment: .topTrailing) { ConversationMapHoverCard(hover: mapHover) }
         }
+        .messageBookmarkEditor(session.bookmarkNotices.editor, store: store)
         // Closing the bar gives the keyboard back to the terminal of the selected tab.
         .onChange(of: session.findState.closeRevision) {
             guard isActive else { return }
