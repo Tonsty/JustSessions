@@ -1260,6 +1260,10 @@
 	<string>Rename project</string>
 	<key>Rename project…</key>
 	<string>Rename project…</string>
+	<key>Reopen Closed Tab</key>
+	<string>Reopen Closed Tab</string>
+	<key>Reopen the tab closed last</key>
+	<string>Reopen the tab closed last</string>
 	<key>Reopen the tabs that were open when JustSessions quit</key>
 	<string>Reopen the tabs that were open when JustSessions quit</string>
 	<key>Reopening tabs</key>

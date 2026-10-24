@@ -14,6 +14,7 @@ extension HelpKeyboardShortcutGroup {
                 HelpKeyboardShortcut(keys: "⇧⌘N", action: "New window"),
                 HelpKeyboardShortcut(keys: "⌥⌘N", action: "Choose a tab to show beside this one"),
                 HelpKeyboardShortcut(keys: "⌘W", action: "Close the tab, or the window when no tabs are open"),
+                HelpKeyboardShortcut(keys: "⇧⌘T", action: "Reopen the tab closed last"),
                 HelpKeyboardShortcut(keys: "⇧⌘]", "⌃Tab", action: "Next tab"),
                 HelpKeyboardShortcut(keys: "⇧⌘[", "⌃⇧Tab", action: "Previous tab"),
                 HelpKeyboardShortcut(keys: "⌘1–⌘8", action: "Go to a tab by its position"),

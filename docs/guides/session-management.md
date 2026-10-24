@@ -73,6 +73,7 @@ Use the sidebar to find a conversation, read its preview, and resume it in its o
 | ⌘T or ⌘N | Open the new session sheet using the current tab's host, CLI, and project folder. |
 | ⌘⇧N | Open another workspace window, as **New Window** in the Dock icon's right-click menu does. |
 | ⌘⌥N | Show the selected tab on the left and, on the right, a list of this window's other tabs to show beside it, as **Tabs → Add Tab to New Split View** does. Works while the selected tab is in no split. |
+| ⇧⌘T | Reopen the tab closed last in this window, at its place, as **File → Reopen Closed Tab** does. Press again for the one closed before it. A session tab resumes its session; a plain terminal opens a new shell in its folder. Tabs closed to delete their session, or by disconnecting their host, don't come back. |
 | ⌘W | Close the selected terminal tab as its close button does: with the **Keep running / End session** confirmation, or **Close terminal** for a plain terminal, unless you ticked **Don't ask again**. In the confirmation, Return chooses **Keep running**, or **End session** when the CLI can't keep running; Escape cancels. |
 | ⌘⇧] or Ctrl+Tab | Select the next terminal tab, wrapping to the first. |
 | ⌘⇧[ or Ctrl+Shift+Tab | Select the previous terminal tab, wrapping to the last. |

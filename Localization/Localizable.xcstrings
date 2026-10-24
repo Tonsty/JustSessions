@@ -6957,6 +6957,26 @@
         }
       }
     },
+    "Reopen Closed Tab": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新打开关闭的标签"
+          }
+        }
+      }
+    },
+    "Reopen the tab closed last": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新打开最后关闭的标签页"
+          }
+        }
+      }
+    },
     "Reopen the tabs that were open when JustSessions quit": {
       "localizations": {
         "zh-Hans": {

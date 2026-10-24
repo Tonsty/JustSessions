@@ -20,6 +20,10 @@ struct WorkspaceTabCommands: Commands {
                 .disabled(actions?.isEnabled != true)
             Button(AppLocalization.string("New Window", language: languageStore.language)) { openWindow(id: "workspace") }
                 .keyboardShortcut("n", modifiers: [.command, .shift])
+            // Chrome's shortcut, and its place in Chrome's File menu.
+            Button(AppLocalization.string("Reopen Closed Tab", language: languageStore.language)) { actions?.reopenClosedTab() }
+                .keyboardShortcut("t", modifiers: [.command, .shift])
+                .disabled(actions?.isEnabled != true || actions?.canReopenClosedTab != true)
         }
 
         CommandGroup(replacing: .saveItem) {

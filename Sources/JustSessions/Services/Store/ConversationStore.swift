@@ -181,6 +181,9 @@ final class ConversationStore {
     var openTabPersistence: OpenTabPersistence?
     var isRestoringTabBatch = false
     var isTearingDownWorkspace = false
+    /// Tabs closed in this window, for Reopen Closed Tab; see `ConversationStore+ReopeningClosedTabs`.
+    var recentlyClosedTabs = RecentlyClosedTabs()
+    var isClosingTabsWithoutRemembering = false
     let sessionNotifier: any SessionNotifying
     /// The app's windows, whose tabs this window's count with its own; see `ConversationStore+OtherWindows`.
     let windowRegistry: WorkspaceWindowRegistry
@@ -1042,6 +1045,7 @@ final class ConversationStore {
         let tabToSelect = split(containing: id)?.partner(of: id) ?? neighborToSelect
         var strip = tabStrip
         strip.removeTab(id)
+        rememberClosedTab(closedTab, at: index)
         closedTab.close()
         apply(strip)
         if selectedTerminalID == id { selectedTerminalID = tabToSelect }

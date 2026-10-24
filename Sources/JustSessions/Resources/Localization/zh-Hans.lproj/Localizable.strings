@@ -1302,6 +1302,10 @@
 	<string>重命名项目</string>
 	<key>Rename project…</key>
 	<string>重命名项目…</string>
+	<key>Reopen Closed Tab</key>
+	<string>重新打开关闭的标签</string>
+	<key>Reopen the tab closed last</key>
+	<string>重新打开最后关闭的标签页</string>
 	<key>Reopen the tabs that were open when JustSessions quit</key>
 	<string>重新打开上次退出 JustSessions 时的标签</string>
 	<key>Reopening tabs</key>

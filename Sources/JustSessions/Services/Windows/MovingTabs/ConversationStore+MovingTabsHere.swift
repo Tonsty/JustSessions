@@ -44,7 +44,10 @@ extension ConversationStore {
     /// reconnected SSH tab is, since it is the same tab in another window.
     private func finishMovingTerminal(_ tab: TerminalSession, from otherStore: ConversationStore, for conversation: Conversation) {
         if !tab.hasExited, otherStore.terminalSessions.contains(where: { $0.id == tab.id }) {
-            otherStore.closeTerminal(tab.id, endingTmuxSession: false)
+            // The tab moved rather than closed, so Reopen Closed Tab there doesn't bring it back.
+            otherStore.closingTabsWithoutRemembering {
+                otherStore.closeTerminal(tab.id, endingTmuxSession: false)
+            }
         }
         launch(conversation, action: .resume, engine: tab.engine)
     }
