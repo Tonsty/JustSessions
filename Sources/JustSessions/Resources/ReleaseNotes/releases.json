@@ -1,5 +1,50 @@
 [
   {
+    "version": "1.2.20",
+    "publishedOn": "2026-10-23",
+    "title": {
+      "en": "Kiro CLI V3 sessions",
+      "zh-Hans": "Kiro CLI V3 会话"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "List, read, resume, and delete Kiro CLI V3 sessions, on this Mac and SSH hosts.",
+            "zh-Hans": "在本机和 SSH 主机上列出、阅读、恢复和删除 Kiro CLI V3 会话。"
+          },
+          {
+            "en": "In the New session sheet (⌘N), choose to delete a session when its tab closes.",
+            "zh-Hans": "在「新建会话」(⌘N) 中可选择在标签关闭时删除会话。"
+          }
+        ]
+      },
+      {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "The reader marks the message ⌘D will bookmark.",
+            "zh-Hans": "阅读器会标出 ⌘D 将添加书签的消息。"
+          }
+        ]
+      },
+      {
+        "kind": "fixed",
+        "items": [
+          {
+            "en": "Fixed new Kiro CLI sessions not appearing in the sidebar.",
+            "zh-Hans": "修复了新的 Kiro CLI 会话未显示在侧边栏的问题。"
+          },
+          {
+            "en": "Small bug fixes.",
+            "zh-Hans": "修复了一些小问题。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.19",
     "publishedOn": "2026-10-23",
     "title": {
