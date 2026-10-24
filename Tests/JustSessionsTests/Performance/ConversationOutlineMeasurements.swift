@@ -81,21 +81,25 @@ struct ConversationOutlineMeasurements {
         #expect(!blocks.isEmpty) // Record-only: the numbers above are the result.
     }
 
-    /// The "Canvas draws" row: `ConversationMapCanvas` in a 70 × 800 column at 2× with 10,000 blocks, squeezed to one bar a
-    /// pixel row, and 26 bookmarks, rendered `renderCount` times.
-    @MainActor
-    @Test func drawingAMapOfTenThousandBlocks() {
-        guard SidebarInteractionMeasurements.isEnabled else { return }
+    private static func tenThousandBlocks() -> [ConversationOutline.Block] {
         let kinds: [ConversationOutline.Block.Kind] = [.user, .assistant, .toolRun, .assistant]
-        let blocks = (0..<10_000).map { index in
+        return (0..<10_000).map { index in
             let kind = kinds[index % kinds.count]
             return ConversationOutline.Block(
                 entryID: TranscriptPageIdentity.entryID(record: index, part: 0), lastRecord: index, kind: kind, timestamp: nil,
                 snippet: "Block \(index)", lineWidths: kind == .toolRun ? [40, 32] : [80, 80, 56, 0, 72], toolCallCount: kind == .toolRun ? 2 : 0
             )
         }
+    }
+
+    /// The "Canvas draws" row: `ConversationMapCanvas` in a 110 × 800 column at 2× with 10,000 blocks, squeezed to one bar
+    /// a pixel row, and 26 bookmarks with their letters, rendered `renderCount` times. Runs on `main` too, to compare.
+    @MainActor
+    @Test func drawingAMapOfTenThousandBlocks() {
+        guard SidebarInteractionMeasurements.isEnabled else { return }
+        let blocks = Self.tenThousandBlocks()
         let outline = ConversationOutline(blocks: blocks)
-        let size = CGSize(width: 70, height: 800), chipSide: CGFloat = 14
+        let size = CGSize(width: 110, height: 800), chipSide: CGFloat = 14
         let layout = ConversationMapLayout(rowCount: outline.rowCount, height: size.height, naturalPitch: 3,
                                            verticalInset: ConversationMapMetrics.verticalInset)
         let bookmarks = "abcdefghijklmnopqrstuvwxyz".enumerated().map { offset, letter in
@@ -115,7 +119,48 @@ struct ConversationOutlineMeasurements {
             times.append(ContinuousClock.now - start)
             #expect(image != nil)
         }
-        perfReport("map canvas, 10,000 blocks in 70 × 800 at 2×", "render p50", times.sorted()[times.count / 2])
+        perfReport("map canvas, 10,000 blocks in 110 × 800 at 2×", "render p50", times.sorted()[times.count / 2])
+    }
+
+    /// Scrolling that map at its minimum pitch with 26 labelled bookmarks, as the map does each scroll step: the layout at
+    /// the new offset, the chips and their (kept) labels, then the render. 40 steps of 120 points from the top.
+    @MainActor
+    @Test func scrollingAMapOfTenThousandBlocksWithLabels() {
+        guard SidebarInteractionMeasurements.isEnabled else { return }
+        let blocks = Self.tenThousandBlocks()
+        let outline = ConversationOutline(blocks: blocks)
+        let size = CGSize(width: 110, height: 800), chipSide: CGFloat = 14
+        let bookmarks = "abcdefghijklmnopqrstuvwxyz".enumerated().map { offset, letter in
+            var bookmark = MessageBookmark(letter: String(letter), entryID: blocks[offset * 384 + 1].entryID, kind: .assistant, snippet: "")
+            bookmark.label = "Label \(letter): the step that fixed the build"
+            return bookmark
+        }
+        let colors = ConversationMapColors(palette: AppThemeColors.justSessionsLight.terminalPalette, provider: .claude)
+        _ = ConversationMapChipTitles.titles(for: bookmarks, side: chipSide, factor: 1)
+        var stepTimes: [Duration] = []
+        var renderTimes: [Duration] = []
+        for step in 0..<40 {
+            let start = ContinuousClock.now
+            let layout = ConversationMapLayout(rowCount: outline.rowCount, height: size.height, naturalPitch: 3,
+                                               verticalInset: ConversationMapMetrics.verticalInset, minimumPitch: 1,
+                                               offsetFromTop: CGFloat(step) * 120)
+            let chips = layout.chips(for: bookmarks, in: outline, side: chipSide, height: size.height,
+                                     titles: ConversationMapChipTitles.titles(for: bookmarks, side: chipSide, factor: 1))
+            let canvas = ConversationMapCanvas(outline: outline, layout: layout, chips: chips, colors: colors, pixel: 0.5,
+                                               chipSide: chipSide, letterFont: ThemeFont.caption.weight(.semibold))
+            let renderer = ImageRenderer(content: canvas.frame(width: size.width, height: size.height))
+            renderer.scale = 2
+            let renderStart = ContinuousClock.now
+            let image = renderer.cgImage
+            let end = ContinuousClock.now
+            renderTimes.append(end - renderStart)
+            stepTimes.append(end - start)
+            #expect(image != nil)
+            #expect(layout.isScrollable)
+        }
+        perfReport("map scroll step, 10,000 blocks, 26 labels, 110 × 800 at 2×", "step p50", stepTimes.sorted()[stepTimes.count / 2])
+        perfReport("map scroll step, 10,000 blocks, 26 labels, 110 × 800 at 2×", "step p95", stepTimes.sorted()[stepTimes.count * 95 / 100])
+        perfReport("map scroll step, 10,000 blocks, 26 labels, 110 × 800 at 2×", "render p50", renderTimes.sorted()[renderTimes.count / 2])
     }
 
     private static func median(_ work: () async throws -> Void) async throws -> Duration {

@@ -12,6 +12,8 @@ struct ConversationMapView: View {
     /// Opens Edit Bookmark… from a letter's right-click menu; nil leaves the menu out, as in tests.
     var editor: MessageBookmarkEditorRequests? = nil
     @State private var isWindowVisible = false
+    /// How far a long conversation is scrolled (TAB-10); nil follows the newest rows.
+    @State private var offsetFromTop: CGFloat?
     @Environment(\.tabBarTerminalPalette) private var terminalPalette
     @Environment(\.displayScale) private var displayScale
     @Environment(\.locale) private var locale
@@ -47,6 +49,8 @@ struct ConversationMapView: View {
             // Otherwise the first read is running: the background only, no spinner (performance.md item 19).
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Another session starts at its newest rows.
+        .onChange(of: conversation?.id) { offsetFromTop = nil }
         .task(id: followKey, priority: .utility) {
             guard followKey.isOnScreen, let conversation else { return }
             await model.watch(conversation)
@@ -57,14 +61,30 @@ struct ConversationMapView: View {
                          conversation: Conversation) -> some View {
         GeometryReader { geometry in
             let chipSide = ConversationMapMetrics.chipSide
+            let factor = InterfaceScale.factor
             let layout = ConversationMapLayout(rowCount: outline.rowCount, height: geometry.size.height,
                                                naturalPitch: ConversationMapMetrics.naturalRowPitch,
-                                               verticalInset: ConversationMapMetrics.verticalInset)
-            let chips = layout.chips(for: bookmarks, in: outline, side: chipSide, height: geometry.size.height)
+                                               verticalInset: ConversationMapMetrics.verticalInset,
+                                               minimumPitch: ConversationMapMetrics.minimumRowPitch,
+                                               offsetFromTop: offsetFromTop)
+            let chips = layout.chips(for: bookmarks, in: outline, side: chipSide, height: geometry.size.height,
+                                     titles: ConversationMapChipTitles.titles(for: bookmarks, side: chipSide, factor: factor))
             ZStack(alignment: .topLeading) {
+                ConversationMapScrollReader(isScrollable: layout.isScrollable) { distance in
+                    // From the state, not this layout, so scroll events between two redraws all count.
+                    let current = ConversationMapLayout(rowCount: outline.rowCount, height: geometry.size.height,
+                                                        naturalPitch: ConversationMapMetrics.naturalRowPitch,
+                                                        verticalInset: ConversationMapMetrics.verticalInset,
+                                                        minimumPitch: ConversationMapMetrics.minimumRowPitch,
+                                                        offsetFromTop: offsetFromTop)
+                    offsetFromTop = current.offsetFromTop(afterScrollingBy: distance)
+                }
+                .accessibilityHidden(true)
                 ConversationMapHoverBand(hover: hover, color: colors.hoverBand)
                 ConversationMapCanvas(outline: outline, layout: layout, chips: chips, colors: colors,
-                                      pixel: 1 / max(1, displayScale), chipSide: chipSide, letterFont: ThemeFont.caption.weight(.semibold))
+                                      pixel: 1 / max(1, displayScale), chipSide: chipSide, letterFont: ThemeFont.caption.weight(.semibold),
+                                      scrollThumbWidth: ConversationMapMetrics.scrollThumbWidth(at: factor),
+                                      scrollThumbMinimumLength: ConversationMapMetrics.scrollThumbMinimumLength(at: factor))
                     .equatable()
                 if let editor {
                     ConversationMapChipMenus(chips: chips, bookmarks: bookmarks, width: geometry.size.width, side: chipSide,
@@ -82,8 +102,13 @@ struct ConversationMapView: View {
                     hover.hide()
                 }
             }
-            // A growing or squeezed outline moves the blocks under a still pointer: rebuild its card where it points.
+            // A growing, squeezed, or scrolled outline moves the blocks under a still pointer: rebuild its card where it points.
             .onChange(of: outline.revision) {
+                if let point = hover.point {
+                    showCard(at: point, outline: outline, layout: layout, chips: chips, bookmarks: bookmarks, size: geometry.size)
+                }
+            }
+            .onChange(of: layout.scrollOffset) {
                 if let point = hover.point {
                     showCard(at: point, outline: outline, layout: layout, chips: chips, bookmarks: bookmarks, size: geometry.size)
                 }
@@ -171,11 +196,14 @@ struct ConversationMapCanvas: View, Equatable {
     let pixel: CGFloat
     let chipSide: CGFloat
     let letterFont: Font
+    var scrollThumbWidth: CGFloat = 2
+    var scrollThumbMinimumLength: CGFloat = 16
 
     nonisolated static func == (first: Self, second: Self) -> Bool {
         first.outline.revision == second.outline.revision && first.layout == second.layout && first.chips == second.chips
             && first.colors == second.colors && first.pixel == second.pixel && first.chipSide == second.chipSide
-            && first.letterFont == second.letterFont
+            && first.letterFont == second.letterFont && first.scrollThumbWidth == second.scrollThumbWidth
+            && first.scrollThumbMinimumLength == second.scrollThumbMinimumLength
     }
 
     var body: some View {
@@ -184,6 +212,11 @@ struct ConversationMapCanvas: View, Equatable {
             let chipX = size.width - ConversationMapMetrics.chipGap - chipSide
             let barsWidth = max(0, chipX - ConversationMapMetrics.chipGap - barsMinX)
             context.fill(Path(CGRect(x: 0, y: 0, width: pixel, height: size.height)), with: .color(Color(hexValue: colors.hairline)))
+            // Where the rows in view are among all of them, in the faint marks' color, while they scroll.
+            if let thumb = layout.scrollThumb(minimumLength: scrollThumbMinimumLength) {
+                let rect = CGRect(x: pixel + 1, y: thumb.minY, width: scrollThumbWidth, height: thumb.height)
+                context.fill(Capsule().path(in: rect), with: .color(Color(hexValue: colors.hex(for: .toolRun))))
+            }
             // One path and one fill per ink.
             var paths: [ConversationMapLayout.Ink: Path] = [:]
             for bar in layout.bars(for: outline, pixel: pixel) {
@@ -195,10 +228,15 @@ struct ConversationMapCanvas: View, Equatable {
             }
             let chipColor = Color(hexValue: colors.chip)
             for chip in chips {
-                context.fill(Path(CGRect(x: barsMinX, y: chip.rowY, width: chipX - barsMinX, height: pixel)), with: .color(chipColor))
-                let rect = CGRect(x: chipX, y: chip.chipY, width: chipSide, height: chipSide)
+                let minX = ConversationMapLayout.chipMinX(of: chip, width: size.width)
+                // The tick, while its message's first row is in view.
+                if chip.rowY >= 0, chip.rowY <= size.height {
+                    context.fill(Path(CGRect(x: barsMinX, y: chip.rowY, width: max(0, minX - barsMinX), height: pixel)),
+                                 with: .color(chipColor))
+                }
+                let rect = CGRect(x: minX, y: chip.chipY, width: chip.title.width, height: chipSide)
                 context.fill(RoundedRectangle(.small).path(in: rect), with: .color(chipColor))
-                context.draw(Text(verbatim: chip.letter).font(letterFont).foregroundStyle(Color(hexValue: colors.chipText)),
+                context.draw(Text(verbatim: chip.title.text).font(letterFont).foregroundStyle(Color(hexValue: colors.chipText)),
                              at: CGPoint(x: rect.midX, y: rect.midY))
             }
         }
@@ -222,14 +260,14 @@ struct ConversationMapChipMenus: View {
         ForEach(chips, id: \.letter) { chip in
             if let bookmark = bookmarks.first(where: { $0.letter == chip.letter }) {
                 Color.clear
-                    .frame(width: side, height: side)
+                    .frame(width: chip.title.width, height: side)
                     .contentShape(Rectangle())
                     .onTapGesture { onOpen(bookmark) }
                     .contextMenu {
                         Button("Edit bookmark \(bookmark.letter)…") { onEdit(bookmark) }
                         Button("Remove bookmark \(bookmark.letter)") { onRemove(bookmark) }
                     }
-                    .offset(x: width - ConversationMapMetrics.chipGap - side, y: chip.chipY)
+                    .offset(x: ConversationMapLayout.chipMinX(of: chip, width: width), y: chip.chipY)
                     .accessibilityHidden(true)   // the map's own element has these actions
             }
         }
