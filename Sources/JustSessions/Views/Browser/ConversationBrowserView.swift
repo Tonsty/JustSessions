@@ -325,8 +325,10 @@ private struct WorkspaceTabActionsValue: ViewModifier {
                 hasSelectedTab: store.selectedTerminal != nil,
                 isSplitShown: store.isSplitViewShown,
                 canOpenSplitChooser: store.canOpenSplitChooser,
+                canReopenClosedTab: store.canReopenClosedTab,
                 isEnabled: isEnabled,
                 newSession: newSession,
+                reopenClosedTab: { store.reopenClosedTab() },
                 closeSelectedTab: {
                     // The split chooser with the keyboard closes, as ⌘W closes Chrome's split view page.
                     if store.selectsShownSplitChooser, let chooser = store.shownSplitChooser {

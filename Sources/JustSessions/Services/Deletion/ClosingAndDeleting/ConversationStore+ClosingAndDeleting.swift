@@ -83,7 +83,10 @@ extension ConversationStore {
         let thisMacCLIProcessIDs: Set<Int32> = host == .thisMac
             ? Set(tabs.map(\.cliProcessID) + tmuxNames.compactMap { thisMacTmuxPaneProcessIDs[$0] }).filter { $0 > 0 }
             : []
-        for tab in tabs { closeTerminal(tab.id) }
+        // The session is about to be deleted, so Reopen Closed Tab has nothing to bring back.
+        closingTabsWithoutRemembering {
+            for tab in tabs { closeTerminal(tab.id) }
+        }
         tmuxSessionNamesByHost[host]?.subtract(tmuxNames)
         let timeoutSeconds = Self.cliExitTimeoutBeforeDeletion
         cliExits.enter()

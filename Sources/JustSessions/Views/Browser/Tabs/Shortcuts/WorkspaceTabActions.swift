@@ -8,8 +8,11 @@ struct WorkspaceTabActions {
     let isSplitShown: Bool
     /// The selected tab is in no split and beside no split chooser, so Add Tab to New Split View can show one.
     let canOpenSplitChooser: Bool
+    /// A tab closed in this window can come back; see `ConversationStore+ReopeningClosedTabs`.
+    let canReopenClosedTab: Bool
     let isEnabled: Bool
     let newSession: () -> Void
+    let reopenClosedTab: () -> Void
     let closeSelectedTab: () -> Void
     let selectAdjacentTab: (_ movingForward: Bool) -> Void
     let selectTab: (_ shortcutNumber: Int) -> Void

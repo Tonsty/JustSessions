@@ -79,9 +79,9 @@ extension ConversationStore {
         disconnectedRemoteHosts.save(to: userDefaults)
         for store in stores {
             let tabs = store.terminalSessions.filter { $0.host == .ssh(host) }
-            // A closed tab's ssh ends as one whose connection dropped; nothing reconnects it.
+            // A closed tab's ssh ends as one whose connection dropped; nothing reconnects it, Reopen Closed Tab included.
             for tab in tabs { tab.connectionEndedOnPurpose = true }
-            closingTabs(store, tabs.map(\.id))
+            store.closingTabsWithoutRemembering { closingTabs(store, tabs.map(\.id)) }
         }
         for store in stores { store.forgetRunningMarks(on: host) }
         SSHPortForwards.shared.stopAll(on: host)

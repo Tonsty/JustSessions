@@ -45,7 +45,8 @@ extension ConversationStore {
     func closeTabDeletingItsSession(_ id: UUID) {
         guard let tab = terminalSessions.first(where: { $0.id == id }) else { return }
         guard let conversation = tab.conversation.flatMap({ conversationIndex.conversation(withID: $0.id) }) else {
-            closeTerminal(id, endingTmuxSession: true)
+            // Its session was meant to go, so Reopen Closed Tab doesn't bring it back.
+            closingTabsWithoutRemembering { closeTerminal(id, endingTmuxSession: true) }
             return
         }
         closeAndDelete(conversation)
