@@ -58,8 +58,9 @@ struct KiroTranscriptReader {
     }
 
     /// A V3 event. Your prompt is `user`, the reply `assistant` with `operationType` `Say`, and a tool `tool_call`, its
-    /// `args` an object. Reasoning (`Reasoning`), tool results, turns, approvals, usage, and the system prompt Kiro keeps
-    /// as `session_start` stay out, as V2's thinking and tool outputs do.
+    /// `args` an object. Reasoning (`Reasoning`), tool results, turns, approvals, usage, the system prompt Kiro keeps as
+    /// `session_start`, and the context it adds for the model as `agent_note` (Kiro CLI 2.34.0) stay out, as V2's thinking
+    /// and tool outputs do.
     private func appendV3(_ payload: [String: Any], timestamp: Date?, to builder: inout TranscriptBuilder) {
         switch payload["type"] as? String {
         case "user":

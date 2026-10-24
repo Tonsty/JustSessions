@@ -103,13 +103,15 @@ struct KiroV3SessionTests {
         #expect(TmuxSessionName.session(named: name)?.sessionID == sessionID)
     }
 
-    /// Your prompt, its image, the reply, and the tool call; the reasoning, the result, the approval, usage, and the
-    /// system prompt stay out.
+    /// Your prompt, its image, the reply, and the tool call; the context Kiro adds for the model, the reasoning, the result,
+    /// the approval, usage, and the system prompt stay out.
     @Test func theReaderShowsPromptsRepliesAndToolCallsFromV3Events() throws {
         let home = try Home()
         defer { home.remove() }
-        let written = try home.v3.writeSession(projectPath: "/Users/me/app", events: [KiroV3SessionFixture.user("Look at this", images: 1)]
-            + KiroV3SessionFixture.sampleEvents.dropFirst())
+        let events = KiroV3SessionFixture.sampleEvents.map { event in
+            event["type"] as? String == "user" ? KiroV3SessionFixture.user("Look at this", images: 1) : event
+        }
+        let written = try home.v3.writeSession(projectPath: "/Users/me/app", events: events)
 
         let entries = try KiroTranscriptReader().read(written.messagesFile).entries.map(\.content)
 

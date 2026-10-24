@@ -3,7 +3,7 @@ import Foundation
 @testable import JustSessions
 
 /// Kiro CLI V3's `sessions` folder: `<workspace hash>/sess_<uuid>/session.json` beside `messages.jsonl`, with the fields
-/// and events Kiro CLI 2.16.2's V3 engine wrote on this Mac on 23 October 2026 (`KiroV3Session`).
+/// and events Kiro CLI 2.16.2's and 2.34.0's V3 engines wrote on this Mac on 23 October 2026 (`KiroV3Session`).
 struct KiroV3SessionFixture {
     /// Kiro's `sessions`, which also holds V2's `cli`.
     let sessionsRoot: URL
@@ -81,6 +81,8 @@ struct KiroV3SessionFixture {
     ] }
 
     static var sampleEvents: [[String: Any]] { [
+        // 2.34.0 opens each log with context for the model.
+        ["type": "agent_note", "content": "<session_context>\nThe current model is Auto.\n</session_context>"],
         user("Fix the build"),
         ["type": "turn_start", "executionId": "exec-1"],
         ["type": "pending_interaction", "interactionType": "tool_approval", "toolCallId": "run_command_1", "question": "swift build"],

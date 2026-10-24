@@ -4,13 +4,16 @@ import Foundation
 /// of its own beside V2's `sessions/cli`: `sessions/<workspace hash>/sess_<uuid>/`, with `session.json`, its metadata,
 /// and `messages.jsonl`, an event log Kiro rewrites whole as the session grows (its agent's `atomicWriteFile`, Kiro CLI
 /// 2.16.2). The workspace hash is the first 16 hex digits of the SHA-256 of the session's folder. Kiro calls the layout
-/// internal; this reads what 2.16.2 writes, as the AWS and codeburn readers describe it for later versions.
+/// internal; this reads what 2.16.2 and 2.34.0 write, as the AWS and codeburn readers describe it. 2.34.0 adds a hidden
+/// `.index` beside the sessions and an index of its own in `~/.kiro/session-index`, which `--delete-session` keeps up to
+/// date, so sessions are deleted through Kiro rather than by removing their folder.
 enum KiroV3Session {
     static let idPrefix = "sess_"
     static let metadataFileName = "session.json"
     static let messagesFileName = "messages.jsonl"
-    /// `--resume-id` takes the `sess_` id, as `--list-sessions` prints it; under V2, which Kiro CLI 2.16 runs unless told
-    /// otherwise, it starts another conversation instead.
+    /// `--resume-id` takes the `sess_` id, as `--list-sessions` prints it; under V2, which Kiro CLI runs unless told
+    /// otherwise (2.34.0 too), it starts another conversation instead. 2.16.2 started a new one for the bare UUID, which
+    /// 2.34.0 also takes.
     static let engineArguments = ["--agent-engine", "v3"]
 
     /// `sess_` followed by a UUID, as Kiro's `generateSessionId()` makes them.
