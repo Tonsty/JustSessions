@@ -972,6 +972,16 @@ The second round's three runs: cold 286.3, 291.1, 280.2 ms (27 MiB Codex), 627.0
 
 Drawing `ConversationMapCanvas` with `ImageRenderer`, 10,000 blocks and 26 bookmarks in 70 × 800 pt at 2×, p50 of 20 renders: 0.8 ms in both rounds (0.9, 0.8, 0.8 in the second; limit 4 ms).
 
+**Labels and scrolling, 24 October 2026:** the column grew to 110 points, a labelled bookmark's chip shows its label, and a conversation too long for a point a line scrolls, the Canvas drawing only the rows in view (TAB-10, PERF-89). `ConversationOutlineMeasurements` ran the drawing above at 110 × 800 on `main` (`91b63fe3`) and on the branch, plus a new scroll scenario on the branch alone: 40 steps of 120 points from the top at the minimum pitch, each timing the layout at the new offset, the chips with their kept labels, and the render, with 26 labelled bookmarks. Release builds, three runs a tree alternating, one test at a time; the same Mac as above, macOS 26.6.1, not isolated, load average 5.3 to 6.8.
+
+| Measurement | `main` | Branch |
+| --- | --- | --- |
+| Drawing, 10,000 blocks squeezed, letters, render p50 | 0.9, 0.9, 0.9 ms | 0.6, 0.6, 0.7 ms |
+| Scroll step with 26 labels, p50 / p95 | not on `main` | 0.7 / 0.8, 0.6 / 0.8, 0.6 / 0.7 ms |
+| Its render alone, p50 | not on `main` | 0.6, 0.6, 0.6 ms |
+
+Both stay under the drawing's 4 ms limit. These time the Canvas, not SwiftUI's update of the map's view around it on each step, which no measurement covers.
+
 Typing beside one visible and five hidden tabs each printing 25,000 lines a second (PERF-82), the same run without and with the two maps, second round:
 
 | Run | Keystroke-to-echo p50, off / on | p95, off / on | Longest main-thread gap, off / on | Reads, each map | Process CPU, off / on |
