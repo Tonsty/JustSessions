@@ -1,6 +1,7 @@
 import Foundation
 
-/// Reads Kiro's visible prompts, replies, and tool calls from its append-only session log.
+/// Reads Kiro's visible prompts, replies, and tool calls from a session's log: V2's `{version, kind, data}` lines, or
+/// V3's `{id, timestamp, payload}` events (`KiroV3Session`), each line read as what it is.
 struct KiroTranscriptReader {
     var maximumEntryCount = 2_000
     var maximumTextLength = 12_000
@@ -15,6 +16,10 @@ struct KiroTranscriptReader {
     }
 
     func append(_ record: [String: Any], to builder: inout TranscriptBuilder) {
+        if let payload = record["payload"] as? [String: Any] {
+            appendV3(payload, timestamp: ConversationMetadata.date(record["timestamp"]), to: &builder)
+            return
+        }
         guard let data = record["data"] as? [String: Any],
               let content = data["content"] as? [[String: Any]] else { return }
         let timestamp = KiroTranscriptTimestamp.date(in: record, data: data)
@@ -49,6 +54,34 @@ struct KiroTranscriptReader {
             }
         default:
             return // System context and ToolResults are not visible conversation messages.
+        }
+    }
+
+    /// A V3 event. Your prompt is `user`, the reply `assistant` with `operationType` `Say`, and a tool `tool_call`, its
+    /// `args` an object. Reasoning (`Reasoning`), tool results, turns, approvals, usage, the system prompt Kiro keeps as
+    /// `session_start`, and the context it adds for the model as `agent_note` (Kiro CLI 2.34.0) stay out, as V2's thinking
+    /// and tool outputs do.
+    private func appendV3(_ payload: [String: Any], timestamp: Date?, to builder: inout TranscriptBuilder) {
+        switch payload["type"] as? String {
+        case "user":
+            let images = Array(repeating: "[Image]", count: (payload["images"] as? [Any])?.count ?? 0)
+            builder.append(.userMessage, text: ([payload["content"] as? String ?? ""] + images).joined(separator: "\n\n"),
+                           timestamp: timestamp)
+        case "assistant":
+            guard payload["operationType"] as? String != "Reasoning" else { return }
+            builder.append(.assistantMessage, text: payload["content"] as? String ?? "", timestamp: timestamp)
+        case "tool_call":
+            let arguments = (payload["args"] as? [String: Any])
+                ?? (payload["args"] as? String).flatMap { ConversationMetadata.object(from: Data($0.utf8)) }
+                ?? [:]
+            builder.append(
+                .toolCall,
+                text: ToolCallSummary.summary(toolName: payload["toolName"] as? String ?? payload["title"] as? String ?? "Tool",
+                                              arguments: arguments),
+                timestamp: timestamp
+            )
+        default:
+            return
         }
     }
 }

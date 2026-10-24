@@ -27,10 +27,17 @@ struct RemoteToolFolders: Codable, Equatable, Sendable {
         }
     }
 
+    /// Kiro V3's sessions: the `sessions` folder that holds V2's `sessions/cli`; see `KiroV3Session`.
+    var kiroV3: String { (kiro as NSString).deletingLastPathComponent }
+
     /// `rsync`'s source for the folder's contents. The host's shell reads the path again, so one with a space or
     /// another special character is quoted.
     func rsyncSource(host: String, provider: ConversationProvider) -> String {
-        "\(host):\(Self.quotedIfNeeded(path(for: provider)))/"
+        Self.rsyncSource(host: host, path: path(for: provider))
+    }
+
+    static func rsyncSource(host: String, path: String) -> String {
+        "\(host):\(quotedIfNeeded(path))/"
     }
 
     /// The folder in a POSIX `sh` script, a relative one from `$HOME`.
@@ -41,8 +48,11 @@ struct RemoteToolFolders: Codable, Equatable, Sendable {
 
     /// The folder with this Mac's stand-in for the host's home in place of a relative path's home, for tests.
     func localPath(for provider: ConversationProvider, sourceHome: String) -> String {
-        let path = path(for: provider)
-        return path.hasPrefix("/") ? path : "\(sourceHome)/\(path)"
+        Self.localPath(path(for: provider), sourceHome: sourceHome)
+    }
+
+    static func localPath(_ path: String, sourceHome: String) -> String {
+        path.hasPrefix("/") ? path : "\(sourceHome)/\(path)"
     }
 
     private static func quotedIfNeeded(_ path: String) -> String {

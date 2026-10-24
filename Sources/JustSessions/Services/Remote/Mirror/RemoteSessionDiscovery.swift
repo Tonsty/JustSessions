@@ -56,7 +56,7 @@ struct RemoteSessionDiscovery: Sendable {
         case .claude: ClaudeAdapter(configurationDirectory: directory)
         case .codex: CodexAdapter(codexDirectory: directory)
         case .antigravity: AntigravityAdapter(configurationDirectory: directory)
-        case .kiro: KiroAdapter(sessionsDirectory: directory)
+        case .kiro: KiroAdapter(sessionsDirectory: directory, v3SessionsDirectory: mirror.kiroV3MirrorDirectory(host: host))
         case .opencode: OpenCodeAdapter(databaseFile: directory.appendingPathComponent("opencode.db"))
         case .pi: PiAdapter(sessionsDirectory: directory)
         }

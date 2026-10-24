@@ -45,7 +45,7 @@ Application paths below are relative to `Sources/JustSessions/`. Tests live in `
 - `Services/Startup/`: registers the app as a macOS login item and reads its current system approval status.
 - `Services/CrashReports/`: at launch, finds the crash macOS recorded for the app since the last launch, in `~/Library/Logs/DiagnosticReports`, and offers once to report it.
 - `Services/Appearance/`: saves the app's appearance, theme, and your changes to each theme's colors, sets the appearance on every window, and gives terminals a newly chosen theme's colors.
-- `Services/Adapters/`: provider discovery and native arguments, one folder per CLI. Separate adapters make adding another CLI straightforward.
+- `Services/Adapters/`: provider discovery and native arguments, one folder per CLI. `Kiro/` reads V2's `sessions/cli` and V3's session folders (`KiroV3Session`). Separate adapters make adding another CLI straightforward.
 - `Services/Hosts/`: refreshing every host and starting new sessions on any of them.
 - `Services/Hosts/ThisMacFolder/`: checks a folder typed for a new session or project on this Mac, and creates a missing one once the sheet's offer is taken; `Services/Remote/NewSession/RemoteFolderResolver` does the same on an SSH host.
 - `Services/Hosts/InstalledCLIs/`: which CLIs each host has, so new sessions offer only those.

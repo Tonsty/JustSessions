@@ -51,7 +51,10 @@ enum ConversationProvider: String, CaseIterable, Codable, Identifiable, Sendable
             guard value.hasPrefix("ses_") else { return false }
             let suffix = value.dropFirst("ses_".count)
             return (8...64).contains(suffix.count) && suffix.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber) }
-        case .claude, .codex, .antigravity, .kiro, .pi:
+        case .kiro:
+            // A V3 session's id is `sess_<uuid>`; see `KiroV3Session`.
+            return ConversationMetadata.isValidSessionID(value) || KiroV3Session.isSessionID(value)
+        case .claude, .codex, .antigravity, .pi:
             return ConversationMetadata.isValidSessionID(value)
         }
     }

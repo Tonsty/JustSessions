@@ -48,6 +48,11 @@ struct RemoteSessionMirror: Sendable {
             .appendingPathComponent(Self.mirroredFolderName(for: provider))
     }
 
+    /// Where Kiro V3's sessions are copied, beside V2's `mirrorDirectory(host:provider: .kiro)`; see `KiroV3Session`.
+    func kiroV3MirrorDirectory(host: String) -> URL {
+        cacheRoot.appendingPathComponent(Self.directoryName(forHost: host)).appendingPathComponent("kiro-v3")
+    }
+
     /// Copies the host's session files for each tool through one app-owned connection scope.
     func synchronize(host: String) throws {
         let sharing = connectionSharing(host)
@@ -98,9 +103,30 @@ struct RemoteSessionMirror: Sendable {
         }
         let source = sourceHomeOverride.map { folders.localPath(for: provider, sourceHome: $0) + "/" }
             ?? folders.rsyncSource(host: host, provider: provider)
+        try copy(host: host, filters: Self.filters(for: provider), from: source, to: destination,
+                 extraArguments: provider == .opencode ? ["--ignore-times"] : [], connectionSharingOptions: connectionSharingOptions)
+        if provider == .kiro {
+            let v3Destination = kiroV3MirrorDirectory(host: host)
+            try FileManager.default.createDirectory(at: v3Destination, withIntermediateDirectories: true)
+            let v3Source = sourceHomeOverride.map { RemoteToolFolders.localPath(folders.kiroV3, sourceHome: $0) + "/" }
+                ?? RemoteToolFolders.rsyncSource(host: host, path: folders.kiroV3)
+            try copy(host: host, filters: Self.kiroV3Filters(excludingClassicFolder: (folders.kiro as NSString).lastPathComponent),
+                     from: v3Source, to: v3Destination, extraArguments: [], connectionSharingOptions: connectionSharingOptions)
+        }
+    }
 
+    /// One `rsync` of `source` into `destination`; a source the host doesn't have empties the copy.
+    private func copy(
+        host: String,
+        filters: [String],
+        from source: String,
+        to destination: URL,
+        extraArguments: [String],
+        connectionSharingOptions: [String]
+    ) throws {
         guard let result = Self.runRsync(
-            for: provider,
+            filters: filters,
+            extraArguments: extraArguments,
             source: source,
             destination: destination.path + "/",
             connectionSharingOptions: sourceHomeOverride == nil ? connectionSharingOptions : []
@@ -131,14 +157,40 @@ struct RemoteSessionMirror: Sendable {
         destination: String,
         connectionSharingOptions: [String]
     ) -> (exitStatus: Int32, output: String)? {
+        runRsync(filters: filters(for: provider), extraArguments: provider == .opencode ? ["--ignore-times"] : [],
+                 source: source, destination: destination, connectionSharingOptions: connectionSharingOptions)
+    }
+
+    /// Copies `source` with `filters`, as `rsyncArguments(for:source:destination:remoteShell:)` lays a tool's out.
+    static func runRsync(
+        filters: [String],
+        extraArguments: [String],
+        source: String,
+        destination: String,
+        connectionSharingOptions: [String]
+    ) -> (exitStatus: Int32, output: String)? {
         let remoteShell = rsyncRemoteShell(connectionSharingOptions: connectionSharingOptions)
         return BoundedProcessRunner.result(
             ofExecutable: "/usr/bin/rsync",
-            arguments: rsyncArguments(for: provider, source: source, destination: destination, remoteShell: remoteShell),
+            arguments: ["--archive", "--delete", "-e", remoteShell] + extraArguments + filters + [source, destination],
             environment: SSHProcessEnvironment.standard,
             includesStandardError: true,
             timeout: 600
         )
+    }
+
+    /// The tool's `includedPatterns`, then everything else left out.
+    static func filters(for provider: ConversationProvider) -> [String] {
+        includedPatterns(for: provider).map { "--include=\($0)" } + ["--exclude=*"]
+    }
+
+    /// Each V3 session's `session.json` and `messages.jsonl`, in its workspace folder. V2's own folder, copied apart,
+    /// and a session's `sub-executions`, `snapshots`, and cursors stay on the host.
+    static func kiroV3Filters(excludingClassicFolder classicFolder: String) -> [String] {
+        ["--exclude=/\(classicFolder)/"]
+            + ["/*/", "/*/\(KiroV3Session.idPrefix)*/", "/*/\(KiroV3Session.idPrefix)*/\(KiroV3Session.metadataFileName)",
+               "/*/\(KiroV3Session.idPrefix)*/\(KiroV3Session.messagesFileName)"].map { "--include=\($0)" }
+            + ["--exclude=*"]
     }
 
     /// No `--prune-empty-dirs`: it drops a project folder whose last session was deleted from the transfer,

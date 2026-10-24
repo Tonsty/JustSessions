@@ -11,15 +11,15 @@ JustSessions reads the session files your CLIs already create. It does not uploa
 | Claude Code | `~/.claude/projects` (honors `CLAUDE_CONFIG_DIR`) | Yes | Yes | Yes |
 | OpenAI Codex CLI | `~/.codex/sessions` (honors `CODEX_HOME`) | Yes | Yes | Yes |
 | Google Antigravity CLI | `~/.gemini/antigravity-cli/conversations` | Yes | Use `/fork` after resuming | Yes |
-| Kiro CLI | `~/.kiro/sessions/cli` (honors `KIRO_HOME`) | Yes | Use `/rewind` after resuming | Yes |
+| Kiro CLI | `~/.kiro/sessions/cli`, and V3's `~/.kiro/sessions/<workspace hash>/sess_<id>` (honors `KIRO_HOME`) | Yes | Use `/rewind` after resuming | Yes |
 | OpenCode | `~/.local/share/opencode/opencode.db`, read-only (honors `OPENCODE_DB` and `XDG_DATA_HOME`) | Yes | Yes | Yes |
 | Pi | `~/.pi/agent/sessions` (honors `PI_CODING_AGENT_SESSION_DIR`, `sessionDir` in Pi's `settings.json`, and `PI_CODING_AGENT_DIR`) | Yes | Yes | Yes |
 
 Once **Settings > General** shows subagents, sessions that subagents ran are listed under the session that started them, hidden until you expand it: Claude Code's transcripts in `<session-id>/subagents` beside the session file, Codex threads another thread spawned, OpenCode sessions with a parent, Antigravity conversations whose summary names a parent conversation, and Pi sessions that extensions keep in the folder beside a session file, such as subagent runs and forks. They can be read but not resumed, renamed, pinned, or deleted on their own. Over SSH, only Codex and Antigravity list them; the mirror leaves the other CLIs' subagent files on the host.
 
-Kiro CLI sessions are listed once they have a message. Sessions that name the session that started them, such as a subagent's, are left out, as are the transcripts in a session's `subagents` folder. Archived OpenCode sessions are left out.
+Kiro CLI sessions are listed once they have a message, from Kiro's V2 engine and its V3 engine, the default from Kiro CLI 3.0. Sessions that name the session that started them, such as a subagent's, are left out, as are the transcripts in a session's `subagents` folder and V3 sessions Kiro marks as a subagent's. A V3 session is resumed with `kiro-cli chat --agent-engine v3`, since Kiro's V2 engine can't open it. Archived OpenCode sessions are left out.
 
-Kiro previews show prompts, replies, and collapsed tool calls from the session's `.jsonl` log. Thinking blocks, system context, and raw tool outputs are left out, as in the other supported previews.
+Kiro previews show prompts, replies, and collapsed tool calls from the session's `.jsonl` log, or a V3 session's `messages.jsonl`. Thinking blocks, system context, and raw tool outputs are left out, as in the other supported previews.
 
 OpenCode previews read one session out of its database: prompts, replies, and collapsed tool calls, in the order OpenCode shows them. Text OpenCode adds to a prompt, such as the contents of a mentioned file, is left out, and so are reasoning, tool output, and step markers. Attachments a prompt doesn't mention show as `[Image]` or `[File: name]`. After `/undo`, the undone messages are hidden, as in OpenCode, and a note says `/redo` restores them. OpenCode sessions are permanently deleted using its native `opencode session delete <session-id>` command, pointed at the database the session was listed from; it also deletes the session's subagent sessions.
 

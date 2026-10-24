@@ -38,6 +38,23 @@ struct RemoteConversationDeletion: Sendable {
                 "codex delete --force \(ShellQuoting.quoted(conversation.sessionID))",
                 on: host
             )
+        case .kiro where KiroV3Session.isSessionID(conversation.sessionID):
+            let sessionFolder = conversation.sourceFile.deletingLastPathComponent()
+            let workspaceFolderName = sessionFolder.deletingLastPathComponent().lastPathComponent
+            guard KiroV3Session.isMessagesFile(conversation.sourceFile),
+                  sessionFolder.lastPathComponent == conversation.sessionID,
+                  Self.isSafeFolderName(workspaceFolderName),
+                  let metadata = KiroV3SessionMetadata(file: sessionFolder.appendingPathComponent(KiroV3Session.metadataFileName)),
+                  metadata.sessionID == conversation.sessionID,
+                  metadata.projectPath == conversation.projectPath,
+                  conversation.projectPath.hasPrefix("/") else { throw ConversationDeletionError.invalidSource }
+            command = RemoteKiroConversationDeletion.v3Command(
+                sessionID: conversation.sessionID,
+                workspaceFolderName: workspaceFolderName,
+                projectPath: conversation.projectPath,
+                sessionsFolder: folders.shellPath(for: .kiro),
+                host: host
+            )
         case .kiro:
             let metadataFile = conversation.sourceFile.deletingPathExtension().appendingPathExtension("json")
             guard conversation.sourceFile.lastPathComponent == "\(conversation.sessionID).jsonl",
@@ -99,6 +116,10 @@ struct RemoteConversationDeletion: Sendable {
     private func removeMirrorCopies(of conversation: Conversation) {
         if conversation.provider == .opencode {
             RemoteOpenCodeConversationDeletion.removeMirrorRows(of: conversation.sessionID, from: conversation.sourceFile)
+            return
+        }
+        if conversation.provider == .kiro, KiroV3Session.isMessagesFile(conversation.sourceFile) {
+            try? FileManager.default.removeItem(at: conversation.sourceFile.deletingLastPathComponent())
             return
         }
         try? FileManager.default.removeItem(at: conversation.sourceFile)

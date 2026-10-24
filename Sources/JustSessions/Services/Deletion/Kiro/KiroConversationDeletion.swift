@@ -1,20 +1,29 @@
 import Foundation
 
-/// Kiro deletes its own session files and internal records through its native CLI.
+/// Kiro deletes its own session files and internal records through its native CLI: `kiro-cli chat --delete-session`
+/// takes a V2 session's id or a V3 session's `sess_` id, and removes a V3 session's whole folder (Kiro CLI 2.16.2).
 struct KiroConversationDeletion {
     let sessionsDirectory: URL
+    /// V3's sessions; see `KiroV3Session`. Nil deletes V2's alone.
+    let v3SessionsDirectory: URL?
     let executableURL: URL?
     let fileManager: FileManager
     let timeout: TimeInterval
 
-    init(sessionsDirectory: URL, executableURL: URL? = nil, fileManager: FileManager = .default, timeout: TimeInterval = 60) {
+    init(sessionsDirectory: URL, v3SessionsDirectory: URL? = nil, executableURL: URL? = nil, fileManager: FileManager = .default,
+         timeout: TimeInterval = 60) {
         self.sessionsDirectory = sessionsDirectory
+        self.v3SessionsDirectory = v3SessionsDirectory
         self.executableURL = executableURL
         self.fileManager = fileManager
         self.timeout = timeout
     }
 
     func delete(_ conversation: Conversation) throws {
+        if KiroV3Session.isSessionID(conversation.sessionID) {
+            try deleteV3(conversation)
+            return
+        }
         let sourceFile = conversation.sourceFile.standardizedFileURL
         let metadataFile = sourceFile.deletingPathExtension().appendingPathExtension("json")
         let resolvedSessionsPath = sessionsDirectory.resolvingSymlinksInPath().path
@@ -39,6 +48,47 @@ struct KiroConversationDeletion {
               metadata.projectPath == conversation.projectPath
         else { throw ConversationDeletionError.invalidSource }
 
+        try runDeletion(of: conversation)
+        guard !fileManager.fileExists(atPath: sourceFile.path), !fileManager.fileExists(atPath: metadataFile.path) else {
+            throw KiroConversationDeletionError.sourceStillPresent
+        }
+    }
+
+    /// `sess_<uuid>/messages.jsonl` in a workspace folder of `v3SessionsDirectory`, beside a `session.json` that names it.
+    private func deleteV3(_ conversation: Conversation) throws {
+        let sourceFile = conversation.sourceFile.standardizedFileURL
+        let sessionFolder = sourceFile.deletingLastPathComponent()
+        let metadataFile = sessionFolder.appendingPathComponent(KiroV3Session.metadataFileName)
+        guard conversation.provider == .kiro,
+              conversation.host == .thisMac,
+              let v3SessionsDirectory,
+              sessionsDirectory.lastPathComponent == "cli",
+              v3SessionsDirectory.standardizedFileURL == KiroV3Session.sessionsRoot(besideClassicDirectory: sessionsDirectory)
+                .standardizedFileURL,
+              sourceFile.lastPathComponent == KiroV3Session.messagesFileName,
+              sessionFolder.lastPathComponent == conversation.sessionID,
+              sessionFolder.resolvingSymlinksInPath().deletingLastPathComponent().deletingLastPathComponent().path
+                == v3SessionsDirectory.resolvingSymlinksInPath().path,
+              sessionFolder.deletingLastPathComponent().lastPathComponent != sessionsDirectory.lastPathComponent
+        else { throw ConversationDeletionError.invalidSource }
+        guard fileManager.fileExists(atPath: sourceFile.path), fileManager.fileExists(atPath: metadataFile.path) else {
+            throw ConversationDeletionError.missingSource
+        }
+        guard (try? sourceFile.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true,
+              let metadata = KiroV3SessionMetadata(file: metadataFile),
+              metadata.sessionID == conversation.sessionID,
+              metadata.projectPath == conversation.projectPath,
+              metadata.projectPath.hasPrefix("/")
+        else { throw ConversationDeletionError.invalidSource }
+        try runDeletion(of: conversation)
+        guard !fileManager.fileExists(atPath: sourceFile.path), !fileManager.fileExists(atPath: metadataFile.path) else {
+            throw KiroConversationDeletionError.sourceStillPresent
+        }
+    }
+
+    /// `kiro-cli chat --delete-session <id>` in the session's folder, as Kiro scopes a session to it, with `KIRO_HOME`
+    /// the home the session was read from.
+    private func runDeletion(of conversation: Conversation) throws {
         let resolver = NativeCLICommandResolver()
         guard let executablePath = executableURL?.path ?? resolver.executablePath(named: "kiro-cli") else {
             throw NativeCLICommandError.missingExecutable("kiro-cli")
@@ -61,9 +111,6 @@ struct KiroConversationDeletion {
         let details = result.output.trimmingCharacters(in: .whitespacesAndNewlines)
         guard result.exitStatus == 0 else {
             throw KiroConversationDeletionError.failed(details.isEmpty ? "Exit code \(result.exitStatus)" : String(details.prefix(500)))
-        }
-        guard !fileManager.fileExists(atPath: sourceFile.path), !fileManager.fileExists(atPath: metadataFile.path) else {
-            throw KiroConversationDeletionError.sourceStillPresent
         }
     }
 }

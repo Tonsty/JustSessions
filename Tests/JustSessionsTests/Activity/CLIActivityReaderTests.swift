@@ -113,7 +113,9 @@ struct CLIActivityReaderTests {
         let reader = CLIActivityReader(
             claudeRegistry: ClaudeLiveSessionRegistry(configurationDirectory: directory),
             codexTurnTracker: CodexRolloutTurnTracker(),
-            liveSessionReporting: reporting
+            liveSessionReporting: reporting,
+            // Not this Mac's: a Kiro CLI from 2.31 on keeps the folder there, and its markers would answer for the probe.
+            kiroTurnMarkers: KiroTurnMarkers(directory: directory.appendingPathComponent("kiro-cli/run/turn-markers"))
         )
 
         let activities = reader.activities(for: [
