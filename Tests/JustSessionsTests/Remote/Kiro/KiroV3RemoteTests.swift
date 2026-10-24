@@ -97,6 +97,32 @@ struct KiroV3RemoteTests {
         #expect(FileManager.default.fileExists(atPath: conversation.sourceFile.path))
     }
 
+    @Test func aV3SessionARunningCLIHoldsOnTheHostIsNotHandedToKiroAndAnEndedOnesPromptsGoWithIt() throws {
+        let host = try Host()
+        defer { host.remove() }
+        let fixture = KiroV3SessionFixture(sessionsRoot: host.sessionsRoot)
+        let held = try fixture.writeSession(projectPath: host.projectDirectory.path)
+        let ended = try fixture.writeSession(projectPath: host.projectDirectory.path)
+        try KiroSessionLockTests.writeLock(processID: getpid(), startedAt: .now, fractionalDigits: 3,
+                                           to: held.folder.appendingPathComponent(".lock"))
+        let history = host.sessionsRoot.appendingPathComponent("cli/\(ended.sessionID).history")
+        try FileManager.default.createDirectory(at: history.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try "Reply with exactly LOCK.\n".write(to: history, atomically: true, encoding: .utf8)
+        let conversations = try RemoteSessionDiscovery(mirror: host.mirror).discover(host: "devbox")
+        let deletion = RemoteConversationDeletion(runner: try Self.runner(host: host, script: KiroV3DeletionTests.successfulDeletionScript),
+                                                  mirror: host.mirror)
+
+        let heldConversation = try #require(conversations.first { $0.sessionID == held.sessionID })
+        let endedConversation = try #require(conversations.first { $0.sessionID == ended.sessionID })
+
+        #expect(throws: RemoteConversationDeletionError.self) { try deletion.delete(heldConversation) }
+        try deletion.delete(endedConversation)
+
+        #expect(FileManager.default.fileExists(atPath: held.messagesFile.path))
+        #expect(!FileManager.default.fileExists(atPath: ended.folder.path))
+        #expect(!FileManager.default.fileExists(atPath: history.path))
+    }
+
     /// Runs the host's command in `sh` with the stand-in home and a stand-in `kiro-cli` running `script`.
     private static func runner(host: Host, script: String) throws -> RemoteHostCommandRunner {
         let binaryDirectory = host.root.appendingPathComponent("bin")

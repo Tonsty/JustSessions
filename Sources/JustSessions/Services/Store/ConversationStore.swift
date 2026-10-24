@@ -327,6 +327,7 @@ final class ConversationStore {
                     discardMissingReopeningTabs: result.failures.isEmpty
                 )
                 self.linkWaitingTabsByAppearance(on: .thisMac)
+                self.recoverLostKiroCLIs()
                 self.hostRefreshStatuses[.thisMac] = result.failures.isEmpty
                     ? .refreshed(.now)
                     : .failed(result.failures.joined(separator: "\n"))

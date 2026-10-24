@@ -2,6 +2,9 @@ import Foundation
 
 /// Kiro deletes its own session files and internal records through its native CLI: `kiro-cli chat --delete-session`
 /// takes a V2 session's id or a V3 session's `sess_` id, and removes a V3 session's whole folder (Kiro CLI 2.16.2).
+/// A session a running CLI holds (`KiroSessionLock`) isn't handed to Kiro, which would keep it or write it again. Kiro
+/// leaves `sessions/cli/<id>.history`, the prompts typed in the session, and a V2 session's lock when its CLI ended
+/// without removing it; they go once Kiro has deleted the rest.
 struct KiroConversationDeletion {
     let sessionsDirectory: URL
     /// V3's sessions; see `KiroV3Session`. Nil deletes V2's alone.
@@ -9,14 +12,18 @@ struct KiroConversationDeletion {
     let executableURL: URL?
     let fileManager: FileManager
     let timeout: TimeInterval
+    /// How long a held lock may take to go: Close and delete waits for the tab's process, and Kiro's lock is held by a
+    /// process below it that may still be ending (`KiroSessionLock`).
+    let lockReleaseTimeout: TimeInterval
 
     init(sessionsDirectory: URL, v3SessionsDirectory: URL? = nil, executableURL: URL? = nil, fileManager: FileManager = .default,
-         timeout: TimeInterval = 60) {
+         timeout: TimeInterval = 60, lockReleaseTimeout: TimeInterval = 2) {
         self.sessionsDirectory = sessionsDirectory
         self.v3SessionsDirectory = v3SessionsDirectory
         self.executableURL = executableURL
         self.fileManager = fileManager
         self.timeout = timeout
+        self.lockReleaseTimeout = lockReleaseTimeout
     }
 
     func delete(_ conversation: Conversation) throws {
@@ -47,11 +54,13 @@ struct KiroConversationDeletion {
               metadata.projectPath.hasPrefix("/"),
               metadata.projectPath == conversation.projectPath
         else { throw ConversationDeletionError.invalidSource }
+        try waitForLockRelease(of: sourceFile)
 
         try runDeletion(of: conversation)
         guard !fileManager.fileExists(atPath: sourceFile.path), !fileManager.fileExists(atPath: metadataFile.path) else {
             throw KiroConversationDeletionError.sourceStillPresent
         }
+        removeLeftovers(of: conversation, named: ["history", "lock"])
     }
 
     /// `sess_<uuid>/messages.jsonl` in a workspace folder of `v3SessionsDirectory`, beside a `session.json` that names it.
@@ -80,9 +89,30 @@ struct KiroConversationDeletion {
               metadata.projectPath == conversation.projectPath,
               metadata.projectPath.hasPrefix("/")
         else { throw ConversationDeletionError.invalidSource }
+        try waitForLockRelease(of: sourceFile)
         try runDeletion(of: conversation)
         guard !fileManager.fileExists(atPath: sourceFile.path), !fileManager.fileExists(atPath: metadataFile.path) else {
             throw KiroConversationDeletionError.sourceStillPresent
+        }
+        removeLeftovers(of: conversation, named: ["history"])
+    }
+
+    private func waitForLockRelease(of sourceFile: URL) throws {
+        let deadline = Date.now.addingTimeInterval(lockReleaseTimeout)
+        while KiroSessionLock.heldLock(forSessionFile: sourceFile) != nil {
+            guard Date.now < deadline else { throw KiroConversationDeletionError.stillRunning }
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+    }
+
+    /// `<id>.<extension>` in `sessions/cli`, V2 and V3 sessions' alike, when it is a regular file there. The session is
+    /// already deleted, so a failure here only leaves these behind.
+    private func removeLeftovers(of conversation: Conversation, named fileExtensions: [String]) {
+        for fileExtension in fileExtensions {
+            let file = sessionsDirectory.appendingPathComponent("\(conversation.sessionID).\(fileExtension)")
+            guard (try? file.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey]))
+                .map({ $0.isRegularFile == true && $0.isSymbolicLink != true }) == true else { continue }
+            try? fileManager.removeItem(at: file)
         }
     }
 
