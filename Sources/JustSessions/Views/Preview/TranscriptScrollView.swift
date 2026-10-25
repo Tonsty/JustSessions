@@ -163,7 +163,8 @@ struct TranscriptScrollView: View {
                         Text(verbatim: message).font(ThemeFont.caption).foregroundStyle(ThemePalette.secondaryText).padding(12)
                     }
                 }
-                .frame(width: min(readingWidth.maximumColumnWidth, max(0, viewport.size.width - 48)), alignment: .leading)
+                .frame(width: columnWidth(in: viewport.size.width), alignment: .leading)
+                .environment(\.transcriptColumnWidth, columnWidth(in: viewport.size.width))
                 .padding(.horizontal, 24)
                 .padding(.top, 6)
                 .padding(.bottom, 36)
@@ -173,6 +174,11 @@ struct TranscriptScrollView: View {
             .defaultScrollAnchor(.top)
             .onDisappear { positionController.stop() }
         }
+    }
+
+    /// As wide as the reading width allows, inside the reading padding on each side.
+    private func columnWidth(in viewportWidth: CGFloat) -> CGFloat {
+        min(readingWidth.maximumColumnWidth, max(0, viewportWidth - 48))
     }
 
     var displayedEntryIndices: [Int] { transcript.positionIDs }

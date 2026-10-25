@@ -140,7 +140,7 @@ Application paths below are relative to `Sources/JustSessions/`. Tests live in `
 - `Views/Preview/`: conversation preview for the selected session.
 - `Views/Preview/MissingFolder/`: the note under a session's header when its project folder is gone from this Mac.
 - `Views/Preview/OtherWindow/`: the note under a session's header while a tab in another window runs it, whose **Show** brings that window forward and **Move Here** moves the tab to this window.
-- `Views/Preview/Markdown/`: formatted prose, horizontally scrolling code and tables, and code copying.
+- `Views/Preview/Markdown/`: formatted prose, horizontally scrolling code and tables, and code copying. `TranscriptMarkdownTableLayout` fits a table's columns to the reader's column, as a browser does.
 - `Views/Preview/Text/`: the AppKit text view every block of transcript text is drawn in, with its style, colors, and Find's highlights, and the bookmark item of a message's right-click menu.
 - `Views/Preview/Selection/`: one selection per reader across its text blocks and messages: dragging, Shift-click, Select All, and copying in reading order.
 - `Views/Preview/Reading/` and `ReadingPosition/`: text size, reading width, first/latest-message controls, and reading-position restoration.
