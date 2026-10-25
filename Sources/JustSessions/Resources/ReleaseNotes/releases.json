@@ -1,5 +1,50 @@
 [
   {
+    "version": "1.2.21",
+    "publishedOn": "2026-10-25",
+    "title": {
+      "en": "Reopen closed tabs and bookmark labels",
+      "zh-Hans": "重新打开关闭的标签与书签名称"
+    },
+    "sections": [
+      {
+        "kind": "new",
+        "items": [
+          {
+            "en": "Reopen the last closed tab with File → Reopen Closed Tab (⇧⌘T).",
+            "zh-Hans": "用「文件」→「重新打开关闭的标签」(⇧⌘T) 重新打开最近关闭的标签页。"
+          },
+          {
+            "en": "Bookmark labels show on the conversation map and above their messages in the reader.",
+            "zh-Hans": "书签名称会显示在对话地图上，以及阅读器中对应消息的上方。"
+          }
+        ]
+      },
+      {
+        "kind": "improved",
+        "items": [
+          {
+            "en": "In the reader, ⌘D and the bookmark mark follow the pointer; click the mark to add or remove a bookmark.",
+            "zh-Hans": "阅读器中 ⌘D 和书签标记跟随指针所在的消息；点按标记即可添加或移除书签。"
+          }
+        ]
+      },
+      {
+        "kind": "fixed",
+        "items": [
+          {
+            "en": "Fixed table rows overlapping in the reader when a cell's text wraps.",
+            "zh-Hans": "修复了阅读器中表格单元格文字换行时各行相互重叠的问题。"
+          },
+          {
+            "en": "Fixed deleting Kiro CLI sessions that a Kiro CLI still runs: it now ends the CLI first or says why.",
+            "zh-Hans": "修复了删除仍由 Kiro CLI 运行的会话的问题：现在会先结束该 CLI，或说明原因。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.20",
     "publishedOn": "2026-10-23",
     "title": {
