@@ -70,7 +70,11 @@ final class TranscriptBookmarkTargetMarksView: NSView {
 
     required init?(coder: NSCoder) { nil }
 
-    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+    /// Only the mark's outline bookmark takes clicks; the rest of the gutter, and a letter, pass them on.
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        mark.isHidden ? nil : mark.hitTest(convert(point, from: superview))
+    }
+
     override func isAccessibilityElement() -> Bool { false }
 
     /// Puts the mark at the message's first line, in the letter's slot, and as tall as the message.
@@ -88,14 +92,17 @@ final class TranscriptBookmarkTargetMarksView: NSView {
         if mark.content != content {
             mark.content = content
             mark.needsDisplay = true
+            mark.toolTip = content.hasLetter ? nil : AppLocalization.string("Add bookmark")
         }
         mark.isHidden = false
+        window?.invalidateCursorRects(for: mark)
     }
 }
 
 /// The mark itself: a ring around the letter's slot, an outline bookmark in it while the message has none, and a line down
 /// the slot's column for the rest of the message, so its whole extent shows. Off the text, so no text's contrast changes;
-/// the secondary text color keeps 3:1 on the reader's surface.
+/// the secondary text color keeps 3:1 on the reader's surface. A click on the outline bookmark bookmarks the message, as
+/// ⌘D does (RDR-48); once it has a letter, clicks go to the letter, so a click never removes a bookmark.
 final class TranscriptBookmarkTargetMarkView: NSView {
     struct Style: Equatable {
         let color: NSColor
@@ -113,8 +120,43 @@ final class TranscriptBookmarkTargetMarkView: NSView {
     var content: Content?
 
     override var isFlipped: Bool { true }
-    override func hitTest(_ point: NSPoint) -> NSView? { nil }
-    override func isAccessibilityElement() -> Bool { false }
+
+    /// The letter's slot, where the outline bookmark is.
+    private var slot: CGRect {
+        let side = content?.style.side ?? 0
+        return CGRect(x: 0, y: 0, width: side, height: side)
+    }
+
+    private var isClickable: Bool { content?.hasLetter == false && !isHidden }
+
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        isClickable && slot.contains(convert(point, from: superview)) ? self : nil
+    }
+
+    override func mouseDown(with event: NSEvent) {}
+
+    override func mouseUp(with event: NSEvent) {
+        guard slot.contains(convert(event.locationInWindow, from: nil)) else { return }
+        bookmarkMessage()
+    }
+
+    override func resetCursorRects() {
+        if isClickable { addCursorRect(slot, cursor: .pointingHand) }
+    }
+
+    /// ⌘D on the message being read, which the mark is beside, while it has no letter.
+    private func bookmarkMessage() {
+        guard isClickable else { return }
+        TranscriptBookmarkTargetRegistry.shared.target(for: self)?.toggleBookmark()
+    }
+
+    override func isAccessibilityElement() -> Bool { isClickable }
+    override func accessibilityRole() -> NSAccessibility.Role? { .button }
+    override func accessibilityLabel() -> String? { AppLocalization.string("Add bookmark") }
+    override func accessibilityPerformPress() -> Bool {
+        bookmarkMessage()
+        return isClickable
+    }
 
     override func draw(_ dirtyRect: NSRect) {
         guard let content else { return }
