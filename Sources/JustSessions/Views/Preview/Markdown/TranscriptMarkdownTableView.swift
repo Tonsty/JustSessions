@@ -1,27 +1,32 @@
 import SwiftUI
 
+/// A Markdown table in the reader (RDR-04), laid out by `TranscriptMarkdownTableLayout` within the reader's column less
+/// `indentation`, the room its list marker or quote bar takes; a table too wide even then scrolls sideways.
 struct TranscriptMarkdownTableView: View {
     let table: TranscriptMarkdownTable
     var segmentIndex = 0
+    var indentation: CGFloat = 0
     @Environment(\.transcriptReadingFontSize) private var fontSize
+    @Environment(\.transcriptColumnWidth) private var columnWidth
 
     var body: some View {
         ScrollView(.horizontal) {
-            Grid(alignment: .leading, horizontalSpacing: 0, verticalSpacing: 0) {
+            TranscriptMarkdownTableLayout(rowCellCounts: table.rows.map(\.cells.count),
+                                          availableWidth: max(TranscriptMarkdownTableLayout.minimumColumnWidth, columnWidth - indentation),
+                                          minimumWidths: longestWordWidths) {
                 ForEach(Array(table.rows.enumerated()), id: \.element.id) { rowIndex, row in
-                    GridRow {
-                        ForEach(Array(row.cells.enumerated()), id: \.offset) { cellIndex, cell in
-                            TranscriptTextBlock(
-                                source: cell,
-                                segmentIndex: segmentIndex + table.rows.prefix(rowIndex).reduce(0) { $0 + $1.cells.count } + cellIndex,
-                                style: TranscriptTextStyle(fontSize: fontSize, isSemibold: row.isHeader),
-                                copyRole: .tableCell(row: rowIndex)
-                            )
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 9)
-                                .frame(maxWidth: 260, alignment: .leading)
-                                .background(row.isHeader ? ThemePalette.trackFill : ThemePalette.hoverFill)
-                        }
+                    ForEach(Array(row.cells.enumerated()), id: \.offset) { cellIndex, cell in
+                        TranscriptTextBlock(
+                            source: cell,
+                            segmentIndex: segmentIndex + table.rows.prefix(rowIndex).reduce(0) { $0 + $1.cells.count } + cellIndex,
+                            style: TranscriptTextStyle(fontSize: fontSize, isSemibold: row.isHeader),
+                            copyRole: .tableCell(row: rowIndex)
+                        )
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 9)
+                            // Fills its column and row, so the cells' backgrounds meet.
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                            .background(row.isHeader ? ThemePalette.trackFill : ThemePalette.hoverFill)
                     }
                 }
             }
@@ -29,4 +34,25 @@ struct TranscriptMarkdownTableView: View {
         .overlay(RoundedRectangle(.card).stroke(ThemePalette.hairline, lineWidth: 1))
         .clipShape(RoundedRectangle(.card))
     }
+
+    /// Each column's longest word, by its characters, in its row's font, with the cell's padding: a column is never
+    /// cut below it (TranscriptMarkdownTableLayout). Code in a cell is set smaller, so this errs wide.
+    private var longestWordWidths: [CGFloat] {
+        var widths: [CGFloat] = []
+        for row in table.rows {
+            let font = TranscriptTextStyle(fontSize: fontSize, isSemibold: row.isHeader).font
+            for (column, cell) in row.cells.enumerated() {
+                let word = String(cell.characters).split(whereSeparator: \.isWhitespace).max { $0.count < $1.count }
+                let width = word.map { (String($0) as NSString).size(withAttributes: [.font: font]).width + 24 } ?? 0
+                if column < widths.count { widths[column] = max(widths[column], width) } else { widths.append(width) }
+            }
+        }
+        return widths
+    }
+}
+
+extension EnvironmentValues {
+    /// The reader's column, as wide as the reading width and the window allow (TranscriptScrollView); a table fits
+    /// its columns to it.
+    @Entry var transcriptColumnWidth: CGFloat = TranscriptReadingWidth.readableColumnWidth
 }

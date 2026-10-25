@@ -64,10 +64,15 @@ struct TranscriptMarkdownView: View {
         case .code(let text, let language):
             TranscriptCodeBlock(text: text, language: language, segmentIndex: segmentIndex)
         case .table(let table):
-            TranscriptMarkdownTableView(table: table, segmentIndex: segmentIndex)
+            TranscriptMarkdownTableView(table: table, segmentIndex: segmentIndex, indentation: indentation(of: block))
         case .divider:
             ThemeDivider().padding(.vertical, 4)
         }
+    }
+
+    /// The room `structuredBlocks` gives a block's quote bar and list marker, with the spacing after each, and its depth.
+    private func indentation(of block: TranscriptMarkdownBlock) -> CGFloat {
+        (block.quoteDepth > 0 ? 3 + 10 : 0) + (block.listDepth > 0 ? 18 + 10 : 0) + CGFloat(max(0, block.listDepth - 1)) * 20
     }
 
     /// A list item copies with its marker, indented by its depth; a later paragraph of the item, without a marker, lines
