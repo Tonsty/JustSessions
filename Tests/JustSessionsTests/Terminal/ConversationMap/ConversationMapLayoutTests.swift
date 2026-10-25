@@ -4,6 +4,7 @@ import Testing
 
 /// Where the conversation map draws (TAB-10): at its natural pitch from the top while a conversation fits, squeezed to
 /// the column's height once it doesn't, one bar per pixel row in the strongest ink, and bookmark chips that never overlap.
+/// Scrolling past the minimum pitch is in `ConversationMapScrollingTests`.
 @MainActor
 struct ConversationMapLayoutTests {
     private static func block(_ record: Int, _ kind: ConversationOutline.Block.Kind, widths: [UInt8] = [40], part: Int = 0,
@@ -156,10 +157,12 @@ struct ConversationMapLayoutTests {
 
     @Test func metricsScaleWithInterfaceSize() {
         #expect(InterfaceScale.points(70, at: 1.5) == 105)
-        #expect(ConversationMapMetrics.columnWidth(at: 1.5) == 105)
+        #expect(ConversationMapMetrics.columnWidth(at: 1.5) == 165)
+        #expect(ConversationMapMetrics.minimumRowPitch(at: 1.5) == 1.5)
         #expect(ConversationMapMetrics.naturalRowPitch(at: 1.5) == 4.5)
         #expect(ConversationMapMetrics.chipSide(at: 1.5) == 21)
-        #expect(ConversationMapMetrics.columnWidth(at: 1) == 70)
+        #expect(ConversationMapMetrics.columnWidth(at: 1) == 110)
+        #expect(ConversationMapMetrics.labelChipMaximumWidth(at: 1) == 89)
         #expect(ConversationMapMetrics.columnWidth == ConversationMapMetrics.columnWidth(at: InterfaceScale.factor))
     }
 }
