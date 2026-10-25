@@ -94,4 +94,34 @@ struct KiroV3DeletionTests {
         #expect(!FileManager.default.fileExists(atPath: reportFile.path))
         #expect(FileManager.default.fileExists(atPath: written.messagesFile.path))
     }
+
+
+    /// Kiro CLI 2.34.0 deletes a V3 session a running CLI holds, whose next turn writes its folder again.
+    @Test func aSessionARunningCLIHoldsIsNotHandedToKiro() throws {
+        let home = try Home()
+        defer { home.remove() }
+        let selected = try KiroV3SessionFixture(sessionsRoot: home.sessionsRoot).writeSession(projectPath: home.projectDirectory.path)
+        try KiroSessionLockTests.writeLock(processID: getpid(), startedAt: .now, fractionalDigits: 3,
+                                           to: selected.folder.appendingPathComponent(".lock"))
+        let adapter = try home.adapter(running: Self.successfulDeletionScript)
+        let conversation = try #require(adapter.discover().first)
+
+        #expect(throws: KiroConversationDeletionError.stillRunning) { try adapter.delete(conversation) }
+        #expect(FileManager.default.fileExists(atPath: selected.messagesFile.path))
+    }
+
+    /// The prompts Kiro keeps for a V3 session sit in `sessions/cli`, named for its `sess_` id.
+    @Test func thePromptsKiroLeavesInTheClassicFolderGoWithTheSession() throws {
+        let home = try Home()
+        defer { home.remove() }
+        let selected = try KiroV3SessionFixture(sessionsRoot: home.sessionsRoot).writeSession(projectPath: home.projectDirectory.path)
+        let history = home.classicDirectory.appendingPathComponent("\(selected.sessionID).history")
+        try "Reply with exactly LOCK.\n".write(to: history, atomically: true, encoding: .utf8)
+        let adapter = try home.adapter(running: Self.successfulDeletionScript)
+
+        try adapter.delete(try #require(adapter.discover().first))
+
+        #expect(!FileManager.default.fileExists(atPath: selected.folder.path))
+        #expect(!FileManager.default.fileExists(atPath: history.path))
+    }
 }

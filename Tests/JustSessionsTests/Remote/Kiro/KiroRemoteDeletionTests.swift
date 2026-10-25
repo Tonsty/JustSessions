@@ -90,4 +90,46 @@ struct KiroRemoteDeletionTests {
         #expect(recorder.commands.isEmpty)
         #expect(FileManager.default.fileExists(atPath: fixture.conversation.sourceFile.path))
     }
+
+
+    /// As on this Mac: a session a running CLI holds isn't handed to Kiro, which would say it deleted it.
+    @Test func aSessionARunningCLIHoldsOnTheHostIsNotHandedToKiro() throws {
+        let fixture = try RemoteKiroFixture()
+        defer { fixture.remove() }
+        let sessionFile = fixture.sessionsDirectory.appendingPathComponent("\(fixture.conversation.sessionID).jsonl")
+        try KiroSessionLockTests.writeLock(processID: getpid(), startedAt: .now, to: KiroSessionLock.file(forSessionFile: sessionFile))
+        let ranFile = fixture.root.appendingPathComponent("ran")
+        let deletion = RemoteConversationDeletion(runner: try fixture.runner(running: "#!/bin/sh\ntouch \(ShellQuoting.quoted(ranFile.path))\n"))
+
+        do {
+            try deletion.delete(fixture.conversation)
+            Issue.record("A session a running CLI holds should not be deleted")
+        } catch let error as RemoteConversationDeletionError {
+            guard case let .failed(_, details) = error else {
+                Issue.record("\(error)")
+                return
+            }
+            #expect(details == KiroConversationDeletionError.stillRunning.localizedDescription)
+        }
+
+        #expect(!FileManager.default.fileExists(atPath: ranFile.path))
+        #expect(FileManager.default.fileExists(atPath: sessionFile.path))
+        #expect(FileManager.default.fileExists(atPath: fixture.conversation.sourceFile.path))
+    }
+
+    @Test func theLockOfACLIThatEndedOnTheHostDoesNotStopTheDeletionAndThePromptsGoToo() throws {
+        let fixture = try RemoteKiroFixture()
+        defer { fixture.remove() }
+        let sessionFile = fixture.sessionsDirectory.appendingPathComponent("\(fixture.conversation.sessionID).jsonl")
+        try KiroSessionLockTests.writeLock(processID: try KiroSessionLockTests.endedProcessID(), startedAt: .now,
+                                           to: KiroSessionLock.file(forSessionFile: sessionFile))
+        let history = fixture.sessionsDirectory.appendingPathComponent("\(fixture.conversation.sessionID).history")
+        try "Fix the login bug\n".write(to: history, atomically: true, encoding: .utf8)
+
+        try RemoteConversationDeletion(runner: fixture.runner()).delete(fixture.conversation)
+
+        #expect(!FileManager.default.fileExists(atPath: sessionFile.path))
+        #expect(!FileManager.default.fileExists(atPath: history.path))
+        #expect(!FileManager.default.fileExists(atPath: KiroSessionLock.file(forSessionFile: sessionFile).path))
+    }
 }

@@ -93,4 +93,64 @@ struct KiroConversationDeletionTests {
         #expect(FileManager.default.fileExists(atPath: fixture.sessionsDirectory
             .appendingPathComponent("\(fixture.conversation.sessionID).\(retainedExtension)").path))
     }
+
+
+    /// Kiro CLI 2.34.0 keeps a session a running CLI holds and says it deleted it, so the app doesn't ask it.
+    @Test func aSessionARunningCLIHoldsIsNotHandedToKiro() throws {
+        let fixture = try KiroHomeFixture()
+        defer { fixture.remove() }
+        let lockFile = KiroSessionLock.file(forSessionFile: fixture.conversation.sourceFile)
+        try KiroSessionLockTests.writeLock(processID: getpid(), startedAt: .now, to: lockFile)
+        let ranFile = fixture.root.appendingPathComponent("ran")
+
+        #expect(throws: KiroConversationDeletionError.stillRunning) {
+            try fixture.delete(runningScript: "#!/bin/sh\ntouch \(ShellQuoting.quoted(ranFile.path))\n")
+        }
+
+        #expect(!FileManager.default.fileExists(atPath: ranFile.path))
+        #expect(FileManager.default.fileExists(atPath: fixture.conversation.sourceFile.path))
+        #expect(FileManager.default.fileExists(atPath: fixture.metadataFile.path))
+    }
+
+    /// A CLI that ended without removing its lock, as after a crash, doesn't stop the deletion, and its lock goes too.
+    @Test func theLockOfACLIThatEndedDoesNotStopTheDeletionAndGoesWithIt() throws {
+        let fixture = try KiroHomeFixture()
+        defer { fixture.remove() }
+        let lockFile = KiroSessionLock.file(forSessionFile: fixture.conversation.sourceFile)
+        try KiroSessionLockTests.writeLock(processID: try KiroSessionLockTests.endedProcessID(), startedAt: .now, to: lockFile)
+
+        try fixture.delete(runningScript: KiroHomeFixture.successfulDeletionScript)
+
+        #expect(!FileManager.default.fileExists(atPath: fixture.conversation.sourceFile.path))
+        #expect(!FileManager.default.fileExists(atPath: lockFile.path))
+    }
+
+    /// Kiro leaves `<id>.history`, the prompts typed in the session; it goes with the session, and another's stays.
+    @Test func thePromptsKiroLeavesGoWithTheSession() throws {
+        let fixture = try KiroHomeFixture()
+        defer { fixture.remove() }
+        let history = fixture.sessionsDirectory.appendingPathComponent("\(fixture.conversation.sessionID).history")
+        let otherHistory = fixture.sessionsDirectory.appendingPathComponent("\(UUID().uuidString.lowercased()).history")
+        try "Fix the login bug\n".write(to: history, atomically: true, encoding: .utf8)
+        try "Keep me\n".write(to: otherHistory, atomically: true, encoding: .utf8)
+
+        try fixture.delete(runningScript: KiroHomeFixture.successfulDeletionScript)
+
+        #expect(!FileManager.default.fileExists(atPath: history.path))
+        #expect(FileManager.default.fileExists(atPath: otherHistory.path))
+    }
+
+    @Test func aHistoryThatIsASymbolicLinkIsLeftWithWhatItPointsTo() throws {
+        let fixture = try KiroHomeFixture()
+        defer { fixture.remove() }
+        let target = fixture.root.appendingPathComponent("elsewhere.txt")
+        try "not Kiro's\n".write(to: target, atomically: true, encoding: .utf8)
+        let history = fixture.sessionsDirectory.appendingPathComponent("\(fixture.conversation.sessionID).history")
+        try FileManager.default.createSymbolicLink(at: history, withDestinationURL: target)
+
+        try fixture.delete(runningScript: KiroHomeFixture.successfulDeletionScript)
+
+        #expect(FileManager.default.fileExists(atPath: target.path))
+        #expect((try? FileManager.default.destinationOfSymbolicLink(atPath: history.path)) == target.path)
+    }
 }

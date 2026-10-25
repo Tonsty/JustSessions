@@ -1,6 +1,34 @@
 import Foundation
 
+/// As on this Mac (`KiroConversationDeletion`): a session a running Kiro CLI holds isn't handed to Kiro, and the prompts
+/// Kiro leaves in `sessions/cli/<id>.history`, with a V2 session's lock its CLI left, go once it has deleted the rest.
 enum RemoteKiroConversationDeletion {
+    /// Stops before Kiro runs when the lock file `$lock` still names a running process after about 2 seconds, as on this
+    /// Mac (`KiroSessionLock`). Unlike there, a process that took a crashed CLI's id since counts too, until it ends.
+    static let refusingWhileLocked = """
+        lock_is_held() {
+          [ -f "$lock" ] || return 1
+          pid=$(sed -n 's/.*"pid"[[:space:]]*:[[:space:]]*\\([0-9][0-9]*\\).*/\\1/p' "$lock" | head -n 1)
+          [ -n "$pid" ] && [ "$pid" -gt 1 ] && kill -0 "$pid" 2>/dev/null
+        }
+        if lock_is_held; then sleep 1; fi
+        if lock_is_held; then sleep 1; fi
+        if lock_is_held; then
+          echo \(ShellQuoting.quoted(KiroConversationDeletionError.stillRunning.localizedDescription)) >&2
+          exit 1
+        fi
+        """
+
+    /// `$dir/$id.<extension>` for each of `fileExtensions`, when it is a regular file.
+    static func removingLeftovers(_ fileExtensions: [String]) -> String {
+        fileExtensions.map { fileExtension in
+            """
+            leftover="$dir/$id.\(fileExtension)"
+            if [ -f "$leftover" ] && [ ! -L "$leftover" ]; then rm -f "$leftover"; fi
+            """
+        }.joined(separator: "\n")
+    }
+
     /// Targets the Kiro home the mirror copied from, whose `sessions/cli` is `sessionsFolder`, in `sh`; see
     /// `RemoteToolFolders.shellPath(for:)`.
     static func command(sessionID: String, projectPath: String, sessionsFolder: String, host: String) -> String {
@@ -8,6 +36,8 @@ enum RemoteKiroConversationDeletion {
             dir=\(sessionsFolder)
             id=\(ShellQuoting.quoted(sessionID))
             [ -f "$dir/$id.jsonl" ] && [ -f "$dir/$id.json" ] || exit \(RemoteConversationDeletion.missingTranscriptExitStatus)
+            lock="$dir/$id.lock"
+            \(refusingWhileLocked)
             if [ -d \(ShellQuoting.quoted(projectPath)) ]; then
               cd \(ShellQuoting.quoted(projectPath)) || exit 1
             fi
@@ -21,6 +51,7 @@ enum RemoteKiroConversationDeletion {
               echo 'Kiro CLI reported success, but the session files are still present.' >&2
               exit 1
             fi
+            \(removingLeftovers(["history", "lock"]))
             """
         return RemoteCLICommandBuilder.loginShellCommand("sh -c \(ShellQuoting.quoted(script))", on: host)
     }
@@ -35,6 +66,8 @@ enum RemoteKiroConversationDeletion {
             session="${dir%/cli}"/\(ShellQuoting.quoted(workspaceFolderName))/"$id"
             [ -f "$session/\(KiroV3Session.metadataFileName)" ] && [ -f "$session/\(KiroV3Session.messagesFileName)" ] \\
               || exit \(RemoteConversationDeletion.missingTranscriptExitStatus)
+            lock="$session/.lock"
+            \(refusingWhileLocked)
             if [ -d \(ShellQuoting.quoted(projectPath)) ]; then
               cd \(ShellQuoting.quoted(projectPath)) || exit 1
             fi
@@ -48,6 +81,7 @@ enum RemoteKiroConversationDeletion {
               echo 'Kiro CLI reported success, but the session folder is still present.' >&2
               exit 1
             fi
+            \(removingLeftovers(["history"]))
             """
         return RemoteCLICommandBuilder.loginShellCommand("sh -c \(ShellQuoting.quoted(script))", on: host)
     }
