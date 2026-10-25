@@ -948,6 +948,17 @@ JUSTSESSIONS_PERF=1 swift test -c release --no-parallel --filter 'TranscriptInte
 
 Without labels the branch overlaps `main`, except 200 hit tests at 240 entries with accessibility on: 8 to 11 ms above it this round, and overlapping it in the round before, whose code for a reader without labels was the same. With 26 labels on screen, the median step is up to 0.6 ms longer and 200 hit tests up to about 50 ms longer, the cost of drawing and passing over their text. The window holds as many AppKit views as `main`'s. Two earlier rounds on the branch led to this one. The first wrapped each entry's content in another stack and added 0.3 to 0.9 ms to the median step even with no bookmarks; the label line now sits in the entry's own stack. The second let the labels take hit tests, which then cost 10 to 45 ms more than in `main`'s labelled runs.
 
+**The pointer chooses the message being read, 25 October 2026:** with the pointer over a reader, the message at its height is the one ⌘D bookmarks and the mark sits beside (RDR-48). One `NSTrackingArea` on the reader's scroll view hands each move to `TranscriptScrollPositionController.pointerMoved(to:)`, which sends `readingUpdates`, the path a scroll update takes; `entryIDAtPointer()` finds the row by binary search, and the mark still moves only when its message changes. The mark now answers hit tests for clicks in its slot, never for the pointer's moves. `TranscriptInteractionMeasurements/readingWithTheBookmarkCommandsOn` ran three times on `main` (`b68e534f`) and the branch, alternating, in release builds, with a new `measurePointerMoves`: 200 moves down the middle of the transcript, each handed over as the tracking area hands it, then laid out and drawn. Apple M4 Pro, macOS 26.6.1, load average 3.5 to 7.2, not isolated.
+
+| Reader, bookmark commands on | Accessibility | Scroll step, `main` | Scroll step, branch | 200 hit tests, `main` | 200 hit tests, branch | 200 pointer moves, branch |
+| --- | --- | --- | --- | --- | --- | --- |
+| 240 entries | off | 7.7–8.3 ms | 8.0–8.1 ms | 329–336 ms | 329–332 ms | 18.1–19.4 ms |
+| 240 entries | on | 7.9–8.3 ms | 8.0–8.4 ms | 326–332 ms | 326–335 ms | 16.4–17.8 ms |
+| 640 entries | off | 26.1–27.0 ms | 25.8–27.5 ms | 871–953 ms | 855–949 ms | 49.5–55.4 ms |
+| 640 entries | on | 26.0–27.9 ms | 25.3–27.7 ms | 858–946 ms | 879–943 ms | 45.1–49.4 ms |
+
+Scroll steps and hit tests fall within `main`'s spread, and the window holds the same 1,734 and 4,534 AppKit views. A pointer move costs about 0.1 ms at 240 entries and 0.25 ms at 640, with the layout and drawing of its turn; `main` has no such path to compare.
+
 ### 35. The conversation map beside CLI tabs
 
 **Evidence:** View → Show Conversation Map (TAB-09, TAB-10) puts a column beside every CLI tab, reads an outline of each tab's session from its file, and draws it next to the terminal: the hot paths of PERF-80 to PERF-84 and item 25. A read on the main thread, a terminal view that takes the map as an input, or a map that keeps working while its tab or window is out of sight would bring back the costs those items removed.

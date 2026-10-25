@@ -168,4 +168,19 @@ struct MessageBookmarkNavigationTests {
         #expect(MessageBookmarkNavigation.messageBeingRead(in: entries, visibleEntryIDs: [id(3), id(4)], seekTarget: nil) == entries[1])
         #expect(MessageBookmarkNavigation.messageBeingRead(in: entries, visibleEntryIDs: [], seekTarget: nil) == nil)
     }
+
+    /// The pointer over a tool run or a note reads the message above it, or below at the very top (RDR-48).
+    @Test func thePointersMessageIsTheEntryOrTheNearestMessageAboveIt() {
+        let entries = [
+            TranscriptEntry(id: 1, content: .note("Compacted"), timestamp: nil, startsTurn: false),
+            TranscriptEntry(id: 2, content: .userMessage("Fix it"), timestamp: nil, startsTurn: true),
+            TranscriptEntry(id: 3, content: .toolCalls(["Run make"]), timestamp: nil, startsTurn: true),
+            TranscriptEntry(id: 4, content: .assistantMessage("Done"), timestamp: nil, startsTurn: false),
+        ]
+
+        #expect(MessageBookmarkNavigation.message(at: 4, in: entries)?.id == 4)
+        #expect(MessageBookmarkNavigation.message(at: 3, in: entries)?.id == 2)
+        #expect(MessageBookmarkNavigation.message(at: 1, in: entries)?.id == 2)
+        #expect(MessageBookmarkNavigation.message(at: 9, in: entries) == nil)
+    }
 }

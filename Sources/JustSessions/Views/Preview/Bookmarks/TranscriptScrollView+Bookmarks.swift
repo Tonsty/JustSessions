@@ -15,7 +15,9 @@ extension TranscriptScrollView {
         return TranscriptBookmarkCommandTarget(toggleBookmark: toggleBookmarkOnMessageBeingRead,
                                                goToAdjacentBookmark: goToAdjacentBookmark(forward:),
                                                contextMenuItems: bookmarkMenuItems(forEntryAt:),
-                                               editBookmark: editBookmarkOnMessageBeingRead)
+                                               editBookmark: editBookmarkOnMessageBeingRead,
+                                               toggleBookmarkOnEntry: { entryID in loadedMessage(entryID).map(toggleBookmark(on:)) },
+                                               editBookmarkOnEntry: { entryID in loadedMessage(entryID).map(editBookmark(on:)) })
     }
 
     var bookmarkMenu: TranscriptBookmarkMenu? {
@@ -26,8 +28,15 @@ extension TranscriptScrollView {
                                       onRemoveAll: removeAllBookmarks)
     }
 
+    /// The message under the pointer while it is over the reader, unless a jump went elsewhere since it last moved;
+    /// otherwise the jumped-to message, or the first on screen (RDR-48).
     var messageBeingRead: TranscriptEntry? {
-        MessageBookmarkNavigation.messageBeingRead(
+        if positionController.pointerMovedSinceSeek || positionController.seekTarget == nil,
+           let entryID = positionController.entryIDAtPointer(),
+           let entry = MessageBookmarkNavigation.message(at: entryID, in: transcript.entries) {
+            return entry
+        }
+        return MessageBookmarkNavigation.messageBeingRead(
             in: transcript.entries,
             visibleEntryIDs: positionController.visibleEntryIDs(minimumVisibleHeight: MessageBookmarkNavigation.minimumVisibleHeight),
             seekTarget: positionController.seekTarget)
@@ -44,6 +53,14 @@ extension TranscriptScrollView {
         }
         bookmarkState.target.show(TranscriptBookmarkTarget.Shown(
             entryID: entry.id, frame: frame, topPadding: TranscriptEntryView.topPadding(startsTurn: entry.startsTurn)))
+    }
+
+    /// A loaded entry that can be bookmarked; none while a jump's page loads, as ⌘D does nothing then.
+    private func loadedMessage(_ entryID: Int) -> TranscriptEntry? {
+        guard bookmarksAreEnabled, bookmarkState.loadingJump == nil, bookmarkState.loadingEntryJump == nil,
+              let entry = transcript.entries.first(where: { $0.id == entryID }), MessageBookmark.Kind(entry.content) != nil
+        else { return nil }
+        return entry
     }
 
     func toggleBookmarkOnMessageBeingRead() {

@@ -47,6 +47,7 @@ struct TranscriptInteractionMeasurements {
             perfReport(label, "AppKit views in the window", harness.viewCount)
             for (name, value) in try await harness.measureScrolling() { perfReport(label, name, value) }
             for (name, value) in try await harness.measureHitTesting() { perfReport(label, name, value) }
+            for (name, value) in try await harness.measurePointerMoves() { perfReport(label, name, value) }
         }
         #expect(entryCount > 0) // Record-only: the numbers above are the result.
     }
@@ -222,6 +223,32 @@ final class TranscriptPerfHarness {
             }
         }
         return [("hit test: 200 points", perfMilliseconds(total))]
+    }
+
+    /// The pointer moving down the reader with the bookmark commands on (RDR-48): 200 moves over the middle of the
+    /// transcript, each handed to the reader as its tracking area hands it, which finds the row at the pointer's height and
+    /// moves the mark when that message changes. Reports the time to handle them, then the mark's moves.
+    func measurePointerMoves() async throws -> [(String, String)] {
+        try await resetViewport(to: .middle)
+        guard let controller = Self.descendant(ofType: TranscriptEntryGeometryView.self, in: hostingView)?.controller else { return [] }
+        let bounds = hostingView.bounds
+        let locations = (0..<200).map { index in
+            hostingView.convert(NSPoint(x: bounds.midX, y: bounds.minY + bounds.height * CGFloat(index + 1) / 201), to: nil)
+        }
+        var handled = Duration.zero
+        for location in locations {
+            handled += turn { controller.pointerMoved(to: location) }
+        }
+        try await pumpTurns(2)
+        controller.pointerLeft()
+        try await pumpTurns(2)
+        return [("pointer: 200 moves", perfMilliseconds(handled))]
+    }
+
+    private static func descendant<View: NSView>(ofType type: View.Type, in view: NSView) -> View? {
+        if let view = view as? View { return view }
+        for subview in view.subviews { if let found = descendant(ofType: type, in: subview) { return found } }
+        return nil
     }
 
     /// Opening and closing Find without a query updates every text block, as any change to the search context does.
