@@ -931,6 +931,23 @@ JUSTSESSIONS_PERF=1 swift test -c release --no-parallel --filter 'TranscriptInte
 - **Absolute numbers are this Mac's:** they sit above PERF-60's, which an M4 Max measured; the comparison is between the columns.
 - **Not measured:** a bookmark jump's scroll updates, which look up one row's frame until it leaves the viewport; the harness doesn't jump.
 
+**Labels above their messages, 24 October 2026:** a labelled bookmark's label now shows above its message (RDR-51): on the speaker's line where the message starts a turn, else on a line of its own. `TranscriptBookmarkLabel`, inside each of your messages and the CLI's replies, alone reads the bookmarks there, so `TranscriptEntryView`'s body still never does, and it takes no hit tests (PERF-73). The whole `TranscriptInteractionMeasurements` suite ran three times on `main` (`91b63fe3`) and the branch, alternating, in release builds, one test at a time, on an Apple M4 Pro, macOS 26.6.1, load average 2.5 to 3.0, not isolated. Ranges of the three runs' medians:
+
+| Reader | Accessibility | Scroll step, `main` | Scroll step, branch | 200 hit tests, `main` | 200 hit tests, branch |
+| --- | --- | --- | --- | --- | --- |
+| 240 entries, no bookmarks | off | 7.9–8.2 ms | 8.2–8.3 ms | 333–336 ms | 331–334 ms |
+| 240 entries, no bookmarks | on | 8.2–8.3 ms | 8.0–8.4 ms | 322–324 ms | 332–333 ms |
+| 640 entries, no bookmarks | off | 26.0–26.5 ms | 26.1–26.8 ms | 866–876 ms | 860–902 ms |
+| 640 entries, no bookmarks | on | 26.1–26.8 ms | 26.3–27.0 ms | 854–883 ms | 869–882 ms |
+| 240 entries, 26 letters | off | 8.3–8.6 ms | 8.5–8.9 ms | 327–336 ms | 330–332 ms |
+| 240 entries, 26 letters | on | 8.9–9.2 ms | 9.1–9.2 ms | 326–334 ms | 326–334 ms |
+| 240 entries, 26 labelled | off | 8.6–8.8 ms | 9.1–9.2 ms | 343–352 ms | 359–363 ms |
+| 240 entries, 26 labelled | on | 9.1–9.2 ms | 9.2–9.4 ms | 345–353 ms | 351–361 ms |
+| 640 entries, 26 labelled | off | 26.9–27.3 ms | 27.1–27.8 ms | 880–922 ms | 888–919 ms |
+| 640 entries, 26 labelled | on | 26.6–27.7 ms | 27.4–27.7 ms | 874–904 ms | 913–923 ms |
+
+Without labels the branch overlaps `main`, except 200 hit tests at 240 entries with accessibility on: 8 to 11 ms above it this round, and overlapping it in the round before, whose code for a reader without labels was the same. With 26 labels on screen, the median step is up to 0.6 ms longer and 200 hit tests up to about 50 ms longer, the cost of drawing and passing over their text. The window holds as many AppKit views as `main`'s. Two earlier rounds on the branch led to this one. The first wrapped each entry's content in another stack and added 0.3 to 0.9 ms to the median step even with no bookmarks; the label line now sits in the entry's own stack. The second let the labels take hit tests, which then cost 10 to 45 ms more than in `main`'s labelled runs.
+
 ### 35. The conversation map beside CLI tabs
 
 **Evidence:** View → Show Conversation Map (TAB-09, TAB-10) puts a column beside every CLI tab, reads an outline of each tab's session from its file, and draws it next to the terminal: the hot paths of PERF-80 to PERF-84 and item 25. A read on the main thread, a terminal view that takes the map as an input, or a map that keeps working while its tab or window is out of sight would bring back the costs those items removed.

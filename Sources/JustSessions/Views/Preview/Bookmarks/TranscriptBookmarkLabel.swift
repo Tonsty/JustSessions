@@ -23,6 +23,8 @@ struct TranscriptBookmarkLabel: View {
             .padding(.horizontal, 6)
             .padding(.vertical, 1)
             .background(ThemePalette.trackFill, in: RoundedRectangle(.small))
+            // Not for the pointer: the letter shows the card, and hit tests then pass it by, as they do the text around it.
+            .allowsHitTesting(false)
             // The letter's own label reads it, with the tags (RDR-51).
             .accessibilityHidden(true)
         }

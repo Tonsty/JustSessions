@@ -9,12 +9,14 @@ struct TranscriptEntryView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            if entry.startsTurn { speakerLabel }
-            // A labelled bookmark's label, on a line of its own where no speaker line has room for it.
-            VStack(alignment: .leading, spacing: 6) {
-                if !entry.startsTurn, isBookmarkable { TranscriptBookmarkLabel() }
-                entryContent
+            if entry.startsTurn {
+                speakerLabel
+            } else if isBookmarkable {
+                // A labelled bookmark's label, on a line of its own, spaced as a speaker's line, where none has room
+                // for it. Empty, it takes no space.
+                TranscriptBookmarkLabel()
             }
+            entryContent
         }
         .font(.system(size: fontSize))
         .frame(maxWidth: .infinity, alignment: .leading)
