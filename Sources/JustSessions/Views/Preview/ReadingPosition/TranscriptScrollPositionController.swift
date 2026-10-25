@@ -26,6 +26,11 @@ final class TranscriptScrollPositionController {
     private var hasAppliedRestoration = false
     private var restoresDuringLayout = false
     private var scrollWheelMonitor: Any?
+    /// The pointer, in the window's coordinates, while it is over the reader (RDR-48).
+    private(set) var pointerLocation: CGPoint?
+    /// Whether the pointer moved since a jump set the seek target; until it does, the jumped-to message is the one read.
+    private(set) var pointerMovedSinceSeek = false
+    private var pointerTracking: TranscriptPointerTracking?
 
     var isRestoring: Bool { pendingRestoration != nil }
     /// How long the layout stays put before a restoration ends. Tests lengthen it to act while one is pending.
@@ -100,6 +105,7 @@ final class TranscriptScrollPositionController {
                 }
                 .store(in: &observations)
             monitorScrollWheel()
+            trackPointer(in: scrollView)
         }
         geometryDidLayout()
         scheduleUpdate()
@@ -125,6 +131,54 @@ final class TranscriptScrollPositionController {
         geometryIndexByEntry.removeAll()
         if let scrollWheelMonitor { NSEvent.removeMonitor(scrollWheelMonitor) }
         scrollWheelMonitor = nil
+        pointerTracking?.remove()
+        pointerTracking = nil
+        pointerLocation = nil
+    }
+
+    /// One tracking area over the scroll view, whose moves update the bookmark target as scrolling does: through
+    /// `readingUpdates`, with no SwiftUI view following the pointer (PERF-73).
+    private func trackPointer(in scrollView: NSScrollView) {
+        pointerTracking?.remove()
+        pointerTracking = TranscriptPointerTracking(controller: self, view: scrollView)
+    }
+
+    func pointerMoved(to locationInWindow: CGPoint) {
+        guard !isStopped else { return }
+        pointerLocation = locationInWindow
+        pointerMovedSinceSeek = true
+        readingUpdates.send()
+    }
+
+    func pointerLeft() {
+        guard pointerLocation != nil else { return }
+        pointerLocation = nil
+        readingUpdates.send()
+    }
+
+    /// The entry whose row is at the pointer's height, wherever across the reader the pointer is, its gutter included, by
+    /// binary search of the rows; nil while the pointer is outside the reader or over the toolbar above its text.
+    func entryIDAtPointer() -> Int? {
+        guard let pointerLocation, let scrollView, let geometryView, geometryView.enclosingScrollView === scrollView,
+              scrollView.window != nil, !entryGeometries.isEmpty else { return nil }
+        let clipView = scrollView.contentView
+        let point = clipView.convert(pointerLocation, from: nil)
+        let readable = Self.readableBounds(of: clipView)
+        guard point.y >= readable.minY, point.y <= readable.maxY else { return nil }
+        let y = geometryView.convert(point, from: clipView).y
+        var low = 0
+        var high = entryGeometries.count - 1
+        var found: Int?
+        while low <= high {
+            let middle = (low + high) / 2
+            if entryGeometries[middle].frame.minY <= y {
+                found = middle
+                low = middle + 1
+            } else {
+                high = middle - 1
+            }
+        }
+        return found.map { entryGeometries[$0].entryIndex }
     }
 
     private func monitorScrollWheel() {
@@ -253,7 +307,9 @@ final class TranscriptScrollPositionController {
     /// acts on it: the reading position is unknown while a restoration is pending (`currentReadingPosition()`), and an entry
     /// near the end can't reach the top (`constrainBoundsRect`). It lasts while pending, while its row overlaps the viewport,
     /// or while it isn't laid out (a page loading, or a missing message), until a scroll over the transcript.
-    private var seekTargetStorage: Int?
+    private var seekTargetStorage: Int? {
+        didSet { if let seekTargetStorage, seekTargetStorage != oldValue { pointerMovedSinceSeek = false } }
+    }
 
     var seekTarget: Int? {
         forgetSeekTargetOutOfView()
@@ -331,4 +387,39 @@ final class TranscriptScrollPositionController {
         guard lowerBound < entryGeometries.count, entryGeometries[lowerBound].frame.minY < bounds.maxY else { return nil }
         return lowerBound
     }
+}
+
+/// The tracking area over a reader's scroll view, with its owner, which the area doesn't keep.
+@MainActor
+private final class TranscriptPointerTracking {
+    private let area: NSTrackingArea
+    private let owner: TranscriptPointerTrackingOwner
+    private weak var view: NSView?
+
+    init(controller: TranscriptScrollPositionController, view: NSView) {
+        owner = TranscriptPointerTrackingOwner(controller: controller)
+        area = NSTrackingArea(rect: .zero, options: [.mouseMoved, .mouseEnteredAndExited, .activeInActiveApp, .inVisibleRect],
+                              owner: owner, userInfo: nil)
+        self.view = view
+        view.addTrackingArea(area)
+    }
+
+    func remove() { view?.removeTrackingArea(area) }
+}
+
+/// Hands the pointer's moves over a reader's scroll view to its position controller.
+@MainActor
+private final class TranscriptPointerTrackingOwner: NSResponder {
+    weak var controller: TranscriptScrollPositionController?
+
+    init(controller: TranscriptScrollPositionController) {
+        self.controller = controller
+        super.init()
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    override func mouseMoved(with event: NSEvent) { controller?.pointerMoved(to: event.locationInWindow) }
+    override func mouseEntered(with event: NSEvent) { controller?.pointerMoved(to: event.locationInWindow) }
+    override func mouseExited(with event: NSEvent) { controller?.pointerLeft() }
 }

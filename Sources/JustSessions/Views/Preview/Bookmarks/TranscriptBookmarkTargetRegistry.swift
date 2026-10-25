@@ -9,6 +9,9 @@ struct TranscriptBookmarkCommandTarget {
     let contextMenuItems: @MainActor (_ entryID: Int) -> [NSMenuItem]
     /// Edit Bookmark… (⇧⌘D): the message's bookmark, adding one first when it has none (RDR-51).
     var editBookmark: @MainActor () -> Void = {}
+    /// As `toggleBookmark` and `editBookmark`, on the loaded message with this entry ID: the mark's (RDR-48).
+    var toggleBookmarkOnEntry: @MainActor (_ entryID: Int) -> Void = { _ in }
+    var editBookmarkOnEntry: @MainActor (_ entryID: Int) -> Void = { _ in }
 }
 
 /// The visible reader of a window, as `TextZoomTargetRegistry` finds what a window shows.

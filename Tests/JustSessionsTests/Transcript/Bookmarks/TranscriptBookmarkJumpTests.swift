@@ -408,4 +408,72 @@ struct TranscriptBookmarkJumpTests {
         #expect(reader.bookmarkState.target.shown?.entryID == id(598))
         #expect(reader.controller.visibleEntryIDs(minimumVisibleHeight: MessageBookmarkNavigation.minimumVisibleHeight).first != id(598))
     }
+
+    /// Where the middle of the row of `entryID` is in the reader's window, as the pointer would be over it; `x` across the
+    /// reader, 4 for its gutter.
+    private func pointerLocation(over entryID: Int, x: CGFloat? = nil, in reader: Reader) throws -> CGPoint {
+        let frame = try #require(reader.controller.entryFrameInClipView(at: entryID))
+        let point = CGPoint(x: x ?? frame.midX, y: frame.midY)
+        return reader.scrollView.contentView.convert(point, to: nil)
+    }
+
+    private func visibleMessages(in reader: Reader) -> [Int] {
+        reader.controller.visibleEntryIDs(minimumVisibleHeight: MessageBookmarkNavigation.minimumVisibleHeight)
+    }
+
+    /// With the pointer over the reader, the message under it is the one ⌘D bookmarks and the mark is beside, wherever
+    /// across the reader the pointer is; once it leaves, the first message on screen again (RDR-48).
+    @Test func thePointerChoosesTheMessageBeingRead() async throws {
+        let reader = try await openReader()
+        defer { reader.close() }
+        let visible = visibleMessages(in: reader)
+        try #require(visible.count >= 3)
+        let underPointer = visible[2]
+
+        reader.controller.pointerMoved(to: try pointerLocation(over: underPointer, x: 4, in: reader))
+        try await reader.fixture.waitUntil { reader.bookmarkState.target.shown?.entryID == underPointer }
+        try reader.commands.toggleBookmark()
+
+        #expect(reader.savedBookmarks.map(\.entryID) == [underPointer])
+        reader.controller.pointerLeft()
+        try await reader.fixture.waitUntil { reader.bookmarkState.target.shown?.entryID == visible[0] }
+    }
+
+    /// A jump keeps its message as the one being read until the pointer moves; scrolling then follows the pointer.
+    @Test func aJumpWinsUntilThePointerMovesAgain() async throws {
+        let reader = try await openReader(bookmarks: [bookmark("a", at: 560)])
+        defer { reader.close() }
+        let other = visibleMessages(in: reader)[1]
+        reader.controller.pointerMoved(to: try pointerLocation(over: other, in: reader))
+        try await reader.fixture.waitUntil { reader.bookmarkState.target.shown?.entryID == other }
+
+        try reader.commands.goToAdjacentBookmark(true)
+        try await reader.fixture.waitUntil { showsAtTopNow(id(560), in: reader) }
+
+        #expect(reader.bookmarkState.target.shown?.entryID == id(560))
+        let underPointer = visibleMessages(in: reader)[2]
+        reader.controller.pointerMoved(to: try pointerLocation(over: underPointer, in: reader))
+        try await reader.fixture.waitUntil { reader.bookmarkState.target.shown?.entryID == underPointer }
+    }
+
+    private func showsAtTopNow(_ entryID: Int, in reader: Reader) -> Bool {
+        !reader.paging.isLoading && !reader.controller.isRestoring && reader.showsAtTop(entryID)
+    }
+
+    /// The mark's click adds and removes its message's bookmark; its right-click menu edits it.
+    @Test func theMarksClickTogglesItsMessagesBookmarkAndItsMenuEditsIt() async throws {
+        let reader = try await openReader()
+        defer { reader.close() }
+        let message = visibleMessages(in: reader)[1]
+        let commands = try reader.commands
+
+        commands.toggleBookmarkOnEntry(message)
+        #expect(reader.savedBookmarks.map(\.entryID) == [message])
+        try reader.commands.toggleBookmarkOnEntry(message)
+        #expect(reader.savedBookmarks.isEmpty)
+
+        try reader.commands.editBookmarkOnEntry(message)
+        #expect(reader.savedBookmarks.map(\.entryID) == [message])
+        try await reader.fixture.waitUntil { reader.bookmarkState.editor.request != nil }
+    }
 }

@@ -61,6 +61,14 @@ enum MessageBookmarkNavigation {
 
     /// Rules 1–3 of "the message being read": the seek target, then the first message with `minimumVisibleHeight` on
     /// screen, then the last message above the first visible entry. `visibleEntryIDs` are those with that much on screen.
+    /// The message whose stretch of the reader `entryID`'s row is in: that entry when it is your message or the CLI's
+    /// reply, else the nearest such above it, or below when none is above, as for a tool run or a note (RDR-48).
+    static func message(at entryID: Int, in entries: [TranscriptEntry]) -> TranscriptEntry? {
+        func isMessage(_ entry: TranscriptEntry) -> Bool { MessageBookmark.Kind(entry.content) != nil }
+        guard let index = entries.firstIndex(where: { $0.id == entryID }) else { return nil }
+        return entries[...index].last(where: isMessage) ?? entries[index...].first(where: isMessage)
+    }
+
     static func messageBeingRead(in entries: [TranscriptEntry], visibleEntryIDs: [Int], seekTarget: Int?) -> TranscriptEntry? {
         func isMessage(_ entry: TranscriptEntry) -> Bool { MessageBookmark.Kind(entry.content) != nil }
         if let seekTarget, let entry = entries.first(where: { $0.id == seekTarget }), isMessage(entry) { return entry }

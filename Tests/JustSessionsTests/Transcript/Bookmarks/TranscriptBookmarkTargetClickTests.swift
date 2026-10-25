@@ -2,9 +2,9 @@ import AppKit
 import Testing
 @testable import JustSessions
 
-/// The mark beside the message ⌘D would bookmark (RDR-48): its outline bookmark takes a click while the message has no
-/// letter; a letter, and the rest of the gutter, let clicks through to what is under them. Points are in the marks view's
-/// parent's coordinates, as AppKit passes them going down the view tree.
+/// The mark beside the message ⌘D would bookmark (RDR-48): its slot takes clicks and right-clicks, with a letter or
+/// without; the pointer's moves pass through it, so a labelled letter under it still shows its card, and the rest of the
+/// gutter lets clicks through. Points are in the marks view's parent's coordinates, as AppKit passes them down the tree.
 @MainActor
 struct TranscriptBookmarkTargetClickTests {
     private static func marks(letters: [MessageBookmark]) -> (container: NSView, marks: TranscriptBookmarkTargetMarksView) {
@@ -22,29 +22,42 @@ struct TranscriptBookmarkTargetClickTests {
     }
 
     /// The slot is 16 points square at x 4 (24 - 16 - 4), from the message's first line at y 112.
-    @Test func theOutlineBookmarkOfAMessageWithoutOneTakesTheClick() {
+    @Test func theSlotTakesClicksAndRightClicksButNotThePointersMoves() {
         let (_, marks) = Self.marks(letters: [])
+        let slot = NSPoint(x: 12, y: 118)
 
-        let hit = marks.hitTest(NSPoint(x: 12, y: 118))
+        let hit = marks.clickTarget(at: slot, for: .leftMouseDown)
 
         #expect(hit is TranscriptBookmarkTargetMarkView)
         #expect(hit?.isAccessibilityElement() == true)
         #expect(hit?.accessibilityRole() == .button)
-        #expect(marks.hitTest(NSPoint(x: 12, y: 160)) == nil)   // the line down the rest of the message
-        #expect(marks.hitTest(NSPoint(x: 12, y: 60)) == nil)
+        #expect(hit?.accessibilityLabel() == "Add bookmark")
+        #expect(marks.clickTarget(at: slot, for: .rightMouseDown) === hit)
+        #expect(marks.clickTarget(at: slot, for: .mouseMoved) == nil)
+        #expect(marks.clickTarget(at: slot, for: nil) == nil)
+        #expect(marks.clickTarget(at: NSPoint(x: 12, y: 160), for: .leftMouseDown) == nil)   // the line down the message
+        #expect(marks.clickTarget(at: NSPoint(x: 12, y: 60), for: .leftMouseDown) == nil)
     }
 
-    @Test func aMessageWithALetterLetsTheClickThroughToIt() {
+    /// A click there again removes the bookmark; the pointer still reaches the letter for its card.
+    @Test func aMessageWithALetterTakesTheClickToRemoveIt() {
         let bookmark = MessageBookmark(letter: "a", entryID: 4, kind: .assistant, snippet: "")
         let (_, marks) = Self.marks(letters: [bookmark])
+        let slot = NSPoint(x: 12, y: 118)
 
-        #expect(marks.hitTest(NSPoint(x: 12, y: 118)) == nil)
+        let hit = marks.clickTarget(at: slot, for: .leftMouseUp)
+
+        #expect(hit is TranscriptBookmarkTargetMarkView)
+        #expect(hit?.accessibilityLabel() == "Remove bookmark a")
+        #expect(hit?.accessibilityCustomActions()?.map(\.name) == ["Edit bookmark a…"])
+        #expect(hit?.toolTip == nil)
+        #expect(marks.clickTarget(at: slot, for: .mouseMoved) == nil)
     }
 
     @Test func noTargetTakesNothing() {
         let (_, marks) = Self.marks(letters: [])
         marks.show(nil)
 
-        #expect(marks.hitTest(NSPoint(x: 12, y: 118)) == nil)
+        #expect(marks.clickTarget(at: NSPoint(x: 12, y: 118), for: .leftMouseDown) == nil)
     }
 }
