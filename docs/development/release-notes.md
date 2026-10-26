@@ -33,6 +33,18 @@ Compare the previous release tag with the candidate commit. Read the relevant co
 
 If essential changes cannot fit, revise this standard explicitly in the release PR with a reason before tagging. Do not silently bypass a check or omit essential information.
 
+## Choosing the version
+
+Choose the version before writing the notes, from what users get since the previous release. Sparkle offers an update by its build number (`CFBundleVersion`, the publish run's number plus 19), so the version only tells people what kind of release it is.
+
+- **Major (2.0.0):** existing users must act or would lose something. For example, the minimum macOS version rises, a supported CLI or a relied-on feature goes, saved settings, bookmarks, or tabs change so an older version can't read them or must be migrated one way, or how sessions are found, resumed, or stored changes fundamentally.
+- **Minor (1.3.0):** a new capability, not an improvement to one: a newly supported CLI, a new surface such as the conversation map or bookmarks, or a new workflow or major setting.
+- **Patch (1.2.22):** fixes and refinements to what exists, including new options and shortcuts within an existing feature.
+
+When patch and minor both seem to fit, ask whether the release title names something users couldn't do at all before. If it does, make it a minor release. The highest level any change reaches decides, and a minor or major release resets the numbers after it to 0. Record the level and the change that decided it in the release PR.
+
+Before this standard, every release after 1.2.0 was a patch. By it, 1.2.18 (bookmarks and the conversation map) and 1.2.20 (Kiro CLI V3 sessions) would have been minor releases. Published versions keep their numbers.
+
 ## Pre-tag check
 
 Update `Sources/JustSessions/Resources/ReleaseNotes/releases.json`, keeping the candidate version first. Preview the copy while editing:
