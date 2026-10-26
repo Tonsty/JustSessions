@@ -32,6 +32,7 @@ For a faster loop while working, `make check` compiles the development build and
 
 Before creating or pushing any version tag, follow the [release-note writing standard](docs/development/release-notes.md). This is a required editorial check, alongside the build checks.
 
+- Choose the version first, as [Choosing the version](docs/development/release-notes.md#choosing-the-version) says: major for what users must act on or would lose, minor for a new capability, patch for fixes and refinements.
 - Aim for 1–3 bullets; use at most 5. Each bullet describes one concrete change a user will notice. English bullets have at most 20 words; Simplified Chinese bullets have at most 60 characters.
 - Compare each claim with the changes since the previous release. Preserve provider/host limitations and required user actions. Only claim performance gains supported by evidence.
 - Remove marketing, AI-style filler, implementation details, repeated points, and vague claims such as “bug fixes and improvements.” Group minor fixes into one final Fixed bullet, exactly “Small bug fixes.” / “修复了一些小问题。” Read both languages for meaning and brevity.
